@@ -5,9 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter } from "react-router-dom";
 import "@metap/ui/style.css";
 import "./index.css";
-import { ApiError } from "@metap/platform-ui";
+import { ApiError, ReactRouterNavigationProvider } from "@metap/platform-ui";
 import App from "./App";
-import { ReactRouterNavigationProvider } from "./reactRouterNavigationAdapter";
 
 const queryClient = new QueryClient({
   defaultOptions: {
