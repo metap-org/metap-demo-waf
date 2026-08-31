@@ -13,7 +13,9 @@
 //! `data-plane` holding its config. Something external reads `status: queued` records and drives
 //! them through `start`/`complete`/`fail` via the generic transition API.
 
-use metap::prelude::{EntityDefinition, EntityField, EntityListView, EntityWorkflow, FieldKind, WorkflowTransition};
+use metap::prelude::{
+    submit_entity, EntityDefinition, EntityField, EntityListView, EntityWorkflow, FieldKind, WorkflowTransition,
+};
 
 fn field(
     name: &str,
@@ -128,3 +130,5 @@ pub fn scan_job_entity() -> EntityDefinition {
         }),
     }
 }
+
+submit_entity!(scan_job_entity);

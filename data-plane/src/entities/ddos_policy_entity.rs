@@ -3,7 +3,7 @@
 //! separate 1:1-relationship concept, so a unique constraint on the FK field is how that's
 //! expressed.
 
-use metap::prelude::{EntityDefinition, EntityField, EntityListView, FieldKind};
+use metap::prelude::{submit_entity, EntityDefinition, EntityField, EntityListView, FieldKind};
 
 fn field(
     name: &str,
@@ -95,3 +95,5 @@ pub fn ddos_policy_entity() -> EntityDefinition {
         workflow: None,
     }
 }
+
+submit_entity!(ddos_policy_entity);

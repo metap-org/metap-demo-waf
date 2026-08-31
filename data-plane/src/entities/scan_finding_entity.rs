@@ -6,7 +6,9 @@
 //! the scan engine writes results back (out of portal/data-plane scope, `docs/13-screen-api-map.md`),
 //! not here; this entity just needs `firstSeenAt`/`lastSeenAt` to support it.
 
-use metap::prelude::{EntityDefinition, EntityField, EntityListView, EntityWorkflow, FieldKind, WorkflowTransition};
+use metap::prelude::{
+    submit_entity, EntityDefinition, EntityField, EntityListView, EntityWorkflow, FieldKind, WorkflowTransition,
+};
 
 fn field(
     name: &str,
@@ -133,3 +135,5 @@ pub fn scan_finding_entity() -> EntityDefinition {
         }),
     }
 }
+
+submit_entity!(scan_finding_entity);

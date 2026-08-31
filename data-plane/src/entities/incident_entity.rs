@@ -9,7 +9,9 @@
 //! this entity's/portal's scope — real business logic, not CRUD (`docs/13-screen-api-map.md`
 //! module 7). This entity is just where the result lands.
 
-use metap::prelude::{EntityDefinition, EntityField, EntityListView, EntityWorkflow, FieldKind, WorkflowTransition};
+use metap::prelude::{
+    submit_entity, EntityDefinition, EntityField, EntityListView, EntityWorkflow, FieldKind, WorkflowTransition,
+};
 
 fn field(
     name: &str,
@@ -127,3 +129,5 @@ pub fn incident_entity() -> EntityDefinition {
         }),
     }
 }
+
+submit_entity!(incident_entity);

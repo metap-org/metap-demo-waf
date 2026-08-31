@@ -2,7 +2,7 @@
 //! counted separately — `docs/08-module-detail-specs.md` module 8 copy note: "N event trong M
 //! phút trên CÙNG 1 zone", not summed across zones). See `docs/02-domain-model.md`.
 
-use metap::prelude::{EntityDefinition, EntityField, EntityListView, FieldKind};
+use metap::prelude::{submit_entity, EntityDefinition, EntityField, EntityListView, FieldKind};
 
 fn field(
     name: &str,
@@ -61,3 +61,5 @@ pub fn alert_policy_entity() -> EntityDefinition {
         workflow: None,
     }
 }
+
+submit_entity!(alert_policy_entity);

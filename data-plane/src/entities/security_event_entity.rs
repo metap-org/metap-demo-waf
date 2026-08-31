@@ -13,7 +13,7 @@
 //! (`metap-reconciler` + `reconciler-orchestrator`, `docs/05-metap-technical-mapping.md`) but not
 //! worth flipping on until real volume shows up; demo-scale traffic doesn't need it yet.
 
-use metap::prelude::{EntityDefinition, EntityField, EntityListView, FieldKind};
+use metap::prelude::{submit_entity, EntityDefinition, EntityField, EntityListView, FieldKind};
 
 fn field(
     name: &str,
@@ -107,3 +107,5 @@ pub fn security_event_entity() -> EntityDefinition {
         workflow: None,
     }
 }
+
+submit_entity!(security_event_entity);

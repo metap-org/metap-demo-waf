@@ -3,15 +3,17 @@
 //! for this app's `EntityDefinition`s and `docs/05-metap-technical-mapping.md` for why each
 //! one is shaped the way it is.
 //!
+//! Entity registration is auto-discovered, not a hand-written `registry.register(...)` line
+//! per entity — every `src/entities/*.rs` file ends with `submit_entity!(its_own_fn)`
+//! (`metap_metadata::submit_entity!`, `inventory`-backed), and `register_all_submitted()`
+//! below picks all of them up. Adding a new entity means adding a new `src/entities/*.rs`
+//! module (declared in `entities/mod.rs`) with its own `submit_entity!` call at the bottom —
+//! nothing to touch here.
+//!
 //! Reads config from the environment (or a `.env` file in the current directory — see
 //! `.env.example`). Run from this directory so that resolves the way you expect.
 
 mod entities;
-
-use entities::{
-    alert_notification_entity, alert_policy_entity, ddos_policy_entity, firewall_rule_entity, incident_entity,
-    scan_finding_entity, scan_job_entity, security_event_entity, zone_entity,
-};
 
 use std::sync::Arc;
 
@@ -22,21 +24,14 @@ use metap::prelude::*;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    metap::infra::init_tracing();
     let config = load_config()?;
 
-    eprintln!("[data-plane] connecting to postgres...");
+    tracing::info!("connecting to postgres...");
     let pool = connect_db(&config.database_url).await?;
 
     let mut registry = MetadataRegistry::new();
-    registry.register(zone_entity::zone_entity())?;
-    registry.register(ddos_policy_entity::ddos_policy_entity())?;
-    registry.register(firewall_rule_entity::firewall_rule_entity())?;
-    registry.register(scan_job_entity::scan_job_entity())?;
-    registry.register(scan_finding_entity::scan_finding_entity())?;
-    registry.register(security_event_entity::security_event_entity())?;
-    registry.register(incident_entity::incident_entity())?;
-    registry.register(alert_policy_entity::alert_policy_entity())?;
-    registry.register(alert_notification_entity::alert_notification_entity())?;
+    registry.register_all_submitted()?;
     registry.validate_references()?;
     let metadata_base = Arc::new(registry);
 
@@ -98,7 +93,7 @@ async fn main() -> anyhow::Result<()> {
 
     let addr = format!("{}:{}", config.host, config.port);
     let listener = tokio::net::TcpListener::bind(&addr).await?;
-    eprintln!("[data-plane] listening on http://{addr}");
+    tracing::info!("listening on http://{addr}");
 
     // `build_router`'s rate-limit layer keys on peer IP via `ConnectInfo<SocketAddr>` —
     // plain `into_make_service()` wouldn't populate that extension and every request would
@@ -115,5 +110,36 @@ async fn main() -> anyhow::Result<()> {
 
 async fn shutdown_signal() {
     tokio::signal::ctrl_c().await.ok();
-    eprintln!("[data-plane] shutdown signal received, exiting");
+    tracing::info!("shutdown signal received, exiting");
+}
+
+#[cfg(test)]
+mod tests {
+    use metap::prelude::MetadataRegistry;
+
+    // Regression guard for `register_all_submitted()` — catches a `src/entities/*.rs` module
+    // that forgot its `submit_entity!` call (silently missing from the registry) or a name
+    // collision (would already fail via `register`'s own duplicate check, surfaced here).
+    #[test]
+    fn all_nine_entities_are_auto_registered() {
+        let mut registry = MetadataRegistry::new();
+        registry.register_all_submitted().unwrap();
+        registry.validate_references().unwrap();
+
+        let names: Vec<String> = registry.list_entities().into_iter().map(|e| e.name).collect();
+        for expected in [
+            "waf.zones",
+            "waf.ddos_policies",
+            "waf.firewall_rules",
+            "waf.scan_jobs",
+            "waf.scan_findings",
+            "waf.security_events",
+            "waf.incidents",
+            "waf.alert_policies",
+            "waf.alert_notifications",
+        ] {
+            assert!(names.contains(&expected.to_string()), "missing entity: {expected}");
+        }
+        assert_eq!(names.len(), 9, "unexpected entity count: {names:?}");
+    }
 }

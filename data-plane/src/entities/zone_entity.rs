@@ -23,7 +23,8 @@
 
 use metap::permission::{ConditionOp, PolicyValue};
 use metap::prelude::{
-    EntityDefinition, EntityField, EntityListView, EntityWorkflow, FieldKind, PolicyCondition, WorkflowTransition,
+    submit_entity, EntityDefinition, EntityField, EntityListView, EntityWorkflow, FieldKind, PolicyCondition,
+    WorkflowTransition,
 };
 use serde_json::json;
 
@@ -209,3 +210,5 @@ pub fn zone_entity() -> EntityDefinition {
         }),
     }
 }
+
+submit_entity!(zone_entity);

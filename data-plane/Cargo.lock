@@ -1548,6 +1548,7 @@ dependencies = [
  "serde_json",
  "sqlx",
  "tokio",
+ "tracing",
  "uuid",
 ]
 
@@ -2919,6 +2920,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "inventory"
+version = "0.3.24"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a4f0c30c76f2f4ccee3fe55a2435f691ca00c0e4bd87abe4f4a851b1d4dac39b"
+dependencies = [
+ "rustversion",
+]
+
+[[package]]
 name = "io-lifetimes"
 version = "1.0.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3315,10 +3325,10 @@ checksum = "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98"
 name = "metap"
 version = "0.1.0"
 dependencies = [
+ "metap-app",
  "metap-auth",
  "metap-cache",
  "metap-control",
- "metap-control-http",
  "metap-crud",
  "metap-graphql",
  "metap-graphql-http",
@@ -3327,13 +3337,26 @@ dependencies = [
  "metap-infra",
  "metap-jwks",
  "metap-jwks-http",
- "metap-lowcode",
- "metap-lowcode-http",
  "metap-metadata",
  "metap-peripherals",
  "metap-permission",
  "metap-query",
+ "metap-runtime",
  "metap-workflow",
+]
+
+[[package]]
+name = "metap-app"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "jsonwebtoken",
+ "metap-cache",
+ "metap-control",
+ "metap-infra",
+ "metap-permission",
+ "sqlx",
+ "tracing",
 ]
 
 [[package]]
@@ -3393,21 +3416,6 @@ dependencies = [
  "tracing",
  "uuid",
  "vaultrs",
-]
-
-[[package]]
-name = "metap-control-http"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "axum",
- "metap-control",
- "metap-http",
- "metap-reconciler",
- "serde",
- "serde_json",
- "sqlx",
- "uuid",
 ]
 
 [[package]]
@@ -3502,6 +3510,7 @@ dependencies = [
  "metap-peripherals",
  "metap-permission",
  "metap-query",
+ "metap-runtime",
  "prost",
  "prost-types",
  "protoc-bin-vendored",
@@ -3536,6 +3545,7 @@ dependencies = [
  "metap-peripherals",
  "metap-permission",
  "metap-query",
+ "metap-runtime",
  "metap-storage",
  "metap-workflow",
  "metrics-process",
@@ -3544,9 +3554,6 @@ dependencies = [
  "serde_json",
  "sqlx",
  "tokio",
- "tower",
- "tower-http 0.6.11",
- "tower_governor",
  "tracing",
  "uuid",
 ]
@@ -3560,6 +3567,7 @@ dependencies = [
  "dotenvy",
  "futures-util",
  "lapin",
+ "metap-runtime",
  "serde_json",
  "sqlx",
  "tokio",
@@ -3576,6 +3584,7 @@ dependencies = [
  "base64 0.22.1",
  "jsonwebtoken",
  "metap-peripherals",
+ "metap-runtime",
  "moka",
  "reqwest 0.12.28",
  "ring",
@@ -3596,41 +3605,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "metap-lowcode"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "metap-metadata",
- "serde",
- "serde_json",
- "sqlx",
- "tracing",
- "uuid",
-]
-
-[[package]]
-name = "metap-lowcode-http"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "axum",
- "metap-http",
- "metap-lowcode",
- "metap-metadata",
- "metap-peripherals",
- "metap-permission",
- "serde",
- "serde_json",
- "sqlx",
-]
-
-[[package]]
 name = "metap-metadata"
 version = "0.1.0"
 dependencies = [
  "anyhow",
  "hex",
+ "inventory",
  "metap-permission",
  "serde",
  "serde_json",
@@ -3685,17 +3665,18 @@ dependencies = [
 ]
 
 [[package]]
-name = "metap-reconciler"
+name = "metap-runtime"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "chrono",
- "futures",
- "metap-metadata",
- "serde",
+ "axum",
+ "governor",
+ "reqwest 0.12.28",
  "serde_json",
- "sqlx",
  "tokio",
+ "tower",
+ "tower-http 0.6.11",
+ "tower_governor",
  "tracing",
  "uuid",
 ]
