@@ -13,8 +13,12 @@ plane boundaries) that later work must stay consistent with. Docs are written in
 
 This repo is built on top of a sibling repo, `../metap` (a metadata-driven platform core: Rust/axum/
 sqlx/PostgreSQL/RabbitMQ, outbox pattern, generic CRUD/workflow/permission engine). `metap-demo-waf`
-is one product built on that platform, not a fork of it — `metap`'s own conventions, build commands,
-and CLAUDE.md live in that separate repo and don't apply here directly, though its primitives
+is one product built on that platform, not a fork of it — `metap`'s own *code/build* conventions
+(its Cargo workspace commands, crate layering, `CLAUDE.md`) live in that separate sibling repo and
+don't apply here directly. That's different from the *operational* conventions in
+`../CLAUDE.md` (root of `metap-org`) — respond in Vietnamese, never commit without being asked,
+check `target/` size before a build session — which do apply here, same as every repo in this
+directory, since this file doesn't override any of them. `metap`'s primitives
 (`metap-metadata`, `metap-workflow`, `metap-cron`, `metap-permission`, `metap-cache`, `metap-grpc`,
 `metap-reconciler`, `metap-storage`) are the ones `data-plane/` is meant to reuse rather than
 reinvent.
