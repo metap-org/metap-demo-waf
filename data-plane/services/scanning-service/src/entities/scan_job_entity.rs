@@ -12,6 +12,16 @@
 //! storage/config concern only, same boundary as `edge-plane` executing WAF separately from
 //! `data-plane` holding its config. Something external reads `status: queued` records and drives
 //! them through `start`/`complete`/`fail` via the generic transition API.
+//!
+//! **`zoneId` is `String`, not `Reference`, since the pillar split (2026-09-01).** `waf.zones`
+//! is owned by `zones-service`, a separate binary from this one — `Reference`'s
+//! `validate_references()` requires the target `EntityDefinition` registered in the SAME
+//! `MetadataRegistry` (confirmed against `metap-metadata`'s own source), and registering
+//! `zone_entity()` here just to satisfy that would *also* expose full CRUD for `waf.zones` on
+//! this service's generic `/api/:entity*` route — the same shape of problem
+//! `incident_entity.rs`'s `assignedTo` doc comment already documents for a platform-level
+//! entity. Same workaround: plain `String`, no FK, no auto `relatedDisplay` — the FE resolves a
+//! zone's hostname by calling `zones-service` directly (or via the GraphQL gateway once wired).
 
 use metap::prelude::{
     submit_entity, EntityDefinition, EntityField, EntityListView, EntityWorkflow, FieldKind, WorkflowTransition,
@@ -71,25 +81,7 @@ pub fn scan_job_entity() -> EntityDefinition {
         label: "Scan Job".to_string(),
         table_name: "records".to_string(),
         fields: vec![
-            EntityField {
-                name: "zoneId".to_string(),
-                label: "Zone".to_string(),
-                kind: FieldKind::Reference,
-                required: Some(true),
-                indexed: Some(true),
-                unique: None,
-                enum_values: None,
-                ref_entity: Some("waf.zones".to_string()),
-                ref_display_field: Some("hostname".to_string()),
-                searchable: None,
-                search_mode: None,
-                sortable: None,
-                storage: None,
-                min: None,
-                max: None,
-                min_length: None,
-                max_length: None,
-            },
+            field("zoneId", "Zone", FieldKind::String, true, true, false),
             enum_field("scanType", "Scan Type", &["quickScan", "fullScan", "apiScan"], true, true),
             field("schedule", "Schedule (cron)", FieldKind::String, false, false, false),
             enum_field(

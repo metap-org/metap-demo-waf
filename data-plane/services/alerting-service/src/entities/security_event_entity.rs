@@ -9,6 +9,13 @@
 //! at write time (`docs/08-module-detail-specs.md` decision #4) — this entity is the highest
 //! volume in the whole system, an N+1 lookup per list render doesn't scale.
 //!
+//! **`zoneId` is also `String`, not `Reference`, since the pillar split (2026-09-01)** — same
+//! reason as `triggeredById` above in spirit, different root cause: `waf.zones` is owned by
+//! `zones-service`, a separate binary from this one, and registering `zone_entity()` here just
+//! to satisfy `validate_references()` would leak full CRUD for `waf.zones` onto this service's
+//! `/api/:entity*` route (see `scan_job_entity.rs`'s `zoneId` doc comment in `scanning-service`
+//! for the full explanation — same fix applied here).
+//!
 //! `table_name: "records"` for now (shared table) — table-per-entity is available
 //! (`metap-reconciler` + `reconciler-orchestrator`, `docs/05-metap-technical-mapping.md`) but not
 //! worth flipping on until real volume shows up; demo-scale traffic doesn't need it yet.
@@ -57,25 +64,7 @@ pub fn security_event_entity() -> EntityDefinition {
         label: "Security Event".to_string(),
         table_name: "records".to_string(),
         fields: vec![
-            EntityField {
-                name: "zoneId".to_string(),
-                label: "Zone".to_string(),
-                kind: FieldKind::Reference,
-                required: Some(true),
-                indexed: Some(true),
-                unique: None,
-                enum_values: None,
-                ref_entity: Some("waf.zones".to_string()),
-                ref_display_field: Some("hostname".to_string()),
-                searchable: None,
-                search_mode: None,
-                sortable: None,
-                storage: None,
-                min: None,
-                max: None,
-                min_length: None,
-                max_length: None,
-            },
+            field("zoneId", "Zone", FieldKind::String, true, true, false),
             enum_field("triggeredBy", "Triggered By", &["ddosPolicy", "firewallRule"], true, true),
             field("triggeredById", "Triggered By Id", FieldKind::String, true, false, false),
             field("triggeredByName", "Triggered By Name", FieldKind::String, false, false, false),

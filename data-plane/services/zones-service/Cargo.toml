@@ -1,0 +1,31 @@
+[package]
+name = "zones-service"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# Local dev: path dep into the sibling ../../../../metap checkout (no crates.io publish yet).
+# Swap to `git = "git@github.com:metap-org/metap.git", branch = "..."` for CI/deploy once this
+# stabilizes on a real branch/tag.
+metap = { path = "../../../../metap/crates/metap" }
+anyhow = "1"
+arc-swap = "1"
+axum = "0.8"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "signal"] }
+tracing = "0.1"
+# `entities/zone_entity.rs`'s workflow guard literals (`json!(true)`, `json!("verified")`) —
+# the only entity module across the 3 services that needs this.
+serde_json = "1"
+
+[dev-dependencies]
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+chrono = "0.4"
+uuid = { version = "1", features = ["v4"] }
+serde = { version = "1", features = ["derive"] }
+sqlx = { version = "0.8", default-features = false, features = [
+  "runtime-tokio",
+  "tls-rustls",
+  "postgres",
+  "uuid",
+] }
+jsonwebtoken = "9"

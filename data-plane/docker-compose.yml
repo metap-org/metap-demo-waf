@@ -1,0 +1,183 @@
+# Orchestrates the 4 WAF Customer Portal backend containers (3 pillar services + their own
+# `graphql-gateway` instance — see `README.md`'s service/port table and `graphql-gateway/
+# README.md`). Does NOT run its own Postgres/RabbitMQ — every service here points at the SAME
+# shared dev instances `../../metap/docker-compose.yml` already runs (`docker compose up -d
+# postgres rabbitmq` from `../../metap`, exposed on host ports 5433/5672), reached from inside
+# these containers via `host.docker.internal` — the exact pattern `../../metap/docker-compose.yml`
+# itself already uses for `prometheus`/`k6` reaching a host-run `crm-server` (see that file's own
+# comment). Not joining `../../metap`'s compose network directly: that network's name depends on
+# that project's directory name and isn't declared `external`, more fragile to depend on across 2
+# independently-run `docker compose` projects than routing through the host loopback both already
+# expose ports on.
+#
+# Every build below (`zones-service`/`scanning-service`/`alerting-service`/`graphql-gateway`/
+# `web`) uses `context: ../../` (the metap-org ROOT, not `.`/`data-plane/`) — needed so the
+# `metap = { path = "../../../../metap/crates/metap" }` dependency each pillar service's own
+# `Cargo.toml` declares (a path outside `data-plane/`) resolves inside the build; see each
+# service's own `Dockerfile` top comment for exactly how. Kept as a path dependency rather than
+# switched to `git`/version (the CI/deploy alternative each `Cargo.toml` comments) so a local
+# build here still picks up uncommitted local changes to `../../metap`, not a pushed ref.
+# `../../.dockerignore` (root `metap-org`, new alongside this file) keeps that wide context from
+# also shipping every sibling repo's `target/`/`node_modules/` — ~49GB combined across just the
+# 4 Rust repos' `target/` at time of writing.
+#
+# `${WAF_SERVICE_EMAIL}`/`${WAF_SERVICE_PASSWORD}` (graphql-gateway's upstream auth) — copy
+# `.env.example` to `.env` next to this file. This is a real user (`dev-tools create-user` +
+# `dev-tools seed-admin`, `admin` role, tenant `9de4259e-...`) the gateway logs into via each
+# upstream's own `POST /auth/login` at boot and re-logs-into automatically in the background
+# before the token expires (`metap_grpc::ServiceTokenSource`) — not a hand-minted JWT pasted in
+# once, which is what this used to be until that JWT's 1h TTL expired in a running deployment and
+# crashed the gateway at boot (2026-09-02). No shared-keypair requirement anymore either: a real
+# login mints against whichever keypair that specific upstream owns.
+
+services:
+  zones-service:
+    build:
+      context: ../../
+      dockerfile: metap-demo-waf/data-plane/services/zones-service/Dockerfile
+    ports:
+      - "3000:3000"
+      - "3001:3001"
+    environment:
+      DATABASE_URL: postgres://metap:metap@host.docker.internal:5433/metap
+      RABBITMQ_URL: amqp://metap:metap@host.docker.internal:5672
+      CORS_ORIGINS: http://localhost:5173,http://localhost:3000
+      AUTH_JWT_PUBLIC_KEY_PATH: /app/keys/dev-jwt-public.pem
+      AUTH_JWT_PRIVATE_KEY_PATH: /app/keys/dev-jwt-private.pem
+      GRPC_ENABLED: "true"
+    volumes:
+      - ./keys:/app/keys:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+  scanning-service:
+    build:
+      context: ../../
+      dockerfile: metap-demo-waf/data-plane/services/scanning-service/Dockerfile
+    ports:
+      - "3010:3010"
+      - "3011:3011"
+    environment:
+      DATABASE_URL: postgres://metap:metap@host.docker.internal:5433/metap
+      RABBITMQ_URL: amqp://metap:metap@host.docker.internal:5672
+      CORS_ORIGINS: http://localhost:5173,http://localhost:3000
+      AUTH_JWT_PUBLIC_KEY_PATH: /app/keys/dev-jwt-public.pem
+      AUTH_JWT_PRIVATE_KEY_PATH: /app/keys/dev-jwt-private.pem
+      GRPC_ENABLED: "true"
+    volumes:
+      - ./keys:/app/keys:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3010/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+  alerting-service:
+    build:
+      context: ../../
+      dockerfile: metap-demo-waf/data-plane/services/alerting-service/Dockerfile
+    ports:
+      - "3020:3020"
+      - "3021:3021"
+    environment:
+      DATABASE_URL: postgres://metap:metap@host.docker.internal:5433/metap
+      RABBITMQ_URL: amqp://metap:metap@host.docker.internal:5672
+      CORS_ORIGINS: http://localhost:5173,http://localhost:3000
+      AUTH_JWT_PUBLIC_KEY_PATH: /app/keys/dev-jwt-public.pem
+      AUTH_JWT_PRIVATE_KEY_PATH: /app/keys/dev-jwt-private.pem
+      GRPC_ENABLED: "true"
+    volumes:
+      - ./keys:/app/keys:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3020/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+  # Reads each upstream's schema over the compose network by service name (`zones-service`, not
+  # `localhost` — these 4 containers share 1 network, unlike the host-run dev flow
+  # `.env.example`/`README.md` document) at boot — needs all 3 services already answering
+  # `/metadata/entities`, not just started, hence `condition: service_healthy` below rather than
+  # plain `depends_on` (which only waits for container start).
+  graphql-gateway:
+    build:
+      context: ../../metap
+      dockerfile: crates/graphql-gateway/Dockerfile
+    ports:
+      - "4000:4000"
+    environment:
+      AUTH_JWT_PUBLIC_KEY_PATH: /app/keys/dev-jwt-public.pem
+      CORS_ORIGINS: http://localhost:5173,http://localhost:3000
+
+      UPSTREAM_1_NAME: zones
+      UPSTREAM_1_GRPC_ADDR: http://zones-service:3001
+      UPSTREAM_1_METADATA_URL: http://zones-service:3000/metadata/entities
+      UPSTREAM_1_LOGIN_URL: http://zones-service:3000/auth/login
+      UPSTREAM_1_SERVICE_EMAIL: ${WAF_SERVICE_EMAIL}
+      UPSTREAM_1_SERVICE_PASSWORD: ${WAF_SERVICE_PASSWORD}
+
+      UPSTREAM_2_NAME: scanning
+      UPSTREAM_2_GRPC_ADDR: http://scanning-service:3011
+      UPSTREAM_2_METADATA_URL: http://scanning-service:3010/metadata/entities
+      UPSTREAM_2_LOGIN_URL: http://scanning-service:3010/auth/login
+      UPSTREAM_2_SERVICE_EMAIL: ${WAF_SERVICE_EMAIL}
+      UPSTREAM_2_SERVICE_PASSWORD: ${WAF_SERVICE_PASSWORD}
+
+      UPSTREAM_3_NAME: alerting
+      UPSTREAM_3_GRPC_ADDR: http://alerting-service:3021
+      UPSTREAM_3_METADATA_URL: http://alerting-service:3020/metadata/entities
+      UPSTREAM_3_LOGIN_URL: http://alerting-service:3020/auth/login
+      UPSTREAM_3_SERVICE_EMAIL: ${WAF_SERVICE_EMAIL}
+      UPSTREAM_3_SERVICE_PASSWORD: ${WAF_SERVICE_PASSWORD}
+    volumes:
+      - ./keys:/app/keys:ro
+    depends_on:
+      zones-service:
+        condition: service_healthy
+      scanning-service:
+        condition: service_healthy
+      alerting-service:
+        condition: service_healthy
+
+  # Production-mode build (pnpm build + nginx static serve), NOT the `pnpm dev` flow
+  # `README.md`'s Development section documents — that one still runs on the host and reaches
+  # these same containers over the published host ports (3000/3010/3020/4000) below, unaffected
+  # by whether this `web` service exists. Build context is the metap-org ROOT (`../../`, 2 levels
+  # above this file), not `.` or `web/` — see `web/Dockerfile`'s own top comment for why (its
+  # `link:../../../platform-ui`/`link:../../../design-system` pnpm dependencies need those sibling
+  # repos in the same build context at their real relative nesting). `../../.dockerignore`
+  # (new, metap-org root) keeps that wide context from also shipping every sibling repo's
+  # `target/`/`node_modules/`.
+  web:
+    build:
+      context: ../../
+      dockerfile: metap-demo-waf/data-plane/web/Dockerfile
+    ports:
+      - "8081:80"
+    depends_on:
+      zones-service:
+        condition: service_healthy
+      scanning-service:
+        condition: service_healthy
+      alerting-service:
+        condition: service_healthy
+      graphql-gateway:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost/"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s

@@ -1,5 +1,11 @@
 import type { ReactNode } from "react";
-import { Navigate, Route, Routes, useNavigate, useParams } from "react-router-dom";
+import {
+  Navigate,
+  Route,
+  Routes,
+  useNavigate,
+  useParams,
+} from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   AppShellLayout,
@@ -73,7 +79,12 @@ function NewRecordRoute() {
   const { entityName } = useParams<{ entityName: string }>();
   const navigate = useNavigate();
   if (!entityName) return <div>Missing entity name</div>;
-  return <GeneratedForm entityName={entityName} onSaved={() => navigate(`/records/${entityName}`)} />;
+  return (
+    <GeneratedForm
+      entityName={entityName}
+      onSaved={() => navigate(`/records/${entityName}`)}
+    />
+  );
 }
 
 function RecordDetailRoute() {

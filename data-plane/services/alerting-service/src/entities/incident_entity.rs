@@ -5,12 +5,20 @@
 //! `EntityDefinition` in this app's own `MetadataRegistry`, so `validate_references()` would
 //! reject a `Reference` pointing at it (confirmed against `metap-metadata`'s own test suite).
 //!
+//! **`zoneId` is `String` for the exact same class of reason, since the pillar split
+//! (2026-09-01)**: `waf.zones` now lives in a separate binary (`zones-service`), and registering
+//! `zone_entity()` here just to pass `validate_references()` would leak full CRUD for
+//! `waf.zones` onto this service's `/api/:entity*` route — see
+//! `scanning-service/src/entities/scan_job_entity.rs`'s `zoneId` doc comment for the full
+//! explanation.
+//!
 //! The correlation logic that actually *creates* an Incident from N `SecurityEvent`s is out of
 //! this entity's/portal's scope — real business logic, not CRUD (`docs/13-screen-api-map.md`
 //! module 7). This entity is just where the result lands.
 
 use metap::prelude::{
-    submit_entity, EntityDefinition, EntityField, EntityListView, EntityWorkflow, FieldKind, WorkflowTransition,
+    submit_entity, submit_field_display_hints, EntityDefinition, EntityField, EntityListView, EntityWorkflow,
+    FieldDisplayHint, FieldKind, WorkflowTransition,
 };
 
 fn field(
@@ -67,25 +75,7 @@ pub fn incident_entity() -> EntityDefinition {
         label: "Incident".to_string(),
         table_name: "records".to_string(),
         fields: vec![
-            EntityField {
-                name: "zoneId".to_string(),
-                label: "Zone".to_string(),
-                kind: FieldKind::Reference,
-                required: Some(true),
-                indexed: Some(true),
-                unique: None,
-                enum_values: None,
-                ref_entity: Some("waf.zones".to_string()),
-                ref_display_field: Some("hostname".to_string()),
-                searchable: None,
-                search_mode: None,
-                sortable: None,
-                storage: None,
-                min: None,
-                max: None,
-                min_length: None,
-                max_length: None,
-            },
+            field("zoneId", "Zone", FieldKind::String, true, true, false),
             field("title", "Title", FieldKind::String, true, false, true),
             enum_field("severity", "Severity", &["low", "medium", "high", "critical"], true, true),
             enum_field(
@@ -131,3 +121,16 @@ pub fn incident_entity() -> EntityDefinition {
 }
 
 submit_entity!(incident_entity);
+
+/// `assignedTo` is a `metap` user id (see the entity's own doc comment for why it can't be a
+/// `Reference`) — this tells `@metap/platform-ui`'s generic list/detail views to resolve it to
+/// an email via `GET /users` instead of showing the raw id. See `FieldDisplayHint`'s doc comment
+/// (`metap-metadata`) for why this is a separate registration, not a field on `EntityField`.
+fn incident_field_display_hints() -> Vec<FieldDisplayHint> {
+    vec![FieldDisplayHint {
+        field: "assignedTo".to_string(),
+        resolve_via: "users".to_string(),
+    }]
+}
+
+submit_field_display_hints!("waf.incidents", incident_field_display_hints);

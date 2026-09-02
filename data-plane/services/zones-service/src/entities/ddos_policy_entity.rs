@@ -1,14 +1,7 @@
-//! `waf.firewall_rules` — shared rule engine backing WAF custom rules, rate limiting, and IP/geo
-//! firewall in one entity (`ruleType` just groups them for UI; `matchCondition` + `action` is
-//! the same evaluate loop for all of them). See `docs/02-domain-model.md`'s `FirewallRule`
-//! section.
-//!
-//! `matchCondition` is deliberately its own JSON grammar, not `metap-permission`'s
-//! `PolicyCondition` — see `docs/05-metap-technical-mapping.md`'s "`matchCondition` của
-//! `FirewallRule` — quyết định" section for why reusing that type would be wrong (no
-//! `uri.*`/`header.*`/`body.*` namespace, missing `Contains`/`Regex`/`CidrMatch` operators).
-//! Stored as opaque `Json` here; the grammar itself and its validation belong to `edge-plane`/
-//! `control-plane`, not this entity definition.
+//! `waf.ddos_policies` — DDoS L7 policy for a `Zone`. `zoneId` is `unique` because the business
+//! rule is "0..1 policy in effect per zone at a time" (`docs/02-domain-model.md`); metap has no
+//! separate 1:1-relationship concept, so a unique constraint on the FK field is how that's
+//! expressed.
 
 use metap::prelude::{submit_entity, EntityDefinition, EntityField, EntityListView, FieldKind};
 
@@ -41,17 +34,17 @@ fn field(
     }
 }
 
-fn enum_field(name: &str, label: &str, values: &[&str], required: bool, indexed: bool) -> EntityField {
+fn enum_field(name: &str, label: &str, values: &[&str], required: bool) -> EntityField {
     EntityField {
         enum_values: Some(values.iter().map(|v| v.to_string()).collect()),
-        ..field(name, label, FieldKind::Enum, required, indexed, false)
+        ..field(name, label, FieldKind::Enum, required, false, false)
     }
 }
 
-pub fn firewall_rule_entity() -> EntityDefinition {
+pub fn ddos_policy_entity() -> EntityDefinition {
     EntityDefinition {
-        name: "waf.firewall_rules".to_string(),
-        label: "Firewall Rule".to_string(),
+        name: "waf.ddos_policies".to_string(),
+        label: "DDoS Policy".to_string(),
         table_name: "records".to_string(),
         fields: vec![
             EntityField {
@@ -60,7 +53,7 @@ pub fn firewall_rule_entity() -> EntityDefinition {
                 kind: FieldKind::Reference,
                 required: Some(true),
                 indexed: Some(true),
-                unique: None,
+                unique: Some(true),
                 enum_values: None,
                 ref_entity: Some("waf.zones".to_string()),
                 ref_display_field: Some("hostname".to_string()),
@@ -73,26 +66,29 @@ pub fn firewall_rule_entity() -> EntityDefinition {
                 min_length: None,
                 max_length: None,
             },
-            field("name", "Name", FieldKind::String, true, false, true),
-            field("priority", "Priority", FieldKind::Number, true, false, true),
-            field("matchCondition", "Match Condition", FieldKind::Json, true, false, false),
             enum_field(
-                "ruleType",
-                "Rule Type",
-                &["waf", "rateLimit", "ipFirewall", "geoFirewall"],
-                true,
+                "sensitivity",
+                "Sensitivity",
+                &["low", "medium", "high", "aggressive"],
                 true,
             ),
             field(
-                "rateLimitThreshold",
-                "Rate Limit Threshold",
+                "requestRateThreshold",
+                "Request Rate Threshold",
                 FieldKind::Number,
+                true,
                 false,
+                true,
+            ),
+            field(
+                "burstWindow",
+                "Burst Window (s)",
+                FieldKind::Number,
+                true,
                 false,
                 false,
             ),
-            field("rateLimitWindow", "Rate Limit Window (s)", FieldKind::Number, false, false, false),
-            enum_field("action", "Action", &["allow", "block", "challenge", "log"], true, false),
+            enum_field("action", "Action", &["log", "challenge", "block"], true),
             field("enabled", "Enabled", FieldKind::Boolean, false, true, false),
         ],
         list_views: vec![EntityListView {
@@ -100,18 +96,16 @@ pub fn firewall_rule_entity() -> EntityDefinition {
             label: "Default".to_string(),
             fields: vec![
                 "zoneId".to_string(),
-                "name".to_string(),
-                "priority".to_string(),
-                "ruleType".to_string(),
+                "sensitivity".to_string(),
                 "action".to_string(),
                 "enabled".to_string(),
             ],
-            filters: vec!["zoneId".to_string(), "ruleType".to_string(), "enabled".to_string()],
-            default_sort: Some("priority".to_string()),
-            max_limit: 100,
+            filters: vec!["zoneId".to_string(), "enabled".to_string()],
+            default_sort: Some("-createdAt".to_string()),
+            max_limit: 50,
         }],
         workflow: None,
     }
 }
 
-submit_entity!(firewall_rule_entity);
+submit_entity!(ddos_policy_entity);

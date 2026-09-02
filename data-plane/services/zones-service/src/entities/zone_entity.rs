@@ -23,8 +23,8 @@
 
 use metap::permission::{ConditionOp, PolicyValue};
 use metap::prelude::{
-    submit_entity, EntityDefinition, EntityField, EntityListView, EntityWorkflow, FieldKind, PolicyCondition,
-    WorkflowTransition,
+    submit_entity, submit_related_views, EntityDefinition, EntityField, EntityListView,
+    EntityWorkflow, FieldKind, PolicyCondition, RelatedView, WorkflowTransition,
 };
 use serde_json::json;
 
@@ -58,10 +58,25 @@ fn field(
     }
 }
 
-fn enum_field(name: &str, label: &str, values: &[&str], required: bool, indexed: bool, sortable: bool) -> EntityField {
+fn enum_field(
+    name: &str,
+    label: &str,
+    values: &[&str],
+    required: bool,
+    indexed: bool,
+    sortable: bool,
+) -> EntityField {
     EntityField {
         enum_values: Some(values.iter().map(|v| v.to_string()).collect()),
-        ..field(name, label, FieldKind::Enum, required, indexed, false, sortable)
+        ..field(
+            name,
+            label,
+            FieldKind::Enum,
+            required,
+            indexed,
+            false,
+            sortable,
+        )
     }
 }
 
@@ -73,7 +88,15 @@ pub fn zone_entity() -> EntityDefinition {
         fields: vec![
             EntityField {
                 unique: Some(true),
-                ..field("hostname", "Hostname", FieldKind::String, true, true, true, true)
+                ..field(
+                    "hostname",
+                    "Hostname",
+                    FieldKind::String,
+                    true,
+                    true,
+                    true,
+                    true,
+                )
             },
             field(
                 "originAddress",
@@ -92,9 +115,32 @@ pub fn zone_entity() -> EntityDefinition {
                 true,
                 true,
             ),
-            enum_field("protectionMode", "Protection Mode", &["monitor", "enforce"], true, true, false),
-            field("configVersion", "Config Version", FieldKind::Number, false, false, false, true),
-            field("hasConfig", "Has Config", FieldKind::Boolean, false, false, false, false),
+            enum_field(
+                "protectionMode",
+                "Protection Mode",
+                &["monitor", "enforce"],
+                true,
+                true,
+                false,
+            ),
+            field(
+                "configVersion",
+                "Config Version",
+                FieldKind::Number,
+                false,
+                false,
+                false,
+                true,
+            ),
+            field(
+                "hasConfig",
+                "Has Config",
+                FieldKind::Boolean,
+                false,
+                false,
+                false,
+                false,
+            ),
             field(
                 "verificationToken",
                 "Verification Token",
@@ -128,7 +174,15 @@ pub fn zone_entity() -> EntityDefinition {
                 false,
                 false,
             ),
-            field("lastDnsCheckAt", "Last DNS Check At", FieldKind::Datetime, false, false, false, true),
+            field(
+                "lastDnsCheckAt",
+                "Last DNS Check At",
+                FieldKind::Datetime,
+                false,
+                false,
+                false,
+                true,
+            ),
         ],
         list_views: vec![EntityListView {
             name: "default".to_string(),
@@ -139,7 +193,11 @@ pub fn zone_entity() -> EntityDefinition {
                 "protectionMode".to_string(),
                 "configVersion".to_string(),
             ],
-            filters: vec!["hostname".to_string(), "status".to_string(), "protectionMode".to_string()],
+            filters: vec![
+                "hostname".to_string(),
+                "status".to_string(),
+                "protectionMode".to_string(),
+            ],
             default_sort: Some("-createdAt".to_string()),
             max_limit: 50,
         }],
@@ -158,12 +216,16 @@ pub fn zone_entity() -> EntityDefinition {
                             PolicyCondition::Attribute {
                                 attribute: "hasConfig".to_string(),
                                 op: ConditionOp::Eq,
-                                value: PolicyValue::Literal { literal: json!(true) },
+                                value: PolicyValue::Literal {
+                                    literal: json!(true),
+                                },
                             },
                             PolicyCondition::Attribute {
                                 attribute: "verificationStatus".to_string(),
                                 op: ConditionOp::Eq,
-                                value: PolicyValue::Literal { literal: json!("verified") },
+                                value: PolicyValue::Literal {
+                                    literal: json!("verified"),
+                                },
                             },
                         ],
                     }),
@@ -212,3 +274,65 @@ pub fn zone_entity() -> EntityDefinition {
 }
 
 submit_entity!(zone_entity);
+
+/// The "Zone overview" data — 1 zone's DDoS policy, firewall rules, most recent scan jobs, and
+/// most recent incidents — declared here as metadata instead of hand-coded in a bespoke page
+/// (the earlier `ZoneOverviewPage.tsx`, removed once this made it redundant). `RecordDetail`
+/// (`@metap/platform-ui`) renders one panel per entry automatically via `RelatedRecordsPanel`,
+/// which builds and sends 1 combined GraphQL query — no React/query code needed for this or any
+/// future related view. `scanJobs`/`incidents` point at `scanning-service`/`alerting-service`,
+/// separate binaries from this one (`../../../README.md`'s service table) — resolved through the
+/// WAF `graphql-gateway` (`../../../graphql-gateway/`), not this service's own `/graphql` mount,
+/// since this service alone can't reach either. See `RelatedView`'s own doc comment
+/// (`metap-metadata`) for why `entity`/`filterField` aren't validated against those services'
+/// real shape.
+fn zone_related_views() -> Vec<RelatedView> {
+    vec![
+        RelatedView {
+            name: "ddosPolicy".to_string(),
+            label: "DDoS Policy".to_string(),
+            entity: "waf.ddos_policies".to_string(),
+            filter_field: "zoneId".to_string(),
+            fields: vec![
+                "sensitivity".to_string(),
+                "action".to_string(),
+                "enabled".to_string(),
+            ],
+            limit: Some(5),
+        },
+        RelatedView {
+            name: "firewallRules".to_string(),
+            label: "Firewall Rules".to_string(),
+            entity: "waf.firewall_rules".to_string(),
+            filter_field: "zoneId".to_string(),
+            fields: vec![
+                "name".to_string(),
+                "ruleType".to_string(),
+                "action".to_string(),
+            ],
+            limit: Some(10),
+        },
+        RelatedView {
+            name: "scanJobs".to_string(),
+            label: "Recent Scan Jobs".to_string(),
+            entity: "waf.scan_jobs".to_string(),
+            filter_field: "zoneId".to_string(),
+            fields: vec!["scanType".to_string(), "status".to_string()],
+            limit: Some(5),
+        },
+        RelatedView {
+            name: "incidents".to_string(),
+            label: "Recent Incidents".to_string(),
+            entity: "waf.incidents".to_string(),
+            filter_field: "zoneId".to_string(),
+            fields: vec![
+                "title".to_string(),
+                "severity".to_string(),
+                "status".to_string(),
+            ],
+            limit: Some(5),
+        },
+    ]
+}
+
+submit_related_views!("waf.zones", zone_related_views);

@@ -1,5 +1,10 @@
 import { Link } from "react-router-dom";
-import { useEntities, ApiErrorMessage, getEntityLabel, useLocale } from "@metap/platform-ui";
+import {
+  useEntities,
+  ApiErrorMessage,
+  getEntityLabel,
+  useLocale,
+} from "@metap/platform-ui";
 
 export function EntitiesPage() {
   const { locale } = useLocale();
@@ -10,7 +15,9 @@ export function EntitiesPage() {
 
   return (
     <div className="mx-auto max-w-3xl py-8">
-      <h2 className="mb-4 text-xl font-semibold text-foreground">WAF entities</h2>
+      <h2 className="mb-4 text-xl font-semibold text-foreground">
+        WAF entities
+      </h2>
       <ul className="flex list-disc flex-col gap-1 pl-5">
         {data?.map((entity) => (
           <li key={entity.name}>
@@ -18,7 +25,8 @@ export function EntitiesPage() {
               to={`/records/${entity.name}`}
               className="text-sm font-medium text-primary underline-offset-2 hover:underline"
             >
-              {getEntityLabel(locale, entity.name, entity.label)} ({entity.name})
+              {getEntityLabel(locale, entity.name, entity.label)} ({entity.name}
+              )
             </Link>
           </li>
         ))}

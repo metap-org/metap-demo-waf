@@ -1,36 +1,13 @@
-[package]
-name = "data-plane"
-version = "0.1.0"
-edition = "2021"
+[workspace]
+resolver = "2"
+members = [
+    "services/zones-service",
+    "services/scanning-service",
+    "services/alerting-service",
+]
 
-# Binary name stays fixed regardless of the crate/project name so the Dockerfile never
-# needs templating (see its own comment).
-[[bin]]
-name = "app"
-path = "src/main.rs"
-
-[dependencies]
-# Local dev: path dep into the sibling ../metap checkout (no crates.io publish yet, and this
-# avoids depending on whatever's pushed to a branch vs. what's actually on disk here). Swap to
-# `git = "git@github.com:metap-org/metap.git", branch = "feat/graphql-microservices"` for CI/
-# deploy once this stabilizes on a real branch/tag.
-metap = { path = "../../metap/crates/metap" }
-anyhow = "1"
-arc-swap = "1"
-axum = "0.8"
-tokio = { version = "1", features = ["rt-multi-thread", "macros", "signal"] }
-jsonwebtoken = "9"
-serde_json = "1"
-tracing = "0.1"
-
-[dev-dependencies]
-reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
-chrono = "0.4"
-uuid = { version = "1", features = ["v4"] }
-serde = { version = "1", features = ["derive"] }
-sqlx = { version = "0.8", default-features = false, features = [
-  "runtime-tokio",
-  "tls-rustls",
-  "postgres",
-  "uuid",
-] }
+# No root package — `data-plane/` stopped being 1 binary and became a workspace of 3
+# (2026-09-01, pillar split: zones-service/scanning-service/alerting-service). See
+# `services/*/README.md` and each service's `main.rs` doc comment for what each one owns and
+# why. This file only lists workspace members; per-service dependencies live in each member's
+# own `Cargo.toml`, same as `metap`'s own root `Cargo.toml` for its `crates/*` members.
