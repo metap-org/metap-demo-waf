@@ -40,7 +40,10 @@ fn openssl_genrsa(dir: &std::path::Path) -> (String, String) {
         .expect("openssl rsa -pubout must run for this e2e test");
     assert!(status.success());
 
-    (std::fs::read_to_string(private_path).unwrap(), std::fs::read_to_string(public_path).unwrap())
+    (
+        std::fs::read_to_string(private_path).unwrap(),
+        std::fs::read_to_string(public_path).unwrap(),
+    )
 }
 
 #[derive(Serialize)]
@@ -84,6 +87,7 @@ fn test_entity() -> EntityDefinition {
             max: None,
             min_length: None,
             max_length: None,
+            computed: None,
         }],
         list_views: vec![EntityListView {
             name: "default".to_string(),
@@ -98,8 +102,13 @@ fn test_entity() -> EntityDefinition {
 }
 
 async fn connect() -> PgPool {
-    let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL required for this e2e test");
-    PgPoolOptions::new().max_connections(5).connect(&database_url).await.unwrap()
+    let database_url =
+        std::env::var("DATABASE_URL").expect("DATABASE_URL required for this e2e test");
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect(&database_url)
+        .await
+        .unwrap()
 }
 
 #[tokio::test]
@@ -123,7 +132,8 @@ async fn full_http_lifecycle_over_a_real_server_and_a_real_jwt() {
         metap::control::RegistryCache::new(tenant_registry),
         Arc::new(metap::control::EnvStore),
     );
-    let permissions = PermissionService::new(Box::new(PostgresPolicyStore::new(test_router.clone())));
+    let permissions =
+        PermissionService::new(Box::new(PostgresPolicyStore::new(test_router.clone())));
     let decoding_key = jsonwebtoken::DecodingKey::from_rsa_pem(public_pem.as_bytes()).unwrap();
     let state = AppState::new(
         pool.clone(),
@@ -140,9 +150,12 @@ async fn full_http_lifecycle_over_a_real_server_and_a_real_jwt() {
     let addr = listener.local_addr().unwrap();
     tokio::spawn(async move {
         // The rate-limit layer inside `build_router` needs `ConnectInfo<SocketAddr>`.
-        axum::serve(listener, router.into_make_service_with_connect_info::<std::net::SocketAddr>())
-            .await
-            .unwrap();
+        axum::serve(
+            listener,
+            router.into_make_service_with_connect_info::<std::net::SocketAddr>(),
+        )
+        .await
+        .unwrap();
     });
     let base = format!("http://{addr}");
     let client = reqwest::Client::new();
@@ -150,7 +163,11 @@ async fn full_http_lifecycle_over_a_real_server_and_a_real_jwt() {
     let health = client.get(format!("{base}/health")).send().await.unwrap();
     assert_eq!(health.status(), 200);
 
-    let unauthed = client.get(format!("{base}/api/test.tasks")).send().await.unwrap();
+    let unauthed = client
+        .get(format!("{base}/api/test.tasks"))
+        .send()
+        .await
+        .unwrap();
     assert_eq!(unauthed.status(), 401);
 
     let create_res = client
@@ -164,10 +181,18 @@ async fn full_http_lifecycle_over_a_real_server_and_a_real_jwt() {
     let created: serde_json::Value = create_res.json().await.unwrap();
     let id = created["data"]["id"].as_str().unwrap().to_string();
 
-    let get_res =
-        client.get(format!("{base}/api/test.tasks/{id}")).bearer_auth(&token).send().await.unwrap();
+    let get_res = client
+        .get(format!("{base}/api/test.tasks/{id}"))
+        .bearer_auth(&token)
+        .send()
+        .await
+        .unwrap();
     assert_eq!(get_res.status(), 200);
 
-    sqlx::query("DELETE FROM records WHERE tenant_id = $1").bind(tenant_id).execute(&pool).await.ok();
+    sqlx::query("DELETE FROM records WHERE tenant_id = $1")
+        .bind(tenant_id)
+        .execute(&pool)
+        .await
+        .ok();
     std::fs::remove_dir_all(&keydir).ok();
 }

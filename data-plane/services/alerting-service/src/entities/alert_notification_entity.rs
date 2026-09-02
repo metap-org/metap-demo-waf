@@ -30,10 +30,17 @@ fn field(
         max: None,
         min_length: None,
         max_length: None,
+        computed: None,
     }
 }
 
-fn enum_field(name: &str, label: &str, values: &[&str], required: bool, indexed: bool) -> EntityField {
+fn enum_field(
+    name: &str,
+    label: &str,
+    values: &[&str],
+    required: bool,
+    indexed: bool,
+) -> EntityField {
     EntityField {
         enum_values: Some(values.iter().map(|v| v.to_string()).collect()),
         ..field(name, label, FieldKind::Enum, required, indexed, false)
@@ -64,10 +71,24 @@ pub fn alert_notification_entity() -> EntityDefinition {
                 max: None,
                 min_length: None,
                 max_length: None,
+                computed: None,
             },
-            field("triggeredAt", "Triggered At", FieldKind::Datetime, true, true, true),
+            field(
+                "triggeredAt",
+                "Triggered At",
+                FieldKind::Datetime,
+                true,
+                true,
+                true,
+            ),
             enum_field("channel", "Channel", &["email", "webhook"], true, false),
-            enum_field("deliveryStatus", "Delivery Status", &["sent", "failed"], true, true),
+            enum_field(
+                "deliveryStatus",
+                "Delivery Status",
+                &["sent", "failed"],
+                true,
+                true,
+            ),
         ],
         list_views: vec![EntityListView {
             name: "default".to_string(),

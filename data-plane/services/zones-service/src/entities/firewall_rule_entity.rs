@@ -38,6 +38,7 @@ fn field(
         max: None,
         min_length: None,
         max_length: None,
+        computed: None,
     }
 }
 
@@ -78,6 +79,7 @@ pub fn firewall_rule_entity() -> EntityDefinition {
                 max: None,
                 min_length: None,
                 max_length: None,
+                computed: None,
             },
             field("name", "Name", FieldKind::String, true, false, true),
             field("priority", "Priority", FieldKind::Number, true, false, true),

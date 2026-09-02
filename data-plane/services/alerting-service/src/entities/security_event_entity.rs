@@ -48,10 +48,17 @@ fn field(
         max: None,
         min_length: None,
         max_length: None,
+        computed: None,
     }
 }
 
-fn enum_field(name: &str, label: &str, values: &[&str], required: bool, indexed: bool) -> EntityField {
+fn enum_field(
+    name: &str,
+    label: &str,
+    values: &[&str],
+    required: bool,
+    indexed: bool,
+) -> EntityField {
     EntityField {
         enum_values: Some(values.iter().map(|v| v.to_string()).collect()),
         ..field(name, label, FieldKind::Enum, required, indexed, false)
@@ -65,13 +72,60 @@ pub fn security_event_entity() -> EntityDefinition {
         table_name: "records".to_string(),
         fields: vec![
             field("zoneId", "Zone", FieldKind::String, true, true, false),
-            enum_field("triggeredBy", "Triggered By", &["ddosPolicy", "firewallRule"], true, true),
-            field("triggeredById", "Triggered By Id", FieldKind::String, true, false, false),
-            field("triggeredByName", "Triggered By Name", FieldKind::String, false, false, false),
-            enum_field("action", "Action", &["logged", "challenged", "blocked"], true, true),
-            field("sourceIp", "Source IP", FieldKind::String, true, true, false),
-            field("requestPath", "Request Path", FieldKind::String, true, false, false),
-            field("occurredAt", "Occurred At", FieldKind::Datetime, true, true, true),
+            enum_field(
+                "triggeredBy",
+                "Triggered By",
+                &["ddosPolicy", "firewallRule"],
+                true,
+                true,
+            ),
+            field(
+                "triggeredById",
+                "Triggered By Id",
+                FieldKind::String,
+                true,
+                false,
+                false,
+            ),
+            field(
+                "triggeredByName",
+                "Triggered By Name",
+                FieldKind::String,
+                false,
+                false,
+                false,
+            ),
+            enum_field(
+                "action",
+                "Action",
+                &["logged", "challenged", "blocked"],
+                true,
+                true,
+            ),
+            field(
+                "sourceIp",
+                "Source IP",
+                FieldKind::String,
+                true,
+                true,
+                false,
+            ),
+            field(
+                "requestPath",
+                "Request Path",
+                FieldKind::String,
+                true,
+                false,
+                false,
+            ),
+            field(
+                "occurredAt",
+                "Occurred At",
+                FieldKind::Datetime,
+                true,
+                true,
+                true,
+            ),
         ],
         list_views: vec![EntityListView {
             name: "default".to_string(),

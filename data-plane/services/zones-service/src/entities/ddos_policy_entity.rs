@@ -31,6 +31,7 @@ fn field(
         max: None,
         min_length: None,
         max_length: None,
+        computed: None,
     }
 }
 
@@ -65,6 +66,7 @@ pub fn ddos_policy_entity() -> EntityDefinition {
                 max: None,
                 min_length: None,
                 max_length: None,
+                computed: None,
             },
             enum_field(
                 "sensitivity",

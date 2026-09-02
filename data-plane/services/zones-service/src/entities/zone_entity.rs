@@ -55,6 +55,7 @@ fn field(
         max: None,
         min_length: None,
         max_length: None,
+        computed: None,
     }
 }
 

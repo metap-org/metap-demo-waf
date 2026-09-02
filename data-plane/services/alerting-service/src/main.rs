@@ -104,14 +104,21 @@ mod tests {
         registry.register_all_submitted().unwrap();
         registry.validate_references().unwrap();
 
-        let names: Vec<String> = registry.list_entities().into_iter().map(|e| e.name).collect();
+        let names: Vec<String> = registry
+            .list_entities()
+            .into_iter()
+            .map(|e| e.name)
+            .collect();
         for expected in [
             "waf.security_events",
             "waf.incidents",
             "waf.alert_policies",
             "waf.alert_notifications",
         ] {
-            assert!(names.contains(&expected.to_string()), "missing entity: {expected}");
+            assert!(
+                names.contains(&expected.to_string()),
+                "missing entity: {expected}"
+            );
         }
         assert_eq!(names.len(), 4, "unexpected entity count: {names:?}");
     }

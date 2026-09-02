@@ -24,7 +24,8 @@
 //! zone's hostname by calling `zones-service` directly (or via the GraphQL gateway once wired).
 
 use metap::prelude::{
-    submit_entity, EntityDefinition, EntityField, EntityListView, EntityWorkflow, FieldKind, WorkflowTransition,
+    submit_entity, EntityDefinition, EntityField, EntityListView, EntityWorkflow, FieldKind,
+    WorkflowTransition,
 };
 
 fn field(
@@ -53,10 +54,17 @@ fn field(
         max: None,
         min_length: None,
         max_length: None,
+        computed: None,
     }
 }
 
-fn enum_field(name: &str, label: &str, values: &[&str], required: bool, indexed: bool) -> EntityField {
+fn enum_field(
+    name: &str,
+    label: &str,
+    values: &[&str],
+    required: bool,
+    indexed: bool,
+) -> EntityField {
     EntityField {
         enum_values: Some(values.iter().map(|v| v.to_string()).collect()),
         ..field(name, label, FieldKind::Enum, required, indexed, false)
@@ -82,8 +90,21 @@ pub fn scan_job_entity() -> EntityDefinition {
         table_name: "records".to_string(),
         fields: vec![
             field("zoneId", "Zone", FieldKind::String, true, true, false),
-            enum_field("scanType", "Scan Type", &["quickScan", "fullScan", "apiScan"], true, true),
-            field("schedule", "Schedule (cron)", FieldKind::String, false, false, false),
+            enum_field(
+                "scanType",
+                "Scan Type",
+                &["quickScan", "fullScan", "apiScan"],
+                true,
+                true,
+            ),
+            field(
+                "schedule",
+                "Schedule (cron)",
+                FieldKind::String,
+                false,
+                false,
+                false,
+            ),
             enum_field(
                 "status",
                 "Status",
@@ -91,7 +112,14 @@ pub fn scan_job_entity() -> EntityDefinition {
                 false,
                 true,
             ),
-            field("lastRunAt", "Last Run At", FieldKind::Datetime, false, false, true),
+            field(
+                "lastRunAt",
+                "Last Run At",
+                FieldKind::Datetime,
+                false,
+                false,
+                true,
+            ),
         ],
         list_views: vec![EntityListView {
             name: "default".to_string(),

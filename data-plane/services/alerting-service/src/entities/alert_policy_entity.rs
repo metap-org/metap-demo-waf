@@ -30,6 +30,7 @@ fn field(
         max: None,
         min_length: None,
         max_length: None,
+        computed: None,
     }
 }
 
@@ -40,8 +41,22 @@ pub fn alert_policy_entity() -> EntityDefinition {
         table_name: "records".to_string(),
         fields: vec![
             field("name", "Name", FieldKind::String, true, false, true),
-            field("thresholdCount", "Threshold Count", FieldKind::Number, true, false, false),
-            field("windowMinutes", "Window (minutes)", FieldKind::Number, true, false, false),
+            field(
+                "thresholdCount",
+                "Threshold Count",
+                FieldKind::Number,
+                true,
+                false,
+                false,
+            ),
+            field(
+                "windowMinutes",
+                "Window (minutes)",
+                FieldKind::Number,
+                true,
+                false,
+                false,
+            ),
             field("channels", "Channels", FieldKind::Json, true, false, false),
             field("enabled", "Enabled", FieldKind::Boolean, false, true, false),
         ],

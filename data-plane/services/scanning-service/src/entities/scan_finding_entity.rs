@@ -7,7 +7,8 @@
 //! not here; this entity just needs `firstSeenAt`/`lastSeenAt` to support it.
 
 use metap::prelude::{
-    submit_entity, EntityDefinition, EntityField, EntityListView, EntityWorkflow, FieldKind, WorkflowTransition,
+    submit_entity, EntityDefinition, EntityField, EntityListView, EntityWorkflow, FieldKind,
+    WorkflowTransition,
 };
 
 fn field(
@@ -36,10 +37,17 @@ fn field(
         max: None,
         min_length: None,
         max_length: None,
+        computed: None,
     }
 }
 
-fn enum_field(name: &str, label: &str, values: &[&str], required: bool, indexed: bool) -> EntityField {
+fn enum_field(
+    name: &str,
+    label: &str,
+    values: &[&str],
+    required: bool,
+    indexed: bool,
+) -> EntityField {
     EntityField {
         enum_values: Some(values.iter().map(|v| v.to_string()).collect()),
         ..field(name, label, FieldKind::Enum, required, indexed, false)
@@ -82,6 +90,7 @@ pub fn scan_finding_entity() -> EntityDefinition {
                 max: None,
                 min_length: None,
                 max_length: None,
+                computed: None,
             },
             enum_field(
                 "severity",
@@ -91,8 +100,22 @@ pub fn scan_finding_entity() -> EntityDefinition {
                 true,
             ),
             field("category", "Category", FieldKind::String, true, true, true),
-            field("endpoint", "Endpoint", FieldKind::String, true, false, false),
-            field("description", "Description", FieldKind::String, false, false, false),
+            field(
+                "endpoint",
+                "Endpoint",
+                FieldKind::String,
+                true,
+                false,
+                false,
+            ),
+            field(
+                "description",
+                "Description",
+                FieldKind::String,
+                false,
+                false,
+                false,
+            ),
             enum_field(
                 "remediationStatus",
                 "Remediation Status",
@@ -100,8 +123,22 @@ pub fn scan_finding_entity() -> EntityDefinition {
                 false,
                 true,
             ),
-            field("firstSeenAt", "First Seen At", FieldKind::Datetime, false, false, true),
-            field("lastSeenAt", "Last Seen At", FieldKind::Datetime, false, false, true),
+            field(
+                "firstSeenAt",
+                "First Seen At",
+                FieldKind::Datetime,
+                false,
+                false,
+                true,
+            ),
+            field(
+                "lastSeenAt",
+                "Last Seen At",
+                FieldKind::Datetime,
+                false,
+                false,
+                true,
+            ),
         ],
         list_views: vec![EntityListView {
             name: "default".to_string(),
@@ -125,11 +162,20 @@ pub fn scan_finding_entity() -> EntityDefinition {
         workflow: Some(EntityWorkflow {
             state_field: "remediationStatus".to_string(),
             initial_state: "open".to_string(),
-            terminal_states: vec!["fixed".to_string(), "falsePositive".to_string(), "accepted".to_string()],
+            terminal_states: vec![
+                "fixed".to_string(),
+                "falsePositive".to_string(),
+                "accepted".to_string(),
+            ],
             transitions: vec![
                 transition("confirm", "open", "confirmed", "Confirm"),
                 transition("markFixed", "confirmed", "fixed", "Mark Fixed"),
-                transition("markFalsePositive", "open", "falsePositive", "Mark False Positive"),
+                transition(
+                    "markFalsePositive",
+                    "open",
+                    "falsePositive",
+                    "Mark False Positive",
+                ),
                 transition("accept", "open", "accepted", "Accept Risk"),
             ],
         }),

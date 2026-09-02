@@ -17,8 +17,8 @@
 //! module 7). This entity is just where the result lands.
 
 use metap::prelude::{
-    submit_entity, submit_field_display_hints, EntityDefinition, EntityField, EntityListView, EntityWorkflow,
-    FieldDisplayHint, FieldKind, WorkflowTransition,
+    submit_entity, submit_field_display_hints, EntityDefinition, EntityField, EntityListView,
+    EntityWorkflow, FieldDisplayHint, FieldKind, WorkflowTransition,
 };
 
 fn field(
@@ -47,10 +47,17 @@ fn field(
         max: None,
         min_length: None,
         max_length: None,
+        computed: None,
     }
 }
 
-fn enum_field(name: &str, label: &str, values: &[&str], required: bool, indexed: bool) -> EntityField {
+fn enum_field(
+    name: &str,
+    label: &str,
+    values: &[&str],
+    required: bool,
+    indexed: bool,
+) -> EntityField {
     EntityField {
         enum_values: Some(values.iter().map(|v| v.to_string()).collect()),
         ..field(name, label, FieldKind::Enum, required, indexed, false)
@@ -77,7 +84,13 @@ pub fn incident_entity() -> EntityDefinition {
         fields: vec![
             field("zoneId", "Zone", FieldKind::String, true, true, false),
             field("title", "Title", FieldKind::String, true, false, true),
-            enum_field("severity", "Severity", &["low", "medium", "high", "critical"], true, true),
+            enum_field(
+                "severity",
+                "Severity",
+                &["low", "medium", "high", "critical"],
+                true,
+                true,
+            ),
             enum_field(
                 "status",
                 "Status",
@@ -85,8 +98,22 @@ pub fn incident_entity() -> EntityDefinition {
                 false,
                 true,
             ),
-            field("eventCount", "Event Count", FieldKind::Number, false, false, true),
-            field("assignedTo", "Assigned To", FieldKind::String, false, true, false),
+            field(
+                "eventCount",
+                "Event Count",
+                FieldKind::Number,
+                false,
+                false,
+                true,
+            ),
+            field(
+                "assignedTo",
+                "Assigned To",
+                FieldKind::String,
+                false,
+                true,
+                false,
+            ),
         ],
         list_views: vec![EntityListView {
             name: "default".to_string(),
@@ -113,7 +140,12 @@ pub fn incident_entity() -> EntityDefinition {
             terminal_states: vec!["resolved".to_string()],
             transitions: vec![
                 transition("acknowledge", "open", "acknowledged", "Acknowledge"),
-                transition("startMitigating", "acknowledged", "mitigating", "Start Mitigating"),
+                transition(
+                    "startMitigating",
+                    "acknowledged",
+                    "mitigating",
+                    "Start Mitigating",
+                ),
                 transition("resolve", "mitigating", "resolved", "Resolve"),
             ],
         }),
