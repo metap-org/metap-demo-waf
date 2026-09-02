@@ -176,7 +176,12 @@ services:
       graphql-gateway:
         condition: service_started
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost/"]
+      # `http://localhost/` resolves via `/etc/hosts`' `::1` entry first inside this image; nginx's
+      # `listen 80;` (nginx.conf) only binds IPv4, so wget got "connection refused" over IPv6 even
+      # though the app was serving fine over IPv4 (confirmed live 2026-09-02: host curl -> 200,
+      # real access logs succeeding, container stuck "unhealthy" the whole time regardless).
+      # Pinning the literal IPv4 loopback address skips hosts-file/DNS resolution entirely.
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/"]
       interval: 10s
       timeout: 3s
       retries: 5
