@@ -143,6 +143,18 @@ cargo run -p scanning-service   # http://localhost:3010
 cargo run -p alerting-service   # http://localhost:3020
 ```
 
+### Dev nhanh — tự build lại khi sửa code (`cargo-watch`)
+
+Tương tự `../../metap-demo-crm/README.md` — mỗi service chạy `cargo watch` riêng (workspace này
+có 3 package), theo dõi thêm `../../metap/crates` vì đó là path dependency:
+
+```bash
+cargo install cargo-watch   # 1 lần, nếu chưa có
+cargo watch --watch services/zones-service/src --watch ../../metap/crates -x 'run -p zones-service'
+cargo watch --watch services/scanning-service/src --watch ../../metap/crates -x 'run -p scanning-service'
+cargo watch --watch services/alerting-service/src --watch ../../metap/crates -x 'run -p alerting-service'
+```
+
 ### Frontend (`web/`)
 
 ```bash

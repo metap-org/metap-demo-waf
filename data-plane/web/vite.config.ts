@@ -13,9 +13,14 @@ import react from "@vitejs/plugin-react";
 // to the object's own static `target` regardless of what `router` returned (Vite 8's proxy
 // internals didn't behave the way older Vite/`http-proxy` docs describe); a plain `fetch`-based
 // forward here is simpler to get right than debugging that further.
-const ZONES = "http://localhost:3000";
-const SCANNING = "http://localhost:3010";
-const ALERTING = "http://localhost:3020";
+// Env-overridable (default unchanged: plain `pnpm dev` on the host still hits `localhost`) so
+// `../docker-compose.dev.yml`'s `web` service can point these at the pillar containers' own
+// service DNS names (`http://zones-service:3000`, ...) instead — lets that container use normal
+// bridge networking + port-mapped `ports:` rather than `network_mode: host`.
+const ZONES = process.env.ZONES_URL ?? "http://localhost:3000";
+const SCANNING = process.env.SCANNING_URL ?? "http://localhost:3010";
+const ALERTING = process.env.ALERTING_URL ?? "http://localhost:3020";
+const GATEWAY = process.env.GATEWAY_URL ?? "http://localhost:4000";
 
 function targetForEntity(url: string): string {
   const entity = /waf\.[a-z_]+/.exec(url)?.[0];
@@ -182,7 +187,7 @@ export default defineConfig({
       // The WAF `graphql-gateway` instance (`../graphql-gateway/README.md`) — 1 fixed address,
       // no entity-based routing needed since the gateway itself already resolves that. Used by
       // exactly 1 screen today, `ZoneOverviewPage`.
-      "/graphql": "http://localhost:4000",
+      "/graphql": GATEWAY,
     },
   },
 });

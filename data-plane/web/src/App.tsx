@@ -28,9 +28,17 @@ import { EntitiesPage } from "./demo/EntitiesPage";
 
 function RequireAuth({ children }: { children: ReactNode }) {
   const { t } = useTranslation();
-  const { token } = useAuth();
+  // `useAuth()` dropped `token` for `status` in the cookie-session migration
+  // (`docs/roadmap/64-cookie-session-persistence.md` in `../../../metap-docs`) — `status` starts
+  // "unknown" until the initial `GET /auth/me` resolves, so redirecting on anything other than
+  // a confirmed "anonymous" would bounce a just-logged-in user straight back to `/login` before
+  // that check ever gets a chance to see the new session cookie.
+  const { status } = useAuth();
 
-  if (!token) {
+  if (status === "unknown") {
+    return null;
+  }
+  if (status === "anonymous") {
     return <Navigate to="/login" replace />;
   }
 

@@ -4,7 +4,16 @@ import { TooltipProvider, ToastProvider } from "@metap/ui";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter } from "react-router-dom";
 import "@metap/ui/style.css";
+
+// Order matters — the theme's overrides must load after the base stylesheet so its
+// `[data-theme="enterprise"]` rules win the cascade over @metap/ui's `:root` defaults (see
+// ../../../../metap-themes/packages/enterprise/src/theme.css's own doc comment). Trying this
+// theme out for the WAF portal (2026-09-03) — a fixed choice for now, not a switcher; swap the
+// import + the `data-theme` value below to try a different one from `../../../../metap-themes/packages/*`.
+import "@metap/theme-enterprise/theme.css";
 import "./index.css";
+
+document.documentElement.setAttribute("data-theme", "enterprise");
 import { ApiError, ReactRouterNavigationProvider } from "@metap/platform-ui";
 import App from "./App";
 

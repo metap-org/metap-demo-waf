@@ -52,7 +52,7 @@ async fn main() -> anyhow::Result<()> {
 
     let metadata = Arc::new(ArcSwap::new(metadata_base.clone()));
 
-    let state = AppState::new(
+    let mut state = AppState::new(
         pool,
         metadata_base,
         metadata,
@@ -61,6 +61,10 @@ async fn main() -> anyhow::Result<()> {
         private_key_pem,
         router,
     );
+    // Dev binary serves plain `http://localhost:3020` — a `Secure` session cookie (the
+    // `AppState::new` default) is silently dropped by the browser over non-HTTPS. See
+    // `docs/roadmap/64-cookie-session-persistence.md` in `../../metap-docs`.
+    state.cookie_secure = false;
 
     // gRPC opt-in (`GRPC_ENABLED`/`GRPC_PORT`) — lets a `graphql-gateway` instance aggregate
     // this service alongside `zones-service`/`scanning-service` for the WAF Customer Portal's

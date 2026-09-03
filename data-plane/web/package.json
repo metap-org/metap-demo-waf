@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@metap/platform-ui": "link:../../../platform-ui",
+    "@metap/theme-enterprise": "link:../../../metap-themes/packages/enterprise",
     "@tanstack/react-query": "^5.101.4",
     "@metap/ui": "link:../../../design-system",
     "react": "^19.2.7",

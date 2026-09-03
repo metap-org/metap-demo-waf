@@ -882,6 +882,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "axum-extra"
+version = "0.12.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "be44683b41ccb9ab2d23a5230015c9c3c55be97a25e4428366de8873103f7970"
+dependencies = [
+ "axum-core",
+ "bytes",
+ "cookie",
+ "futures-core",
+ "futures-util",
+ "http 1.5.0",
+ "http-body 1.1.0",
+ "http-body-util",
+ "mime",
+ "pin-project-lite",
+ "tower-layer",
+ "tower-service",
+]
+
+[[package]]
 name = "axum-prometheus"
 version = "0.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1231,6 +1251,17 @@ name = "const-oid"
 version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a6ef517f0926dd24a1582492c791b6a4818a4d94e789a334894aa15b0d12f55c"
+
+[[package]]
+name = "cookie"
+version = "0.18.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1a373e3602691c3cdea496d2f0ee5935151e6168fe87739483c463db1b2f2f87"
+dependencies = [
+ "percent-encoding",
+ "time",
+ "version_check",
+]
 
 [[package]]
 name = "cookie-factory"
@@ -3338,6 +3369,7 @@ dependencies = [
  "metap-attachments",
  "metap-auth",
  "metap-cache",
+ "metap-config",
  "metap-control",
  "metap-cron",
  "metap-crud",
@@ -3406,6 +3438,20 @@ dependencies = [
  "bytes",
  "moka",
  "redis",
+ "uuid",
+]
+
+[[package]]
+name = "metap-config"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "arc-swap",
+ "moka",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "tracing",
  "uuid",
 ]
 
@@ -3528,6 +3574,7 @@ dependencies = [
  "prost",
  "prost-types",
  "protoc-bin-vendored",
+ "serde",
  "serde_json",
  "tokio",
  "tonic",
@@ -3544,12 +3591,14 @@ dependencies = [
  "anyhow",
  "arc-swap",
  "axum",
+ "axum-extra",
  "axum-prometheus",
  "base64 0.22.1",
  "chrono",
  "jsonwebtoken",
  "metap-attachments",
  "metap-auth",
+ "metap-config",
  "metap-control",
  "metap-cron",
  "metap-crud",
@@ -3567,6 +3616,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sqlx",
+ "time",
  "tokio",
  "tracing",
  "uuid",
