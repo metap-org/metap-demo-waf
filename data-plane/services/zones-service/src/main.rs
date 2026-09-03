@@ -20,11 +20,11 @@
 //! directory — see `.env.example`). Run from this directory so that resolves as expected.
 
 mod entities;
+mod routes;
 
 use std::sync::Arc;
 
 use arc_swap::ArcSwap;
-use axum::Router;
 use metap::prelude::*;
 
 #[tokio::main]
@@ -83,7 +83,15 @@ async fn main() -> anyhow::Result<()> {
     )
     .await?;
 
-    let router = build_router(state, &config.cors_origins, Router::new());
+    // `routes::router()` goes through `extra_routes` so the custom onboarding/ops endpoints get
+    // the same CORS/rate-limit/tracing/security-header layers as every generic route.
+    // `zone_delete_guard` is a middleware rather than a route override on purpose — see its own
+    // doc comment for why overriding `DELETE /api/waf.zones/{id}` would break `GET`/`PATCH` on
+    // the same path.
+    let guard_state = state.clone();
+    let router = build_router(state, &config.cors_origins, routes::router()).layer(
+        axum::middleware::from_fn_with_state(guard_state, routes::zone_delete_guard),
+    );
 
     let addr = format!("{}:{}", config.host, config.port);
 

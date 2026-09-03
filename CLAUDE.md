@@ -5,8 +5,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## What this repo is
 
 `metap-demo-waf` is a demo **WAAP** (Web Application & API Protection, Cloudflare-style) product.
-**As of now the repo contains no code — only architecture/product docs.** Every directory has a
-placeholder `README.md`; the real content lives in `data-plane/docs/`. Read
+**`data-plane/` has real code now** (3 pillar services + a GraphQL gateway config + the Customer
+Portal frontend — see the plane table below, updated 2026-09-03); `control-plane/` and
+`edge-plane/` are still placeholder `README.md`s with zero code, which means the part that
+actually blocks a request does not exist yet. The product/architecture spec lives in
+`data-plane/docs/` and is still the source of truth for anything not yet built. Read
 `data-plane/docs/01-product-vision.md` through `04-architecture-boundary.md` in order before
 proposing or writing any code — they contain the settled decisions (scope, domain model, personas,
 plane boundaries) that later work must stay consistent with. Docs are written in Vietnamese.
@@ -30,7 +33,7 @@ cycle with a hard boundary — do not blur these when implementing:
 
 | Directory | Role | Status |
 |---|---|---|
-| `data-plane/` | Business portal (source of truth): Zone, DDoS policy, firewall rule, vulnerability scan, incident, alert — built on `metap`, full CRUD/workflow/permission UI | Docs done, no code yet |
+| `data-plane/` | Business portal (source of truth): Zone, DDoS policy, firewall rule, vulnerability scan, incident, alert — built on `metap`, full CRUD/workflow/permission UI | 3 services (`zones`/`scanning`/`alerting`) + `graphql-gateway` config + Customer Portal frontend (10-module IA, zone-centric). Custom non-CRUD endpoints live in each service's `src/routes.rs` |
 | `control-plane/` | Headless worker(s): pulls config changes from `data-plane` (RabbitMQ outbox subscribe), compiles them into an edge-ready rule-set, writes to Redis/DragonflyDB. No UI, not CRUD. Suggested worker name: `waf-config-distributor` | Not started |
 | `edge-plane/` | High-performance, low-latency mitigation engine: evaluates rules against real traffic, blocks/challenges/logs. Deliberately **not** built on `metap`/metadata-driven approach | Not started |
 
@@ -102,8 +105,12 @@ Zone), Developer (owns ScanFinding remediation only, no DdosPolicy/FirewallRule 
 
 ## Working conventions
 
-- There is no build/lint/test tooling yet in this repo — nothing to run. When code is added to a
-  plane, check that plane's own README/CLAUDE.md (once it exists) rather than assuming `metap`'s
-  commands apply.
+- `data-plane/` is a Cargo workspace (3 service members) plus `web/` (pnpm + Vite): `cargo
+  build/test/clippy --workspace` from `data-plane/`, `pnpm dev`/`tsc -b`/`oxlint` from
+  `data-plane/web`. `control-plane`/`edge-plane` still have no tooling because they have no code.
+- **Phase 70/71 (2026-09-03) landed unverified on purpose** — the project owner explicitly asked
+  for code without build/test in that session. Nothing added there has been compiled or run: treat
+  it as a draft to verify, not as working code. See `../metap-docs/docs/roadmap/71-waf-admin-portal.md`'s
+  "Xác minh" section for the specific spots most likely to be wrong.
 - Docs are the spec. If an implementation choice isn't settled in `data-plane/docs/`, don't invent
   one silently — it's likely one of the explicitly-flagged open questions above.

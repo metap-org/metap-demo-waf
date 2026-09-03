@@ -124,6 +124,18 @@ export default defineConfig({
           ) {
             return void forwardTo(targetForEntity(url))(req, res, next);
           }
+          // The services' own non-CRUD endpoints (`services/*/src/routes.rs`). These have no
+          // entity name in the path, so `targetForEntity` can't place them — each is owned by
+          // exactly one service and routed by prefix instead.
+          if (url.startsWith("/internal/")) {
+            const target = url.startsWith("/internal/scan-jobs/")
+              ? SCANNING
+              : url.startsWith("/internal/incidents/") ||
+                  url.startsWith("/internal/alerts/")
+                ? ALERTING
+                : ZONES;
+            return void forwardTo(target)(req, res, next);
+          }
           next();
         });
       },

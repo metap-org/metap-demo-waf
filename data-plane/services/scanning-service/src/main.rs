@@ -17,11 +17,11 @@
 //! directory — see `.env.example`). Run from this directory so that resolves as expected.
 
 mod entities;
+mod routes;
 
 use std::sync::Arc;
 
 use arc_swap::ArcSwap;
-use axum::Router;
 use metap::prelude::*;
 
 #[tokio::main]
@@ -79,7 +79,7 @@ async fn main() -> anyhow::Result<()> {
     )
     .await?;
 
-    let router = build_router(state, &config.cors_origins, Router::new());
+    let router = build_router(state, &config.cors_origins, routes::router());
 
     let addr = format!("{}:{}", config.host, config.port);
 
