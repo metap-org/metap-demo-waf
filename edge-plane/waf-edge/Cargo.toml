@@ -1,0 +1,25 @@
+[package]
+name = "waf-edge"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = { workspace = true }
+arc-swap = { workspace = true }
+bytes = { workspace = true }
+chrono = { workspace = true }
+dotenvy = { workspace = true }
+http-body-util = { workspace = true }
+hyper = { workspace = true }
+hyper-util = { workspace = true }
+redis = { workspace = true }
+# Telemetry shipping only — a plain HTTP POST to control-plane, off the request path.
+reqwest = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+# Challenge clearance cookie signing. See `src/clearance.rs` for what this does and does not
+# claim to protect against.
+sha2 = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
