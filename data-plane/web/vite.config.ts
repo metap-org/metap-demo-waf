@@ -197,8 +197,11 @@ export default defineConfig({
       // others above.
       "/users": ZONES,
       // The WAF `graphql-gateway` instance (`../graphql-gateway/README.md`) — 1 fixed address,
-      // no entity-based routing needed since the gateway itself already resolves that. Used by
-      // exactly 1 screen today, `ZoneOverviewPage`.
+      // no entity-based routing needed since the gateway itself already resolves that. This is
+      // the portal's one FE->BE data transport now (2026-09-04, `src/api/waf.ts`'s doc comment) —
+      // every screen using `useRecords`/`useRecord`/`useAggregate`/the mutations/custom actions in
+      // that file goes through here, not just the 1 screen (`ZoneOverviewPage`, since deleted)
+      // that first proved this route out.
       "/graphql": GATEWAY,
     },
   },

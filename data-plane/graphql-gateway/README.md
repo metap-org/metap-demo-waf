@@ -110,3 +110,25 @@ trả đúng kết quả REST endpoint gốc trả (dữ liệu thật đọc/gh
 Không phát hiện bug nào ở resolver — 1 lỗi gặp lúc test hoá ra là do gọi sai shape `metrics`
 (`{fn: "count"}` thay vì `"count"`, đúng dạng wire `AggregateMetric::parse` cần) ở phía test, xác
 nhận lại bằng cách gọi thẳng REST endpoint gốc với cùng shape sai → cùng lỗi 422 y hệt.
+
+## Phase 4 — FE (`data-plane/web/src/api/waf.ts`) chuyển hẳn sang gọi qua đây (2026-09-04)
+
+`api/waf.ts` (đọc doc comment đầu file đó cho chi tiết đầy đủ) không còn gọi REST nữa — mọi hàm
+export giữ nguyên tên/chữ ký, chỉ đổi phần thân sang gọi `/graphql`:
+
+- `useRecords`/`useRecord` (list/get chung) — dựng selection set từ field list thật của entity
+  (`useEntity`/`fetchEntityFields`, gọi `GET /metadata/entities/{entity}` — cố tình để lại REST vì
+  đây là schema reflection, không phải business data, cùng nhóm với `/auth/*`/`/preferences/*`),
+  rồi reshape response phẳng của GraphQL về lại đúng shape `WafRecord<T> = {id, ..., data: {...}}`
+  cũ — không màn hình nào trong `pages/*.tsx` phải đổi gì.
+- `createRecord`/`updateRecord`/`deleteRecord`/`transitionRecord` — gọi thẳng
+  `create{Type}`/`update{Type}`/`delete{Type}`/`transition{Type}` sinh tự động từ metadata (không
+  phải field custom ở file này), cùng cách resolve field list ở trên.
+- `useAggregate` + 7 action custom (`verifyDns` → `verifyZoneDns`, ...) — gọi thẳng field custom
+  tương ứng ở trên; vì mỗi field custom trả nguyên JSON response gốc của REST endpoint làm giá trị
+  scalar `Json`, type `{data: ...}` cũ trong `waf.ts` không đổi 1 byte nào.
+
+Verify: `tsc -b`/`oxlint`/`prettier --check`/`vite build` sạch trên `data-plane/web` (backend
+`waf-graphql-gateway` đã verify sống ở trên rồi, không đổi lại lần này). Theo đúng "Frontend
+verification policy" của `../../CLAUDE.md` (repo `metap`) — không tự browser-test, viết code +
+typecheck/lint xong là báo cáo, để user tự kiểm trên trình duyệt.
