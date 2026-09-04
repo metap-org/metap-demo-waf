@@ -7,10 +7,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 `metap-demo-waf` is a demo **WAAP** (Web Application & API Protection, Cloudflare-style) product.
 **All three planes have code now** (2026-09-04) — `data-plane/` (3 pillar services + GraphQL
 gateway config + Customer Portal frontend), `control-plane/` (`waf-config-distributor`), and
-`edge-plane/` (`waf-edge`, the mitigation engine). See the plane table below. **None of the
-control-plane/edge-plane code has been compiled or run** — see Working conventions. The
-product/architecture spec lives in `data-plane/docs/` and remains the source of truth for anything
-not yet built. Read
+`edge-plane/` (`waf-edge`, the mitigation engine). See the plane table below. **All 3 Rust
+workspaces build/clippy/test clean and `data-plane/web` passes `tsc`/`oxlint`/`prettier`/`vite
+build`, and `data-plane`'s own 3 e2e tests now pass against a real Postgres too** (verified
+2026-09-04, same day, two separate passes — see Working conventions for exactly what each covered
+and what still hasn't run: `control-plane`/`edge-plane` still have no live-infra e2e proof, and
+nothing has yet shown a portal rule change actually reaching the edge). The product/architecture
+spec lives in `data-plane/docs/` and remains the source of truth
+for anything not yet built. Read
 `data-plane/docs/01-product-vision.md` through `04-architecture-boundary.md` in order before
 proposing or writing any code — they contain the settled decisions (scope, domain model, personas,
 plane boundaries) that later work must stay consistent with. Docs are written in Vietnamese.
@@ -114,11 +118,38 @@ Zone), Developer (owns ScanFinding remediation only, no DdosPolicy/FirewallRule 
   separately; `pnpm dev`/`tsc -b`/`oxlint` from `data-plane/web`.
 - `edge-plane/` must never gain a `metap` dependency. If something there needs a `metap`
   primitive, that is a signal the work belongs in `control-plane` instead.
-- **Phases 70/71 (2026-09-03) and 72 (2026-09-04) landed unverified on purpose** — the project
-  owner explicitly asked for code without build/test in those sessions. Nothing added there has
-  been compiled or run: treat it as a draft to verify, not as working code. See the "Xác minh"
-  sections of `../metap-docs/docs/roadmap/71-waf-admin-portal.md` and
-  `../metap-docs/docs/roadmap/72-control-edge-planes.md` for the specific spots most likely to be
-  wrong.
+- **Phases 70/71 (2026-09-03) and 72 (2026-09-04) landed unverified on purpose, then got a
+  dedicated build/test/verify pass the same day (2026-09-04).** `cargo build`/`clippy --all-targets
+  -- -D warnings`/`test --workspace` are clean across all 3 Rust workspaces (`data-plane`,
+  `control-plane`, `edge-plane`); `data-plane/web` passes `tsc -b`/`oxlint`/`prettier --check`/a
+  real `vite build`. That pass found and fixed real bugs — 48 TypeScript errors (every `toast()`
+  call site used a shape the design system doesn't have), a clippy error, 6 dead-code warnings —
+  and added 80 unit tests for the previously-untested pure logic (`aggregate` SQL planning,
+  `compile.rs`'s zone/rule compilation, `evaluate.rs`'s mitigation decision, the rate limiter, the
+  clearance cookie).
+- **A second pass the same day (2026-09-04) ran the 3 `data-plane` services' own e2e tests against
+  a real Postgres for the first time.** Docker Hub image pulls are blocked in this environment by
+  an org network policy (403 at the proxy's CONNECT layer, confirmed via `/__agentproxy/status` —
+  not retried/bypassed, per that proxy's own instructions), so a native (apt-installed, non-Docker)
+  Postgres/RabbitMQ stood in for `docker compose up -d postgres rabbitmq`, matched to that file's
+  own `metap`/`metap` credential convention. `zones-service`/`scanning-service`/`alerting-service`'s
+  `http_server.rs` `#[ignore]` e2e test (`cargo test -p <service> --test http_server -- --ignored`)
+  found and fixed a real bug in all 3: the test minted a JWT and called `POST /api/test.tasks`
+  without ever seeding a `user_roles` row for that user, so `PermissionService::check_action`'s
+  deny-by-default entity-level check (no matching policy → forbidden) correctly rejected it —
+  `201` expected, `403` actual. `metap-http`'s own canonical `http_server.rs` (the template this
+  was copied from) seeds `INSERT INTO user_roles (..., 'admin')` before minting its token; this
+  repo's copy had dropped that line. Fixed identically in all 3 (seed + matching teardown); all 3
+  now pass against live Postgres. `metap` core's own `cargo test --workspace -- --ignored` (run
+  the same session, same native Postgres/RabbitMQ) is green across dozens of test files — strong
+  evidence the platform primitives Phase 70-72 build on are sound beyond unit-test level. **Still
+  not covered**: `control-plane`/`edge-plane` have no live-infra e2e tests of their own yet (their
+  test suites are pure-logic unit tests, already green), and there is still no end-to-end proof
+  that a rule change on the portal reaches the edge and actually blocks a request — see "Còn lại"
+  in `../metap-docs/docs/roadmap/72-control-edge-planes.md` for exactly what that leaves open.
+  Full detail on all 3 passes (what shipped unverified, what the first verify pass then found, and
+  what this live-Postgres pass found) is in the "Xác minh" / "Đã verify" sections of
+  `../metap-docs/docs/roadmap/70-aggregate-api.md`, `71-waf-admin-portal.md`, and
+  `72-control-edge-planes.md`.
 - Docs are the spec. If an implementation choice isn't settled in `data-plane/docs/`, don't invent
   one silently — it's likely one of the explicitly-flagged open questions above.
