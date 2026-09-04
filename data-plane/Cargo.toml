@@ -4,6 +4,7 @@ members = [
     "services/zones-service",
     "services/scanning-service",
     "services/alerting-service",
+    "graphql-gateway",
 ]
 
 # No root package — `data-plane/` stopped being 1 binary and became a workspace of 3
