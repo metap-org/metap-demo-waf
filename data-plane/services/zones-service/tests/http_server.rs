@@ -122,6 +122,15 @@ async fn full_http_lifecycle_over_a_real_server_and_a_real_jwt() {
     std::fs::create_dir_all(&keydir).unwrap();
     let (private_pem, public_pem) = openssl_genrsa(&keydir);
     let token = mint_token(&private_pem, tenant_id, user_id);
+    // Deny-by-default entity permission needs a live `user_roles` row, not just a valid
+    // JWT — mirrors `metap-http`'s own `http_server.rs` e2e test, which seeds the same row
+    // before minting its token.
+    sqlx::query("INSERT INTO user_roles (tenant_id, user_id, role) VALUES ($1, $2, 'admin')")
+        .bind(tenant_id)
+        .bind(user_id)
+        .execute(&pool)
+        .await
+        .unwrap();
 
     let mut registry = MetadataRegistry::new();
     registry.register(test_entity()).unwrap();
@@ -190,6 +199,11 @@ async fn full_http_lifecycle_over_a_real_server_and_a_real_jwt() {
     assert_eq!(get_res.status(), 200);
 
     sqlx::query("DELETE FROM records WHERE tenant_id = $1")
+        .bind(tenant_id)
+        .execute(&pool)
+        .await
+        .ok();
+    sqlx::query("DELETE FROM user_roles WHERE tenant_id = $1")
         .bind(tenant_id)
         .execute(&pool)
         .await

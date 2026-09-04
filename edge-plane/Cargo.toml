@@ -1,0 +1,41 @@
+[workspace]
+resolver = "2"
+members = ["waf-edge"]
+
+# Its own workspace, and note what is *absent*: no `metap` dependency anywhere in this tree.
+# That is the deliberate boundary from `../data-plane/docs/04-architecture-boundary.md` — this
+# plane is a fixed-shape, high-volume, latency-sensitive system, which is the opposite of what a
+# metadata-driven CRUD platform is good at. It also means an edge node cannot accidentally grow a
+# dependency on the portal's database or schema, because it has no way to reach either.
+#
+# The dependency list below is short on purpose. Every crate here is either the HTTP stack, the
+# config source, or serialization.
+
+[workspace.dependencies]
+anyhow = "1"
+arc-swap = "1"
+bytes = "1"
+chrono = "0.4"
+dotenvy = "0.15"
+http-body-util = "0.1"
+hyper = { version = "1", features = ["http1", "server", "client"] }
+hyper-util = { version = "0.1", features = ["tokio", "client", "client-legacy", "server"] }
+redis = { version = "0.27", default-features = false, features = ["tokio-comp"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "net", "signal", "sync", "time"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[profile.dev]
+debug = 0
+
+[profile.release]
+# This is the one binary in the repo where throughput actually matters, so the release profile is
+# tuned rather than left at defaults: one codegen unit and fat LTO let the rule-evaluation loop
+# inline across module boundaries.
+lto = "fat"
+codegen-units = 1
+panic = "abort"

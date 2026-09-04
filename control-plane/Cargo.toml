@@ -1,0 +1,25 @@
+[workspace]
+resolver = "2"
+members = ["waf-config-distributor"]
+
+# Its own workspace, not a member of `../data-plane`'s — the whole point of the plane split
+# (`../data-plane/docs/04-architecture-boundary.md`) is a separate deploy cycle. Sharing a
+# workspace would mean a portal change rebuilds and redeploys the distributor.
+
+[workspace.dependencies]
+metap = { path = "../../metap/crates/metap" }
+anyhow = "1"
+axum = "0.8"
+chrono = "0.4"
+dotenvy = "0.15"
+redis = { version = "0.27", default-features = false, features = ["tokio-comp"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "signal", "sync", "time"] }
+tracing = "0.1"
+
+[profile.dev]
+# Same tuning as every other Rust repo in this directory (metap's Phase 69) — debug info is what
+# makes a dev build heavy, and this process is debugged through logs rather than a debugger.
+debug = 0

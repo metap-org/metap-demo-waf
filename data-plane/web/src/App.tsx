@@ -1,3 +1,13 @@
+/**
+ * WAF Customer Portal — the real product IA, replacing the generic entity harness this app used to
+ * be (a nav item per `waf.*` entity, `GeneratedList` behind each one).
+ *
+ * The organising principle is `docs/07-portal-features.md`'s sitemap: a customer thinks in zones
+ * and in work (incidents, findings, alerts), not in tables. So the nav is Dashboard / Zones /
+ * Incidents / Findings / Alerting / Analytics, everything about one zone lives behind that zone,
+ * and the generic per-entity CRUD screens stay reachable under `/records/*` as an admin/debug
+ * escape hatch rather than as the product.
+ */
 import type { ReactNode } from "react";
 import {
   Navigate,
@@ -11,28 +21,37 @@ import {
   AppShellLayout,
   AuthProvider,
   Can,
-  LocaleProvider,
-  useAuth,
-  RecordDetail,
+  CronJobsAdminPage,
   GeneratedForm,
   GeneratedList,
-  UsersAdminPage,
-  PoliciesAdminPage,
-  CronJobsAdminPage,
+  LocaleProvider,
   LowCodeEntitiesAdminPage,
   OidcCallbackPage,
+  PoliciesAdminPage,
+  RecordDetail,
+  UsersAdminPage,
+  useAuth,
 } from "@metap/platform-ui";
 import type { ShellNavItem } from "@metap/platform-ui";
 import { LoginPage } from "./demo/LoginPage";
 import { EntitiesPage } from "./demo/EntitiesPage";
+import { DashboardPage } from "./pages/DashboardPage";
+import { OnboardingPage } from "./pages/OnboardingPage";
+import { ZonesPage } from "./pages/ZonesPage";
+import { ZoneDetailPage } from "./pages/ZoneDetailPage";
+import { IncidentsPage } from "./pages/IncidentsPage";
+import { IncidentDetailPage } from "./pages/IncidentDetailPage";
+import { FindingsPage } from "./pages/FindingsPage";
+import { AlertingPage } from "./pages/AlertingPage";
+import { AnalyticsPage } from "./pages/AnalyticsPage";
+import { SettingsPage } from "./pages/SettingsPage";
 
 function RequireAuth({ children }: { children: ReactNode }) {
   const { t } = useTranslation();
   // `useAuth()` dropped `token` for `status` in the cookie-session migration
   // (`docs/roadmap/64-cookie-session-persistence.md` in `../../../metap-docs`) — `status` starts
-  // "unknown" until the initial `GET /auth/me` resolves, so redirecting on anything other than
-  // a confirmed "anonymous" would bounce a just-logged-in user straight back to `/login` before
-  // that check ever gets a chance to see the new session cookie.
+  // "unknown" until the initial `GET /auth/me` resolves, so redirecting on anything other than a
+  // confirmed "anonymous" would bounce a just-logged-in user straight back to `/login`.
   const { status } = useAuth();
 
   if (status === "unknown") {
@@ -42,24 +61,20 @@ function RequireAuth({ children }: { children: ReactNode }) {
     return <Navigate to="/login" replace />;
   }
 
-  // WAF entity nav — mirrors `docs/07-portal-features.md`'s sitemap groupings at the
-  // entity level (this is `GeneratedList`/`GeneratedForm` driving the generic metadata-based
-  // CRUD, not the full zone-centric IA from that doc — that's a later custom-UI pass, see
-  // `docs/13-screen-api-map.md` for what's generic vs. what needs bespoke screens).
   const navItems: ShellNavItem[] = [
-    { to: "/", label: "Overview" },
-    { to: "/records/waf.zones", label: "Zones" },
-    { to: "/records/waf.ddos_policies", label: "DDoS Policies" },
-    { to: "/records/waf.firewall_rules", label: "Firewall Rules" },
-    { to: "/records/waf.scan_jobs", label: "Scan Jobs" },
-    { to: "/records/waf.scan_findings", label: "Scan Findings" },
-    { to: "/records/waf.security_events", label: "Security Events" },
-    { to: "/records/waf.incidents", label: "Incidents" },
-    { to: "/records/waf.alert_policies", label: "Alert Policies" },
-    { to: "/records/waf.alert_notifications", label: "Alert Notifications" },
+    { to: "/", label: "Dashboard" },
+    { to: "/zones", label: "Zones" },
+    { to: "/incidents", label: "Incidents" },
+    { to: "/findings", label: "Findings" },
+    { to: "/alerting", label: "Alerting" },
+    { to: "/analytics", label: "Analytics" },
+    { to: "/settings", label: "Settings", roles: ["admin"] },
     { to: "/admin/users", label: t("shell.navUsers"), roles: ["admin"] },
     { to: "/admin/policies", label: t("shell.navPolicies"), roles: ["admin"] },
     { to: "/admin/cron-jobs", label: t("shell.navCronJobs"), roles: ["admin"] },
+    // The old entity-per-nav-item harness, kept behind one link: still the fastest way to inspect
+    // raw records when a product screen doesn't show the field you need.
+    { to: "/records", label: "Raw records", roles: ["admin"] },
   ];
 
   return (
@@ -114,6 +129,20 @@ function EditRecordRoute() {
   );
 }
 
+/** Wraps a product route in the shell + auth gate — every one of them needs both, and repeating
+ *  the pair 12 times in the route table buries what each route actually is. */
+function page(element: ReactNode) {
+  return <RequireAuth>{element}</RequireAuth>;
+}
+
+function adminPage(element: ReactNode) {
+  return (
+    <RequireAuth>
+      <RequireAdmin>{element}</RequireAdmin>
+    </RequireAuth>
+  );
+}
+
 export default function App() {
   return (
     <AuthProvider>
@@ -121,85 +150,49 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/auth/oidc/callback" element={<OidcCallbackPage />} />
+
+          <Route path="/" element={page(<DashboardPage />)} />
+          <Route path="/onboarding" element={page(<OnboardingPage />)} />
+          <Route path="/zones" element={page(<ZonesPage />)} />
+          <Route path="/zones/:zoneId" element={page(<ZoneDetailPage />)} />
+          <Route path="/incidents" element={page(<IncidentsPage />)} />
           <Route
-            path="/"
-            element={
-              <RequireAuth>
-                <EntitiesPage />
-              </RequireAuth>
-            }
+            path="/incidents/:incidentId"
+            element={page(<IncidentDetailPage />)}
           />
-          <Route
-            path="/records/:entityName"
-            element={
-              <RequireAuth>
-                <RecordsRoute />
-              </RequireAuth>
-            }
-          />
+          <Route path="/findings" element={page(<FindingsPage />)} />
+          <Route path="/alerting" element={page(<AlertingPage />)} />
+          <Route path="/analytics" element={page(<AnalyticsPage />)} />
+          <Route path="/settings" element={adminPage(<SettingsPage />)} />
+
+          {/* Generic CRUD escape hatch — the whole of the previous app, now one section. */}
+          <Route path="/records" element={adminPage(<EntitiesPage />)} />
+          <Route path="/records/:entityName" element={page(<RecordsRoute />)} />
           <Route
             path="/records/:entityName/new"
-            element={
-              <RequireAuth>
-                <NewRecordRoute />
-              </RequireAuth>
-            }
+            element={page(<NewRecordRoute />)}
           />
           <Route
             path="/records/:entityName/:id"
-            element={
-              <RequireAuth>
-                <RecordDetailRoute />
-              </RequireAuth>
-            }
+            element={page(<RecordDetailRoute />)}
           />
           <Route
             path="/records/:entityName/:id/edit"
-            element={
-              <RequireAuth>
-                <EditRecordRoute />
-              </RequireAuth>
-            }
+            element={page(<EditRecordRoute />)}
           />
-          <Route
-            path="/admin/users"
-            element={
-              <RequireAuth>
-                <RequireAdmin>
-                  <UsersAdminPage />
-                </RequireAdmin>
-              </RequireAuth>
-            }
-          />
+
+          <Route path="/admin/users" element={adminPage(<UsersAdminPage />)} />
           <Route
             path="/admin/policies"
-            element={
-              <RequireAuth>
-                <RequireAdmin>
-                  <PoliciesAdminPage />
-                </RequireAdmin>
-              </RequireAuth>
-            }
+            element={adminPage(<PoliciesAdminPage />)}
           />
           <Route
             path="/admin/cron-jobs"
-            element={
-              <RequireAuth>
-                <RequireAdmin>
-                  <CronJobsAdminPage />
-                </RequireAdmin>
-              </RequireAuth>
-            }
+            element={adminPage(<CronJobsAdminPage />)}
           />
           <Route
             path="/admin/lowcode"
-            element={
-              <RequireAuth>
-                <RequireAdmin>
-                  <LowCodeEntitiesAdminPage />
-                </RequireAdmin>
-              </RequireAuth>
-            }
+            element={adminPage(<LowCodeEntitiesAdminPage />)}
           />
         </Routes>
       </LocaleProvider>

@@ -1,0 +1,19 @@
+# Shared across every Rust repo in metap-org (`metap`, `metap-lowcode`, `metap-demo-crm`,
+# `metap-demo-jira`, `metap-demo-waf/data-plane`, and this workspace) — see `metap/.cargo/
+# config.toml`'s doc comment for the full reasoning (this file must stay byte-identical to that
+# one's `[build]`/`[target...]` sections, or a mismatched fingerprint forces every repo to
+# recompile its own copy of the overlapping dependency set instead of reusing what the others
+# already built). Added 2026-09-04 alongside this workspace's own first code — was building into a
+# local `target/` before this, missing out on the shared cache the other 5 repos already get.
+# Relative path — resolved against the directory containing this `.cargo/` folder (i.e.
+# `control-plane/` itself), not the process's CWD. `control-plane/` sits 2 levels under the
+# directory holding every sibling repo (same depth as `data-plane/.cargo/config.toml`, unlike
+# `metap/.cargo/config.toml` which sits 1 level under it) — hence `../../` here, matching that
+# file's `../../.shared-target`, not `metap/`'s `../.shared-target`.
+[build]
+target-dir = "../../.shared-target"
+
+# mold linker — see `metap/.cargo/config.toml`'s comment for the "requires `sudo apt install mold`
+# first" caveat.
+[target.x86_64-unknown-linux-gnu]
+rustflags = ["-C", "link-arg=-fuse-ld=mold"]

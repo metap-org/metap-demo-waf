@@ -16,6 +16,13 @@ tracing = "0.1"
 # `entities/zone_entity.rs`'s workflow guard literals (`json!(true)`, `json!("verified")`) —
 # the only entity module across the 3 services that needs this.
 serde_json = "1"
+# `src/routes.rs`: the cross-service delete guard (calls the sibling pillar services), the DoH
+# lookup behind `verify-dns`, and the origin probe behind `test-origin` — all HTTP calls out,
+# which is exactly what makes those endpoints things `metap`'s generic CRUD can't generate.
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+serde = { version = "1", features = ["derive"] }
+uuid = { version = "1", features = ["v4", "serde"] }
+chrono = "0.4"
 
 [dev-dependencies]
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }

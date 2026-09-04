@@ -56,11 +56,22 @@ lớn, near real-time) — cách ghi vào `data-plane` chưa chốt kỹ thuật
    `control-plane` đã có sẵn cho chiều xuống, tận dụng luôn cho chiều lên thay vì thêm 1 đường
    ghi trực tiếp `edge-plane` → `data-plane` khác.
 
-**Chưa chốt hướng nào** — cần bàn kỹ khi vào phase kỹ thuật, vì đây là điểm duy nhất
-`SecurityEvent` (khối lượng lớn nhất hệ thống) có khả năng phá nguyên tắc kiến trúc "mọi write đi
-qua `CrudService`" mà `metap` đang giữ nghiêm ngặt ở mọi entity khác. Hướng 2 (qua `control-plane`)
-có vẻ hợp lý hơn vì giữ đúng nguyên tắc "`edge-plane` không bao giờ nói chuyện trực tiếp với
-`data-plane`" đã chốt ở trên.
+**Đã chốt hướng 2 (2026-09-04, Phase 72 — `../../../metap-docs/docs/roadmap/72-control-edge-planes.md`).**
+Trước đó mục này ghi "chưa chốt hướng nào"; giữ nguyên phần phân tích ở trên vì lý do chọn không
+đổi: hướng 2 giữ đúng nguyên tắc "`edge-plane` không bao giờ nói chuyện trực tiếp với `data-plane`"
+đã chốt ở trên, và không đẩy N edge node × traffic thật thành write nhỏ lẻ vào DB của portal.
+
+Cách cài đặt giữ nguyên nguyên tắc "mọi write đi qua `CrudService`" mà mục này lo: `control-plane`
+ghi `SecurityEvent` bằng **đúng route CRUD thường** (`POST /api/waf.security_events`), nên
+validation/permission/outbox vẫn áp dụng đủ — batching chỉ làm ít request hơn, không phải đường
+vòng qua platform. Đánh đổi đã biết, ghi rõ ở `control-plane/waf-config-distributor/src/ingest.rs`:
+buffer nằm trong bộ nhớ và không ack, nên process chết là mất số event đang xếp hàng. Chấp nhận cho
+v1 (telemetry, không phải dữ liệu tính tiền); muốn chắc thì cần 1 queue bền giữa edge và portal —
+việc riêng, không phải chỉnh nhỏ.
+
+**Lưu ý cách quyết định này ra đời**: chốt trong phiên code (chủ dự án đã nói trước "không cần hỏi
+quyết định"), không phải qua một vòng bàn riêng như các quyết định khác trong tài liệu này. Đảo lại
+rẻ — `edge-plane` chỉ biết đúng 1 URL ingest.
 
 ## Vì sao tách 3 plane
 

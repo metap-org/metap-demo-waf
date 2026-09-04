@@ -5,8 +5,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## What this repo is
 
 `metap-demo-waf` is a demo **WAAP** (Web Application & API Protection, Cloudflare-style) product.
-**As of now the repo contains no code — only architecture/product docs.** Every directory has a
-placeholder `README.md`; the real content lives in `data-plane/docs/`. Read
+**All three planes have code now** (2026-09-04) — `data-plane/` (3 pillar services + GraphQL
+gateway config + Customer Portal frontend), `control-plane/` (`waf-config-distributor`), and
+`edge-plane/` (`waf-edge`, the mitigation engine). See the plane table below. **All 3 Rust
+workspaces build/clippy/test clean and `data-plane/web` passes `tsc`/`oxlint`/`prettier`/`vite
+build`, and `data-plane`'s own 3 e2e tests now pass against a real Postgres too** (verified
+2026-09-04, same day, two separate passes — see Working conventions for exactly what each covered
+and what still hasn't run: `control-plane`/`edge-plane` still have no live-infra e2e proof, and
+nothing has yet shown a portal rule change actually reaching the edge). The product/architecture
+spec lives in `data-plane/docs/` and remains the source of truth
+for anything not yet built. Read
 `data-plane/docs/01-product-vision.md` through `04-architecture-boundary.md` in order before
 proposing or writing any code — they contain the settled decisions (scope, domain model, personas,
 plane boundaries) that later work must stay consistent with. Docs are written in Vietnamese.
@@ -30,9 +38,9 @@ cycle with a hard boundary — do not blur these when implementing:
 
 | Directory | Role | Status |
 |---|---|---|
-| `data-plane/` | Business portal (source of truth): Zone, DDoS policy, firewall rule, vulnerability scan, incident, alert — built on `metap`, full CRUD/workflow/permission UI | Docs done, no code yet |
-| `control-plane/` | Headless worker(s): pulls config changes from `data-plane` (RabbitMQ outbox subscribe), compiles them into an edge-ready rule-set, writes to Redis/DragonflyDB. No UI, not CRUD. Suggested worker name: `waf-config-distributor` | Not started |
-| `edge-plane/` | High-performance, low-latency mitigation engine: evaluates rules against real traffic, blocks/challenges/logs. Deliberately **not** built on `metap`/metadata-driven approach | Not started |
+| `data-plane/` | Business portal (source of truth): Zone, DDoS policy, firewall rule, vulnerability scan, incident, alert — built on `metap`, full CRUD/workflow/permission UI | 3 services (`zones`/`scanning`/`alerting`) + `graphql-gateway` config + Customer Portal frontend (10-module IA, zone-centric). Custom non-CRUD endpoints live in each service's `src/routes.rs` |
+| `control-plane/` | Headless worker: pulls config changes from `data-plane` (RabbitMQ outbox subscribe), compiles them into an edge-ready rule-set, writes to Redis/DragonflyDB. No UI, not CRUD | `waf-config-distributor` — 3 jobs in one process: subscribe (fast path), periodic full resync (**the convergence guarantee**), telemetry ingest. The Redis contract is `waf-config-distributor/src/ruleset.rs` |
+| `edge-plane/` | High-performance, low-latency mitigation engine: evaluates rules against real traffic, blocks/challenges/logs. Deliberately **not** built on `metap`/metadata-driven approach | `waf-edge` — hyper 1.x, **zero `metap` dependency anywhere in the tree**. `ArcSwap` rule snapshot (a request never touches Redis), DDoS budget → priority-ordered rules → block/challenge/log → proxy to origin |
 
 Key rule, stated repeatedly in the docs: **`edge-plane` never talks to `data-plane` directly.** It
 only reads config that `control-plane` has already computed into Redis/DragonflyDB.
@@ -48,10 +56,12 @@ data-plane (Zone/DdosPolicy/FirewallRule change via portal)
 `Zone.configVersion` increments on every change to a zone's policies/rules; `control-plane` and
 `edge-plane` both compare it to detect stale cache instead of guessing from timestamps.
 
-Telemetry direction (`SecurityEvent`, edge → up) is **explicitly unresolved** — see the "Chưa chốt"
-section of `04-architecture-boundary.md` for the two candidate approaches (edge calls
-`metap-grpc`'s generic `RecordService.Create` directly, vs. edge batches through `control-plane`
-first). Don't silently pick one when implementing telemetry ingestion; flag it.
+Telemetry direction (`SecurityEvent`, edge → up) **was decided in Phase 72 (2026-09-04): option 2**
+— the edge batches to `control-plane`, which writes into `data-plane` through the ordinary CRUD
+route. That is the option `04-architecture-boundary.md` already leaned toward, and it keeps the
+"edge never talks to `data-plane` directly" rule intact. It was decided in-session rather than by
+the project owner, so it is flagged in `../metap-docs/docs/roadmap/72-control-edge-planes.md` and
+in that PR, and is cheap to reverse (the edge knows exactly one ingest URL).
 
 ## Domain model (business-level, not yet `EntityDefinition` code)
 
@@ -102,8 +112,44 @@ Zone), Developer (owns ScanFinding remediation only, no DdosPolicy/FirewallRule 
 
 ## Working conventions
 
-- There is no build/lint/test tooling yet in this repo — nothing to run. When code is added to a
-  plane, check that plane's own README/CLAUDE.md (once it exists) rather than assuming `metap`'s
-  commands apply.
+- Three independent Cargo workspaces, one per plane — never one workspace spanning them, since a
+  shared workspace would mean a portal change rebuilds and redeploys the edge. `cargo
+  build/test/clippy --workspace` from `data-plane/`, `control-plane/`, or `edge-plane/`
+  separately; `pnpm dev`/`tsc -b`/`oxlint` from `data-plane/web`.
+- `edge-plane/` must never gain a `metap` dependency. If something there needs a `metap`
+  primitive, that is a signal the work belongs in `control-plane` instead.
+- **Phases 70/71 (2026-09-03) and 72 (2026-09-04) landed unverified on purpose, then got a
+  dedicated build/test/verify pass the same day (2026-09-04).** `cargo build`/`clippy --all-targets
+  -- -D warnings`/`test --workspace` are clean across all 3 Rust workspaces (`data-plane`,
+  `control-plane`, `edge-plane`); `data-plane/web` passes `tsc -b`/`oxlint`/`prettier --check`/a
+  real `vite build`. That pass found and fixed real bugs — 48 TypeScript errors (every `toast()`
+  call site used a shape the design system doesn't have), a clippy error, 6 dead-code warnings —
+  and added 80 unit tests for the previously-untested pure logic (`aggregate` SQL planning,
+  `compile.rs`'s zone/rule compilation, `evaluate.rs`'s mitigation decision, the rate limiter, the
+  clearance cookie).
+- **A second pass the same day (2026-09-04) ran the 3 `data-plane` services' own e2e tests against
+  a real Postgres for the first time.** Docker Hub image pulls are blocked in this environment by
+  an org network policy (403 at the proxy's CONNECT layer, confirmed via `/__agentproxy/status` —
+  not retried/bypassed, per that proxy's own instructions), so a native (apt-installed, non-Docker)
+  Postgres/RabbitMQ stood in for `docker compose up -d postgres rabbitmq`, matched to that file's
+  own `metap`/`metap` credential convention. `zones-service`/`scanning-service`/`alerting-service`'s
+  `http_server.rs` `#[ignore]` e2e test (`cargo test -p <service> --test http_server -- --ignored`)
+  found and fixed a real bug in all 3: the test minted a JWT and called `POST /api/test.tasks`
+  without ever seeding a `user_roles` row for that user, so `PermissionService::check_action`'s
+  deny-by-default entity-level check (no matching policy → forbidden) correctly rejected it —
+  `201` expected, `403` actual. `metap-http`'s own canonical `http_server.rs` (the template this
+  was copied from) seeds `INSERT INTO user_roles (..., 'admin')` before minting its token; this
+  repo's copy had dropped that line. Fixed identically in all 3 (seed + matching teardown); all 3
+  now pass against live Postgres. `metap` core's own `cargo test --workspace -- --ignored` (run
+  the same session, same native Postgres/RabbitMQ) is green across dozens of test files — strong
+  evidence the platform primitives Phase 70-72 build on are sound beyond unit-test level. **Still
+  not covered**: `control-plane`/`edge-plane` have no live-infra e2e tests of their own yet (their
+  test suites are pure-logic unit tests, already green), and there is still no end-to-end proof
+  that a rule change on the portal reaches the edge and actually blocks a request — see "Còn lại"
+  in `../metap-docs/docs/roadmap/72-control-edge-planes.md` for exactly what that leaves open.
+  Full detail on all 3 passes (what shipped unverified, what the first verify pass then found, and
+  what this live-Postgres pass found) is in the "Xác minh" / "Đã verify" sections of
+  `../metap-docs/docs/roadmap/70-aggregate-api.md`, `71-waf-admin-portal.md`, and
+  `72-control-edge-planes.md`.
 - Docs are the spec. If an implementation choice isn't settled in `data-plane/docs/`, don't invent
   one silently — it's likely one of the explicitly-flagged open questions above.
