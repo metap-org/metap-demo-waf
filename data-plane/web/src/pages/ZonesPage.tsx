@@ -5,7 +5,16 @@
  * zone-centric IA the rest of the portal is organised around.
  */
 import { Link } from "react-router-dom";
-import { Button, Input, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@metap/ui";
+import {
+  Button,
+  Input,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@metap/ui";
 import { useState } from "react";
 import { ENTITIES, useRecords, type ZoneData } from "../api/waf";
 import { EmptyState, PageHeader, StatusBadge } from "../components/primitives";
@@ -15,7 +24,11 @@ export function ZonesPage() {
   const [status, setStatus] = useState<string>("");
   // `hostname` is `searchable` in metadata, so the generic list route turns this filter into a
   // substring match server-side rather than something this component has to do client-side.
-  const zones = useRecords<ZoneData>(ENTITIES.zones, { hostname: search || undefined, status: status || undefined }, 50);
+  const zones = useRecords<ZoneData>(
+    ENTITIES.zones,
+    { hostname: search || undefined, status: status || undefined },
+    50,
+  );
 
   return (
     <div>
@@ -79,10 +92,15 @@ export function ZonesPage() {
             {(zones.data ?? []).map((zone) => (
               <TableRow key={zone.id}>
                 <TableCell>
-                  <Link className="font-medium hover:underline" to={`/zones/${zone.id}`}>
+                  <Link
+                    className="font-medium hover:underline"
+                    to={`/zones/${zone.id}`}
+                  >
                     {zone.data.hostname}
                   </Link>
-                  <div className="text-xs text-muted-foreground">{zone.data.originAddress}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {zone.data.originAddress}
+                  </div>
                 </TableCell>
                 <TableCell>
                   <StatusBadge value={zone.data.status ?? zone.status} />
@@ -98,12 +116,18 @@ export function ZonesPage() {
                 </TableCell>
                 <TableCell>
                   {zone.data.hasConfig ? (
-                    <span className="text-sm text-muted-foreground">configured</span>
+                    <span className="text-sm text-muted-foreground">
+                      configured
+                    </span>
                   ) : (
-                    <span className="text-sm text-amber-600 dark:text-amber-500">none</span>
+                    <span className="text-sm text-amber-600 dark:text-amber-500">
+                      none
+                    </span>
                   )}
                 </TableCell>
-                <TableCell className="text-right tabular-nums">{zone.data.configVersion ?? 0}</TableCell>
+                <TableCell className="text-right tabular-nums">
+                  {zone.data.configVersion ?? 0}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

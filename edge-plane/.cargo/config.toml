@@ -1,0 +1,12 @@
+# `edge-plane` deliberately does NOT share the `.shared-target` dir the other 6 Rust repos/
+# workspaces in this directory use (`metap`, `metap-lowcode`, `metap-demo-crm`, `metap-demo-jira`,
+# `metap-demo-waf/data-plane`, `metap-demo-waf/control-plane`) — its own README and root
+# `CLAUDE.md` are explicit that it carries **zero** `metap` dependency, so it shares essentially no
+# overlapping crates with the others (no `sqlx`/`axum`/`tonic`/AWS SDKs/...; its own dependency
+# list is `hyper`/`redis`/`reqwest`/`sha2`, a small, mostly disjoint set). Pointing it at the
+# shared dir would mostly just grow that dir's disk footprint for builds nothing else can reuse.
+# mold is still worth it on its own merits (faster links, lower peak RAM) even with a local
+# target-dir — see `metap/.cargo/config.toml`'s comment for the "requires `sudo apt install mold`
+# first" caveat.
+[target.x86_64-unknown-linux-gnu]
+rustflags = ["-C", "link-arg=-fuse-ld=mold"]

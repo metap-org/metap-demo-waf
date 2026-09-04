@@ -116,8 +116,17 @@ pub struct RateLimit {
 pub struct CompiledRule {
     pub id: String,
     pub name: String,
+    // `rule_type`/`priority` are deserialized but never read by `evaluate.rs`: priority ordering
+    // already happened at the control-plane (`rules` arrives pre-sorted — see `CompiledZone`'s
+    // own doc comment), and `rule_type` is informational, not behavioral (`match_expr`/
+    // `rate_limit`/`action` fully describe what a rule does). Kept on the struct rather than
+    // dropped from the wire contract so `{:?}` in a log line still shows them for debugging, and
+    // so parsing a real control-plane payload doesn't silently discard fields a future change
+    // here might want to read.
+    #[allow(dead_code)]
     pub rule_type: String,
     pub action: Action,
+    #[allow(dead_code)]
     pub priority: i64,
     pub match_expr: MatchExpr,
     #[serde(default)]
@@ -138,6 +147,11 @@ pub struct CompiledDdos {
 pub struct CompiledZone {
     pub schema_version: u32,
     pub zone_id: String,
+    // Not read by any request-path logic (the edge never scopes anything by tenant — that's a
+    // `data-plane` concept it deliberately doesn't know) or by cache/refresh logic. Kept for the
+    // same "wire contract fidelity + shows up in `{:?}` logging" reasoning as `CompiledRule`'s
+    // `rule_type`/`priority` above.
+    #[allow(dead_code)]
     pub tenant_id: String,
     pub hostname: String,
     pub origin_address: String,
@@ -148,7 +162,10 @@ pub struct CompiledZone {
     pub ddos: Option<CompiledDdos>,
     /// Already priority-sorted by the control-plane — the edge iterates, it never sorts.
     pub rules: Vec<CompiledRule>,
+    /// When the control-plane compiled this zone. Not read today; kept for the same reason as
+    /// `tenant_id` above, and as the obvious field a future staleness check would key off.
     #[serde(default)]
+    #[allow(dead_code)]
     pub compiled_at: String,
 }
 

@@ -7,9 +7,32 @@
  * offers a set of actions per row rather than the single "next step" the incident queue uses.
  */
 import { useState } from "react";
-import { Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, toast } from "@metap/ui";
-import { ENTITIES, transitionRecord, useAggregate, useInvalidateWaf, useRecords, type WafRecord } from "../api/waf";
-import { EmptyState, PageHeader, StatTile, StatusBadge, SectionCard, shortDate } from "../components/primitives";
+import {
+  Button,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  toast,
+} from "@metap/ui";
+import {
+  ENTITIES,
+  transitionRecord,
+  useAggregate,
+  useInvalidateWaf,
+  useRecords,
+  type WafRecord,
+} from "../api/waf";
+import {
+  EmptyState,
+  PageHeader,
+  StatTile,
+  StatusBadge,
+  SectionCard,
+  shortDate,
+} from "../components/primitives";
 
 type FindingData = {
   scanJobId?: string;
@@ -34,7 +57,14 @@ const ACTIONS: Record<string, { action: string; label: string }[]> = {
   accepted: [],
 };
 
-const STATUSES = ["", "open", "confirmed", "fixed", "falsePositive", "accepted"];
+const STATUSES = [
+  "",
+  "open",
+  "confirmed",
+  "fixed",
+  "falsePositive",
+  "accepted",
+];
 
 export function FindingsPage() {
   const invalidate = useInvalidateWaf();
@@ -47,16 +77,26 @@ export function FindingsPage() {
     { remediationStatus: status || undefined, severity: severity || undefined },
     50,
   );
-  const bySeverity = useAggregate(ENTITIES.scanFindings, { groupBy: "severity" });
-  const countFor = (group: string) => bySeverity.data?.find((row) => row.group === group)?.count ?? 0;
+  const bySeverity = useAggregate(ENTITIES.scanFindings, {
+    groupBy: "severity",
+  });
+  const countFor = (group: string) =>
+    bySeverity.data?.find((row) => row.group === group)?.count ?? 0;
 
   async function act(finding: WafRecord<FindingData>, action: string) {
     setBusy(true);
     try {
-      await transitionRecord(ENTITIES.scanFindings, finding.id, action, finding.version);
+      await transitionRecord(
+        ENTITIES.scanFindings,
+        finding.id,
+        action,
+        finding.version,
+      );
       invalidate();
     } catch (e) {
-      toast({ title: e instanceof Error ? e.message : String(e), variant: "destructive" });
+      toast(e instanceof Error ? e.message : String(e), {
+        variant: "destructive",
+      });
     } finally {
       setBusy(false);
     }
@@ -64,13 +104,35 @@ export function FindingsPage() {
 
   return (
     <div>
-      <PageHeader title="Vulnerability findings" description="What the scanners found, and what has been done about it." />
+      <PageHeader
+        title="Vulnerability findings"
+        description="What the scanners found, and what has been done about it."
+      />
 
       <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatTile label="Critical" value={countFor("critical")} tone="danger" loading={bySeverity.isLoading} />
-        <StatTile label="High" value={countFor("high")} tone="danger" loading={bySeverity.isLoading} />
-        <StatTile label="Medium" value={countFor("medium")} tone="warning" loading={bySeverity.isLoading} />
-        <StatTile label="Low / info" value={countFor("low") + countFor("info")} loading={bySeverity.isLoading} />
+        <StatTile
+          label="Critical"
+          value={countFor("critical")}
+          tone="danger"
+          loading={bySeverity.isLoading}
+        />
+        <StatTile
+          label="High"
+          value={countFor("high")}
+          tone="danger"
+          loading={bySeverity.isLoading}
+        />
+        <StatTile
+          label="Medium"
+          value={countFor("medium")}
+          tone="warning"
+          loading={bySeverity.isLoading}
+        />
+        <StatTile
+          label="Low / info"
+          value={countFor("low") + countFor("info")}
+          loading={bySeverity.isLoading}
+        />
       </div>
 
       <SectionCard
@@ -102,7 +164,10 @@ export function FindingsPage() {
         }
       >
         {(findings.data ?? []).length === 0 ? (
-          <EmptyState title="Nothing to remediate" description="No findings match this filter." />
+          <EmptyState
+            title="Nothing to remediate"
+            description="No findings match this filter."
+          />
         ) : (
           <Table>
             <TableHeader>
@@ -117,7 +182,8 @@ export function FindingsPage() {
             </TableHeader>
             <TableBody>
               {(findings.data ?? []).map((finding) => {
-                const state = finding.data.remediationStatus ?? finding.status ?? "";
+                const state =
+                  finding.data.remediationStatus ?? finding.status ?? "";
                 return (
                   <TableRow key={finding.id}>
                     <TableCell>
@@ -131,7 +197,9 @@ export function FindingsPage() {
                         </div>
                       ) : null}
                     </TableCell>
-                    <TableCell className="font-mono text-xs">{finding.data.endpoint}</TableCell>
+                    <TableCell className="font-mono text-xs">
+                      {finding.data.endpoint}
+                    </TableCell>
                     <TableCell>
                       <StatusBadge value={state} />
                     </TableCell>

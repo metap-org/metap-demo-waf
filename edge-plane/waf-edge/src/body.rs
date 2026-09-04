@@ -18,7 +18,3 @@ pub fn full(body: impl Into<Bytes>) -> BoxBody {
         .map_err(|never| match never {})
         .boxed()
 }
-
-pub fn empty() -> BoxBody {
-    full(Bytes::new())
-}

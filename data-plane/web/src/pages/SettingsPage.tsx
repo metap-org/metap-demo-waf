@@ -11,7 +11,17 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { apiFetch, useAuth } from "@metap/platform-ui";
-import { Button, Input, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, toast } from "@metap/ui";
+import {
+  Button,
+  Input,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  toast,
+} from "@metap/ui";
 import { PageHeader, SectionCard, StatusBadge } from "../components/primitives";
 
 type ConfigItem = {
@@ -54,9 +64,11 @@ export function SettingsPage() {
         delete next[item.key];
         return next;
       });
-      toast({ title: `${item.key} saved`, variant: "success" });
+      toast(`${item.key} saved`, { variant: "default" });
     } catch (e) {
-      toast({ title: e instanceof Error ? e.message : String(e), variant: "destructive" });
+      toast(e instanceof Error ? e.message : String(e), {
+        variant: "destructive",
+      });
     } finally {
       setBusy(false);
     }
@@ -65,11 +77,17 @@ export function SettingsPage() {
   async function reset(item: ConfigItem) {
     setBusy(true);
     try {
-      await apiFetch(`/admin/config/${encodeURIComponent(item.key)}`, { method: "DELETE" });
+      await apiFetch(`/admin/config/${encodeURIComponent(item.key)}`, {
+        method: "DELETE",
+      });
       await config.refetch();
-      toast({ title: `${item.key} reset to the platform default`, variant: "success" });
+      toast(`${item.key} reset to the platform default`, {
+        variant: "default",
+      });
     } catch (e) {
-      toast({ title: e instanceof Error ? e.message : String(e), variant: "destructive" });
+      toast(e instanceof Error ? e.message : String(e), {
+        variant: "destructive",
+      });
     } finally {
       setBusy(false);
     }
@@ -81,26 +99,49 @@ export function SettingsPage() {
 
   function renderRows(rows: ConfigItem[]) {
     return rows.map((item) => {
-      const current = drafts[item.key] ?? (item.value === null || item.value === undefined ? "" : String(item.value));
+      const current =
+        drafts[item.key] ??
+        (item.value === null || item.value === undefined
+          ? ""
+          : String(item.value));
       return (
         <TableRow key={item.key}>
           <TableCell>
             <div className="font-mono text-xs">{item.key}</div>
             <div className="mt-1 flex gap-1">
               <StatusBadge value={item.level} />
-              {item.public ? <span className="text-[10px] text-muted-foreground">public</span> : null}
+              {item.public ? (
+                <span className="text-[10px] text-muted-foreground">
+                  public
+                </span>
+              ) : null}
             </div>
           </TableCell>
           <TableCell>
-            <Input value={current} onChange={(e) => setDrafts({ ...drafts, [item.key]: e.target.value })} />
+            <Input
+              value={current}
+              onChange={(e) =>
+                setDrafts({ ...drafts, [item.key]: e.target.value })
+              }
+            />
           </TableCell>
           <TableCell>{item.overridden ? "tenant" : "inherited"}</TableCell>
           <TableCell className="text-right">
-            <Button size="sm" onClick={() => save(item)} disabled={busy || drafts[item.key] === undefined}>
+            <Button
+              size="sm"
+              onClick={() => save(item)}
+              disabled={busy || drafts[item.key] === undefined}
+            >
               Save
             </Button>
             {item.overridden ? (
-              <Button size="sm" variant="ghost" className="ml-1" onClick={() => reset(item)} disabled={busy}>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="ml-1"
+                onClick={() => reset(item)}
+                disabled={busy}
+              >
                 Reset
               </Button>
             ) : null}
@@ -112,7 +153,10 @@ export function SettingsPage() {
 
   return (
     <div>
-      <PageHeader title="Tenant settings" description="Branding and platform behaviour for this tenant." />
+      <PageHeader
+        title="Tenant settings"
+        description="Branding and platform behaviour for this tenant."
+      />
 
       <div className="grid gap-4">
         <SectionCard

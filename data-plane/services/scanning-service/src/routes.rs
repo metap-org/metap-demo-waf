@@ -254,7 +254,9 @@ async fn submit_findings(
         .update("waf.scan_jobs", finished.id, finished.version, &patch, &context)
         .await
     {
-        Ok(ServiceResult::Ok { data, .. }) => Value::from(serde_json::to_value(&data.data).unwrap_or(Value::Null)),
+        // `JsonObject` (`serde_json::Map<String, Value>`) converts to `Value::Object` directly —
+        // no fallible `to_value` round trip needed for a type that's already JSON-shaped.
+        Ok(ServiceResult::Ok { data, .. }) => Value::Object(data.data),
         Ok(ServiceResult::Err {
             status,
             error,

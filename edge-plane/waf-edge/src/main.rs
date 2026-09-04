@@ -265,7 +265,6 @@ async fn handle(
         method: &method,
         path: &path,
         query: &query,
-        host: &host,
         client_ip: ip,
         client_ip_text: ip_text.clone(),
         user_agent: &user_agent,

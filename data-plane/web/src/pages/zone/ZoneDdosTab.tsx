@@ -52,15 +52,22 @@ export function ZoneDdosTab({ zoneId }: { zoneId: string }) {
     setBusy(true);
     try {
       if (policy) {
-        await updateRecord(ENTITIES.ddosPolicies, policy.id, policy.version, draft);
+        await updateRecord(
+          ENTITIES.ddosPolicies,
+          policy.id,
+          policy.version,
+          draft,
+        );
       } else {
         await createRecord(ENTITIES.ddosPolicies, { ...draft, zoneId });
       }
       await syncConfigState(zoneId);
       invalidate();
-      toast({ title: "DDoS policy saved", variant: "success" });
+      toast("DDoS policy saved", { variant: "default" });
     } catch (e) {
-      toast({ title: e instanceof Error ? e.message : String(e), variant: "destructive" });
+      toast(e instanceof Error ? e.message : String(e), {
+        variant: "destructive",
+      });
     } finally {
       setBusy(false);
     }
@@ -74,15 +81,18 @@ export function ZoneDdosTab({ zoneId }: { zoneId: string }) {
       await syncConfigState(zoneId);
       invalidate();
       setDraft(DEFAULTS);
-      toast({ title: "DDoS policy removed", variant: "success" });
+      toast("DDoS policy removed", { variant: "default" });
     } catch (e) {
-      toast({ title: e instanceof Error ? e.message : String(e), variant: "destructive" });
+      toast(e instanceof Error ? e.message : String(e), {
+        variant: "destructive",
+      });
     } finally {
       setBusy(false);
     }
   }
 
-  if (policies.isLoading) return <p className="mt-4 text-sm text-muted-foreground">Loading…</p>;
+  if (policies.isLoading)
+    return <p className="mt-4 text-sm text-muted-foreground">Loading…</p>;
 
   return (
     <div className="mt-4">
@@ -99,7 +109,12 @@ export function ZoneDdosTab({ zoneId }: { zoneId: string }) {
         description="Applies to every request for this zone before firewall rules run."
         actions={
           policy ? (
-            <Button variant="outline" size="sm" onClick={remove} disabled={busy}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={remove}
+              disabled={busy}
+            >
               Remove
             </Button>
           ) : null
@@ -111,12 +126,17 @@ export function ZoneDdosTab({ zoneId }: { zoneId: string }) {
             <Select
               id="sensitivity"
               value={draft.sensitivity}
-              onChange={(value) => setDraft({ ...draft, sensitivity: String(value) })}
+              onChange={(value) =>
+                setDraft({ ...draft, sensitivity: String(value) })
+              }
               options={[
                 { value: "low", label: "Low — only obvious floods" },
                 { value: "medium", label: "Medium" },
                 { value: "high", label: "High" },
-                { value: "aggressive", label: "Aggressive — most false positives" },
+                {
+                  value: "aggressive",
+                  label: "Aggressive — most false positives",
+                },
               ]}
             />
           </div>
@@ -125,7 +145,9 @@ export function ZoneDdosTab({ zoneId }: { zoneId: string }) {
             <Select
               id="action"
               value={draft.action}
-              onChange={(value) => setDraft({ ...draft, action: String(value) })}
+              onChange={(value) =>
+                setDraft({ ...draft, action: String(value) })
+              }
               options={[
                 { value: "log", label: "Log only" },
                 { value: "challenge", label: "Challenge" },
@@ -139,9 +161,16 @@ export function ZoneDdosTab({ zoneId }: { zoneId: string }) {
               id="threshold"
               type="number"
               value={draft.requestRateThreshold ?? 0}
-              onChange={(e) => setDraft({ ...draft, requestRateThreshold: Number(e.target.value) })}
+              onChange={(e) =>
+                setDraft({
+                  ...draft,
+                  requestRateThreshold: Number(e.target.value),
+                })
+              }
             />
-            <p className="mt-1 text-xs text-muted-foreground">Requests per burst window, per source.</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Requests per burst window, per source.
+            </p>
           </div>
           <div>
             <Label htmlFor="burst">Burst window (seconds)</Label>
@@ -149,14 +178,18 @@ export function ZoneDdosTab({ zoneId }: { zoneId: string }) {
               id="burst"
               type="number"
               value={draft.burstWindow ?? 0}
-              onChange={(e) => setDraft({ ...draft, burstWindow: Number(e.target.value) })}
+              onChange={(e) =>
+                setDraft({ ...draft, burstWindow: Number(e.target.value) })
+              }
             />
           </div>
           <div className="flex items-center gap-2">
             <Toggle
               id="enabled"
               checked={draft.enabled ?? true}
-              onCheckedChange={(checked) => setDraft({ ...draft, enabled: checked })}
+              onCheckedChange={(checked) =>
+                setDraft({ ...draft, enabled: checked })
+              }
             />
             <Label htmlFor="enabled">Enabled</Label>
           </div>

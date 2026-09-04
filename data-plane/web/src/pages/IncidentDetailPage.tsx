@@ -7,10 +7,30 @@
  * context rather than claiming to reconstruct the exact rows that were correlated.
  */
 import { Link, useParams } from "react-router-dom";
-import { Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, toast } from "@metap/ui";
+import {
+  Button,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  toast,
+} from "@metap/ui";
 import { useState } from "react";
-import { ENTITIES, transitionRecord, useInvalidateWaf, useRecord, useRecords } from "../api/waf";
-import { PageHeader, SectionCard, StatusBadge, shortDate } from "../components/primitives";
+import {
+  ENTITIES,
+  transitionRecord,
+  useInvalidateWaf,
+  useRecord,
+  useRecords,
+} from "../api/waf";
+import {
+  PageHeader,
+  SectionCard,
+  StatusBadge,
+  shortDate,
+} from "../components/primitives";
 import { NEXT_ACTION, type IncidentData } from "./IncidentsPage";
 
 export function IncidentDetailPage() {
@@ -20,15 +40,17 @@ export function IncidentDetailPage() {
   const incident = useRecord<IncidentData>(ENTITIES.incidents, incidentId);
   const zoneId = incident.data?.data.zoneId;
   const zone = useRecord<{ hostname?: string }>(ENTITIES.zones, zoneId);
-  const events = useRecords<{ sourceIp?: string; action?: string; requestPath?: string; occurredAt?: string }>(
-    ENTITIES.securityEvents,
-    { zoneId },
-    25,
-    Boolean(zoneId),
-  );
+  const events = useRecords<{
+    sourceIp?: string;
+    action?: string;
+    requestPath?: string;
+    occurredAt?: string;
+  }>(ENTITIES.securityEvents, { zoneId }, 25, Boolean(zoneId));
 
-  if (incident.isLoading) return <p className="text-sm text-muted-foreground">Loading…</p>;
-  if (!incident.data) return <p className="text-sm text-muted-foreground">Incident not found.</p>;
+  if (incident.isLoading)
+    return <p className="text-sm text-muted-foreground">Loading…</p>;
+  if (!incident.data)
+    return <p className="text-sm text-muted-foreground">Incident not found.</p>;
 
   const record = incident.data;
   const state = record.data.status ?? record.status ?? "";
@@ -38,11 +60,18 @@ export function IncidentDetailPage() {
     if (!incidentId || !next || !incident.data) return;
     setBusy(true);
     try {
-      await transitionRecord(ENTITIES.incidents, incidentId, next.action, incident.data.version);
+      await transitionRecord(
+        ENTITIES.incidents,
+        incidentId,
+        next.action,
+        incident.data.version,
+      );
       invalidate();
-      toast({ title: `Incident ${next.action}d`, variant: "success" });
+      toast(`Incident ${next.action}d`, { variant: "default" });
     } catch (e) {
-      toast({ title: e instanceof Error ? e.message : String(e), variant: "destructive" });
+      toast(e instanceof Error ? e.message : String(e), {
+        variant: "destructive",
+      });
     } finally {
       setBusy(false);
     }
@@ -83,17 +112,30 @@ export function IncidentDetailPage() {
               </dd>
             </div>
             <div>
-              <dt className="text-xs uppercase text-muted-foreground">Assigned to</dt>
-              <dd className="mt-1">{record.data.assignedTo || <span className="text-muted-foreground">unassigned</span>}</dd>
+              <dt className="text-xs uppercase text-muted-foreground">
+                Assigned to
+              </dt>
+              <dd className="mt-1">
+                {record.data.assignedTo || (
+                  <span className="text-muted-foreground">unassigned</span>
+                )}
+              </dd>
             </div>
             <div>
-              <dt className="text-xs uppercase text-muted-foreground">Last update</dt>
-              <dd className="mt-1 text-muted-foreground">{shortDate(record.updatedAt)}</dd>
+              <dt className="text-xs uppercase text-muted-foreground">
+                Last update
+              </dt>
+              <dd className="mt-1 text-muted-foreground">
+                {shortDate(record.updatedAt)}
+              </dd>
             </div>
           </dl>
         </SectionCard>
 
-        <SectionCard title="Recent events on this zone" description="Context — not the exact correlated set.">
+        <SectionCard
+          title="Recent events on this zone"
+          description="Context — not the exact correlated set."
+        >
           <Table>
             <TableHeader>
               <TableRow>
@@ -112,8 +154,12 @@ export function IncidentDetailPage() {
                   <TableCell>
                     <StatusBadge value={event.data.action} />
                   </TableCell>
-                  <TableCell className="font-mono text-xs">{event.data.sourceIp}</TableCell>
-                  <TableCell className="max-w-[320px] truncate font-mono text-xs">{event.data.requestPath}</TableCell>
+                  <TableCell className="font-mono text-xs">
+                    {event.data.sourceIp}
+                  </TableCell>
+                  <TableCell className="max-w-[320px] truncate font-mono text-xs">
+                    {event.data.requestPath}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

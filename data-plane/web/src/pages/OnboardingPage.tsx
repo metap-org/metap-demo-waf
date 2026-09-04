@@ -8,9 +8,20 @@
  * flow that exposes why `Zone.hasConfig` exists — the `activate` guard needs both a verified
  * hostname *and* at least one policy or rule, and a workflow guard cannot count related records.
  */
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Alert, AlertDescription, Button, Input, Label, Select, Stepper, StepperGroup, StepperItem } from "@metap/ui";
+import {
+  Alert,
+  AlertDescription,
+  Button,
+  Input,
+  Label,
+  Select,
+  Stepper,
+  StepperConnector,
+  StepperGroup,
+  StepperItem,
+} from "@metap/ui";
 import {
   ENTITIES,
   createRecord,
@@ -50,10 +61,14 @@ export function OnboardingPage() {
   const [originAddress, setOriginAddress] = useState("");
   const [protectionMode, setProtectionMode] = useState("monitor");
   const [zone, setZone] = useState<Zone | null>(null);
-  const [dnsResult, setDnsResult] = useState<{ ownershipVerified: boolean; dnsRouted: boolean; target: string } | null>(
-    null,
-  );
-  const [originResult, setOriginResult] = useState<OriginTestResult["data"] | null>(null);
+  const [dnsResult, setDnsResult] = useState<{
+    ownershipVerified: boolean;
+    dnsRouted: boolean;
+    target: string;
+  } | null>(null);
+  const [originResult, setOriginResult] = useState<
+    OriginTestResult["data"] | null
+  >(null);
 
   async function guard(action: () => Promise<void>) {
     setBusy(true);
@@ -130,7 +145,12 @@ export function OnboardingPage() {
       if (!zone) return;
       // Re-read through the sync endpoint first: `zone.version` in this component is from before
       // `sync-config-state` bumped it, and the transition is version-gated.
-      const fresh = await transitionRecord<Zone["data"]>(ENTITIES.zones, zone.id, "activate", zone.version + 1);
+      const fresh = await transitionRecord<Zone["data"]>(
+        ENTITIES.zones,
+        zone.id,
+        "activate",
+        zone.version + 1,
+      );
       setZone(fresh.data as Zone);
       invalidate();
       navigate(`/zones/${zone.id}`);
@@ -140,15 +160,32 @@ export function OnboardingPage() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <PageHeader title="Add a zone" description="Protect a new hostname in four steps." />
+      <PageHeader
+        title="Add a zone"
+        description="Protect a new hostname in four steps."
+      />
 
       <Stepper className="mb-6">
-        <StepperGroup>
-          <StepperItem state={step > 0 ? "completed" : "active"}>Details</StepperItem>
-          <StepperItem state={step > 1 ? "completed" : step === 1 ? "active" : "inactive"}>Verify domain</StepperItem>
-          <StepperItem state={step > 2 ? "completed" : step === 2 ? "active" : "inactive"}>Protection</StepperItem>
-          <StepperItem state={step === 3 ? "active" : "inactive"}>Activate</StepperItem>
-        </StepperGroup>
+        {(["Details", "Verify domain", "Protection", "Activate"] as const).map(
+          (label, index) => (
+            <Fragment key={label}>
+              {index > 0 ? <StepperConnector /> : null}
+              <StepperGroup>
+                <StepperItem
+                  variant={
+                    index < step
+                      ? "terminal"
+                      : index === step
+                        ? "current"
+                        : "default"
+                  }
+                >
+                  {label}
+                </StepperItem>
+              </StepperGroup>
+            </Fragment>
+          ),
+        )}
       </Stepper>
 
       {error ? (
@@ -158,7 +195,10 @@ export function OnboardingPage() {
       ) : null}
 
       {step === 0 ? (
-        <SectionCard title="Zone details" description="The hostname you want protected and where its traffic should go.">
+        <SectionCard
+          title="Zone details"
+          description="The hostname you want protected and where its traffic should go."
+        >
           <div className="grid gap-4">
             <div>
               <Label htmlFor="hostname">Hostname</Label>
@@ -185,16 +225,26 @@ export function OnboardingPage() {
                 value={protectionMode}
                 onChange={(value) => setProtectionMode(String(value))}
                 options={[
-                  { value: "monitor", label: "Monitor — log only, block nothing" },
-                  { value: "enforce", label: "Enforce — act on matching rules" },
+                  {
+                    value: "monitor",
+                    label: "Monitor — log only, block nothing",
+                  },
+                  {
+                    value: "enforce",
+                    label: "Enforce — act on matching rules",
+                  },
                 ]}
               />
               <p className="mt-1 text-xs text-muted-foreground">
-                Start in monitor mode if you want to watch traffic before anything is blocked.
+                Start in monitor mode if you want to watch traffic before
+                anything is blocked.
               </p>
             </div>
             <div>
-              <Button onClick={createZone} disabled={busy || !hostname.trim() || !originAddress.trim()}>
+              <Button
+                onClick={createZone}
+                disabled={busy || !hostname.trim() || !originAddress.trim()}
+              >
                 Create zone
               </Button>
             </div>
@@ -210,7 +260,8 @@ export function OnboardingPage() {
           >
             <div className="rounded-md bg-muted/50 p-3 font-mono text-xs">
               <div>
-                <span className="text-muted-foreground">name: </span>_waf-verify.{zone.data.hostname}
+                <span className="text-muted-foreground">name: </span>
+                _waf-verify.{zone.data.hostname}
               </div>
               <div>
                 <span className="text-muted-foreground">type: </span>TXT
@@ -226,21 +277,33 @@ export function OnboardingPage() {
               </Button>
               {dnsResult ? (
                 <span className="text-sm">
-                  ownership <StatusBadge value={dnsResult.ownershipVerified ? "verified" : "unverified"} /> · routing{" "}
-                  <StatusBadge value={dnsResult.dnsRouted ? "routed" : "notRouted"} />
+                  ownership{" "}
+                  <StatusBadge
+                    value={
+                      dnsResult.ownershipVerified ? "verified" : "unverified"
+                    }
+                  />{" "}
+                  · routing{" "}
+                  <StatusBadge
+                    value={dnsResult.dnsRouted ? "routed" : "notRouted"}
+                  />
                 </span>
               ) : null}
             </div>
             {dnsResult && !dnsResult.dnsRouted ? (
               <p className="mt-2 text-xs text-muted-foreground">
-                Routing is informational — point <code>{zone.data.hostname}</code> at{" "}
-                <code>{dnsResult.target}</code> when you are ready to send real traffic through the edge. It does not
-                block activation.
+                Routing is informational — point{" "}
+                <code>{zone.data.hostname}</code> at{" "}
+                <code>{dnsResult.target}</code> when you are ready to send real
+                traffic through the edge. It does not block activation.
               </p>
             ) : null}
           </SectionCard>
 
-          <SectionCard title="Check the origin" description="Optional, but catches a typo before any traffic depends on it.">
+          <SectionCard
+            title="Check the origin"
+            description="Optional, but catches a typo before any traffic depends on it."
+          >
             <div className="flex items-center gap-3">
               <Button variant="outline" onClick={runOriginTest} disabled={busy}>
                 Test origin
@@ -274,14 +337,18 @@ export function OnboardingPage() {
           description="A zone needs at least one policy or rule before it can go live."
         >
           <p className="text-sm text-muted-foreground">
-            This adds a DDoS L7 policy with medium sensitivity that challenges traffic above 500 requests per minute.
-            You can tune it, or add firewall rules, right after activation.
+            This adds a DDoS L7 policy with medium sensitivity that challenges
+            traffic above 500 requests per minute. You can tune it, or add
+            firewall rules, right after activation.
           </p>
           <div className="mt-3 flex gap-2">
             <Button onClick={addBaselineProtection} disabled={busy}>
               Add default DDoS policy
             </Button>
-            <Button variant="outline" onClick={() => navigate(`/zones/${zone.id}`)}>
+            <Button
+              variant="outline"
+              onClick={() => navigate(`/zones/${zone.id}`)}
+            >
               Configure manually instead
             </Button>
           </div>
@@ -289,10 +356,14 @@ export function OnboardingPage() {
       ) : null}
 
       {step === 3 && zone ? (
-        <SectionCard title="Activate" description="Everything checks out — turn protection on.">
+        <SectionCard
+          title="Activate"
+          description="Everything checks out — turn protection on."
+        >
           <ul className="mb-4 space-y-1 text-sm">
             <li>
-              Hostname <code>{zone.data.hostname}</code> · <StatusBadge value={zone.data.verificationStatus} />
+              Hostname <code>{zone.data.hostname}</code> ·{" "}
+              <StatusBadge value={zone.data.verificationStatus} />
             </li>
             <li>
               Origin <code>{zone.data.originAddress}</code>

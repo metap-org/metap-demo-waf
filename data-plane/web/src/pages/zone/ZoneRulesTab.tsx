@@ -38,7 +38,11 @@ import {
   useRecords,
   type WafRecord,
 } from "../../api/waf";
-import { EmptyState, SectionCard, StatusBadge } from "../../components/primitives";
+import {
+  EmptyState,
+  SectionCard,
+  StatusBadge,
+} from "../../components/primitives";
 
 type RuleData = {
   zoneId?: string;
@@ -66,18 +70,25 @@ export function ZoneRulesTab({ zoneId }: { zoneId: string }) {
   const rules = useRecords<RuleData>(ENTITIES.firewallRules, { zoneId }, 100);
   const [editing, setEditing] = useState<WafRecord<RuleData> | null>(null);
   const [draft, setDraft] = useState<RuleData>(EMPTY);
-  const [conditionText, setConditionText] = useState(JSON.stringify(EMPTY.matchCondition, null, 2));
+  const [conditionText, setConditionText] = useState(
+    JSON.stringify(EMPTY.matchCondition, null, 2),
+  );
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
 
   // Sorted here rather than by the list API: `priority` is not in the entity's sortable fields,
   // and the list is small (one zone's rules), so ordering client-side is cheaper than widening
   // the metadata for it.
-  const ordered = [...(rules.data ?? [])].sort((a, b) => (a.data.priority ?? 0) - (b.data.priority ?? 0));
+  const ordered = [...(rules.data ?? [])].sort(
+    (a, b) => (a.data.priority ?? 0) - (b.data.priority ?? 0),
+  );
 
   function startCreate() {
     setEditing(null);
-    const nextPriority = ordered.length > 0 ? (ordered[ordered.length - 1]?.data.priority ?? 0) + 10 : 100;
+    const nextPriority =
+      ordered.length > 0
+        ? (ordered[ordered.length - 1]?.data.priority ?? 0) + 10
+        : 100;
     setDraft({ ...EMPTY, priority: nextPriority });
     setConditionText(JSON.stringify(EMPTY.matchCondition, null, 2));
     setOpen(true);
@@ -97,21 +108,28 @@ export function ZoneRulesTab({ zoneId }: { zoneId: string }) {
       try {
         matchCondition = JSON.parse(conditionText);
       } catch {
-        toast({ title: "Match condition is not valid JSON", variant: "destructive" });
+        toast("Match condition is not valid JSON", { variant: "destructive" });
         return;
       }
       const payload = { ...draft, matchCondition, zoneId };
       if (editing) {
-        await updateRecord(ENTITIES.firewallRules, editing.id, editing.version, payload);
+        await updateRecord(
+          ENTITIES.firewallRules,
+          editing.id,
+          editing.version,
+          payload,
+        );
       } else {
         await createRecord(ENTITIES.firewallRules, payload);
       }
       await syncConfigState(zoneId);
       invalidate();
       setOpen(false);
-      toast({ title: "Rule saved", variant: "success" });
+      toast("Rule saved", { variant: "default" });
     } catch (e) {
-      toast({ title: e instanceof Error ? e.message : String(e), variant: "destructive" });
+      toast(e instanceof Error ? e.message : String(e), {
+        variant: "destructive",
+      });
     } finally {
       setBusy(false);
     }
@@ -123,9 +141,11 @@ export function ZoneRulesTab({ zoneId }: { zoneId: string }) {
       await deleteRecord(ENTITIES.firewallRules, rule.id, rule.version);
       await syncConfigState(zoneId);
       invalidate();
-      toast({ title: "Rule deleted", variant: "success" });
+      toast("Rule deleted", { variant: "default" });
     } catch (e) {
-      toast({ title: e instanceof Error ? e.message : String(e), variant: "destructive" });
+      toast(e instanceof Error ? e.message : String(e), {
+        variant: "destructive",
+      });
     } finally {
       setBusy(false);
     }
@@ -139,11 +159,20 @@ export function ZoneRulesTab({ zoneId }: { zoneId: string }) {
     if (!neighbour) return;
     setBusy(true);
     try {
-      await updateRecord(ENTITIES.firewallRules, rule.id, rule.version, { priority: neighbour.data.priority });
-      await updateRecord(ENTITIES.firewallRules, neighbour.id, neighbour.version, { priority: rule.data.priority });
+      await updateRecord(ENTITIES.firewallRules, rule.id, rule.version, {
+        priority: neighbour.data.priority,
+      });
+      await updateRecord(
+        ENTITIES.firewallRules,
+        neighbour.id,
+        neighbour.version,
+        { priority: rule.data.priority },
+      );
       invalidate();
     } catch (e) {
-      toast({ title: e instanceof Error ? e.message : String(e), variant: "destructive" });
+      toast(e instanceof Error ? e.message : String(e), {
+        variant: "destructive",
+      });
     } finally {
       setBusy(false);
     }
@@ -161,7 +190,10 @@ export function ZoneRulesTab({ zoneId }: { zoneId: string }) {
         }
       >
         {ordered.length === 0 ? (
-          <EmptyState title="No rules yet" description="Add a rule to block, challenge or rate-limit traffic." />
+          <EmptyState
+            title="No rules yet"
+            description="Add a rule to block, challenge or rate-limit traffic."
+          />
         ) : (
           <Table>
             <TableHeader>
@@ -200,7 +232,9 @@ export function ZoneRulesTab({ zoneId }: { zoneId: string }) {
                       </Button>
                     </div>
                   </TableCell>
-                  <TableCell className="font-medium">{rule.data.name}</TableCell>
+                  <TableCell className="font-medium">
+                    {rule.data.name}
+                  </TableCell>
                   <TableCell>
                     <StatusBadge value={rule.data.ruleType} />
                   </TableCell>
@@ -209,10 +243,19 @@ export function ZoneRulesTab({ zoneId }: { zoneId: string }) {
                   </TableCell>
                   <TableCell>{rule.data.enabled ? "yes" : "no"}</TableCell>
                   <TableCell className="text-right">
-                    <Button size="sm" variant="outline" onClick={() => startEdit(rule)}>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => startEdit(rule)}
+                    >
                       Edit
                     </Button>
-                    <Button size="sm" variant="ghost" onClick={() => remove(rule)} disabled={busy}>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => remove(rule)}
+                      disabled={busy}
+                    >
                       Delete
                     </Button>
                   </TableCell>
@@ -243,7 +286,9 @@ export function ZoneRulesTab({ zoneId }: { zoneId: string }) {
                 <Select
                   id="rule-type"
                   value={draft.ruleType}
-                  onChange={(value) => setDraft({ ...draft, ruleType: String(value) })}
+                  onChange={(value) =>
+                    setDraft({ ...draft, ruleType: String(value) })
+                  }
                   options={[
                     { value: "waf", label: "WAF custom rule" },
                     { value: "rateLimit", label: "Rate limit" },
@@ -257,7 +302,9 @@ export function ZoneRulesTab({ zoneId }: { zoneId: string }) {
                 <Select
                   id="rule-action"
                   value={draft.action}
-                  onChange={(value) => setDraft({ ...draft, action: String(value) })}
+                  onChange={(value) =>
+                    setDraft({ ...draft, action: String(value) })
+                  }
                   options={[
                     { value: "allow", label: "Allow" },
                     { value: "log", label: "Log" },
@@ -275,7 +322,12 @@ export function ZoneRulesTab({ zoneId }: { zoneId: string }) {
                     id="rl-threshold"
                     type="number"
                     value={draft.rateLimitThreshold ?? 100}
-                    onChange={(e) => setDraft({ ...draft, rateLimitThreshold: Number(e.target.value) })}
+                    onChange={(e) =>
+                      setDraft({
+                        ...draft,
+                        rateLimitThreshold: Number(e.target.value),
+                      })
+                    }
                   />
                 </div>
                 <div>
@@ -284,7 +336,12 @@ export function ZoneRulesTab({ zoneId }: { zoneId: string }) {
                     id="rl-window"
                     type="number"
                     value={draft.rateLimitWindow ?? 60}
-                    onChange={(e) => setDraft({ ...draft, rateLimitWindow: Number(e.target.value) })}
+                    onChange={(e) =>
+                      setDraft({
+                        ...draft,
+                        rateLimitWindow: Number(e.target.value),
+                      })
+                    }
                   />
                 </div>
               </div>
@@ -303,8 +360,12 @@ export function ZoneRulesTab({ zoneId }: { zoneId: string }) {
                 onChange={(e) => setConditionText(e.target.value)}
               />
               <p className="mt-1 text-xs text-muted-foreground">
-                JSON, e.g. <code>{'{"field":"uri.path","op":"contains","value":"/admin"}'}</code>. The condition
-                grammar is not settled yet — see the domain model doc.
+                JSON, e.g.{" "}
+                <code>
+                  {'{"field":"uri.path","op":"contains","value":"/admin"}'}
+                </code>
+                . The condition grammar is not settled yet — see the domain
+                model doc.
               </p>
             </div>
             <div>
@@ -313,7 +374,9 @@ export function ZoneRulesTab({ zoneId }: { zoneId: string }) {
                 id="rule-priority"
                 type="number"
                 value={draft.priority ?? 100}
-                onChange={(e) => setDraft({ ...draft, priority: Number(e.target.value) })}
+                onChange={(e) =>
+                  setDraft({ ...draft, priority: Number(e.target.value) })
+                }
               />
             </div>
           </div>

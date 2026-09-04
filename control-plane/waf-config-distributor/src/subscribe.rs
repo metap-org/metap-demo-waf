@@ -11,7 +11,7 @@
 
 use std::sync::Arc;
 
-use metap::infra::{run_resilient_consumer, ConsumedEvent, EventBus, RabbitEventBus};
+use metap::infra::{run_resilient_consumer, ConsumedEvent, RabbitEventBus};
 
 use crate::dataplane::DataPlane;
 use crate::distribute::Distributor;

@@ -116,3 +116,69 @@ pub fn rule_key(zone_id: &str, rule_id: &str, client_ip: &str) -> String {
 pub fn ddos_key(zone_id: &str, client_ip: &str) -> String {
     format!("d:{zone_id}:{client_ip}")
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn stays_under_budget_until_threshold_is_crossed() {
+        let limiter = RateLimiter::new();
+        let window = Duration::from_secs(60);
+        // threshold 3: the 4th hit in the window is the first one over budget.
+        assert!(!limiter.check("k", 3, window));
+        assert!(!limiter.check("k", 3, window));
+        assert!(!limiter.check("k", 3, window));
+        assert!(limiter.check("k", 3, window));
+        assert!(limiter.check("k", 3, window), "stays over budget for further hits in the same window");
+    }
+
+    #[test]
+    fn threshold_zero_trips_on_the_first_hit() {
+        let limiter = RateLimiter::new();
+        // Counting happens before the verdict (see `check`'s doc comment), so the request that
+        // crosses the line is itself treated as over budget — threshold 0 must trip immediately.
+        assert!(limiter.check("k", 0, Duration::from_secs(60)));
+    }
+
+    #[test]
+    fn different_keys_are_independent() {
+        let limiter = RateLimiter::new();
+        let window = Duration::from_secs(60);
+        assert!(!limiter.check("a", 1, window));
+        // A hit against key "b" must not consume key "a"'s budget.
+        assert!(!limiter.check("b", 1, window));
+        assert!(limiter.check("a", 1, window));
+    }
+
+    #[test]
+    fn window_resets_after_it_elapses() {
+        let limiter = RateLimiter::new();
+        let window = Duration::from_millis(30);
+        assert!(!limiter.check("k", 1, window));
+        assert!(limiter.check("k", 1, window), "still inside the window, over budget");
+        std::thread::sleep(Duration::from_millis(60));
+        assert!(!limiter.check("k", 1, window), "a new window resets the counter");
+    }
+
+    #[test]
+    fn tracked_keys_counts_distinct_keys() {
+        let limiter = RateLimiter::new();
+        let window = Duration::from_secs(60);
+        limiter.check("a", 10, window);
+        limiter.check("b", 10, window);
+        limiter.check("a", 10, window); // repeat — must not add a second entry for "a".
+        assert_eq!(limiter.tracked_keys(), 2);
+    }
+
+    #[test]
+    fn rule_key_and_ddos_key_have_disjoint_prefixes() {
+        // Same zone/client, different rule — the two key spaces must never collide, or a
+        // firewall rule's budget could be silently shared with the zone's DDoS budget.
+        let rule = rule_key("zone-1", "rule-1", "1.2.3.4");
+        let ddos = ddos_key("zone-1", "1.2.3.4");
+        assert_ne!(rule, ddos);
+        assert!(rule.starts_with("r:"));
+        assert!(ddos.starts_with("d:"));
+    }
+}

@@ -9,7 +9,13 @@
  * escape hatch rather than as the product.
  */
 import type { ReactNode } from "react";
-import { Navigate, Route, Routes, useNavigate, useParams } from "react-router-dom";
+import {
+  Navigate,
+  Route,
+  Routes,
+  useNavigate,
+  useParams,
+} from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   AppShellLayout,
@@ -96,7 +102,12 @@ function NewRecordRoute() {
   const { entityName } = useParams<{ entityName: string }>();
   const navigate = useNavigate();
   if (!entityName) return <div>Missing entity name</div>;
-  return <GeneratedForm entityName={entityName} onSaved={() => navigate(`/records/${entityName}`)} />;
+  return (
+    <GeneratedForm
+      entityName={entityName}
+      onSaved={() => navigate(`/records/${entityName}`)}
+    />
+  );
 }
 
 function RecordDetailRoute() {
@@ -109,7 +120,13 @@ function EditRecordRoute() {
   const { entityName, id } = useParams<{ entityName: string; id: string }>();
   const navigate = useNavigate();
   if (!entityName || !id) return <div>Missing entity or id</div>;
-  return <GeneratedForm entityName={entityName} recordId={id} onSaved={() => navigate(`/records/${entityName}/${id}`)} />;
+  return (
+    <GeneratedForm
+      entityName={entityName}
+      recordId={id}
+      onSaved={() => navigate(`/records/${entityName}/${id}`)}
+    />
+  );
 }
 
 /** Wraps a product route in the shell + auth gate — every one of them needs both, and repeating
@@ -139,7 +156,10 @@ export default function App() {
           <Route path="/zones" element={page(<ZonesPage />)} />
           <Route path="/zones/:zoneId" element={page(<ZoneDetailPage />)} />
           <Route path="/incidents" element={page(<IncidentsPage />)} />
-          <Route path="/incidents/:incidentId" element={page(<IncidentDetailPage />)} />
+          <Route
+            path="/incidents/:incidentId"
+            element={page(<IncidentDetailPage />)}
+          />
           <Route path="/findings" element={page(<FindingsPage />)} />
           <Route path="/alerting" element={page(<AlertingPage />)} />
           <Route path="/analytics" element={page(<AnalyticsPage />)} />
@@ -148,14 +168,32 @@ export default function App() {
           {/* Generic CRUD escape hatch — the whole of the previous app, now one section. */}
           <Route path="/records" element={adminPage(<EntitiesPage />)} />
           <Route path="/records/:entityName" element={page(<RecordsRoute />)} />
-          <Route path="/records/:entityName/new" element={page(<NewRecordRoute />)} />
-          <Route path="/records/:entityName/:id" element={page(<RecordDetailRoute />)} />
-          <Route path="/records/:entityName/:id/edit" element={page(<EditRecordRoute />)} />
+          <Route
+            path="/records/:entityName/new"
+            element={page(<NewRecordRoute />)}
+          />
+          <Route
+            path="/records/:entityName/:id"
+            element={page(<RecordDetailRoute />)}
+          />
+          <Route
+            path="/records/:entityName/:id/edit"
+            element={page(<EditRecordRoute />)}
+          />
 
           <Route path="/admin/users" element={adminPage(<UsersAdminPage />)} />
-          <Route path="/admin/policies" element={adminPage(<PoliciesAdminPage />)} />
-          <Route path="/admin/cron-jobs" element={adminPage(<CronJobsAdminPage />)} />
-          <Route path="/admin/lowcode" element={adminPage(<LowCodeEntitiesAdminPage />)} />
+          <Route
+            path="/admin/policies"
+            element={adminPage(<PoliciesAdminPage />)}
+          />
+          <Route
+            path="/admin/cron-jobs"
+            element={adminPage(<CronJobsAdminPage />)}
+          />
+          <Route
+            path="/admin/lowcode"
+            element={adminPage(<LowCodeEntitiesAdminPage />)}
+          />
         </Routes>
       </LocaleProvider>
     </AuthProvider>

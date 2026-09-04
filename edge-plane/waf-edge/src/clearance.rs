@@ -79,3 +79,93 @@ fn cookie_value<'a>(header: &'a str, name: &str) -> Option<&'a str> {
         (key == name).then_some(value)
     })
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// `issue()` returns a full `Set-Cookie` header value; this pulls just the `name=value` pair
+    /// out of it, i.e. what a browser would echo back on the next request's `Cookie:` header.
+    fn as_cookie_header(set_cookie: &str) -> String {
+        set_cookie.split(';').next().unwrap().to_string()
+    }
+
+    #[test]
+    fn issued_clearance_verifies_for_the_same_zone_and_ip() {
+        let cookie = issue("waf_clearance", "secret", "zone-1", "1.2.3.4", Duration::from_secs(60));
+        let header = as_cookie_header(&cookie);
+        assert!(verify(&header, "waf_clearance", "secret", "zone-1", "1.2.3.4"));
+    }
+
+    #[test]
+    fn clearance_does_not_transfer_to_a_different_zone() {
+        let cookie = issue("waf_clearance", "secret", "zone-1", "1.2.3.4", Duration::from_secs(60));
+        let header = as_cookie_header(&cookie);
+        assert!(!verify(&header, "waf_clearance", "secret", "zone-2", "1.2.3.4"));
+    }
+
+    #[test]
+    fn clearance_does_not_transfer_to_a_different_ip() {
+        let cookie = issue("waf_clearance", "secret", "zone-1", "1.2.3.4", Duration::from_secs(60));
+        let header = as_cookie_header(&cookie);
+        assert!(!verify(&header, "waf_clearance", "secret", "zone-1", "9.9.9.9"));
+    }
+
+    #[test]
+    fn wrong_secret_is_rejected() {
+        let cookie = issue("waf_clearance", "secret-a", "zone-1", "1.2.3.4", Duration::from_secs(60));
+        let header = as_cookie_header(&cookie);
+        assert!(!verify(&header, "waf_clearance", "secret-b", "zone-1", "1.2.3.4"));
+    }
+
+    #[test]
+    fn tampered_expiry_is_rejected_because_expiry_is_inside_the_signed_input() {
+        let cookie = issue("waf_clearance", "secret", "zone-1", "1.2.3.4", Duration::from_secs(60));
+        let header = as_cookie_header(&cookie);
+        // Append a digit to the numeric expiry prefix (before the signature) to try to extend
+        // the clearance's lifetime — the signature was computed over the original expiry, so
+        // this must fail rather than being accepted with a longer expiry than was issued.
+        let (name_and_expiry, signature) = header.rsplit_once('.').unwrap();
+        let forged = format!("{name_and_expiry}9.{signature}");
+        assert!(!verify(&forged, "waf_clearance", "secret", "zone-1", "1.2.3.4"));
+    }
+
+    #[test]
+    fn expired_clearance_is_rejected() {
+        // Built directly with `sign()` (private, same-module access) rather than sleeping past a
+        // real TTL — an expiry timestamp already in the past, signed correctly, must still fail.
+        let past = now_secs().saturating_sub(10);
+        let signature = sign("secret", "zone-1", "1.2.3.4", past);
+        let header = format!("waf_clearance={past}.{signature}");
+        assert!(!verify(&header, "waf_clearance", "secret", "zone-1", "1.2.3.4"));
+    }
+
+    #[test]
+    fn missing_cookie_is_rejected() {
+        assert!(!verify("other_cookie=xyz", "waf_clearance", "secret", "zone-1", "1.2.3.4"));
+        assert!(!verify("", "waf_clearance", "secret", "zone-1", "1.2.3.4"));
+    }
+
+    #[test]
+    fn malformed_cookie_value_is_rejected_not_panicking() {
+        assert!(!verify("waf_clearance=not-a-valid-format", "waf_clearance", "secret", "zone-1", "1.2.3.4"));
+        assert!(!verify("waf_clearance=123", "waf_clearance", "secret", "zone-1", "1.2.3.4"));
+        assert!(!verify("waf_clearance=abc.def", "waf_clearance", "secret", "zone-1", "1.2.3.4"));
+    }
+
+    #[test]
+    fn cookie_value_extracts_from_a_multi_cookie_header() {
+        let header = "a=1; waf_clearance=999.abc; b=2";
+        assert_eq!(cookie_value(header, "waf_clearance"), Some("999.abc"));
+        assert_eq!(cookie_value(header, "missing"), None);
+    }
+
+    #[test]
+    fn issued_cookie_carries_the_expected_attributes() {
+        let cookie = issue("waf_clearance", "secret", "zone-1", "1.2.3.4", Duration::from_secs(1800));
+        assert!(cookie.contains("HttpOnly"));
+        assert!(cookie.contains("SameSite=Lax"));
+        assert!(cookie.contains("Path=/"));
+        assert!(cookie.contains("Max-Age=1800"));
+    }
+}

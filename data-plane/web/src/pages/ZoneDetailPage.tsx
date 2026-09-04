@@ -9,8 +9,22 @@
  */
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { Button, Tabs, TabsContent, TabsList, TabsTrigger, toast } from "@metap/ui";
-import { ENTITIES, transitionRecord, useInvalidateWaf, useRecord, verifyDns, type ZoneData } from "../api/waf";
+import {
+  Button,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+  toast,
+} from "@metap/ui";
+import {
+  ENTITIES,
+  transitionRecord,
+  useInvalidateWaf,
+  useRecord,
+  verifyDns,
+  type ZoneData,
+} from "../api/waf";
 import { PageHeader, StatusBadge } from "../components/primitives";
 import { ZoneOverviewTab } from "./zone/ZoneOverviewTab";
 import { ZoneDdosTab } from "./zone/ZoneDdosTab";
@@ -40,8 +54,10 @@ export function ZoneDetailPage() {
   const [busy, setBusy] = useState(false);
   const zone = useRecord<ZoneData>(ENTITIES.zones, zoneId);
 
-  if (zone.isLoading) return <p className="text-sm text-muted-foreground">Loading…</p>;
-  if (!zone.data) return <p className="text-sm text-muted-foreground">Zone not found.</p>;
+  if (zone.isLoading)
+    return <p className="text-sm text-muted-foreground">Loading…</p>;
+  if (!zone.data)
+    return <p className="text-sm text-muted-foreground">Zone not found.</p>;
 
   const record = zone.data;
   const status = record.data.status ?? record.status ?? "pending";
@@ -52,12 +68,14 @@ export function ZoneDetailPage() {
     try {
       await transitionRecord(ENTITIES.zones, zoneId, action, zone.data.version);
       invalidate();
-      toast({ title: `Zone ${action}d`, variant: "success" });
+      toast(`Zone ${action}d`, { variant: "default" });
     } catch (e) {
       // The `activate` guard failing is the common case here, and its message names the missing
       // precondition (unverified hostname / no protection configured) — surfacing it verbatim is
       // more useful than a generic "could not activate".
-      toast({ title: e instanceof Error ? e.message : String(e), variant: "destructive" });
+      toast(e instanceof Error ? e.message : String(e), {
+        variant: "destructive",
+      });
     } finally {
       setBusy(false);
     }
@@ -69,10 +87,14 @@ export function ZoneDetailPage() {
     try {
       const result = await verifyDns(zoneId);
       invalidate();
-      toast({
-        title: result.data.ownershipVerified ? "Hostname verified" : "TXT record not found yet",
-        variant: result.data.ownershipVerified ? "success" : "default",
-      });
+      toast(
+        result.data.ownershipVerified
+          ? "Hostname verified"
+          : "TXT record not found yet",
+        {
+          variant: "default",
+        },
+      );
     } finally {
       setBusy(false);
     }
@@ -93,12 +115,22 @@ export function ZoneDetailPage() {
             <StatusBadge value={status} />
             <StatusBadge value={record.data.protectionMode} />
             {record.data.verificationStatus !== "verified" ? (
-              <Button size="sm" variant="outline" onClick={recheckDns} disabled={busy}>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={recheckDns}
+                disabled={busy}
+              >
                 Re-check DNS
               </Button>
             ) : null}
             {(TRANSITIONS[status] ?? []).map((transition) => (
-              <Button key={transition.action} size="sm" onClick={() => act(transition.action)} disabled={busy}>
+              <Button
+                key={transition.action}
+                size="sm"
+                onClick={() => act(transition.action)}
+                disabled={busy}
+              >
                 {transition.label}
               </Button>
             ))}

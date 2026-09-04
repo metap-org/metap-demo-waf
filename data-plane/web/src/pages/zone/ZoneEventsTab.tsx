@@ -18,8 +18,18 @@ import {
   TableRow,
   toast,
 } from "@metap/ui";
-import { ENTITIES, correlateIncidents, useInvalidateWaf, useRecords } from "../../api/waf";
-import { EmptyState, SectionCard, StatusBadge, shortDate } from "../../components/primitives";
+import {
+  ENTITIES,
+  correlateIncidents,
+  useInvalidateWaf,
+  useRecords,
+} from "../../api/waf";
+import {
+  EmptyState,
+  SectionCard,
+  StatusBadge,
+  shortDate,
+} from "../../components/primitives";
 
 type EventData = {
   zoneId?: string;
@@ -35,19 +45,25 @@ export function ZoneEventsTab({ zoneId }: { zoneId: string }) {
   const invalidate = useInvalidateWaf();
   const [action, setAction] = useState("");
   const [busy, setBusy] = useState(false);
-  const events = useRecords<EventData>(ENTITIES.securityEvents, { zoneId, action: action || undefined }, 50);
+  const events = useRecords<EventData>(
+    ENTITIES.securityEvents,
+    { zoneId, action: action || undefined },
+    50,
+  );
 
   async function correlate() {
     setBusy(true);
     try {
       const result = await correlateIncidents(zoneId);
       invalidate();
-      toast({
-        title: `Scanned ${result.data.scannedEvents} events · ${result.data.createdIncidents.length} new incident(s)`,
-        variant: "success",
-      });
+      toast(
+        `Scanned ${result.data.scannedEvents} events · ${result.data.createdIncidents.length} new incident(s)`,
+        { variant: "default" },
+      );
     } catch (e) {
-      toast({ title: e instanceof Error ? e.message : String(e), variant: "destructive" });
+      toast(e instanceof Error ? e.message : String(e), {
+        variant: "destructive",
+      });
     } finally {
       setBusy(false);
     }
@@ -70,7 +86,12 @@ export function ZoneEventsTab({ zoneId }: { zoneId: string }) {
                 { value: "logged", label: "Logged" },
               ]}
             />
-            <Button size="sm" variant="outline" onClick={correlate} disabled={busy}>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={correlate}
+              disabled={busy}
+            >
               Correlate now
             </Button>
           </>
@@ -101,10 +122,16 @@ export function ZoneEventsTab({ zoneId }: { zoneId: string }) {
                   <TableCell>
                     <StatusBadge value={event.data.action} />
                   </TableCell>
-                  <TableCell className="font-mono text-xs">{event.data.sourceIp}</TableCell>
-                  <TableCell className="max-w-[280px] truncate font-mono text-xs">{event.data.requestPath}</TableCell>
+                  <TableCell className="font-mono text-xs">
+                    {event.data.sourceIp}
+                  </TableCell>
+                  <TableCell className="max-w-[280px] truncate font-mono text-xs">
+                    {event.data.requestPath}
+                  </TableCell>
                   <TableCell>
-                    {event.data.triggeredByName ?? event.data.triggeredBy ?? "—"}
+                    {event.data.triggeredByName ??
+                      event.data.triggeredBy ??
+                      "—"}
                   </TableCell>
                 </TableRow>
               ))}

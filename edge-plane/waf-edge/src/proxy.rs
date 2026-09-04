@@ -23,7 +23,7 @@ use hyper_util::client::legacy::connect::HttpConnector;
 use hyper_util::client::legacy::Client;
 use hyper_util::rt::TokioExecutor;
 
-use crate::body::{full, BoxBody};
+use crate::body::BoxBody;
 
 /// Headers that describe one hop of a connection and must never be forwarded across it.
 const HOP_BY_HOP: [&str; 8] = [
@@ -137,9 +137,4 @@ pub enum ProxyError {
     BadOrigin,
     BadRequestBody,
     Unreachable,
-}
-
-/// Small convenience for the one place a proxy error has to become a body.
-pub fn error_body(message: &'static str) -> BoxBody {
-    full(message)
 }

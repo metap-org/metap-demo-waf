@@ -8,7 +8,16 @@
  */
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, toast } from "@metap/ui";
+import {
+  Button,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  toast,
+} from "@metap/ui";
 import {
   ENTITIES,
   correlateIncidents,
@@ -17,7 +26,12 @@ import {
   useRecords,
   type WafRecord,
 } from "../api/waf";
-import { EmptyState, PageHeader, StatusBadge, shortDate } from "../components/primitives";
+import {
+  EmptyState,
+  PageHeader,
+  StatusBadge,
+  shortDate,
+} from "../components/primitives";
 
 export type IncidentData = {
   zoneId?: string;
@@ -41,20 +55,34 @@ export function IncidentsPage() {
   const invalidate = useInvalidateWaf();
   const [status, setStatus] = useState("open");
   const [busy, setBusy] = useState(false);
-  const incidents = useRecords<IncidentData>(ENTITIES.incidents, { status: status || undefined }, 50);
+  const incidents = useRecords<IncidentData>(
+    ENTITIES.incidents,
+    { status: status || undefined },
+    50,
+  );
   const zones = useRecords<{ hostname?: string }>(ENTITIES.zones, {}, 100);
 
-  const hostnameFor = (zoneId?: string) => zones.data?.find((zone) => zone.id === zoneId)?.data.hostname ?? zoneId ?? "—";
+  const hostnameFor = (zoneId?: string) =>
+    zones.data?.find((zone) => zone.id === zoneId)?.data.hostname ??
+    zoneId ??
+    "—";
 
   async function advance(incident: WafRecord<IncidentData>) {
     const next = NEXT_ACTION[incident.data.status ?? incident.status ?? ""];
     if (!next) return;
     setBusy(true);
     try {
-      await transitionRecord(ENTITIES.incidents, incident.id, next.action, incident.version);
+      await transitionRecord(
+        ENTITIES.incidents,
+        incident.id,
+        next.action,
+        incident.version,
+      );
       invalidate();
     } catch (e) {
-      toast({ title: e instanceof Error ? e.message : String(e), variant: "destructive" });
+      toast(e instanceof Error ? e.message : String(e), {
+        variant: "destructive",
+      });
     } finally {
       setBusy(false);
     }
@@ -65,12 +93,16 @@ export function IncidentsPage() {
     try {
       const result = await correlateIncidents();
       invalidate();
-      toast({
-        title: `${result.data.createdIncidents.length} new incident(s) from ${result.data.scannedEvents} events`,
-        variant: "success",
-      });
+      toast(
+        `${result.data.createdIncidents.length} new incident(s) from ${result.data.scannedEvents} events`,
+        {
+          variant: "default",
+        },
+      );
     } catch (e) {
-      toast({ title: e instanceof Error ? e.message : String(e), variant: "destructive" });
+      toast(e instanceof Error ? e.message : String(e), {
+        variant: "destructive",
+      });
     } finally {
       setBusy(false);
     }
@@ -126,12 +158,18 @@ export function IncidentsPage() {
               return (
                 <TableRow key={incident.id}>
                   <TableCell>
-                    <Link className="font-medium hover:underline" to={`/incidents/${incident.id}`}>
+                    <Link
+                      className="font-medium hover:underline"
+                      to={`/incidents/${incident.id}`}
+                    >
                       {incident.data.title}
                     </Link>
                   </TableCell>
                   <TableCell>
-                    <Link className="hover:underline" to={`/zones/${incident.data.zoneId}`}>
+                    <Link
+                      className="hover:underline"
+                      to={`/zones/${incident.data.zoneId}`}
+                    >
                       {hostnameFor(incident.data.zoneId)}
                     </Link>
                   </TableCell>
@@ -141,17 +179,26 @@ export function IncidentsPage() {
                   <TableCell>
                     <StatusBadge value={state} />
                   </TableCell>
-                  <TableCell className="text-right tabular-nums">{incident.data.eventCount ?? 0}</TableCell>
+                  <TableCell className="text-right tabular-nums">
+                    {incident.data.eventCount ?? 0}
+                  </TableCell>
                   <TableCell className="whitespace-nowrap text-muted-foreground">
                     {shortDate(incident.createdAt)}
                   </TableCell>
                   <TableCell className="text-right">
                     {next ? (
-                      <Button size="sm" variant="outline" onClick={() => advance(incident)} disabled={busy}>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => advance(incident)}
+                        disabled={busy}
+                      >
                         {next.label}
                       </Button>
                     ) : (
-                      <span className="text-xs text-muted-foreground">done</span>
+                      <span className="text-xs text-muted-foreground">
+                        done
+                      </span>
                     )}
                   </TableCell>
                 </TableRow>

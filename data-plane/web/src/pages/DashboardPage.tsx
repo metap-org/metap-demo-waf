@@ -10,8 +10,22 @@
  */
 import { Link } from "react-router-dom";
 import { BarChart, Button } from "@metap/ui";
-import { ENTITIES, daysAgo, useAggregate, useRecords, type AggregateRow } from "../api/waf";
-import { EmptyState, PageHeader, SectionCard, StatTile, StatusBadge, TimeSeries, dayLabel } from "../components/primitives";
+import {
+  ENTITIES,
+  daysAgo,
+  useAggregate,
+  useRecords,
+  type AggregateRow,
+} from "../api/waf";
+import {
+  EmptyState,
+  PageHeader,
+  SectionCard,
+  StatTile,
+  StatusBadge,
+  TimeSeries,
+  dayLabel,
+} from "../components/primitives";
 
 /** Sums `count` across every returned group — the "how many in total" reading of a grouped
  *  aggregate, so one request answers both the tile and the chart next to it. */
@@ -50,15 +64,21 @@ export function DashboardPage() {
     since: since7d,
     limit: 5,
   });
-  const incidentsByStatus = useAggregate(ENTITIES.incidents, { groupBy: "status" });
-  const findingsBySeverity = useAggregate(ENTITIES.scanFindings, { groupBy: "severity" });
+  const incidentsByStatus = useAggregate(ENTITIES.incidents, {
+    groupBy: "status",
+  });
+  const findingsBySeverity = useAggregate(ENTITIES.scanFindings, {
+    groupBy: "severity",
+  });
 
   const recentIncidents = useRecords(ENTITIES.incidents, { status: "open" }, 5);
   // Only to turn a zoneId into a hostname in the "top zones" table — the aggregate returns the raw
   // id, since grouping happens in the database where the zone's hostname isn't joined in.
   const zones = useRecords<{ hostname?: string }>(ENTITIES.zones, {}, 100);
   const hostnameFor = (zoneId?: string | null) =>
-    zones.data?.find((zone) => zone.id === zoneId)?.data.hostname ?? zoneId ?? "—";
+    zones.data?.find((zone) => zone.id === zoneId)?.data.hostname ??
+    zoneId ??
+    "—";
 
   const openIncidents = countFor(incidentsByStatus.data, "open");
   const blocked24h = countFor(eventsByAction.data, "blocked");
@@ -102,14 +122,21 @@ export function DashboardPage() {
         <StatTile
           label="Critical findings"
           value={countFor(findingsBySeverity.data, "critical")}
-          tone={countFor(findingsBySeverity.data, "critical") > 0 ? "danger" : "default"}
+          tone={
+            countFor(findingsBySeverity.data, "critical") > 0
+              ? "danger"
+              : "default"
+          }
           loading={findingsBySeverity.isLoading}
         />
       </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-3">
         <div className="lg:col-span-2">
-          <SectionCard title="Security events" description="Last 7 days, by day">
+          <SectionCard
+            title="Security events"
+            description="Last 7 days, by day"
+          >
             <TimeSeries
               ariaLabel="Security events per day"
               points={(eventsPerDay.data ?? []).map((row) => ({
@@ -121,7 +148,10 @@ export function DashboardPage() {
         </div>
         <SectionCard title="By action" description="Last 24 hours">
           {(eventsByAction.data ?? []).length === 0 ? (
-            <EmptyState title="No events yet" description="Nothing has hit the edge in this window." />
+            <EmptyState
+              title="No events yet"
+              description="Nothing has hit the edge in this window."
+            />
           ) : (
             <BarChart
               ariaLabel="Events by action"
@@ -143,11 +173,16 @@ export function DashboardPage() {
           ) : (
             <ul className="divide-y text-sm">
               {(eventsByZone.data ?? []).map((row) => (
-                <li key={row.group ?? "unknown"} className="flex items-center justify-between py-2">
+                <li
+                  key={row.group ?? "unknown"}
+                  className="flex items-center justify-between py-2"
+                >
                   <Link className="hover:underline" to={`/zones/${row.group}`}>
                     {hostnameFor(row.group)}
                   </Link>
-                  <span className="tabular-nums text-muted-foreground">{row.count}</span>
+                  <span className="tabular-nums text-muted-foreground">
+                    {row.count}
+                  </span>
                 </li>
               ))}
             </ul>
@@ -163,12 +198,21 @@ export function DashboardPage() {
           }
         >
           {(recentIncidents.data ?? []).length === 0 ? (
-            <EmptyState title="No open incidents" description="Correlation has not raised anything." />
+            <EmptyState
+              title="No open incidents"
+              description="Correlation has not raised anything."
+            />
           ) : (
             <ul className="divide-y text-sm">
               {(recentIncidents.data ?? []).map((incident) => (
-                <li key={incident.id} className="flex items-center justify-between gap-3 py-2">
-                  <Link className="truncate hover:underline" to={`/incidents/${incident.id}`}>
+                <li
+                  key={incident.id}
+                  className="flex items-center justify-between gap-3 py-2"
+                >
+                  <Link
+                    className="truncate hover:underline"
+                    to={`/incidents/${incident.id}`}
+                  >
                     {String(incident.data.title ?? incident.id)}
                   </Link>
                   <StatusBadge value={String(incident.data.severity ?? "")} />

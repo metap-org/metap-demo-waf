@@ -20,6 +20,9 @@ use crate::ruleset::{
     RULESET_SCHEMA_VERSION,
 };
 
+#[cfg(test)]
+use serde_json::json;
+
 /// Should this zone be served at the edge at all?
 ///
 /// Only `active` and `paused` are published. `pending` has never been verified, and `suspended`
@@ -223,4 +226,258 @@ pub fn compile_zone(
         rules: compiled,
         compiled_at: chrono::Utc::now().to_rfc3339(),
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn record(id: &str, status: Option<&str>, data: Value) -> Record {
+        Record {
+            id: id.to_string(),
+            status: status.map(str::to_string),
+            data: data.as_object().cloned().unwrap_or_default(),
+        }
+    }
+
+    fn zone(status: &str, extra: Value) -> Record {
+        let mut data = json!({
+            "hostname": "shop.example.com",
+            "originAddress": "10.0.0.1",
+            "status": status,
+            "protectionMode": "enforce",
+            "configVersion": 3,
+        });
+        if let (Value::Object(base), Value::Object(more)) = (&mut data, extra) {
+            base.extend(more);
+        }
+        record("zone-1", Some(status), data)
+    }
+
+    #[test]
+    fn publishable_accepts_active_and_paused_only() {
+        assert!(publishable(&zone("active", json!({}))));
+        assert!(publishable(&zone("paused", json!({}))));
+        assert!(!publishable(&zone("pending", json!({}))));
+        assert!(!publishable(&zone("suspended", json!({}))));
+    }
+
+    #[test]
+    fn action_from_unknown_value_defaults_to_log_not_block() {
+        // A control-plane that doesn't recognise a newer action value must never start blocking
+        // traffic on a guess — see the doc comment on `action_from`.
+        assert_eq!(action_from(Some("something-new")), Action::Log);
+        assert_eq!(action_from(None), Action::Log);
+        assert_eq!(action_from(Some("block")), Action::Block);
+        assert_eq!(action_from(Some("challenge")), Action::Challenge);
+        assert_eq!(action_from(Some("allow")), Action::Allow);
+    }
+
+    #[test]
+    fn parse_match_none_and_null_both_mean_always() {
+        assert!(matches!(parse_match(None), Some(MatchExpr::Always)));
+        assert!(matches!(parse_match(Some(&Value::Null)), Some(MatchExpr::Always)));
+    }
+
+    #[test]
+    fn parse_match_simple_predicate() {
+        let raw = json!({ "field": "uri.path", "op": "contains", "value": "/admin" });
+        let expr = parse_match(Some(&raw)).unwrap();
+        match expr {
+            MatchExpr::Predicate(p) => {
+                assert_eq!(p.field, Field::UriPath);
+                assert_eq!(p.op, Op::Contains);
+                assert_eq!(p.value.as_deref(), Some("/admin"));
+            }
+            other => panic!("expected Predicate, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn parse_match_header_field_lowercases_the_header_name() {
+        let raw = json!({ "field": "header", "op": "eq", "value": "1", "param": "X-Custom-Header" });
+        let expr = parse_match(Some(&raw)).unwrap();
+        match expr {
+            MatchExpr::Predicate(p) => assert_eq!(p.param.as_deref(), Some("x-custom-header")),
+            other => panic!("expected Predicate, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn parse_match_header_field_without_param_is_unrepresentable() {
+        let raw = json!({ "field": "header", "op": "eq", "value": "1" });
+        assert!(parse_match(Some(&raw)).is_none());
+    }
+
+    #[test]
+    fn parse_match_all_any_not_compose() {
+        let raw = json!({
+            "all": [
+                { "field": "method", "op": "eq", "value": "POST" },
+                { "not": { "field": "sourceIp", "op": "eq", "value": "10.0.0.1" } },
+            ]
+        });
+        let expr = parse_match(Some(&raw)).unwrap();
+        match expr {
+            MatchExpr::All(children) => {
+                assert_eq!(children.len(), 2);
+                assert!(matches!(children[1], MatchExpr::Not(_)));
+            }
+            other => panic!("expected All, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn parse_match_in_requires_non_empty_values() {
+        let empty = json!({ "field": "sourceIp", "op": "in", "values": [] });
+        assert!(parse_match(Some(&empty)).is_none());
+
+        let filled = json!({ "field": "sourceIp", "op": "in", "values": ["1.2.3.4", "5.6.7.8"] });
+        let expr = parse_match(Some(&filled)).unwrap();
+        match expr {
+            MatchExpr::Predicate(p) => assert_eq!(p.values, vec!["1.2.3.4", "5.6.7.8"]),
+            other => panic!("expected Predicate, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn parse_match_unknown_field_or_op_is_unrepresentable() {
+        assert!(parse_match(Some(&json!({ "field": "bogus", "op": "eq", "value": "x" }))).is_none());
+        assert!(parse_match(Some(&json!({ "field": "method", "op": "bogus", "value": "x" }))).is_none());
+    }
+
+    #[test]
+    fn parse_match_missing_value_for_a_non_in_op_is_unrepresentable() {
+        assert!(parse_match(Some(&json!({ "field": "method", "op": "eq" }))).is_none());
+    }
+
+    #[test]
+    fn compile_rule_drops_disabled_rules() {
+        let rule = record(
+            "rule-1",
+            None,
+            json!({ "name": "r", "ruleType": "waf", "action": "block", "priority": 10, "enabled": false }),
+        );
+        assert!(compile_rule(&rule).is_none());
+    }
+
+    #[test]
+    fn compile_rule_with_unrepresentable_condition_is_dropped() {
+        let rule = record(
+            "rule-1",
+            None,
+            json!({
+                "name": "r", "ruleType": "waf", "action": "block", "priority": 10, "enabled": true,
+                "matchCondition": { "field": "bogus", "op": "eq", "value": "x" },
+            }),
+        );
+        assert!(compile_rule(&rule).is_none());
+    }
+
+    #[test]
+    fn compile_rule_rate_limit_type_carries_threshold_and_window() {
+        let rule = record(
+            "rule-1",
+            None,
+            json!({
+                "name": "login-rl", "ruleType": "rateLimit", "action": "challenge", "priority": 5,
+                "enabled": true, "rateLimitThreshold": 20, "rateLimitWindow": 30,
+            }),
+        );
+        let compiled = compile_rule(&rule).unwrap();
+        assert_eq!(compiled.id, "rule-1");
+        assert_eq!(compiled.action, Action::Challenge);
+        let rl = compiled.rate_limit.expect("rate limit expected for rateLimit rule type");
+        assert_eq!(rl.threshold, 20);
+        assert_eq!(rl.window_seconds, 30);
+        // No condition given -> Always, meaning the budget applies to every request the rule
+        // type is scoped to.
+        assert!(matches!(compiled.match_expr, MatchExpr::Always));
+    }
+
+    #[test]
+    fn compile_rule_non_rate_limit_type_has_no_rate_limit() {
+        let rule = record(
+            "rule-1",
+            None,
+            json!({ "name": "r", "ruleType": "waf", "action": "block", "priority": 10, "enabled": true }),
+        );
+        let compiled = compile_rule(&rule).unwrap();
+        assert!(compiled.rate_limit.is_none());
+    }
+
+    #[test]
+    fn compile_ddos_drops_when_disabled() {
+        let policy = record(
+            "policy-1",
+            None,
+            json!({ "sensitivity": "high", "action": "block", "requestRateThreshold": 500, "burstWindow": 60, "enabled": false }),
+        );
+        assert!(compile_ddos(&policy).is_none());
+    }
+
+    #[test]
+    fn compile_ddos_enabled_carries_fields_through() {
+        let policy = record(
+            "policy-1",
+            None,
+            json!({ "sensitivity": "high", "action": "block", "requestRateThreshold": 500, "burstWindow": 60, "enabled": true }),
+        );
+        let compiled = compile_ddos(&policy).unwrap();
+        assert_eq!(compiled.sensitivity, "high");
+        assert_eq!(compiled.action, Action::Block);
+        assert_eq!(compiled.request_rate_threshold, 500);
+        assert_eq!(compiled.burst_window_seconds, 60);
+    }
+
+    #[test]
+    fn compile_zone_sorts_rules_by_priority_and_drops_unrepresentable_ones() {
+        let z = zone("active", json!({}));
+        let rules = vec![
+            record(
+                "r-high-priority-num",
+                None,
+                json!({ "name": "second", "ruleType": "waf", "action": "log", "priority": 200, "enabled": true }),
+            ),
+            record(
+                "r-low-priority-num",
+                None,
+                json!({ "name": "first", "ruleType": "waf", "action": "block", "priority": 10, "enabled": true }),
+            ),
+            // Dropped: disabled.
+            record(
+                "r-disabled",
+                None,
+                json!({ "name": "disabled", "ruleType": "waf", "action": "block", "priority": 1, "enabled": false }),
+            ),
+        ];
+        let compiled = compile_zone(&z, "tenant-1", None, &rules).unwrap();
+        assert_eq!(compiled.rules.len(), 2, "the disabled rule must be dropped");
+        assert_eq!(compiled.rules[0].name, "first", "lower priority number sorts first");
+        assert_eq!(compiled.rules[1].name, "second");
+        assert_eq!(compiled.schema_version, RULESET_SCHEMA_VERSION);
+        assert_eq!(compiled.tenant_id, "tenant-1");
+        assert_eq!(compiled.zone_id, "zone-1");
+    }
+
+    #[test]
+    fn compile_zone_without_hostname_fails() {
+        let z = record("zone-1", Some("active"), json!({ "status": "active" }));
+        assert!(compile_zone(&z, "tenant-1", None, &[]).is_none());
+    }
+
+    #[test]
+    fn compile_zone_carries_ddos_only_when_present_and_enabled() {
+        let z = zone("active", json!({}));
+        let ddos = record(
+            "ddos-1",
+            None,
+            json!({ "sensitivity": "medium", "action": "challenge", "requestRateThreshold": 500, "burstWindow": 60, "enabled": true }),
+        );
+        let compiled = compile_zone(&z, "tenant-1", Some(&ddos), &[]).unwrap();
+        assert!(compiled.ddos.is_some());
+
+        let compiled_no_ddos = compile_zone(&z, "tenant-1", None, &[]).unwrap();
+        assert!(compiled_no_ddos.ddos.is_none());
+    }
 }

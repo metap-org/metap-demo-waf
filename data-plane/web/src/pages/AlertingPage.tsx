@@ -37,7 +37,13 @@ import {
   useRecords,
   type WafRecord,
 } from "../api/waf";
-import { EmptyState, PageHeader, SectionCard, StatusBadge, shortDate } from "../components/primitives";
+import {
+  EmptyState,
+  PageHeader,
+  SectionCard,
+  StatusBadge,
+  shortDate,
+} from "../components/primitives";
 
 type PolicyData = {
   name?: string;
@@ -65,11 +71,17 @@ const EMPTY: PolicyData = {
 export function AlertingPage() {
   const invalidate = useInvalidateWaf();
   const policies = useRecords<PolicyData>(ENTITIES.alertPolicies, {}, 50);
-  const notifications = useRecords<NotificationData>(ENTITIES.alertNotifications, {}, 25);
+  const notifications = useRecords<NotificationData>(
+    ENTITIES.alertNotifications,
+    {},
+    25,
+  );
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<WafRecord<PolicyData> | null>(null);
   const [draft, setDraft] = useState<PolicyData>(EMPTY);
-  const [channelsText, setChannelsText] = useState(JSON.stringify(EMPTY.channels, null, 2));
+  const [channelsText, setChannelsText] = useState(
+    JSON.stringify(EMPTY.channels, null, 2),
+  );
   const [busy, setBusy] = useState(false);
 
   function startCreate() {
@@ -93,20 +105,27 @@ export function AlertingPage() {
       try {
         channels = JSON.parse(channelsText);
       } catch {
-        toast({ title: "Channels is not valid JSON", variant: "destructive" });
+        toast("Channels is not valid JSON", { variant: "destructive" });
         return;
       }
       const payload = { ...draft, channels };
       if (editing) {
-        await updateRecord(ENTITIES.alertPolicies, editing.id, editing.version, payload);
+        await updateRecord(
+          ENTITIES.alertPolicies,
+          editing.id,
+          editing.version,
+          payload,
+        );
       } else {
         await createRecord(ENTITIES.alertPolicies, payload);
       }
       invalidate();
       setOpen(false);
-      toast({ title: "Alert policy saved", variant: "success" });
+      toast("Alert policy saved", { variant: "default" });
     } catch (e) {
-      toast({ title: e instanceof Error ? e.message : String(e), variant: "destructive" });
+      toast(e instanceof Error ? e.message : String(e), {
+        variant: "destructive",
+      });
     } finally {
       setBusy(false);
     }
@@ -117,12 +136,18 @@ export function AlertingPage() {
     try {
       const result = await testAlertPolicy(policy.id);
       invalidate();
-      toast({
-        title: result.data.delivered ? `Delivered — ${result.data.detail}` : `Not delivered — ${result.data.detail}`,
-        variant: result.data.delivered ? "success" : "destructive",
-      });
+      toast(
+        result.data.delivered
+          ? `Delivered — ${result.data.detail}`
+          : `Not delivered — ${result.data.detail}`,
+        {
+          variant: result.data.delivered ? "default" : "destructive",
+        },
+      );
     } catch (e) {
-      toast({ title: e instanceof Error ? e.message : String(e), variant: "destructive" });
+      toast(e instanceof Error ? e.message : String(e), {
+        variant: "destructive",
+      });
     } finally {
       setBusy(false);
     }
@@ -133,18 +158,23 @@ export function AlertingPage() {
     try {
       const result = await evaluateAlerts();
       invalidate();
-      toast({
-        title: `Evaluated ${result.data.policiesEvaluated} policies · ${result.data.fired.length} fired`,
-        variant: "success",
-      });
+      toast(
+        `Evaluated ${result.data.policiesEvaluated} policies · ${result.data.fired.length} fired`,
+        {
+          variant: "default",
+        },
+      );
     } catch (e) {
-      toast({ title: e instanceof Error ? e.message : String(e), variant: "destructive" });
+      toast(e instanceof Error ? e.message : String(e), {
+        variant: "destructive",
+      });
     } finally {
       setBusy(false);
     }
   }
 
-  const policyName = (id?: string) => policies.data?.find((p) => p.id === id)?.data.name ?? id ?? "—";
+  const policyName = (id?: string) =>
+    policies.data?.find((p) => p.id === id)?.data.name ?? id ?? "—";
 
   return (
     <div>
@@ -162,9 +192,15 @@ export function AlertingPage() {
       />
 
       <div className="grid gap-4">
-        <SectionCard title="Alert policies" description="Counted per zone — never summed across zones.">
+        <SectionCard
+          title="Alert policies"
+          description="Counted per zone — never summed across zones."
+        >
           {(policies.data ?? []).length === 0 ? (
-            <EmptyState title="No alert policies" description="Create one to get told when a zone is under attack." />
+            <EmptyState
+              title="No alert policies"
+              description="Create one to get told when a zone is under attack."
+            />
           ) : (
             <Table>
               <TableHeader>
@@ -179,19 +215,33 @@ export function AlertingPage() {
               <TableBody>
                 {(policies.data ?? []).map((policy) => (
                   <TableRow key={policy.id}>
-                    <TableCell className="font-medium">{policy.data.name}</TableCell>
+                    <TableCell className="font-medium">
+                      {policy.data.name}
+                    </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
-                      ≥ {policy.data.thresholdCount} events in {policy.data.windowMinutes}m
+                      ≥ {policy.data.thresholdCount} events in{" "}
+                      {policy.data.windowMinutes}m
                     </TableCell>
                     <TableCell className="font-mono text-xs">
-                      {Object.keys(policy.data.channels ?? {}).join(", ") || "—"}
+                      {Object.keys(policy.data.channels ?? {}).join(", ") ||
+                        "—"}
                     </TableCell>
                     <TableCell>{policy.data.enabled ? "yes" : "no"}</TableCell>
                     <TableCell className="text-right">
-                      <Button size="sm" variant="outline" onClick={() => sendTest(policy)} disabled={busy}>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => sendTest(policy)}
+                        disabled={busy}
+                      >
                         Send test
                       </Button>
-                      <Button size="sm" variant="ghost" className="ml-1" onClick={() => startEdit(policy)}>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="ml-1"
+                        onClick={() => startEdit(policy)}
+                      >
                         Edit
                       </Button>
                     </TableCell>
@@ -202,7 +252,10 @@ export function AlertingPage() {
           )}
         </SectionCard>
 
-        <SectionCard title="Delivery log" description="Every firing, sent or failed.">
+        <SectionCard
+          title="Delivery log"
+          description="Every firing, sent or failed."
+        >
           {(notifications.data ?? []).length === 0 ? (
             <EmptyState title="Nothing delivered yet" />
           ) : (
@@ -219,9 +272,13 @@ export function AlertingPage() {
                 {(notifications.data ?? []).map((notification) => (
                   <TableRow key={notification.id}>
                     <TableCell className="whitespace-nowrap text-muted-foreground">
-                      {shortDate(notification.data.triggeredAt ?? notification.createdAt)}
+                      {shortDate(
+                        notification.data.triggeredAt ?? notification.createdAt,
+                      )}
                     </TableCell>
-                    <TableCell>{policyName(notification.data.alertPolicyId)}</TableCell>
+                    <TableCell>
+                      {policyName(notification.data.alertPolicyId)}
+                    </TableCell>
                     <TableCell>{notification.data.channel}</TableCell>
                     <TableCell>
                       <StatusBadge value={notification.data.deliveryStatus} />
@@ -237,7 +294,9 @@ export function AlertingPage() {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editing ? "Edit alert policy" : "New alert policy"}</DialogTitle>
+            <DialogTitle>
+              {editing ? "Edit alert policy" : "New alert policy"}
+            </DialogTitle>
           </DialogHeader>
           <div className="grid gap-3">
             <div>
@@ -255,7 +314,12 @@ export function AlertingPage() {
                   id="policy-threshold"
                   type="number"
                   value={draft.thresholdCount ?? 0}
-                  onChange={(e) => setDraft({ ...draft, thresholdCount: Number(e.target.value) })}
+                  onChange={(e) =>
+                    setDraft({
+                      ...draft,
+                      thresholdCount: Number(e.target.value),
+                    })
+                  }
                 />
               </div>
               <div>
@@ -264,7 +328,12 @@ export function AlertingPage() {
                   id="policy-window"
                   type="number"
                   value={draft.windowMinutes ?? 0}
-                  onChange={(e) => setDraft({ ...draft, windowMinutes: Number(e.target.value) })}
+                  onChange={(e) =>
+                    setDraft({
+                      ...draft,
+                      windowMinutes: Number(e.target.value),
+                    })
+                  }
                 />
               </div>
             </div>
@@ -278,15 +347,17 @@ export function AlertingPage() {
                 onChange={(e) => setChannelsText(e.target.value)}
               />
               <p className="mt-1 text-xs text-muted-foreground">
-                {'{"webhook": "https://…"}'} posts the alert. {'{"email": "…"}'} is logged only — there is no mail
-                transport in this product yet.
+                {'{"webhook": "https://…"}'} posts the alert. {'{"email": "…"}'}{" "}
+                is logged only — there is no mail transport in this product yet.
               </p>
             </div>
             <div className="flex items-center gap-2">
               <Toggle
                 id="policy-enabled"
                 checked={draft.enabled ?? true}
-                onCheckedChange={(checked) => setDraft({ ...draft, enabled: checked })}
+                onCheckedChange={(checked) =>
+                  setDraft({ ...draft, enabled: checked })
+                }
               />
               <Label htmlFor="policy-enabled">Enabled</Label>
             </div>
