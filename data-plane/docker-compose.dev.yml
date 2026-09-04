@@ -52,6 +52,19 @@ services:
     environment:
       DATABASE_URL: postgres://metap:metap@host.docker.internal:5433/metap
       RABBITMQ_URL: amqp://metap:metap@host.docker.internal:5672
+      # Overrides `.env`'s host-dev default (`http://localhost:3000/...`) — inside this compose
+      # project's own bridge network, every sibling container (including this one, for
+      # uniformity) reaches this service by its service DNS name, not `localhost`.
+      JWKS_URL: http://zones-service:3000/.well-known/jwks.json
+      # `routes.rs`'s `zone_delete_guard` calls these directly (server-to-server, not through the
+      # browser/Vite proxy — unrelated to `web`'s own same-named env vars below, which point
+      # `vite.config.ts`'s dev-server proxy instead) to check cross-service references before
+      # allowing a zone delete. Missing here, it silently fell back to `.env`'s host-dev default
+      # (`http://localhost:3010`/`:3020`) — meaningless inside this container's own network
+      # namespace, so every delete failed with "Could not verify cross-service references...
+      # error sending request" (found live, 2026-09-04).
+      SCANNING_URL: http://scanning-service:3010
+      ALERTING_URL: http://alerting-service:3020
     ports:
       - "3000:3000"
       - "3001:3001"
@@ -78,6 +91,7 @@ services:
     environment:
       DATABASE_URL: postgres://metap:metap@host.docker.internal:5433/metap
       RABBITMQ_URL: amqp://metap:metap@host.docker.internal:5672
+      JWKS_URL: http://zones-service:3000/.well-known/jwks.json
     ports:
       - "3010:3010"
       - "3011:3011"
@@ -100,6 +114,7 @@ services:
     environment:
       DATABASE_URL: postgres://metap:metap@host.docker.internal:5433/metap
       RABBITMQ_URL: amqp://metap:metap@host.docker.internal:5672
+      JWKS_URL: http://zones-service:3000/.well-known/jwks.json
     ports:
       - "3020:3020"
       - "3021:3021"
@@ -111,11 +126,18 @@ services:
       retries: 10
       start_period: 10s
 
-  # Source lives in ../../metap/crates/graphql-gateway (a `metap` workspace member, package
-  # `metap-graphql-gateway`, bin `graphql-gateway`) — NOT under this repo's own `services/`, so
-  # `working_dir`/the watch path both point into `/workspace/metap` instead, same as this
-  # binary's documented host-side dev loop (`../../metap/CLAUDE.md`'s
-  # `cargo watch -w crates -x 'run -p metap-graphql-gateway'`).
+  # Runs THIS repo's own `waf-graphql-gateway` binary (`./graphql-gateway/src/main.rs`), not
+  # `metap`'s generic `metap-graphql-gateway` — found live, 2026-09-04: this file used to point
+  # `working_dir` at `/workspace/metap` and run the generic binary directly, silently bypassing
+  # the WAF-specific one entirely (built in Phase 73, `docs/roadmap/73-waf-graphql-protocol.md` —
+  # `aggregate`/`verifyZoneDns`/6 more custom fields, all already implemented and verified there).
+  # The generic binary has none of those fields — every custom-field query the frontend sent it
+  # failed with "Unknown field", which is what led to briefly, unnecessarily re-implementing
+  # `aggregate` as a *generic* `RecordBackend` capability in `metap` core instead of just fixing
+  # this one line (that core change stays — it's a real capability, verified, zero regressions —
+  # but it wasn't the fix this container needed). `waf-graphql-gateway` is a thin wrapper around
+  # the same `metap_graphql_gateway::{config, server}` modules (see its own `Cargo.toml`), so
+  # every env var below (`JWKS_URL`/`COOKIE_AUTH_ENABLED`/`UPSTREAM_*`) still applies unchanged.
   #
   # Owns no Postgres/RabbitMQ (pure BFF, see `../../metap/CLAUDE.md`'s own bullet) — no
   # DATABASE_URL/RABBITMQ_URL override needed here, unlike the 3 pillar services above.
@@ -123,18 +145,19 @@ services:
     extends:
       file: ../../docker-compose.dev.base.yml
       service: rust-dev
-    working_dir: /workspace/metap
+    working_dir: /workspace/metap-demo-waf/data-plane/graphql-gateway
     env_file:
       - path: graphql-gateway/.env
         required: false
     environment:
-      # Overrides graphql-gateway/.env's own UPSTREAM_*/AUTH_JWT_PUBLIC_KEY_PATH values, which
-      # are written for the HOST dev loop (`http://localhost:3000`, `../keys/...` relative to
-      # `graphql-gateway/`) — inside this compose project the 3 pillar services are reachable by
-      # their own service DNS name on the shared default network, and `AUTH_JWT_PUBLIC_KEY_PATH`
-      # needs an absolute path since `working_dir` here is `/workspace/metap`, not
-      # `graphql-gateway/`.
-      AUTH_JWT_PUBLIC_KEY_PATH: /workspace/metap-demo-waf/data-plane/keys/dev-jwt-public.pem
+      # Overrides graphql-gateway/.env's own UPSTREAM_*/JWKS_URL values, which are written for
+      # the HOST dev loop (`http://localhost:3000`) — inside this compose project the 3 pillar
+      # services are reachable by their own service DNS name on the shared default network.
+      # `JWKS_URL` set (not `AUTH_JWT_PUBLIC_KEY_PATH`) — this gateway verifies against the same
+      # `metap-jwks` trust root the 3 services mint/verify with (`GatewayConfig::from_env`'s doc
+      # comment: the 2 are mutually exclusive), so it needs no PEM/`./keys` volume at all anymore.
+      JWKS_URL: http://zones-service:3000/.well-known/jwks.json
+      COOKIE_AUTH_ENABLED: "true"
       UPSTREAM_1_GRPC_ADDR: http://zones-service:3001
       UPSTREAM_1_METADATA_URL: http://zones-service:3000/metadata/entities
       UPSTREAM_1_LOGIN_URL: http://zones-service:3000/auth/login
@@ -153,7 +176,7 @@ services:
         condition: service_healthy
       alerting-service:
         condition: service_healthy
-    command: cargo watch -w crates -x 'run -p metap-graphql-gateway'
+    command: cargo watch --watch src --watch ../../../metap/crates -x 'run -p waf-graphql-gateway'
 
   # Vite dev server (hot-reload — NOT the production `nginx`/static-build path `./Dockerfile`
   # uses). `./web/vite.config.ts`'s dev-server proxy targets (ZONES/SCANNING/ALERTING/GATEWAY)

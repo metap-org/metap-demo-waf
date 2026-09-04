@@ -2,17 +2,22 @@
 
 **Dùng để làm gì**: 1 endpoint GraphQL duy nhất cho toàn bộ Customer Portal — gộp CRUD/list của cả
 9 entity từ 3 service backend (`zones-service`/`scanning-service`/`alerting-service`) **cộng thêm
-8 field custom** (verify DNS, test origin, sync config state, run scan job, test alert policy,
-correlate incidents, evaluate alerts, aggregate) cho những action không phải CRUD mà
-`metap-graphql` không tự sinh được từ metadata. Đây là giao thức chuẩn FE→BE của portal
-(2026-09-04, `../metap-docs/docs/frontend-checklist.md` — chuyển hẳn từ REST sang GraphQL, trừ
-`/auth/*`/`/preferences/*` — xem `src/main.rs`'s doc comment cho lý do các field custom phải nằm
-ở binary này chứ không phải ở `metap`).
+7 field custom** (verify DNS, test origin, sync config state, run scan job, test alert policy,
+correlate incidents, evaluate alerts) cho những action không phải CRUD mà `metap-graphql` không tự
+sinh được từ metadata — cộng `Query.aggregate`, giờ **generic ở `metap` core** (Phase 75,
+`RecordBackend::aggregate`), không còn là 1 trong 7 field custom ở file này nữa (xem mục riêng bên
+dưới cho lý do). Đây là giao thức chuẩn FE→BE của portal (2026-09-04, `../metap-docs/docs/
+frontend-checklist.md` — chuyển hẳn từ REST sang GraphQL, trừ `/auth/*`/`/preferences/*` — xem
+`src/main.rs`'s doc comment cho lý do 7 field custom phải nằm ở binary này chứ không phải ở
+`metap`).
 
-**Có code riêng ở đây** (khác bản cũ chỉ có `.env` + chạy thẳng binary generic của `metap`) —
+**Có code riêng ở đây** (khác bản cũ chỉ có `.env` + chạy thẳng binary generic của `metap` —
+**và bug thật gặp phải, 2026-09-04: `docker-compose.dev.yml`/`docker-compose.yml` từng chạy nhầm
+sang chính bản generic đó** dù code binary này đã tồn tại, gây mọi field custom + `aggregate` báo
+"Unknown field" — xem `../../../metap-docs/docs/roadmap/76-waf-portal-live-bugfixes.md`) —
 `src/main.rs` là 1 binary mỏng dựng trên thư viện `metap-graphql-gateway`
 (`../../../metap/crates/graphql-gateway`), gọi `schema_builder::build_with_extensions` để merge
-8 field custom vào schema generic trước khi finish. Chạy:
+7 field custom vào schema generic trước khi finish. Chạy:
 
 ```bash
 cp .env.example .env   # điền UPSTREAM_<N>_SERVICE_EMAIL/SERVICE_PASSWORD — 1 user thật (tạo qua
@@ -22,7 +27,7 @@ cargo run -p waf-graphql-gateway
 
 Mặc định `PORT=4000`. `GET /graphql/playground` (GraphiQL, non-prod) để tự gõ query thử.
 
-## 8 field custom
+## 7 field custom
 
 Mỗi field là 1 proxy mỏng — parse arg, forward bearer token của caller, gọi thẳng REST endpoint
 đã có sẵn (đã test), trả JSON verbatim làm scalar `Json`. Không có business logic nào viết lại ở
@@ -37,32 +42,45 @@ GraphQL layer.
 | `testAlertPolicy(policyId: ID!)` | Mutation | `POST /api/waf.alert_policies/{id}/test` (alerting) |
 | `correlateIncidents(zoneId: String)` | Mutation | `POST /internal/incidents/correlate` (alerting) |
 | `evaluateAlerts` | Mutation | `POST /internal/alerts/evaluate` (alerting) |
-| `aggregate(entity: String!, spec: Json!)` | Query | `POST /api/{entity}/aggregate` — routed tới đúng service theo tên entity |
-
-`aggregate` là Query dù REST là `POST` — về ngữ nghĩa vẫn là read (đúng cách `metap-http` gác nó
-bằng `AuthContext`, cùng cổng với `list`), và nó không đi qua `RecordBackend`/`CompositeBackend`
-như CRUD/list generic — Phase 70 (`../../../metap-docs/docs/roadmap/70-aggregate-api.md`) chưa
-từng thêm `aggregate` vào trait `RecordBackend`/gRPC proto, nên phải proxy REST trực tiếp như 7
-field kia, không đi qua đường gRPC generic.
 
 REST base URL của mỗi upstream được suy ra từ `UPSTREAM_<N>_METADATA_URL` (bỏ hậu tố
 `/metadata/entities`) — không cần thêm biến env riêng, vì thông tin đã có sẵn trong config generic.
 
-## Auth — dùng chung key với 3 service, không phải key riêng
+## `aggregate` — không còn ở đây nữa, giờ generic ở `metap` core (2026-09-04)
 
-`AUTH_JWT_PUBLIC_KEY_PATH` trỏ vào **`../keys/dev-jwt-public.pem`** — đúng key 3 service WAF
-(`zones-service`/`scanning-service`/`alerting-service`) đang share, **không phải** 1 keypair
-riêng cho gateway. **Bug thật tìm được lúc build T6** (`data-plane/web/src/demo/
-ZoneOverviewPage.tsx`, consumer đầu tiên gọi gateway từ browser): bản đầu tự sinh 1 keypair riêng
+`aggregate(entity: String!, spec: Json!): Json` **từng** là field custom thứ 8 ở file này (REST-
+forward proxy y hệt 7 field trên, vì Phase 70 chưa đưa `aggregate` vào trait `RecordBackend`/gRPC
+proto lúc đó). Đã bỏ, thay bằng `RecordBackend::aggregate` generic thật ở `metap` core (Phase 75,
+`../../../metap-docs/docs/roadmap/75-aggregate-generic-record-backend.md`) — `metap-graphql`'s
+`build_schema_parts` tự thêm `Query.aggregate` cho **mọi** schema build qua `build_with_extensions`
+(binary này gọi hàm đó), nên định nghĩa lại ở đây bị `async-graphql` panic "Field `aggregate`
+already exists" lúc boot (tìm ra sống, 2026-09-04, ngay sau khi sửa xong bug chạy nhầm binary ở
+trên). Hành vi phía caller không đổi — vẫn `Query.aggregate(entity, spec): Json`, vẫn trả
+`{"data": [...]}` — chỉ đường đi bên trong đổi từ REST-forward sang gRPC generic (cùng đường
+`list`/`get`/... đã dùng).
+
+## Auth — dùng chung trust root với 3 service, không phải key riêng
+
+**Mặc định giờ là JWKS (Ed25519), không phải file RSA (2026-09-04, Phase 74)** —
+`JWKS_URL=http://zones-service:3000/.well-known/jwks.json` (không phải `AUTH_JWT_PUBLIC_KEY_PATH`,
+2 biến loại trừ lẫn nhau, xem `GatewayConfig::from_env`'s doc comment). Cùng lý do như bản RSA cũ
+dưới đây — gateway phải verify được đúng token 3 service WAF mint ra, dù thuật toán/cơ chế phân
+phối key đã đổi. `AUTH_JWT_PUBLIC_KEY_PATH` (trỏ `../keys/dev-jwt-public.pem`, key RSA 3 service
+share) vẫn còn là fallback nếu chưa set `JWKS_URL`.
+
+**Bug thật tìm được lúc build T6** (`data-plane/web/src/demo/ZoneOverviewPage.tsx`, đã xoá —
+consumer đầu tiên gọi gateway từ browser, trước khi có JWKS): bản đầu tự sinh 1 keypair RSA riêng
 cho gateway — token đăng nhập thật (`/auth/login`, ký bởi key chung của 3 service) không decode
 được ở gateway (`401 invalid or expired token`), vì gateway kiểm theo key khác. Sửa bằng trỏ về
 đúng key chung — giờ 1 token đăng nhập bình thường dùng được cho cả REST lẫn `/graphql`, không
-cần "token gateway" riêng.
+cần "token gateway" riêng. Bài học đó là lý do JWKS cũng theo đúng nguyên tắc "verify đúng trust
+root 3 service dùng", chỉ đổi cơ chế phân phối (fetch qua HTTP, không copy file) chứ không đổi
+nguyên tắc.
 
 Gateway decode-only ở bước NÀY (xác nhận người gọi có token hợp lệ để vào `/graphql` được). Từ
 đó xuống upstream (2026-09-02, xem `metap/crates/graphql-gateway/README.md`'s Auth section cho
-chi tiết đầy đủ, và 8 field custom ở trên forward cùng token đó thẳng tới REST endpoint): vì
-gateway + cả 3 service WAF share đúng 1 keypair (`../keys/dev-jwt-*.pem`), token của caller được
+chi tiết đầy đủ, và 7 field custom ở trên forward cùng token đó thẳng tới REST endpoint): vì
+gateway + cả 3 service WAF share đúng 1 trust root, token của caller được
 **forward nguyên vẹn** xuống upstream — permission check ở upstream chạy theo đúng identity/role
 người gọi thật, không phải 1 service account chung. Khi không có token để forward (lúc gateway tự
 fetch schema lúc boot), gateway tự login bằng service-account riêng

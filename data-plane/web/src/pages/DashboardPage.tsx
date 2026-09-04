@@ -8,7 +8,9 @@
  * page limit (so every count silently became "up to 50"), and it moves a whole security-event
  * table over the wire to display one integer.
  */
+import { useMemo } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { BarChart, Button } from "@metap/ui";
 import {
   ENTITIES,
@@ -44,8 +46,16 @@ const ACTION_COLORS: Record<string, string> = {
 };
 
 export function DashboardPage() {
-  const since24h = daysAgo(1);
-  const since7d = daysAgo(7);
+  const { t } = useTranslation();
+  // Memoized (2026-09-04) — `daysAgo(...)` returns a fresh timestamp (millisecond precision) on
+  // every call, and this value flows into every `useAggregate` call below as part of its
+  // `queryKey` (`useAggregate`'s own `spec` argument). Computed inline, it differed on every
+  // single render, so react-query treated each render as a brand new, never-before-seen query —
+  // permanent cache miss, refetch, re-render, refetch again — a self-sustaining request storm
+  // that hit the gateway's rate limit in practice. `useMemo` with no deps computes it once per
+  // mount instead, same as every other page's `since`/`until` window should be.
+  const since24h = useMemo(() => daysAgo(1), []);
+  const since7d = useMemo(() => daysAgo(7), []);
 
   const zonesByStatus = useAggregate(ENTITIES.zones, { groupBy: "status" });
   const eventsByAction = useAggregate(ENTITIES.securityEvents, {
@@ -86,41 +96,43 @@ export function DashboardPage() {
   return (
     <div>
       <PageHeader
-        title="Security overview"
-        description="Traffic, attacks and open work across every protected zone."
+        title={t("waf.dashboard.title")}
+        description={t("waf.dashboard.description")}
         actions={
           <Button asChild>
-            <Link to="/onboarding">Add zone</Link>
+            <Link to="/onboarding">{t("waf.common.addZone")}</Link>
           </Button>
         }
       />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
         <StatTile
-          label="Active zones"
+          label={t("waf.dashboard.statActiveZones")}
           value={countFor(zonesByStatus.data, "active")}
-          hint={`${total(zonesByStatus.data)} total`}
+          hint={t("waf.dashboard.statActiveZonesHint", {
+            count: total(zonesByStatus.data),
+          })}
           loading={zonesByStatus.isLoading}
         />
         <StatTile
-          label="Events (24h)"
+          label={t("waf.dashboard.statEvents24h")}
           value={total(eventsByAction.data)}
           loading={eventsByAction.isLoading}
         />
         <StatTile
-          label="Blocked (24h)"
+          label={t("waf.dashboard.statBlocked24h")}
           value={blocked24h}
           tone={blocked24h > 0 ? "danger" : "default"}
           loading={eventsByAction.isLoading}
         />
         <StatTile
-          label="Open incidents"
+          label={t("waf.dashboard.statOpenIncidents")}
           value={openIncidents}
           tone={openIncidents > 0 ? "warning" : "success"}
           loading={incidentsByStatus.isLoading}
         />
         <StatTile
-          label="Critical findings"
+          label={t("waf.dashboard.statCriticalFindings")}
           value={countFor(findingsBySeverity.data, "critical")}
           tone={
             countFor(findingsBySeverity.data, "critical") > 0
@@ -134,11 +146,11 @@ export function DashboardPage() {
       <div className="mt-4 grid gap-4 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <SectionCard
-            title="Security events"
-            description="Last 7 days, by day"
+            title={t("waf.dashboard.securityEvents")}
+            description={t("waf.dashboard.last7DaysByDay")}
           >
             <TimeSeries
-              ariaLabel="Security events per day"
+              ariaLabel={t("waf.dashboard.securityEventsPerDayAria")}
               points={(eventsPerDay.data ?? []).map((row) => ({
                 label: dayLabel(row.bucket),
                 value: row.count ?? 0,
@@ -146,15 +158,18 @@ export function DashboardPage() {
             />
           </SectionCard>
         </div>
-        <SectionCard title="By action" description="Last 24 hours">
+        <SectionCard
+          title={t("waf.dashboard.byAction")}
+          description={t("waf.dashboard.last24Hours")}
+        >
           {(eventsByAction.data ?? []).length === 0 ? (
             <EmptyState
-              title="No events yet"
-              description="Nothing has hit the edge in this window."
+              title={t("waf.dashboard.noEventsYet")}
+              description={t("waf.dashboard.noEventsYetDescription")}
             />
           ) : (
             <BarChart
-              ariaLabel="Events by action"
+              ariaLabel={t("waf.dashboard.eventsByActionAria")}
               height={180}
               data={(eventsByAction.data ?? []).map((row) => ({
                 label: row.group ?? "unknown",
@@ -167,9 +182,12 @@ export function DashboardPage() {
       </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
-        <SectionCard title="Most targeted zones" description="Last 7 days">
+        <SectionCard
+          title={t("waf.dashboard.mostTargetedZones")}
+          description={t("waf.dashboard.last7Days")}
+        >
           {(eventsByZone.data ?? []).length === 0 ? (
-            <EmptyState title="Nothing to rank yet" />
+            <EmptyState title={t("waf.dashboard.nothingToRankYet")} />
           ) : (
             <ul className="divide-y text-sm">
               {(eventsByZone.data ?? []).map((row) => (
@@ -190,17 +208,17 @@ export function DashboardPage() {
         </SectionCard>
 
         <SectionCard
-          title="Open incidents"
+          title={t("waf.dashboard.statOpenIncidents")}
           actions={
             <Button variant="outline" size="sm" asChild>
-              <Link to="/incidents">View all</Link>
+              <Link to="/incidents">{t("waf.dashboard.viewAll")}</Link>
             </Button>
           }
         >
           {(recentIncidents.data ?? []).length === 0 ? (
             <EmptyState
-              title="No open incidents"
-              description="Correlation has not raised anything."
+              title={t("waf.dashboard.noOpenIncidents")}
+              description={t("waf.dashboard.noOpenIncidentsDescription")}
             />
           ) : (
             <ul className="divide-y text-sm">

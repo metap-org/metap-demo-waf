@@ -7,8 +7,14 @@
  * context rather than claiming to reconstruct the exact rows that were correlated.
  */
 import { Link, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   Button,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
   Table,
   TableBody,
   TableCell,
@@ -18,6 +24,12 @@ import {
   toast,
 } from "@metap/ui";
 import { useState } from "react";
+import {
+  useEntity,
+  useEntityLabels,
+  WorkflowDiagram,
+  type TransitionAvailability,
+} from "@metap/platform-ui";
 import {
   ENTITIES,
   transitionRecord,
@@ -33,10 +45,20 @@ import {
 } from "../components/primitives";
 import { NEXT_ACTION, type IncidentData } from "./IncidentsPage";
 
+const INCIDENT_ACTION_TOAST_KEY: Record<string, string> = {
+  acknowledge: "waf.incidentDetail.toastAcknowledge",
+  startMitigating: "waf.incidentDetail.toastStartMitigating",
+  resolve: "waf.incidentDetail.toastResolve",
+};
+
 export function IncidentDetailPage() {
+  const { t } = useTranslation();
   const { incidentId } = useParams<{ incidentId: string }>();
   const invalidate = useInvalidateWaf();
-  const [busy, setBusy] = useState(false);
+  // `pendingAction`, not a plain boolean (2026-09-04, see `ZoneDetailPage.tsx`'s own fix for the
+  // full explanation) — names the transition in flight so the "Visualize workflow" dialog below
+  // can highlight the right button.
+  const [pendingAction, setPendingAction] = useState<string | null>(null);
   const incident = useRecord<IncidentData>(ENTITIES.incidents, incidentId);
   const zoneId = incident.data?.data.zoneId;
   const zone = useRecord<{ hostname?: string }>(ENTITIES.zones, zoneId);
@@ -46,19 +68,38 @@ export function IncidentDetailPage() {
     requestPath?: string;
     occurredAt?: string;
   }>(ENTITIES.securityEvents, { zoneId }, 25, Boolean(zoneId));
+  // Both hooks, so both must run before the early returns below — see `ZoneDetailPage.tsx`'s own
+  // identical comment.
+  const entity = useEntity(ENTITIES.incidents);
+  const { transitionLabel } = useEntityLabels(ENTITIES.incidents);
 
   if (incident.isLoading)
-    return <p className="text-sm text-muted-foreground">Loading…</p>;
+    return (
+      <p className="text-sm text-muted-foreground">{t("waf.common.loading")}</p>
+    );
   if (!incident.data)
-    return <p className="text-sm text-muted-foreground">Incident not found.</p>;
+    return (
+      <p className="text-sm text-muted-foreground">
+        {t("waf.incidentDetail.notFound")}
+      </p>
+    );
 
   const record = incident.data;
   const state = record.data.status ?? record.status ?? "";
   const next = NEXT_ACTION[state];
+  const workflow = entity.data?.workflow;
+  const availableTransitions = workflow
+    ? workflow.transitions.filter((t) => t.from === state)
+    : [];
+  // Same "no real per-transition capability data reaches this page" caveat as
+  // `ZoneDetailPage.tsx` — `next` is the only transition this page ever offers, marked available.
+  const transitionInfo = new Map<string, TransitionAvailability>(
+    next ? [[next.action, { action: next.action, available: true }]] : [],
+  );
 
   async function advance() {
     if (!incidentId || !next || !incident.data) return;
-    setBusy(true);
+    setPendingAction(next.action);
     try {
       await transitionRecord(
         ENTITIES.incidents,
@@ -67,13 +108,14 @@ export function IncidentDetailPage() {
         incident.data.version,
       );
       invalidate();
-      toast(`Incident ${next.action}d`, { variant: "default" });
+      const toastKey = INCIDENT_ACTION_TOAST_KEY[next.action];
+      toast(toastKey ? t(toastKey) : next.action, { variant: "default" });
     } catch (e) {
       toast(e instanceof Error ? e.message : String(e), {
         variant: "destructive",
       });
     } finally {
-      setBusy(false);
+      setPendingAction(null);
     }
   }
 
@@ -81,30 +123,62 @@ export function IncidentDetailPage() {
     <div>
       <div className="mb-2 text-sm">
         <Link className="text-muted-foreground hover:underline" to="/incidents">
-          ← Incidents
+          {t("waf.incidentDetail.backToIncidents")}
         </Link>
       </div>
       <PageHeader
-        title={record.data.title ?? "Incident"}
-        description={`Raised ${shortDate(record.createdAt)} · ${record.data.eventCount ?? 0} events correlated`}
+        title={record.data.title ?? t("waf.incidentDetail.defaultTitle")}
+        description={t("waf.incidentDetail.raisedDescription", {
+          date: shortDate(record.createdAt),
+          count: record.data.eventCount ?? 0,
+        })}
         actions={
           <>
             <StatusBadge value={record.data.severity} />
             <StatusBadge value={state} />
             {next ? (
-              <Button size="sm" onClick={advance} disabled={busy}>
-                {next.label}
+              <Button
+                size="sm"
+                onClick={advance}
+                disabled={pendingAction !== null}
+              >
+                {t(`waf.actions.${next.action}`)}
               </Button>
+            ) : null}
+            {workflow ? (
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button size="sm" variant="outline">
+                    {t("workflow.visualize")}
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-3xl">
+                  <DialogHeader>
+                    <DialogTitle>{t("workflow.visualize")}</DialogTitle>
+                  </DialogHeader>
+                  <WorkflowDiagram
+                    workflow={workflow}
+                    currentState={state}
+                    availableTransitions={availableTransitions}
+                    transitionInfo={transitionInfo}
+                    pendingAction={pendingAction}
+                    onTransition={() => void advance()}
+                    transitionLabel={transitionLabel}
+                  />
+                </DialogContent>
+              </Dialog>
             ) : null}
           </>
         }
       />
 
       <div className="grid gap-4">
-        <SectionCard title="Details">
+        <SectionCard title={t("waf.incidentDetail.details")}>
           <dl className="grid gap-3 text-sm sm:grid-cols-3">
             <div>
-              <dt className="text-xs uppercase text-muted-foreground">Zone</dt>
+              <dt className="text-xs uppercase text-muted-foreground">
+                {t("waf.incidentDetail.zone")}
+              </dt>
               <dd className="mt-1">
                 <Link className="hover:underline" to={`/zones/${zoneId}`}>
                   {zone.data?.data.hostname ?? zoneId ?? "—"}
@@ -113,17 +187,19 @@ export function IncidentDetailPage() {
             </div>
             <div>
               <dt className="text-xs uppercase text-muted-foreground">
-                Assigned to
+                {t("waf.incidentDetail.assignedTo")}
               </dt>
               <dd className="mt-1">
                 {record.data.assignedTo || (
-                  <span className="text-muted-foreground">unassigned</span>
+                  <span className="text-muted-foreground">
+                    {t("waf.incidentDetail.unassigned")}
+                  </span>
                 )}
               </dd>
             </div>
             <div>
               <dt className="text-xs uppercase text-muted-foreground">
-                Last update
+                {t("waf.incidentDetail.lastUpdate")}
               </dt>
               <dd className="mt-1 text-muted-foreground">
                 {shortDate(record.updatedAt)}
@@ -133,16 +209,16 @@ export function IncidentDetailPage() {
         </SectionCard>
 
         <SectionCard
-          title="Recent events on this zone"
-          description="Context — not the exact correlated set."
+          title={t("waf.incidentDetail.recentEvents")}
+          description={t("waf.incidentDetail.recentEventsDescription")}
         >
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>When</TableHead>
-                <TableHead>Action</TableHead>
-                <TableHead>Source IP</TableHead>
-                <TableHead>Path</TableHead>
+                <TableHead>{t("waf.incidentDetail.colWhen")}</TableHead>
+                <TableHead>{t("waf.incidentDetail.colAction")}</TableHead>
+                <TableHead>{t("waf.incidentDetail.colSourceIp")}</TableHead>
+                <TableHead>{t("waf.incidentDetail.colPath")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

@@ -8,6 +8,7 @@
  */
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   Button,
   Dialog,
@@ -56,6 +57,7 @@ type FindingData = {
 };
 
 export function ZoneScansTab({ zoneId }: { zoneId: string }) {
+  const { t } = useTranslation();
   const invalidate = useInvalidateWaf();
   const jobs = useRecords<ScanJobData>(ENTITIES.scanJobs, { zoneId }, 50);
   const [open, setOpen] = useState(false);
@@ -85,7 +87,7 @@ export function ZoneScansTab({ zoneId }: { zoneId: string }) {
       await createRecord(ENTITIES.scanJobs, { ...draft, zoneId });
       invalidate();
       setOpen(false);
-      toast("Scan job created", { variant: "default" });
+      toast(t("waf.zoneTabs.scans.toastCreated"), { variant: "default" });
     } catch (e) {
       toast(e instanceof Error ? e.message : String(e), {
         variant: "destructive",
@@ -115,28 +117,30 @@ export function ZoneScansTab({ zoneId }: { zoneId: string }) {
   return (
     <div className="mt-4 grid gap-4">
       <SectionCard
-        title="Scan jobs"
-        description="Scheduled or on-demand vulnerability scans for this zone."
+        title={t("waf.zoneTabs.scans.jobsTitle")}
+        description={t("waf.zoneTabs.scans.jobsDescription")}
         actions={
           <Button size="sm" onClick={() => setOpen(true)}>
-            New scan job
+            {t("waf.zoneTabs.scans.newScanJob")}
           </Button>
         }
       >
         {(jobs.data ?? []).length === 0 ? (
           <EmptyState
-            title="No scan jobs"
-            description="Create one to start checking this zone for vulnerabilities."
+            title={t("waf.zoneTabs.scans.noJobs")}
+            description={t("waf.zoneTabs.scans.noJobsDescription")}
           />
         ) : (
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Type</TableHead>
-                <TableHead>Schedule</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Last run</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>{t("waf.zoneTabs.scans.colType")}</TableHead>
+                <TableHead>{t("waf.zoneTabs.scans.colSchedule")}</TableHead>
+                <TableHead>{t("waf.zoneTabs.scans.colStatus")}</TableHead>
+                <TableHead>{t("waf.zoneTabs.scans.colLastRun")}</TableHead>
+                <TableHead className="text-right">
+                  {t("waf.zoneTabs.scans.colActions")}
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -146,7 +150,7 @@ export function ZoneScansTab({ zoneId }: { zoneId: string }) {
                     {job.data.scanType}
                   </TableCell>
                   <TableCell className="font-mono text-xs">
-                    {job.data.schedule || "manual"}
+                    {job.data.schedule || t("waf.zoneTabs.scans.manual")}
                   </TableCell>
                   <TableCell>
                     <StatusBadge value={job.data.status ?? job.status} />
@@ -161,7 +165,7 @@ export function ZoneScansTab({ zoneId }: { zoneId: string }) {
                       onClick={() => run(job.id)}
                       disabled={busy}
                     >
-                      Run now
+                      {t("waf.zoneTabs.scans.runNow")}
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -172,27 +176,27 @@ export function ZoneScansTab({ zoneId }: { zoneId: string }) {
       </SectionCard>
 
       <SectionCard
-        title="Findings"
-        description="Everything this zone's scans have turned up."
+        title={t("waf.zoneTabs.scans.findingsTitle")}
+        description={t("waf.zoneTabs.scans.findingsDescription")}
         actions={
           <Button size="sm" variant="outline" asChild>
-            <Link to="/findings">All findings</Link>
+            <Link to="/findings">{t("waf.zoneTabs.scans.allFindings")}</Link>
           </Button>
         }
       >
         {zoneFindings.length === 0 ? (
           <EmptyState
-            title="No findings"
-            description="Either nothing has been scanned yet, or nothing was found."
+            title={t("waf.zoneTabs.scans.noFindings")}
+            description={t("waf.zoneTabs.scans.noFindingsDescription")}
           />
         ) : (
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Severity</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Endpoint</TableHead>
-                <TableHead>Remediation</TableHead>
+                <TableHead>{t("waf.zoneTabs.scans.colSeverity")}</TableHead>
+                <TableHead>{t("waf.zoneTabs.scans.colCategory")}</TableHead>
+                <TableHead>{t("waf.zoneTabs.scans.colEndpoint")}</TableHead>
+                <TableHead>{t("waf.zoneTabs.scans.colRemediation")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -220,11 +224,13 @@ export function ZoneScansTab({ zoneId }: { zoneId: string }) {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>New scan job</DialogTitle>
+            <DialogTitle>{t("waf.zoneTabs.scans.newScanJob")}</DialogTitle>
           </DialogHeader>
           <div className="grid gap-3">
             <div>
-              <Label htmlFor="scan-type">Scan type</Label>
+              <Label htmlFor="scan-type">
+                {t("waf.zoneTabs.scans.scanType")}
+              </Label>
               <Select
                 id="scan-type"
                 value={draft.scanType}
@@ -234,14 +240,19 @@ export function ZoneScansTab({ zoneId }: { zoneId: string }) {
                 options={[
                   {
                     value: "passive",
-                    label: "Passive — headers, TLS, exposed files",
+                    label: t("waf.zoneTabs.scans.scanTypePassive"),
                   },
-                  { value: "active", label: "Active — probes endpoints" },
+                  {
+                    value: "active",
+                    label: t("waf.zoneTabs.scans.scanTypeActive"),
+                  },
                 ]}
               />
             </div>
             <div>
-              <Label htmlFor="scan-schedule">Schedule (cron)</Label>
+              <Label htmlFor="scan-schedule">
+                {t("waf.zoneTabs.scans.schedule")}
+              </Label>
               <Input
                 id="scan-schedule"
                 className="font-mono"
@@ -251,17 +262,16 @@ export function ZoneScansTab({ zoneId }: { zoneId: string }) {
                 }
               />
               <p className="mt-1 text-xs text-muted-foreground">
-                Leave empty for a manual-only job. Cron expressions are
-                evaluated by `metap-cron`.
+                {t("waf.zoneTabs.scans.scheduleHint")}
               </p>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>
-              Cancel
+              {t("waf.common.cancel")}
             </Button>
             <Button onClick={createJob} disabled={busy}>
-              Create
+              {t("waf.common.create")}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -9,6 +9,7 @@
  * tenant-writable, since anything else comes back as a rejection by design.
  */
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { apiFetch, useAuth } from "@metap/platform-ui";
 import {
@@ -33,6 +34,7 @@ type ConfigItem = {
 };
 
 export function SettingsPage() {
+  const { t } = useTranslation();
   const { status } = useAuth();
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
@@ -64,7 +66,9 @@ export function SettingsPage() {
         delete next[item.key];
         return next;
       });
-      toast(`${item.key} saved`, { variant: "default" });
+      toast(t("waf.settings.toastSaved", { key: item.key }), {
+        variant: "default",
+      });
     } catch (e) {
       toast(e instanceof Error ? e.message : String(e), {
         variant: "destructive",
@@ -81,7 +85,7 @@ export function SettingsPage() {
         method: "DELETE",
       });
       await config.refetch();
-      toast(`${item.key} reset to the platform default`, {
+      toast(t("waf.settings.toastReset", { key: item.key }), {
         variant: "default",
       });
     } catch (e) {
@@ -112,7 +116,7 @@ export function SettingsPage() {
               <StatusBadge value={item.level} />
               {item.public ? (
                 <span className="text-[10px] text-muted-foreground">
-                  public
+                  {t("waf.settings.public")}
                 </span>
               ) : null}
             </div>
@@ -125,14 +129,18 @@ export function SettingsPage() {
               }
             />
           </TableCell>
-          <TableCell>{item.overridden ? "tenant" : "inherited"}</TableCell>
+          <TableCell>
+            {item.overridden
+              ? t("waf.settings.sourceTenant")
+              : t("waf.settings.sourceInherited")}
+          </TableCell>
           <TableCell className="text-right">
             <Button
               size="sm"
               onClick={() => save(item)}
               disabled={busy || drafts[item.key] === undefined}
             >
-              Save
+              {t("waf.common.save")}
             </Button>
             {item.overridden ? (
               <Button
@@ -142,7 +150,7 @@ export function SettingsPage() {
                 onClick={() => reset(item)}
                 disabled={busy}
               >
-                Reset
+                {t("waf.settings.reset")}
               </Button>
             ) : null}
           </TableCell>
@@ -154,22 +162,24 @@ export function SettingsPage() {
   return (
     <div>
       <PageHeader
-        title="Tenant settings"
-        description="Branding and platform behaviour for this tenant."
+        title={t("waf.settings.title")}
+        description={t("waf.settings.description")}
       />
 
       <div className="grid gap-4">
         <SectionCard
-          title="Branding"
-          description="Shown on the sign-in screen before anyone has a session — served by the public config endpoint."
+          title={t("waf.settings.brandingTitle")}
+          description={t("waf.settings.brandingDescription")}
         >
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Key</TableHead>
-                <TableHead>Value</TableHead>
-                <TableHead>Source</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>{t("waf.settings.colKey")}</TableHead>
+                <TableHead>{t("waf.settings.colValue")}</TableHead>
+                <TableHead>{t("waf.settings.colSource")}</TableHead>
+                <TableHead className="text-right">
+                  {t("waf.settings.colActions")}
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>{renderRows(branding)}</TableBody>
@@ -177,16 +187,18 @@ export function SettingsPage() {
         </SectionCard>
 
         <SectionCard
-          title="Platform"
-          description="Operator-tier keys are listed for visibility but are refused by every API on purpose."
+          title={t("waf.settings.platformTitle")}
+          description={t("waf.settings.platformDescription")}
         >
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Key</TableHead>
-                <TableHead>Value</TableHead>
-                <TableHead>Source</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>{t("waf.settings.colKey")}</TableHead>
+                <TableHead>{t("waf.settings.colValue")}</TableHead>
+                <TableHead>{t("waf.settings.colSource")}</TableHead>
+                <TableHead className="text-right">
+                  {t("waf.settings.colActions")}
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>{renderRows(rest)}</TableBody>

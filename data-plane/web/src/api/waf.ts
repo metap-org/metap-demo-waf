@@ -305,18 +305,15 @@ export function daysAgo(days: number): string {
 
 /* ------------------------------------------------------------------ custom endpoints */
 
-type TokenResponse = { data: { token: string } };
-
 /** Imperative GraphQL call (`createRecord`/the 7 custom actions below are plain async functions,
- *  not hooks, so they can't use `useGraphQLQuery`) — fetches a fresh short-lived Bearer token the
- *  same way that hook does (`GET /auth/token`, cookie-authenticated) immediately before each call,
- *  see `graphqlFetch`'s own doc comment for why the gateway still needs one explicitly. */
+ *  not hooks, so they can't use `useGraphQLQuery`) — rides the existing session cookie
+ *  (`graphqlFetch` with no `token`), same as that hook, no `GET /auth/token` round trip first
+ *  (removed 2026-09-04). */
 async function graphqlAuthed<T>(
   query: string,
   variables?: Record<string, unknown>,
 ): Promise<T> {
-  const { data } = await apiFetch<TokenResponse>("/auth/token");
-  return graphqlFetch<T>(GRAPHQL_PATH, data.token, query, variables);
+  return graphqlFetch<T>(GRAPHQL_PATH, query, variables);
 }
 
 export type DnsVerifyResult = {

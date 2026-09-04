@@ -1,13 +1,12 @@
 //! WAF's own GraphQL BFF — a thin wrapper around `metap`'s generic `metap-graphql-gateway`
 //! library (same boot sequence, same 3 upstreams: zones-service/scanning-service/
 //! alerting-service, see `../graphql-gateway/README.md` for the env config) that additionally
-//! exposes the 7 custom, non-CRUD REST endpoints and the `aggregate` read every service has
-//! (`docs/roadmap/70-aggregate-api.md`) as GraphQL fields, so the Customer Portal frontend
-//! (`data-plane/web`) can reach 100% of its data needs through one GraphQL endpoint instead of a
-//! REST/GraphQL split.
+//! exposes the 7 custom, non-CRUD REST endpoints as GraphQL mutations, so the Customer Portal
+//! frontend (`data-plane/web`) can reach them through the same GraphQL endpoint as everything
+//! else instead of a REST/GraphQL split.
 //!
 //! **This binary, not `metap`'s generic gateway, is where this logic has to live.** None of these
-//! 8 fields are `EntityDefinition` CRUD operations `metap-graphql`'s schema builder can synthesize
+//! 7 fields are `EntityDefinition` CRUD operations `metap-graphql`'s schema builder can synthesize
 //! from metadata — they're real WAF business actions (DNS verification, scan dispatch, incident
 //! correlation, ...) — and `metap-graphql`/`graphql-gateway` must stay entity-agnostic, the same
 //! "no `metap-*` library crate gets business-entity knowledge" rule that keeps every REST route
@@ -18,6 +17,16 @@
 //! see `metap`'s `graphql-gateway/src/server.rs` doc comment) to the exact REST endpoint that
 //! already implements the real logic, and hand back its JSON response verbatim as the schema's
 //! `Json` scalar. No business logic is duplicated here.
+//!
+//! **`aggregate` used to be an 8th field here too (a REST-forwarding proxy, same shape as the 7
+//! below) — moved out 2026-09-04.** It's the one read among these 8 that genuinely *is* generic
+//! over any entity, not WAF-specific business logic, so it was promoted to a real
+//! `RecordBackend::aggregate` capability in `metap` core instead (`metap-crud`/`metap-grpc`/
+//! `metap-graphql`, wired through the ordinary gRPC path every other generic field already uses)
+//! — `metap-graphql::build_schema_parts` now registers `Query.aggregate` itself, so defining it
+//! again here collided (`async-graphql` panics on a duplicate field name, found live booting this
+//! binary against the updated core). The REST endpoint (`POST /api/{entity}/aggregate`) and this
+//! binary's own custom fields below are unaffected.
 
 use metap_graphql::{
     Field, FieldFuture, FieldValue, GqlError, GqlValue, InputValue, Object, ResolverContext,
@@ -47,27 +56,6 @@ fn rest_base_url<'a>(upstreams: &'a [UpstreamConfig], name: &str) -> &'a str {
                 upstream.metadata_url
             )
         })
-}
-
-/// Which upstream owns a given `waf.*` entity, for the `aggregate` resolver's routing — hardcoded
-/// rather than discovered at runtime (this binary already carries full WAF business knowledge by
-/// design, see the module doc comment; the 9 entities across 3 services don't change without a
-/// code change to the owning service anyway).
-fn rest_base_for_entity<'a>(
-    entity: &str,
-    zones: &'a str,
-    scanning: &'a str,
-    alerting: &'a str,
-) -> Result<&'a str, GqlError> {
-    match entity {
-        "waf.zones" | "waf.ddos_policies" | "waf.firewall_rules" => Ok(zones),
-        "waf.scan_jobs" | "waf.scan_findings" => Ok(scanning),
-        "waf.alert_policies"
-        | "waf.alert_notifications"
-        | "waf.incidents"
-        | "waf.security_events" => Ok(alerting),
-        other => Err(GqlError::new(format!("unknown entity '{other}'"))),
-    }
 }
 
 /// Forwards the caller's own bearer token to a `POST` REST endpoint and returns its JSON body
@@ -114,12 +102,15 @@ fn id_arg(ctx: &ResolverContext<'_>, name: &str) -> Result<String, GqlError> {
     Ok(ctx.args.try_get(name)?.string()?.to_string())
 }
 
-/// Adds the 7 custom action mutations + the `aggregate` query — see the module doc comment for
-/// why these live here rather than in `metap-graphql`/`graphql-gateway`. Takes only the 3 derived
-/// REST base URLs (owned `String`s, cheap to clone per closure), not the upstream config list
-/// itself — `UpstreamConfig` carries login credentials and deliberately isn't `Clone`.
+/// Adds the 7 custom action mutations — see the module doc comment for why these live here
+/// rather than in `metap-graphql`/`graphql-gateway` (and for why `aggregate` isn't among them
+/// anymore). Takes only the 3 derived REST base URLs (owned `String`s, cheap to clone per
+/// closure), not the upstream config list itself — `UpstreamConfig` carries login credentials
+/// and deliberately isn't `Clone`. `query` is threaded through unchanged — `build_with_extensions`
+/// hands back both `Query`/`Mutation` objects regardless of whether a caller's own extension
+/// touches one of them, see that function's doc comment.
 fn add_custom_fields(
-    mut query: Object,
+    query: Object,
     mut mutation: Object,
     zones: String,
     scanning: String,
@@ -258,38 +249,6 @@ fn add_custom_fields(
             },
         ));
     }
-
-    // `aggregate` is semantically a read (same reasoning `metap-http` mounts `POST
-    // /api/{entity}/aggregate` under `AuthContext`, the same read gate as `list` — see
-    // `docs/roadmap/70-aggregate-api.md`) despite being a `POST` at the REST layer, so it's a
-    // Query field here, not a Mutation.
-    query = query.field(
-        Field::new("aggregate", TypeRef::named(JSON_SCALAR), move |ctx| {
-            let zones = zones.clone();
-            let scanning = scanning.clone();
-            let alerting = alerting.clone();
-            FieldFuture::new(async move {
-                let entity = id_arg(&ctx, "entity")?;
-                let base = rest_base_for_entity(&entity, &zones, &scanning, &alerting)?.to_string();
-                let spec = ctx
-                    .args
-                    .try_get("spec")?
-                    .as_value()
-                    .clone()
-                    .into_json()
-                    .map_err(|e| GqlError::new(e.to_string()))?;
-                let url = format!("{base}/api/{entity}/aggregate");
-                Ok(Some(FieldValue::value(
-                    forward_post(&ctx, url, spec).await?,
-                )))
-            })
-        })
-        .argument(InputValue::new(
-            "entity",
-            TypeRef::named_nn(TypeRef::STRING),
-        ))
-        .argument(InputValue::new("spec", TypeRef::named_nn(JSON_SCALAR))),
-    );
 
     (query, mutation)
 }

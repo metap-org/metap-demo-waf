@@ -83,21 +83,32 @@ function forwardTo(target: string) {
  *  source) has no single owning service anymore; forwarding to just one would silently drop 6
  *  of 9 entities from the nav. Fan out to all 3 and merge `{ data: [...] }` — the only endpoint
  *  whose correct answer spans more than one service, everything else is a plain per-entity
- *  route. */
+ *  route.
+ *
+ *  Forwards `cookie` alongside `authorization` (2026-09-04, found live — `useEntities()` returned
+ *  an empty list for every real caller once `@metap/platform-ui` moved to cookie sessions,
+ *  2026-09-03: this only ever forwarded `authorization`, which no browser caller sends anymore,
+ *  so all 3 upstream fetches landed unauthenticated, got back a `401` JSON error body with no
+ *  `data` field, and silently merged into `{ data: [] }` — no error surfaced anywhere).
+ *  `forwardTo` below (every other proxied route) never had this gap since it copies the whole
+ *  incoming header set rather than selecting one field. No `X-CSRF-Token` forward needed here —
+ *  a plain `GET` is exempt from the double-submit check REST/GraphQL both apply to
+ *  state-changing requests (`metap_runtime::cookie_auth::requires_csrf_check`). */
 async function mergeEntityList(
   req: IncomingMessage,
   res: ServerResponse,
   next: (err?: unknown) => void,
 ) {
   try {
+    const headers: Record<string, string> = {};
+    if (req.headers.authorization) headers.authorization = req.headers.authorization;
+    if (req.headers.cookie) headers.cookie = req.headers.cookie;
     const responses = await Promise.all(
       [ZONES, SCANNING, ALERTING].map(
         (base) =>
-          fetch(`${base}/metadata/entities`, {
-            headers: req.headers.authorization
-              ? { authorization: req.headers.authorization }
-              : undefined,
-          }).then((r) => r.json()) as Promise<{ data?: unknown[] }>,
+          fetch(`${base}/metadata/entities`, { headers }).then((r) => r.json()) as Promise<{
+            data?: unknown[];
+          }>,
       ),
     );
     res.setHeader("Content-Type", "application/json");

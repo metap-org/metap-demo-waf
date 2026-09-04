@@ -35,7 +35,13 @@ thật, tái dùng nguyên trạng `metap/crates/graphql-gateway` (không code m
 `updated_by` của user thật gọi, và bị 403 đúng khi user không có quyền) — token của caller được
 forward nguyên vẹn xuống upstream khi hợp lệ (`RequestContext::forwarded_bearer_token`), enforce
 đúng permission/audit trail của người gọi thật, không phải danh nghĩa service account; điều này
-chạy được vì gateway + cả 3 service hiện dùng chung 1 keypair dev. Khi không có token forward (vd
+chạy được vì gateway verify qua cùng 1 trust root với 3 service (2026-09-04: chuyển từ share 1
+file RSA private key sang `metap-jwks` — Ed25519, `zones-service` publish `/.well-known/
+jwks.json`, mọi nơi (kể cả `zones-service` tự nó) verify qua `JWKS_URL`; gateway giờ chỉ cần
+`JWKS_URL`, không cần giữ bản PEM riêng nữa. Cả 3 service vẫn cùng giữ 1 private key để mint —
+chưa chuyển sang mô hình 1-issuer-duy-nhất, đó là bước tiếp theo nếu cần giảm blast radius thật
+sự; xem `../CLAUDE.md`'s mục JWKS/rotation cho chi tiết. RSA vẫn còn làm fallback nếu
+`JWKS_PRIVATE_KEY_PATH`/`JWKS_KID_PATH` chưa được set). Khi không có token forward (vd
 lúc gateway tự fetch schema lúc boot), gateway tự login bằng service-account riêng
 (`UPSTREAM_<N>_SERVICE_EMAIL`/`SERVICE_PASSWORD`, xem `graphql-gateway/README.md`'s Auth section) —
 không còn JWT tĩnh mint tay phải refresh thủ công nữa.
@@ -129,7 +135,8 @@ admin, `Plan`/`Subscription`
 ```bash
 # 1 lần cho cả 3 service — Postgres/RabbitMQ dùng chung với ../metap (docker compose up -d
 # postgres rabbitmq ở đó nếu chưa chạy). Key JWT dùng chung, đặt ở data-plane/keys/.
-cargo run --manifest-path ../../metap/crates/dev-tools/Cargo.toml -- gen-keys keys
+cargo run --manifest-path ../../metap/crates/dev-tools/Cargo.toml -- gen-keys keys           # RSA fallback
+cargo run --manifest-path ../../metap/crates/dev-tools/Cargo.toml -- gen-jwks-key keys       # EdDSA trust root (mặc định dùng cái này, xem README's auth section)
 cargo run --manifest-path ../../metap/crates/dev-tools/Cargo.toml -- provision-tenant <tenantId> schema <email> <password>
 cargo run --manifest-path ../../metap/crates/dev-tools/Cargo.toml -- mint-token <tenantId> <userId>
 

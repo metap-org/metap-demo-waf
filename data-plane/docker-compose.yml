@@ -44,6 +44,14 @@ services:
       CORS_ORIGINS: http://localhost:5173,http://localhost:3000
       AUTH_JWT_PUBLIC_KEY_PATH: /app/keys/dev-jwt-public.pem
       AUTH_JWT_PRIVATE_KEY_PATH: /app/keys/dev-jwt-private.pem
+      JWKS_PRIVATE_KEY_PATH: /app/keys/dev-jwks-private.der
+      JWKS_KID_PATH: /app/keys/dev-jwks-kid.txt
+      JWKS_URL: http://zones-service:3000/.well-known/jwks.json
+      # `routes.rs`'s `zone_delete_guard` cross-service reference check — see
+      # `docker-compose.dev.yml`'s identical fix for the full explanation. Only `zones-service`
+      # needs these (it's the only one with a cross-service delete guard).
+      SCANNING_URL: http://scanning-service:3010
+      ALERTING_URL: http://alerting-service:3020
       GRPC_ENABLED: "true"
     volumes:
       - ./keys:/app/keys:ro
@@ -69,6 +77,9 @@ services:
       CORS_ORIGINS: http://localhost:5173,http://localhost:3000
       AUTH_JWT_PUBLIC_KEY_PATH: /app/keys/dev-jwt-public.pem
       AUTH_JWT_PRIVATE_KEY_PATH: /app/keys/dev-jwt-private.pem
+      JWKS_PRIVATE_KEY_PATH: /app/keys/dev-jwks-private.der
+      JWKS_KID_PATH: /app/keys/dev-jwks-kid.txt
+      JWKS_URL: http://zones-service:3000/.well-known/jwks.json
       GRPC_ENABLED: "true"
     volumes:
       - ./keys:/app/keys:ro
@@ -94,6 +105,9 @@ services:
       CORS_ORIGINS: http://localhost:5173,http://localhost:3000
       AUTH_JWT_PUBLIC_KEY_PATH: /app/keys/dev-jwt-public.pem
       AUTH_JWT_PRIVATE_KEY_PATH: /app/keys/dev-jwt-private.pem
+      JWKS_PRIVATE_KEY_PATH: /app/keys/dev-jwks-private.der
+      JWKS_KID_PATH: /app/keys/dev-jwks-kid.txt
+      JWKS_URL: http://zones-service:3000/.well-known/jwks.json
       GRPC_ENABLED: "true"
     volumes:
       - ./keys:/app/keys:ro
@@ -113,12 +127,22 @@ services:
   # plain `depends_on` (which only waits for container start).
   graphql-gateway:
     build:
-      context: ../../metap
-      dockerfile: crates/graphql-gateway/Dockerfile
+      # Root context + this repo's own Dockerfile — builds `waf-graphql-gateway` (the 7 custom
+      # mutations + `aggregate` proxy this app needs), NOT `metap/crates/graphql-gateway`'s
+      # generic binary. Found live, 2026-09-04: this used to build the generic one (context
+      # `../../metap`, `crates/graphql-gateway/Dockerfile`), silently missing every custom field
+      # the frontend actually calls — `docker-compose.dev.yml` had the identical mix-up, see that
+      # file's own comment for the full story.
+      context: ../../
+      dockerfile: metap-demo-waf/data-plane/graphql-gateway/Dockerfile
     ports:
       - "4000:4000"
     environment:
-      AUTH_JWT_PUBLIC_KEY_PATH: /app/keys/dev-jwt-public.pem
+      # JWKS (not AUTH_JWT_PUBLIC_KEY_PATH) — verifies against the 3 services' shared trust root,
+      # published by zones-service (GatewayConfig::from_env's doc comment: the 2 are mutually
+      # exclusive). No private key file needed here at all (verify-only).
+      JWKS_URL: http://zones-service:3000/.well-known/jwks.json
+      COOKIE_AUTH_ENABLED: "true"
       CORS_ORIGINS: http://localhost:5173,http://localhost:3000
 
       UPSTREAM_1_NAME: zones

@@ -8,6 +8,7 @@
  * a mock succeeded.
  */
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Button,
   Dialog,
@@ -69,6 +70,7 @@ const EMPTY: PolicyData = {
 };
 
 export function AlertingPage() {
+  const { t } = useTranslation();
   const invalidate = useInvalidateWaf();
   const policies = useRecords<PolicyData>(ENTITIES.alertPolicies, {}, 50);
   const notifications = useRecords<NotificationData>(
@@ -105,7 +107,7 @@ export function AlertingPage() {
       try {
         channels = JSON.parse(channelsText);
       } catch {
-        toast("Channels is not valid JSON", { variant: "destructive" });
+        toast(t("waf.alerting.toastInvalidJson"), { variant: "destructive" });
         return;
       }
       const payload = { ...draft, channels };
@@ -121,7 +123,7 @@ export function AlertingPage() {
       }
       invalidate();
       setOpen(false);
-      toast("Alert policy saved", { variant: "default" });
+      toast(t("waf.alerting.toastSaved"), { variant: "default" });
     } catch (e) {
       toast(e instanceof Error ? e.message : String(e), {
         variant: "destructive",
@@ -137,9 +139,14 @@ export function AlertingPage() {
       const result = await testAlertPolicy(policy.id);
       invalidate();
       toast(
-        result.data.delivered
-          ? `Delivered — ${result.data.detail}`
-          : `Not delivered — ${result.data.detail}`,
+        t(
+          result.data.delivered
+            ? "waf.alerting.toastDelivered"
+            : "waf.alerting.toastNotDelivered",
+          {
+            detail: result.data.detail,
+          },
+        ),
         {
           variant: result.data.delivered ? "default" : "destructive",
         },
@@ -159,7 +166,10 @@ export function AlertingPage() {
       const result = await evaluateAlerts();
       invalidate();
       toast(
-        `Evaluated ${result.data.policiesEvaluated} policies · ${result.data.fired.length} fired`,
+        t("waf.alerting.toastEvaluated", {
+          policies: result.data.policiesEvaluated,
+          fired: result.data.fired.length,
+        }),
         {
           variant: "default",
         },
@@ -179,37 +189,39 @@ export function AlertingPage() {
   return (
     <div>
       <PageHeader
-        title="Alerting"
-        description="When traffic on a zone crosses a threshold, tell someone."
+        title={t("waf.alerting.title")}
+        description={t("waf.alerting.description")}
         actions={
           <>
             <Button variant="outline" onClick={evaluateNow} disabled={busy}>
-              Evaluate now
+              {t("waf.alerting.evaluateNow")}
             </Button>
-            <Button onClick={startCreate}>New policy</Button>
+            <Button onClick={startCreate}>{t("waf.alerting.newPolicy")}</Button>
           </>
         }
       />
 
       <div className="grid gap-4">
         <SectionCard
-          title="Alert policies"
-          description="Counted per zone — never summed across zones."
+          title={t("waf.alerting.policiesTitle")}
+          description={t("waf.alerting.policiesDescription")}
         >
           {(policies.data ?? []).length === 0 ? (
             <EmptyState
-              title="No alert policies"
-              description="Create one to get told when a zone is under attack."
+              title={t("waf.alerting.noPolicies")}
+              description={t("waf.alerting.noPoliciesDescription")}
             />
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Rule</TableHead>
-                  <TableHead>Channel</TableHead>
-                  <TableHead>Enabled</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>{t("waf.alerting.colName")}</TableHead>
+                  <TableHead>{t("waf.alerting.colRule")}</TableHead>
+                  <TableHead>{t("waf.alerting.colChannel")}</TableHead>
+                  <TableHead>{t("waf.alerting.colEnabled")}</TableHead>
+                  <TableHead className="text-right">
+                    {t("waf.alerting.colActions")}
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -219,14 +231,20 @@ export function AlertingPage() {
                       {policy.data.name}
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
-                      ≥ {policy.data.thresholdCount} events in{" "}
-                      {policy.data.windowMinutes}m
+                      {t("waf.alerting.ruleHint", {
+                        threshold: policy.data.thresholdCount,
+                        window: policy.data.windowMinutes,
+                      })}
                     </TableCell>
                     <TableCell className="font-mono text-xs">
                       {Object.keys(policy.data.channels ?? {}).join(", ") ||
                         "—"}
                     </TableCell>
-                    <TableCell>{policy.data.enabled ? "yes" : "no"}</TableCell>
+                    <TableCell>
+                      {policy.data.enabled
+                        ? t("waf.common.yes")
+                        : t("waf.common.no")}
+                    </TableCell>
                     <TableCell className="text-right">
                       <Button
                         size="sm"
@@ -234,7 +252,7 @@ export function AlertingPage() {
                         onClick={() => sendTest(policy)}
                         disabled={busy}
                       >
-                        Send test
+                        {t("waf.alerting.sendTest")}
                       </Button>
                       <Button
                         size="sm"
@@ -242,7 +260,7 @@ export function AlertingPage() {
                         className="ml-1"
                         onClick={() => startEdit(policy)}
                       >
-                        Edit
+                        {t("waf.common.edit")}
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -253,19 +271,19 @@ export function AlertingPage() {
         </SectionCard>
 
         <SectionCard
-          title="Delivery log"
-          description="Every firing, sent or failed."
+          title={t("waf.alerting.logTitle")}
+          description={t("waf.alerting.logDescription")}
         >
           {(notifications.data ?? []).length === 0 ? (
-            <EmptyState title="Nothing delivered yet" />
+            <EmptyState title={t("waf.alerting.noDeliveries")} />
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>When</TableHead>
-                  <TableHead>Policy</TableHead>
-                  <TableHead>Channel</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>{t("waf.alerting.colWhen")}</TableHead>
+                  <TableHead>{t("waf.alerting.colPolicy")}</TableHead>
+                  <TableHead>{t("waf.alerting.colChannel")}</TableHead>
+                  <TableHead>{t("waf.alerting.colStatus")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -295,12 +313,14 @@ export function AlertingPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {editing ? "Edit alert policy" : "New alert policy"}
+              {editing
+                ? t("waf.alerting.editPolicy")
+                : t("waf.alerting.newPolicyTitle")}
             </DialogTitle>
           </DialogHeader>
           <div className="grid gap-3">
             <div>
-              <Label htmlFor="policy-name">Name</Label>
+              <Label htmlFor="policy-name">{t("waf.alerting.name")}</Label>
               <Input
                 id="policy-name"
                 value={draft.name ?? ""}
@@ -309,7 +329,9 @@ export function AlertingPage() {
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
-                <Label htmlFor="policy-threshold">Threshold (events)</Label>
+                <Label htmlFor="policy-threshold">
+                  {t("waf.alerting.threshold")}
+                </Label>
                 <Input
                   id="policy-threshold"
                   type="number"
@@ -323,7 +345,9 @@ export function AlertingPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="policy-window">Window (minutes)</Label>
+                <Label htmlFor="policy-window">
+                  {t("waf.alerting.window")}
+                </Label>
                 <Input
                   id="policy-window"
                   type="number"
@@ -338,7 +362,9 @@ export function AlertingPage() {
               </div>
             </div>
             <div>
-              <Label htmlFor="policy-channels">Channels</Label>
+              <Label htmlFor="policy-channels">
+                {t("waf.alerting.channels")}
+              </Label>
               <Textarea
                 id="policy-channels"
                 rows={4}
@@ -347,8 +373,7 @@ export function AlertingPage() {
                 onChange={(e) => setChannelsText(e.target.value)}
               />
               <p className="mt-1 text-xs text-muted-foreground">
-                {'{"webhook": "https://…"}'} posts the alert. {'{"email": "…"}'}{" "}
-                is logged only — there is no mail transport in this product yet.
+                {t("waf.alerting.channelsHint")}
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -359,15 +384,17 @@ export function AlertingPage() {
                   setDraft({ ...draft, enabled: checked })
                 }
               />
-              <Label htmlFor="policy-enabled">Enabled</Label>
+              <Label htmlFor="policy-enabled">
+                {t("waf.alerting.enabled")}
+              </Label>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>
-              Cancel
+              {t("waf.common.cancel")}
             </Button>
             <Button onClick={save} disabled={busy}>
-              Save
+              {t("waf.common.save")}
             </Button>
           </DialogFooter>
         </DialogContent>

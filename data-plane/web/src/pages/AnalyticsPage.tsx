@@ -7,7 +7,8 @@
  * volume table in the product. Doing it by listing rows was never going to be correct, let alone
  * fast.
  */
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   BarChart,
   Button,
@@ -33,24 +34,40 @@ import {
 // `DEFAULT_WINDOW` named separately (rather than `WINDOWS[1]`) so the fallback below has a type
 // TypeScript can see is never `undefined` — `noUncheckedIndexedAccess` makes any indexed access
 // into `WINDOWS` come back as possibly-`undefined`, even for a fixed-length literal array.
+// `labelKey` rather than a literal label — this map is module-level (outside any component, so it
+// can't call `useTranslation` itself), resolved to text via `t(w.labelKey)` at each render site.
 const DEFAULT_WINDOW = {
   value: "7",
-  label: "Last 7 days",
+  labelKey: "waf.analytics.windowLast7d",
   bucket: "day" as const,
 };
 const WINDOWS = [
-  { value: "1", label: "Last 24 hours", bucket: "hour" as const },
+  {
+    value: "1",
+    labelKey: "waf.analytics.windowLast24h",
+    bucket: "hour" as const,
+  },
   DEFAULT_WINDOW,
-  { value: "30", label: "Last 30 days", bucket: "day" as const },
+  {
+    value: "30",
+    labelKey: "waf.analytics.windowLast30d",
+    bucket: "day" as const,
+  },
 ];
 
 export function AnalyticsPage() {
+  const { t } = useTranslation();
   const [windowDays, setWindowDays] = useState("7");
   const [zoneId, setZoneId] = useState("");
 
   const selected =
     WINDOWS.find((w) => w.value === windowDays) ?? DEFAULT_WINDOW;
-  const since = daysAgo(Number(windowDays));
+  // Memoized on `windowDays` (2026-09-04, see `DashboardPage.tsx`'s own fix for the full
+  // explanation) — `daysAgo(...)` returns a fresh millisecond-precision timestamp on every call,
+  // and this value flows into every `useAggregate` below as part of its `queryKey`; computed
+  // inline it differed on every render, permanently cache-missing and re-triggering a refetch
+  // that itself caused the next render — a self-sustaining request storm.
+  const since = useMemo(() => daysAgo(Number(windowDays)), [windowDays]);
   const filters = zoneId ? { zoneId } : {};
 
   const zones = useRecords<{ hostname?: string }>(ENTITIES.zones, {}, 100);
@@ -96,15 +113,15 @@ export function AnalyticsPage() {
   return (
     <div>
       <PageHeader
-        title="Analytics"
-        description="Traffic and attack shape across the window you choose."
+        title={t("waf.analytics.title")}
+        description={t("waf.analytics.description")}
         actions={
           <>
             <Select
               value={zoneId}
               onChange={(value) => setZoneId(String(value))}
               options={[
-                { value: "", label: "All zones" },
+                { value: "", label: t("waf.analytics.allZones") },
                 ...(zones.data ?? []).map((zone) => ({
                   value: zone.id,
                   label: zone.data.hostname ?? zone.id,
@@ -119,7 +136,7 @@ export function AnalyticsPage() {
                   variant={windowDays === w.value ? "default" : "outline"}
                   onClick={() => setWindowDays(w.value)}
                 >
-                  {w.label}
+                  {t(w.labelKey)}
                 </Button>
               ))}
             </div>
@@ -129,28 +146,34 @@ export function AnalyticsPage() {
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatTile
-          label="Events"
+          label={t("waf.analytics.statEvents")}
           value={totalEvents}
           loading={byAction.isLoading}
         />
         <StatTile
-          label="Blocked"
+          label={t("waf.analytics.statBlocked")}
           value={blocked}
           tone={blocked > 0 ? "danger" : "default"}
         />
-        <StatTile label="Block rate" value={`${blockRate}%`} />
         <StatTile
-          label="Distinct sources (top 10 shown)"
+          label={t("waf.analytics.statBlockRate")}
+          value={`${blockRate}%`}
+        />
+        <StatTile
+          label={t("waf.analytics.statDistinctSources")}
           value={(topSources.data ?? []).length}
           loading={topSources.isLoading}
         />
       </div>
 
       <div className="mt-4 grid gap-4">
-        <SectionCard title="Events over time" description={selected.label}>
+        <SectionCard
+          title={t("waf.analytics.eventsOverTime")}
+          description={t(selected.labelKey)}
+        >
           <TimeSeries
             height={220}
-            ariaLabel="Events over time"
+            ariaLabel={t("waf.analytics.eventsOverTimeAria")}
             points={(overTime.data ?? []).map((row) => ({
               label:
                 selected.bucket === "hour"
@@ -162,10 +185,10 @@ export function AnalyticsPage() {
         </SectionCard>
 
         <div className="grid gap-4 lg:grid-cols-3">
-          <SectionCard title="By action">
+          <SectionCard title={t("waf.analytics.byAction")}>
             <BarChart
               height={180}
-              ariaLabel="Events by action"
+              ariaLabel={t("waf.analytics.eventsByActionAria")}
               data={(byAction.data ?? []).map((row) => ({
                 label: row.group ?? "—",
                 value: row.count ?? 0,
@@ -173,22 +196,22 @@ export function AnalyticsPage() {
             />
           </SectionCard>
           <SectionCard
-            title="By trigger"
-            description="DDoS policy vs firewall rule"
+            title={t("waf.analytics.byTrigger")}
+            description={t("waf.analytics.byTriggerDescription")}
           >
             <BarChart
               height={180}
-              ariaLabel="Events by trigger"
+              ariaLabel={t("waf.analytics.eventsByTriggerAria")}
               data={(byTrigger.data ?? []).map((row) => ({
                 label: row.group ?? "—",
                 value: row.count ?? 0,
               }))}
             />
           </SectionCard>
-          <SectionCard title="Incidents by severity">
+          <SectionCard title={t("waf.analytics.incidentsBySeverity")}>
             <BarChart
               height={180}
-              ariaLabel="Incidents by severity"
+              ariaLabel={t("waf.analytics.incidentsBySeverityAria")}
               data={(incidentsBySeverity.data ?? []).map((row) => ({
                 label: row.group ?? "—",
                 value: row.count ?? 0,
@@ -198,18 +221,24 @@ export function AnalyticsPage() {
         </div>
 
         <SectionCard
-          title="Top source IPs"
-          description={`Most active attackers · ${selected.label.toLowerCase()}`}
+          title={t("waf.analytics.topSources")}
+          description={t("waf.analytics.topSourcesDescription", {
+            window: t(selected.labelKey).toLowerCase(),
+          })}
         >
           {(topSources.data ?? []).length === 0 ? (
-            <EmptyState title="No traffic in this window" />
+            <EmptyState title={t("waf.analytics.noTraffic")} />
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Source IP</TableHead>
-                  <TableHead className="text-right">Events</TableHead>
-                  <TableHead className="text-right">Share</TableHead>
+                  <TableHead>{t("waf.analytics.colSourceIp")}</TableHead>
+                  <TableHead className="text-right">
+                    {t("waf.analytics.colEvents")}
+                  </TableHead>
+                  <TableHead className="text-right">
+                    {t("waf.analytics.colShare")}
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

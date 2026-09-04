@@ -15,6 +15,9 @@ import "./index.css";
 
 document.documentElement.setAttribute("data-theme", "enterprise");
 import { ApiError, ReactRouterNavigationProvider } from "@metap/platform-ui";
+// Side-effect only — merges this app's `waf.*` translation keys into `platform-ui`'s shared
+// `i18n` instance. Must run before anything calls `useTranslation()`/`t("waf....")`.
+import "./i18n/register";
 import App from "./App";
 
 const queryClient = new QueryClient({

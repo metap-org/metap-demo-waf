@@ -7,6 +7,7 @@
  * nothing about what the product actually does.
  */
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Button,
   Select,
@@ -42,6 +43,7 @@ type EventData = {
 };
 
 export function ZoneEventsTab({ zoneId }: { zoneId: string }) {
+  const { t } = useTranslation();
   const invalidate = useInvalidateWaf();
   const [action, setAction] = useState("");
   const [busy, setBusy] = useState(false);
@@ -57,7 +59,10 @@ export function ZoneEventsTab({ zoneId }: { zoneId: string }) {
       const result = await correlateIncidents(zoneId);
       invalidate();
       toast(
-        `Scanned ${result.data.scannedEvents} events · ${result.data.createdIncidents.length} new incident(s)`,
+        t("waf.zoneTabs.events.toastCorrelated", {
+          scanned: result.data.scannedEvents,
+          created: result.data.createdIncidents.length,
+        }),
         { variant: "default" },
       );
     } catch (e) {
@@ -72,18 +77,18 @@ export function ZoneEventsTab({ zoneId }: { zoneId: string }) {
   return (
     <div className="mt-4">
       <SectionCard
-        title="Security events"
-        description="What the edge did with traffic for this zone."
+        title={t("waf.zoneTabs.events.title")}
+        description={t("waf.zoneTabs.events.description")}
         actions={
           <>
             <Select
               value={action}
               onChange={(value) => setAction(String(value))}
               options={[
-                { value: "", label: "All actions" },
-                { value: "blocked", label: "Blocked" },
-                { value: "challenged", label: "Challenged" },
-                { value: "logged", label: "Logged" },
+                { value: "", label: t("waf.zoneTabs.events.allActions") },
+                { value: "blocked", label: t("waf.status.blocked") },
+                { value: "challenged", label: t("waf.status.challenged") },
+                { value: "logged", label: t("waf.status.logged") },
               ]}
             />
             <Button
@@ -92,25 +97,25 @@ export function ZoneEventsTab({ zoneId }: { zoneId: string }) {
               onClick={correlate}
               disabled={busy}
             >
-              Correlate now
+              {t("waf.zoneTabs.events.correlateNow")}
             </Button>
           </>
         }
       >
         {(events.data ?? []).length === 0 ? (
           <EmptyState
-            title="No events"
-            description="Nothing has matched a policy or rule for this zone in the stored window."
+            title={t("waf.zoneTabs.events.noEvents")}
+            description={t("waf.zoneTabs.events.noEventsDescription")}
           />
         ) : (
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>When</TableHead>
-                <TableHead>Action</TableHead>
-                <TableHead>Source IP</TableHead>
-                <TableHead>Path</TableHead>
-                <TableHead>Triggered by</TableHead>
+                <TableHead>{t("waf.zoneTabs.events.colWhen")}</TableHead>
+                <TableHead>{t("waf.zoneTabs.events.colAction")}</TableHead>
+                <TableHead>{t("waf.zoneTabs.events.colSourceIp")}</TableHead>
+                <TableHead>{t("waf.zoneTabs.events.colPath")}</TableHead>
+                <TableHead>{t("waf.zoneTabs.events.colTriggeredBy")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

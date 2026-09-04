@@ -16,10 +16,12 @@ import {
   TableRow,
 } from "@metap/ui";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ENTITIES, useRecords, type ZoneData } from "../api/waf";
 import { EmptyState, PageHeader, StatusBadge } from "../components/primitives";
 
 export function ZonesPage() {
+  const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<string>("");
   // `hostname` is `searchable` in metadata, so the generic list route turns this filter into a
@@ -33,11 +35,11 @@ export function ZonesPage() {
   return (
     <div>
       <PageHeader
-        title="Zones"
-        description="Every hostname this tenant protects."
+        title={t("waf.zones.title")}
+        description={t("waf.zones.description")}
         actions={
           <Button asChild>
-            <Link to="/onboarding">Add zone</Link>
+            <Link to="/onboarding">{t("waf.common.addZone")}</Link>
           </Button>
         }
       />
@@ -45,7 +47,7 @@ export function ZonesPage() {
       <div className="mb-3 flex flex-wrap gap-2">
         <Input
           className="max-w-xs"
-          placeholder="Search hostname…"
+          placeholder={t("waf.zones.searchPlaceholder")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -57,21 +59,23 @@ export function ZonesPage() {
               variant={status === value ? "default" : "outline"}
               onClick={() => setStatus(value)}
             >
-              {value || "All"}
+              {value ? t(`waf.status.${value}`) : t("waf.common.all")}
             </Button>
           ))}
         </div>
       </div>
 
       {zones.isLoading ? (
-        <p className="text-sm text-muted-foreground">Loading…</p>
+        <p className="text-sm text-muted-foreground">
+          {t("waf.common.loading")}
+        </p>
       ) : (zones.data ?? []).length === 0 ? (
         <EmptyState
-          title="No zones yet"
-          description="Add your first hostname to start protecting it."
+          title={t("waf.zones.noZonesYet")}
+          description={t("waf.zones.noZonesYetDescription")}
           action={
             <Button asChild>
-              <Link to="/onboarding">Add zone</Link>
+              <Link to="/onboarding">{t("waf.common.addZone")}</Link>
             </Button>
           }
         />
@@ -79,13 +83,15 @@ export function ZonesPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Hostname</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Mode</TableHead>
-              <TableHead>Domain</TableHead>
-              <TableHead>DNS routing</TableHead>
-              <TableHead>Protection</TableHead>
-              <TableHead className="text-right">Config v.</TableHead>
+              <TableHead>{t("waf.zones.colHostname")}</TableHead>
+              <TableHead>{t("waf.zones.colStatus")}</TableHead>
+              <TableHead>{t("waf.zones.colMode")}</TableHead>
+              <TableHead>{t("waf.zones.colDomain")}</TableHead>
+              <TableHead>{t("waf.zones.colDnsRouting")}</TableHead>
+              <TableHead>{t("waf.zones.colProtection")}</TableHead>
+              <TableHead className="text-right">
+                {t("waf.zones.colConfigVersion")}
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -117,11 +123,11 @@ export function ZonesPage() {
                 <TableCell>
                   {zone.data.hasConfig ? (
                     <span className="text-sm text-muted-foreground">
-                      configured
+                      {t("waf.common.configured")}
                     </span>
                   ) : (
                     <span className="text-sm text-amber-600 dark:text-amber-500">
-                      none
+                      {t("waf.common.none")}
                     </span>
                   )}
                 </TableCell>

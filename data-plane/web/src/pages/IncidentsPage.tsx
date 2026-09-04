@@ -8,6 +8,7 @@
  */
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   Button,
   Table,
@@ -42,16 +43,19 @@ export type IncidentData = {
   assignedTo?: string;
 };
 
-/** Next action per state — one row of the workflow graph, kept next to the UI that offers it. */
-export const NEXT_ACTION: Record<string, { action: string; label: string }> = {
-  open: { action: "acknowledge", label: "Acknowledge" },
-  acknowledged: { action: "startMitigating", label: "Start mitigating" },
-  mitigating: { action: "resolve", label: "Resolve" },
+/** Next action per state — one row of the workflow graph, kept next to the UI that offers it.
+ *  `action` doubles as a `waf.actions.<action>` translation key at every render site (this page
+ *  and `IncidentDetailPage.tsx`, which imports this map). */
+export const NEXT_ACTION: Record<string, { action: string }> = {
+  open: { action: "acknowledge" },
+  acknowledged: { action: "startMitigating" },
+  mitigating: { action: "resolve" },
 };
 
 const STATUSES = ["", "open", "acknowledged", "mitigating", "resolved"];
 
 export function IncidentsPage() {
+  const { t } = useTranslation();
   const invalidate = useInvalidateWaf();
   const [status, setStatus] = useState("open");
   const [busy, setBusy] = useState(false);
@@ -94,7 +98,10 @@ export function IncidentsPage() {
       const result = await correlateIncidents();
       invalidate();
       toast(
-        `${result.data.createdIncidents.length} new incident(s) from ${result.data.scannedEvents} events`,
+        t("waf.incidents.toastCorrelated", {
+          count: result.data.createdIncidents.length,
+          events: result.data.scannedEvents,
+        }),
         {
           variant: "default",
         },
@@ -111,11 +118,11 @@ export function IncidentsPage() {
   return (
     <div>
       <PageHeader
-        title="Incidents"
-        description="Correlated attacks that need a human decision."
+        title={t("waf.incidents.title")}
+        description={t("waf.incidents.description")}
         actions={
           <Button variant="outline" onClick={correlate} disabled={busy}>
-            Run correlation
+            {t("waf.incidents.runCorrelation")}
           </Button>
         }
       />
@@ -128,27 +135,31 @@ export function IncidentsPage() {
             variant={status === value ? "default" : "outline"}
             onClick={() => setStatus(value)}
           >
-            {value || "All"}
+            {value ? t(`waf.status.${value}`) : t("waf.common.all")}
           </Button>
         ))}
       </div>
 
       {(incidents.data ?? []).length === 0 ? (
         <EmptyState
-          title="Nothing here"
-          description="No incidents match this filter. Run correlation to turn recent events into incidents."
+          title={t("waf.incidents.nothingHere")}
+          description={t("waf.incidents.nothingHereDescription")}
         />
       ) : (
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Incident</TableHead>
-              <TableHead>Zone</TableHead>
-              <TableHead>Severity</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Events</TableHead>
-              <TableHead>Raised</TableHead>
-              <TableHead className="text-right">Action</TableHead>
+              <TableHead>{t("waf.incidents.colIncident")}</TableHead>
+              <TableHead>{t("waf.incidents.colZone")}</TableHead>
+              <TableHead>{t("waf.incidents.colSeverity")}</TableHead>
+              <TableHead>{t("waf.incidents.colStatus")}</TableHead>
+              <TableHead className="text-right">
+                {t("waf.incidents.colEvents")}
+              </TableHead>
+              <TableHead>{t("waf.incidents.colRaised")}</TableHead>
+              <TableHead className="text-right">
+                {t("waf.incidents.colAction")}
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -193,11 +204,11 @@ export function IncidentsPage() {
                         onClick={() => advance(incident)}
                         disabled={busy}
                       >
-                        {next.label}
+                        {t(`waf.actions.${next.action}`)}
                       </Button>
                     ) : (
                       <span className="text-xs text-muted-foreground">
-                        done
+                        {t("waf.incidents.done")}
                       </span>
                     )}
                   </TableCell>

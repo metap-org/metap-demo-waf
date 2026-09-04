@@ -10,6 +10,7 @@
  */
 import { Fragment, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   Alert,
   AlertDescription,
@@ -50,6 +51,7 @@ function newVerificationToken(): string {
 type Step = 0 | 1 | 2 | 3;
 
 export function OnboardingPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const invalidate = useInvalidateWaf();
 
@@ -161,31 +163,36 @@ export function OnboardingPage() {
   return (
     <div className="mx-auto max-w-3xl">
       <PageHeader
-        title="Add a zone"
-        description="Protect a new hostname in four steps."
+        title={t("waf.onboarding.title")}
+        description={t("waf.onboarding.description")}
       />
 
       <Stepper className="mb-6">
-        {(["Details", "Verify domain", "Protection", "Activate"] as const).map(
-          (label, index) => (
-            <Fragment key={label}>
-              {index > 0 ? <StepperConnector /> : null}
-              <StepperGroup>
-                <StepperItem
-                  variant={
-                    index < step
-                      ? "terminal"
-                      : index === step
-                        ? "current"
-                        : "default"
-                  }
-                >
-                  {label}
-                </StepperItem>
-              </StepperGroup>
-            </Fragment>
-          ),
-        )}
+        {(
+          [
+            "stepDetails",
+            "stepVerify",
+            "stepProtection",
+            "stepActivate",
+          ] as const
+        ).map((labelKey, index) => (
+          <Fragment key={labelKey}>
+            {index > 0 ? <StepperConnector /> : null}
+            <StepperGroup>
+              <StepperItem
+                variant={
+                  index < step
+                    ? "terminal"
+                    : index === step
+                      ? "current"
+                      : "default"
+                }
+              >
+                {t(`waf.onboarding.${labelKey}`)}
+              </StepperItem>
+            </StepperGroup>
+          </Fragment>
+        ))}
       </Stepper>
 
       {error ? (
@@ -196,12 +203,12 @@ export function OnboardingPage() {
 
       {step === 0 ? (
         <SectionCard
-          title="Zone details"
-          description="The hostname you want protected and where its traffic should go."
+          title={t("waf.onboarding.detailsTitle")}
+          description={t("waf.onboarding.detailsDescription")}
         >
           <div className="grid gap-4">
             <div>
-              <Label htmlFor="hostname">Hostname</Label>
+              <Label htmlFor="hostname">{t("waf.onboarding.hostname")}</Label>
               <Input
                 id="hostname"
                 placeholder="shop.example.com"
@@ -210,7 +217,9 @@ export function OnboardingPage() {
               />
             </div>
             <div>
-              <Label htmlFor="origin">Origin address</Label>
+              <Label htmlFor="origin">
+                {t("waf.onboarding.originAddress")}
+              </Label>
               <Input
                 id="origin"
                 placeholder="203.0.113.10 or origin.example.com"
@@ -219,7 +228,7 @@ export function OnboardingPage() {
               />
             </div>
             <div>
-              <Label htmlFor="mode">Protection mode</Label>
+              <Label htmlFor="mode">{t("waf.onboarding.protectionMode")}</Label>
               <Select
                 id="mode"
                 value={protectionMode}
@@ -227,17 +236,16 @@ export function OnboardingPage() {
                 options={[
                   {
                     value: "monitor",
-                    label: "Monitor — log only, block nothing",
+                    label: t("waf.onboarding.modeMonitor"),
                   },
                   {
                     value: "enforce",
-                    label: "Enforce — act on matching rules",
+                    label: t("waf.onboarding.modeEnforce"),
                   },
                 ]}
               />
               <p className="mt-1 text-xs text-muted-foreground">
-                Start in monitor mode if you want to watch traffic before
-                anything is blocked.
+                {t("waf.onboarding.modeHint")}
               </p>
             </div>
             <div>
@@ -245,7 +253,7 @@ export function OnboardingPage() {
                 onClick={createZone}
                 disabled={busy || !hostname.trim() || !originAddress.trim()}
               >
-                Create zone
+                {t("waf.onboarding.createZone")}
               </Button>
             </div>
           </div>
@@ -255,35 +263,42 @@ export function OnboardingPage() {
       {step === 1 && zone ? (
         <div className="grid gap-4">
           <SectionCard
-            title="Prove you own this hostname"
-            description="Add this TXT record at your DNS provider, then run the check."
+            title={t("waf.onboarding.verifyTitle")}
+            description={t("waf.onboarding.verifyDescription")}
           >
             <div className="rounded-md bg-muted/50 p-3 font-mono text-xs">
               <div>
-                <span className="text-muted-foreground">name: </span>
+                <span className="text-muted-foreground">
+                  {t("waf.onboarding.recordName")}
+                </span>
                 _waf-verify.{zone.data.hostname}
               </div>
               <div>
-                <span className="text-muted-foreground">type: </span>TXT
+                <span className="text-muted-foreground">
+                  {t("waf.onboarding.recordType")}
+                </span>
+                TXT
               </div>
               <div className="break-all">
-                <span className="text-muted-foreground">value: </span>
+                <span className="text-muted-foreground">
+                  {t("waf.onboarding.recordValue")}
+                </span>
                 {zone.data.verificationToken}
               </div>
             </div>
             <div className="mt-3 flex items-center gap-3">
               <Button onClick={runVerify} disabled={busy}>
-                Check DNS
+                {t("waf.onboarding.checkDns")}
               </Button>
               {dnsResult ? (
                 <span className="text-sm">
-                  ownership{" "}
+                  {t("waf.onboarding.ownershipLabel")}{" "}
                   <StatusBadge
                     value={
                       dnsResult.ownershipVerified ? "verified" : "unverified"
                     }
                   />{" "}
-                  · routing{" "}
+                  · {t("waf.onboarding.routingLabel")}{" "}
                   <StatusBadge
                     value={dnsResult.dnsRouted ? "routed" : "notRouted"}
                   />
@@ -292,27 +307,34 @@ export function OnboardingPage() {
             </div>
             {dnsResult && !dnsResult.dnsRouted ? (
               <p className="mt-2 text-xs text-muted-foreground">
-                Routing is informational — point{" "}
-                <code>{zone.data.hostname}</code> at{" "}
-                <code>{dnsResult.target}</code> when you are ready to send real
-                traffic through the edge. It does not block activation.
+                {t("waf.onboarding.routingInfo", {
+                  hostname: zone.data.hostname,
+                  target: dnsResult.target,
+                })}
               </p>
             ) : null}
           </SectionCard>
 
           <SectionCard
-            title="Check the origin"
-            description="Optional, but catches a typo before any traffic depends on it."
+            title={t("waf.onboarding.originTitle")}
+            description={t("waf.onboarding.originDescription")}
           >
             <div className="flex items-center gap-3">
               <Button variant="outline" onClick={runOriginTest} disabled={busy}>
-                Test origin
+                {t("waf.onboarding.testOrigin")}
               </Button>
               {originResult ? (
                 <span className="text-sm">
                   {originResult.reachable
-                    ? `reachable — HTTP ${originResult.status} in ${originResult.latencyMs}ms`
-                    : `unreachable — ${originResult.error ?? "no response"}`}
+                    ? t("waf.onboarding.originReachable", {
+                        status: originResult.status,
+                        latency: originResult.latencyMs,
+                      })
+                    : t("waf.onboarding.originUnreachable", {
+                        error:
+                          originResult.error ??
+                          t("waf.onboarding.originNoResponse"),
+                      })}
                 </span>
               ) : null}
             </div>
@@ -320,11 +342,11 @@ export function OnboardingPage() {
 
           <div>
             <Button onClick={() => setStep(2)} disabled={!verified}>
-              Continue
+              {t("waf.onboarding.continue")}
             </Button>
             {!verified ? (
               <span className="ml-3 text-xs text-muted-foreground">
-                A zone cannot be activated until its hostname is verified.
+                {t("waf.onboarding.notVerifiedHint")}
               </span>
             ) : null}
           </div>
@@ -333,23 +355,21 @@ export function OnboardingPage() {
 
       {step === 2 && zone ? (
         <SectionCard
-          title="Baseline protection"
-          description="A zone needs at least one policy or rule before it can go live."
+          title={t("waf.onboarding.protectionTitle")}
+          description={t("waf.onboarding.protectionDescription")}
         >
           <p className="text-sm text-muted-foreground">
-            This adds a DDoS L7 policy with medium sensitivity that challenges
-            traffic above 500 requests per minute. You can tune it, or add
-            firewall rules, right after activation.
+            {t("waf.onboarding.protectionExplain")}
           </p>
           <div className="mt-3 flex gap-2">
             <Button onClick={addBaselineProtection} disabled={busy}>
-              Add default DDoS policy
+              {t("waf.onboarding.addDefaultPolicy")}
             </Button>
             <Button
               variant="outline"
               onClick={() => navigate(`/zones/${zone.id}`)}
             >
-              Configure manually instead
+              {t("waf.onboarding.configureManually")}
             </Button>
           </div>
         </SectionCard>
@@ -357,23 +377,26 @@ export function OnboardingPage() {
 
       {step === 3 && zone ? (
         <SectionCard
-          title="Activate"
-          description="Everything checks out — turn protection on."
+          title={t("waf.onboarding.activateTitle")}
+          description={t("waf.onboarding.activateDescription")}
         >
           <ul className="mb-4 space-y-1 text-sm">
             <li>
-              Hostname <code>{zone.data.hostname}</code> ·{" "}
+              {t("waf.onboarding.activateHostnameLabel")}{" "}
+              <code>{zone.data.hostname}</code> ·{" "}
               <StatusBadge value={zone.data.verificationStatus} />
             </li>
             <li>
-              Origin <code>{zone.data.originAddress}</code>
+              {t("waf.onboarding.activateOriginLabel")}{" "}
+              <code>{zone.data.originAddress}</code>
             </li>
             <li>
-              Mode <StatusBadge value={zone.data.protectionMode} />
+              {t("waf.onboarding.activateModeLabel")}{" "}
+              <StatusBadge value={zone.data.protectionMode} />
             </li>
           </ul>
           <Button onClick={activate} disabled={busy}>
-            Activate zone
+            {t("waf.onboarding.activateZone")}
           </Button>
         </SectionCard>
       ) : null}

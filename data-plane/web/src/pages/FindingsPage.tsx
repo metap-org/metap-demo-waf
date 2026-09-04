@@ -7,6 +7,7 @@
  * offers a set of actions per row rather than the single "next step" the incident queue uses.
  */
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Button,
   Table,
@@ -44,14 +45,15 @@ type FindingData = {
   lastSeenAt?: string;
 };
 
-/** Which transitions each state offers — mirrors `scan_finding_entity.rs`'s workflow. */
-const ACTIONS: Record<string, { action: string; label: string }[]> = {
+/** Which transitions each state offers — mirrors `scan_finding_entity.rs`'s workflow. `action`
+ *  doubles as a `waf.actions.<action>` translation key at the render site below. */
+const ACTIONS: Record<string, { action: string }[]> = {
   open: [
-    { action: "confirm", label: "Confirm" },
-    { action: "accept", label: "Accept risk" },
-    { action: "markFalsePositive", label: "False positive" },
+    { action: "confirm" },
+    { action: "accept" },
+    { action: "markFalsePositive" },
   ],
-  confirmed: [{ action: "markFixed", label: "Mark fixed" }],
+  confirmed: [{ action: "markFixed" }],
   fixed: [],
   falsePositive: [],
   accepted: [],
@@ -67,6 +69,7 @@ const STATUSES = [
 ];
 
 export function FindingsPage() {
+  const { t } = useTranslation();
   const invalidate = useInvalidateWaf();
   const [status, setStatus] = useState("open");
   const [severity, setSeverity] = useState("");
@@ -105,38 +108,38 @@ export function FindingsPage() {
   return (
     <div>
       <PageHeader
-        title="Vulnerability findings"
-        description="What the scanners found, and what has been done about it."
+        title={t("waf.findings.title")}
+        description={t("waf.findings.description")}
       />
 
       <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatTile
-          label="Critical"
+          label={t("waf.findings.statCritical")}
           value={countFor("critical")}
           tone="danger"
           loading={bySeverity.isLoading}
         />
         <StatTile
-          label="High"
+          label={t("waf.findings.statHigh")}
           value={countFor("high")}
           tone="danger"
           loading={bySeverity.isLoading}
         />
         <StatTile
-          label="Medium"
+          label={t("waf.findings.statMedium")}
           value={countFor("medium")}
           tone="warning"
           loading={bySeverity.isLoading}
         />
         <StatTile
-          label="Low / info"
+          label={t("waf.findings.statLowInfo")}
           value={countFor("low") + countFor("info")}
           loading={bySeverity.isLoading}
         />
       </div>
 
       <SectionCard
-        title="Findings"
+        title={t("waf.findings.title2")}
         actions={
           <div className="flex flex-wrap gap-1">
             {STATUSES.map((value) => (
@@ -146,7 +149,7 @@ export function FindingsPage() {
                 variant={status === value ? "default" : "outline"}
                 onClick={() => setStatus(value)}
               >
-                {value || "All"}
+                {value ? t(`waf.status.${value}`) : t("waf.common.all")}
               </Button>
             ))}
             <span className="mx-1 w-px bg-border" aria-hidden />
@@ -157,7 +160,7 @@ export function FindingsPage() {
                 variant={severity === value ? "default" : "outline"}
                 onClick={() => setSeverity(value)}
               >
-                {value || "Any severity"}
+                {value ? t(`waf.status.${value}`) : t("waf.common.any")}
               </Button>
             ))}
           </div>
@@ -165,19 +168,21 @@ export function FindingsPage() {
       >
         {(findings.data ?? []).length === 0 ? (
           <EmptyState
-            title="Nothing to remediate"
-            description="No findings match this filter."
+            title={t("waf.findings.nothingToRemediate")}
+            description={t("waf.findings.nothingToRemediateDescription")}
           />
         ) : (
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Severity</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Endpoint</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Last seen</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>{t("waf.findings.colSeverity")}</TableHead>
+                <TableHead>{t("waf.findings.colCategory")}</TableHead>
+                <TableHead>{t("waf.findings.colEndpoint")}</TableHead>
+                <TableHead>{t("waf.findings.colStatus")}</TableHead>
+                <TableHead>{t("waf.findings.colLastSeen")}</TableHead>
+                <TableHead className="text-right">
+                  {t("waf.findings.colActions")}
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -216,7 +221,7 @@ export function FindingsPage() {
                           disabled={busy}
                           onClick={() => act(finding, entry.action)}
                         >
-                          {entry.label}
+                          {t(`waf.actions.${entry.action}`)}
                         </Button>
                       ))}
                     </TableCell>

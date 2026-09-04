@@ -7,6 +7,7 @@
  */
 import type { ReactNode } from "react";
 import { Badge, Card, CardContent, Skeleton } from "@metap/ui";
+import { useTranslation } from "react-i18next";
 
 export function PageHeader({
   title,
@@ -116,8 +117,13 @@ const TONES: Record<
 };
 
 export function StatusBadge({ value }: { value?: string | null }) {
+  const { t } = useTranslation();
   if (!value) return <span className="text-muted-foreground">—</span>;
-  return <Badge variant={TONES[value] ?? "outline"}>{value}</Badge>;
+  // Falls back to the raw enum value for anything not in `waf.status` (a value this component
+  // hasn't been taught about yet reads better as itself than as a missing-key placeholder).
+  const key = `waf.status.${value}`;
+  const label = t(key, { defaultValue: value });
+  return <Badge variant={TONES[value] ?? "outline"}>{label}</Badge>;
 }
 
 export function EmptyState({
@@ -181,16 +187,17 @@ export function SectionCard({
 export function TimeSeries({
   points,
   height = 180,
-  ariaLabel = "Time series",
+  ariaLabel,
 }: {
   points: { label: string; value: number }[];
   height?: number;
   ariaLabel?: string;
 }) {
+  const { t } = useTranslation();
   if (points.length === 0) {
     return (
       <div className="py-10 text-center text-sm text-muted-foreground">
-        No data in this window.
+        {t("waf.common.noDataInWindow")}
       </div>
     );
   }
@@ -214,7 +221,7 @@ export function TimeSeries({
   return (
     <svg
       role="img"
-      aria-label={ariaLabel}
+      aria-label={ariaLabel ?? t("waf.common.timeSeries")}
       viewBox={`0 0 ${width} ${height}`}
       className="w-full"
       preserveAspectRatio="none"

@@ -9,6 +9,7 @@
  * and no window where two rules share a priority.
  */
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Button,
   Dialog,
@@ -66,6 +67,7 @@ const EMPTY: RuleData = {
 };
 
 export function ZoneRulesTab({ zoneId }: { zoneId: string }) {
+  const { t } = useTranslation();
   const invalidate = useInvalidateWaf();
   const rules = useRecords<RuleData>(ENTITIES.firewallRules, { zoneId }, 100);
   const [editing, setEditing] = useState<WafRecord<RuleData> | null>(null);
@@ -108,7 +110,9 @@ export function ZoneRulesTab({ zoneId }: { zoneId: string }) {
       try {
         matchCondition = JSON.parse(conditionText);
       } catch {
-        toast("Match condition is not valid JSON", { variant: "destructive" });
+        toast(t("waf.zoneTabs.rules.toastInvalidJson"), {
+          variant: "destructive",
+        });
         return;
       }
       const payload = { ...draft, matchCondition, zoneId };
@@ -125,7 +129,7 @@ export function ZoneRulesTab({ zoneId }: { zoneId: string }) {
       await syncConfigState(zoneId);
       invalidate();
       setOpen(false);
-      toast("Rule saved", { variant: "default" });
+      toast(t("waf.zoneTabs.rules.toastSaved"), { variant: "default" });
     } catch (e) {
       toast(e instanceof Error ? e.message : String(e), {
         variant: "destructive",
@@ -141,7 +145,7 @@ export function ZoneRulesTab({ zoneId }: { zoneId: string }) {
       await deleteRecord(ENTITIES.firewallRules, rule.id, rule.version);
       await syncConfigState(zoneId);
       invalidate();
-      toast("Rule deleted", { variant: "default" });
+      toast(t("waf.zoneTabs.rules.toastDeleted"), { variant: "default" });
     } catch (e) {
       toast(e instanceof Error ? e.message : String(e), {
         variant: "destructive",
@@ -181,29 +185,33 @@ export function ZoneRulesTab({ zoneId }: { zoneId: string }) {
   return (
     <div className="mt-4">
       <SectionCard
-        title="Firewall rules"
-        description="Evaluated top to bottom — the first matching rule decides the action."
+        title={t("waf.zoneTabs.rules.title")}
+        description={t("waf.zoneTabs.rules.description")}
         actions={
           <Button size="sm" onClick={startCreate}>
-            Add rule
+            {t("waf.zoneTabs.rules.addRule")}
           </Button>
         }
       >
         {ordered.length === 0 ? (
           <EmptyState
-            title="No rules yet"
-            description="Add a rule to block, challenge or rate-limit traffic."
+            title={t("waf.zoneTabs.rules.noRulesYet")}
+            description={t("waf.zoneTabs.rules.noRulesYetDescription")}
           />
         ) : (
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-24">Priority</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Action</TableHead>
-                <TableHead>Enabled</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="w-24">
+                  {t("waf.zoneTabs.rules.colPriority")}
+                </TableHead>
+                <TableHead>{t("waf.zoneTabs.rules.colName")}</TableHead>
+                <TableHead>{t("waf.zoneTabs.rules.colType")}</TableHead>
+                <TableHead>{t("waf.zoneTabs.rules.colAction")}</TableHead>
+                <TableHead>{t("waf.zoneTabs.rules.colEnabled")}</TableHead>
+                <TableHead className="text-right">
+                  {t("waf.zoneTabs.rules.colActions")}
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -217,7 +225,7 @@ export function ZoneRulesTab({ zoneId }: { zoneId: string }) {
                         variant="ghost"
                         disabled={busy || index === 0}
                         onClick={() => move(rule, -1)}
-                        aria-label="Move up"
+                        aria-label={t("waf.zoneTabs.rules.moveUp")}
                       >
                         ↑
                       </Button>
@@ -226,7 +234,7 @@ export function ZoneRulesTab({ zoneId }: { zoneId: string }) {
                         variant="ghost"
                         disabled={busy || index === ordered.length - 1}
                         onClick={() => move(rule, 1)}
-                        aria-label="Move down"
+                        aria-label={t("waf.zoneTabs.rules.moveDown")}
                       >
                         ↓
                       </Button>
@@ -241,14 +249,18 @@ export function ZoneRulesTab({ zoneId }: { zoneId: string }) {
                   <TableCell>
                     <StatusBadge value={rule.data.action} />
                   </TableCell>
-                  <TableCell>{rule.data.enabled ? "yes" : "no"}</TableCell>
+                  <TableCell>
+                    {rule.data.enabled
+                      ? t("waf.common.yes")
+                      : t("waf.common.no")}
+                  </TableCell>
                   <TableCell className="text-right">
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={() => startEdit(rule)}
                     >
-                      Edit
+                      {t("waf.common.edit")}
                     </Button>
                     <Button
                       size="sm"
@@ -256,7 +268,7 @@ export function ZoneRulesTab({ zoneId }: { zoneId: string }) {
                       onClick={() => remove(rule)}
                       disabled={busy}
                     >
-                      Delete
+                      {t("waf.common.delete")}
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -269,11 +281,15 @@ export function ZoneRulesTab({ zoneId }: { zoneId: string }) {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editing ? "Edit rule" : "New rule"}</DialogTitle>
+            <DialogTitle>
+              {editing
+                ? t("waf.zoneTabs.rules.editRule")
+                : t("waf.zoneTabs.rules.newRule")}
+            </DialogTitle>
           </DialogHeader>
           <div className="grid gap-3">
             <div>
-              <Label htmlFor="rule-name">Name</Label>
+              <Label htmlFor="rule-name">{t("waf.zoneTabs.rules.name")}</Label>
               <Input
                 id="rule-name"
                 value={draft.name ?? ""}
@@ -282,7 +298,9 @@ export function ZoneRulesTab({ zoneId }: { zoneId: string }) {
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
-                <Label htmlFor="rule-type">Type</Label>
+                <Label htmlFor="rule-type">
+                  {t("waf.zoneTabs.rules.type")}
+                </Label>
                 <Select
                   id="rule-type"
                   value={draft.ruleType}
@@ -290,15 +308,26 @@ export function ZoneRulesTab({ zoneId }: { zoneId: string }) {
                     setDraft({ ...draft, ruleType: String(value) })
                   }
                   options={[
-                    { value: "waf", label: "WAF custom rule" },
-                    { value: "rateLimit", label: "Rate limit" },
-                    { value: "ipFirewall", label: "IP firewall" },
-                    { value: "geoFirewall", label: "Geo firewall" },
+                    { value: "waf", label: t("waf.zoneTabs.rules.typeWaf") },
+                    {
+                      value: "rateLimit",
+                      label: t("waf.zoneTabs.rules.typeRateLimit"),
+                    },
+                    {
+                      value: "ipFirewall",
+                      label: t("waf.zoneTabs.rules.typeIpFirewall"),
+                    },
+                    {
+                      value: "geoFirewall",
+                      label: t("waf.zoneTabs.rules.typeGeoFirewall"),
+                    },
                   ]}
                 />
               </div>
               <div>
-                <Label htmlFor="rule-action">Action</Label>
+                <Label htmlFor="rule-action">
+                  {t("waf.zoneTabs.rules.action")}
+                </Label>
                 <Select
                   id="rule-action"
                   value={draft.action}
@@ -306,10 +335,19 @@ export function ZoneRulesTab({ zoneId }: { zoneId: string }) {
                     setDraft({ ...draft, action: String(value) })
                   }
                   options={[
-                    { value: "allow", label: "Allow" },
-                    { value: "log", label: "Log" },
-                    { value: "challenge", label: "Challenge" },
-                    { value: "block", label: "Block" },
+                    {
+                      value: "allow",
+                      label: t("waf.zoneTabs.rules.actionAllow"),
+                    },
+                    { value: "log", label: t("waf.zoneTabs.rules.actionLog") },
+                    {
+                      value: "challenge",
+                      label: t("waf.zoneTabs.rules.actionChallenge"),
+                    },
+                    {
+                      value: "block",
+                      label: t("waf.zoneTabs.rules.actionBlock"),
+                    },
                   ]}
                 />
               </div>
@@ -317,7 +355,9 @@ export function ZoneRulesTab({ zoneId }: { zoneId: string }) {
             {draft.ruleType === "rateLimit" ? (
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
-                  <Label htmlFor="rl-threshold">Requests</Label>
+                  <Label htmlFor="rl-threshold">
+                    {t("waf.zoneTabs.rules.requests")}
+                  </Label>
                   <Input
                     id="rl-threshold"
                     type="number"
@@ -331,7 +371,9 @@ export function ZoneRulesTab({ zoneId }: { zoneId: string }) {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="rl-window">Window (seconds)</Label>
+                  <Label htmlFor="rl-window">
+                    {t("waf.zoneTabs.rules.windowSeconds")}
+                  </Label>
                   <Input
                     id="rl-window"
                     type="number"
@@ -347,7 +389,9 @@ export function ZoneRulesTab({ zoneId }: { zoneId: string }) {
               </div>
             ) : null}
             <div>
-              <Label htmlFor="rule-condition">Match condition</Label>
+              <Label htmlFor="rule-condition">
+                {t("waf.zoneTabs.rules.matchCondition")}
+              </Label>
               {/* Raw JSON on purpose: whether this grammar reuses `metap-permission`'s
                   `PolicyCondition` or needs its own (request fields like `uri.path` vs. entity
                   fields) is still an open question in `docs/02-domain-model.md`. A visual builder
@@ -360,16 +404,13 @@ export function ZoneRulesTab({ zoneId }: { zoneId: string }) {
                 onChange={(e) => setConditionText(e.target.value)}
               />
               <p className="mt-1 text-xs text-muted-foreground">
-                JSON, e.g.{" "}
-                <code>
-                  {'{"field":"uri.path","op":"contains","value":"/admin"}'}
-                </code>
-                . The condition grammar is not settled yet — see the domain
-                model doc.
+                {t("waf.zoneTabs.rules.matchConditionHint")}
               </p>
             </div>
             <div>
-              <Label htmlFor="rule-priority">Priority</Label>
+              <Label htmlFor="rule-priority">
+                {t("waf.zoneTabs.rules.priority")}
+              </Label>
               <Input
                 id="rule-priority"
                 type="number"
@@ -382,10 +423,10 @@ export function ZoneRulesTab({ zoneId }: { zoneId: string }) {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>
-              Cancel
+              {t("waf.common.cancel")}
             </Button>
             <Button onClick={save} disabled={busy}>
-              Save
+              {t("waf.common.save")}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -8,6 +8,7 @@
  * back to "not configured", not just adding the first one to "configured".
  */
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button, Input, Label, Select, Toggle, toast } from "@metap/ui";
 import {
   ENTITIES,
@@ -38,6 +39,7 @@ const DEFAULTS: DdosData = {
 };
 
 export function ZoneDdosTab({ zoneId }: { zoneId: string }) {
+  const { t } = useTranslation();
   const invalidate = useInvalidateWaf();
   const policies = useRecords<DdosData>(ENTITIES.ddosPolicies, { zoneId }, 1);
   const policy = policies.data?.[0];
@@ -63,7 +65,7 @@ export function ZoneDdosTab({ zoneId }: { zoneId: string }) {
       }
       await syncConfigState(zoneId);
       invalidate();
-      toast("DDoS policy saved", { variant: "default" });
+      toast(t("waf.zoneTabs.ddos.toastSaved"), { variant: "default" });
     } catch (e) {
       toast(e instanceof Error ? e.message : String(e), {
         variant: "destructive",
@@ -81,7 +83,7 @@ export function ZoneDdosTab({ zoneId }: { zoneId: string }) {
       await syncConfigState(zoneId);
       invalidate();
       setDraft(DEFAULTS);
-      toast("DDoS policy removed", { variant: "default" });
+      toast(t("waf.zoneTabs.ddos.toastRemoved"), { variant: "default" });
     } catch (e) {
       toast(e instanceof Error ? e.message : String(e), {
         variant: "destructive",
@@ -92,21 +94,29 @@ export function ZoneDdosTab({ zoneId }: { zoneId: string }) {
   }
 
   if (policies.isLoading)
-    return <p className="mt-4 text-sm text-muted-foreground">Loading…</p>;
+    return (
+      <p className="mt-4 text-sm text-muted-foreground">
+        {t("waf.zoneTabs.ddos.loading")}
+      </p>
+    );
 
   return (
     <div className="mt-4">
       {!policy ? (
         <EmptyState
-          title="No DDoS policy on this zone"
-          description="Add one to shape how L7 floods are handled."
-          action={<Button onClick={save}>Add default policy</Button>}
+          title={t("waf.zoneTabs.ddos.noPolicy")}
+          description={t("waf.zoneTabs.ddos.noPolicyDescription")}
+          action={
+            <Button onClick={save}>
+              {t("waf.zoneTabs.ddos.addDefaultPolicy")}
+            </Button>
+          }
         />
       ) : null}
 
       <SectionCard
-        title="L7 DDoS policy"
-        description="Applies to every request for this zone before firewall rules run."
+        title={t("waf.zoneTabs.ddos.title")}
+        description={t("waf.zoneTabs.ddos.description")}
         actions={
           policy ? (
             <Button
@@ -115,14 +125,16 @@ export function ZoneDdosTab({ zoneId }: { zoneId: string }) {
               onClick={remove}
               disabled={busy}
             >
-              Remove
+              {t("waf.zoneTabs.ddos.remove")}
             </Button>
           ) : null
         }
       >
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <Label htmlFor="sensitivity">Sensitivity</Label>
+            <Label htmlFor="sensitivity">
+              {t("waf.zoneTabs.ddos.sensitivity")}
+            </Label>
             <Select
               id="sensitivity"
               value={draft.sensitivity}
@@ -130,18 +142,24 @@ export function ZoneDdosTab({ zoneId }: { zoneId: string }) {
                 setDraft({ ...draft, sensitivity: String(value) })
               }
               options={[
-                { value: "low", label: "Low — only obvious floods" },
-                { value: "medium", label: "Medium" },
-                { value: "high", label: "High" },
+                { value: "low", label: t("waf.zoneTabs.ddos.sensitivityLow") },
+                {
+                  value: "medium",
+                  label: t("waf.zoneTabs.ddos.sensitivityMedium"),
+                },
+                {
+                  value: "high",
+                  label: t("waf.zoneTabs.ddos.sensitivityHigh"),
+                },
                 {
                   value: "aggressive",
-                  label: "Aggressive — most false positives",
+                  label: t("waf.zoneTabs.ddos.sensitivityAggressive"),
                 },
               ]}
             />
           </div>
           <div>
-            <Label htmlFor="action">Action</Label>
+            <Label htmlFor="action">{t("waf.zoneTabs.ddos.action")}</Label>
             <Select
               id="action"
               value={draft.action}
@@ -149,14 +167,19 @@ export function ZoneDdosTab({ zoneId }: { zoneId: string }) {
                 setDraft({ ...draft, action: String(value) })
               }
               options={[
-                { value: "log", label: "Log only" },
-                { value: "challenge", label: "Challenge" },
-                { value: "block", label: "Block" },
+                { value: "log", label: t("waf.zoneTabs.ddos.actionLog") },
+                {
+                  value: "challenge",
+                  label: t("waf.zoneTabs.ddos.actionChallenge"),
+                },
+                { value: "block", label: t("waf.zoneTabs.ddos.actionBlock") },
               ]}
             />
           </div>
           <div>
-            <Label htmlFor="threshold">Request rate threshold</Label>
+            <Label htmlFor="threshold">
+              {t("waf.zoneTabs.ddos.threshold")}
+            </Label>
             <Input
               id="threshold"
               type="number"
@@ -169,11 +192,11 @@ export function ZoneDdosTab({ zoneId }: { zoneId: string }) {
               }
             />
             <p className="mt-1 text-xs text-muted-foreground">
-              Requests per burst window, per source.
+              {t("waf.zoneTabs.ddos.thresholdHint")}
             </p>
           </div>
           <div>
-            <Label htmlFor="burst">Burst window (seconds)</Label>
+            <Label htmlFor="burst">{t("waf.zoneTabs.ddos.burstWindow")}</Label>
             <Input
               id="burst"
               type="number"
@@ -191,12 +214,14 @@ export function ZoneDdosTab({ zoneId }: { zoneId: string }) {
                 setDraft({ ...draft, enabled: checked })
               }
             />
-            <Label htmlFor="enabled">Enabled</Label>
+            <Label htmlFor="enabled">{t("waf.zoneTabs.ddos.enabled")}</Label>
           </div>
         </div>
         <div className="mt-4">
           <Button onClick={save} disabled={busy}>
-            {policy ? "Save changes" : "Create policy"}
+            {policy
+              ? t("waf.zoneTabs.ddos.saveChanges")
+              : t("waf.zoneTabs.ddos.createPolicy")}
           </Button>
         </div>
       </SectionCard>

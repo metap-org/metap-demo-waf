@@ -38,7 +38,7 @@ cycle with a hard boundary — do not blur these when implementing:
 
 | Directory | Role | Status |
 |---|---|---|
-| `data-plane/` | Business portal (source of truth): Zone, DDoS policy, firewall rule, vulnerability scan, incident, alert — built on `metap`, full CRUD/workflow/permission UI | 3 services (`zones`/`scanning`/`alerting`) + `graphql-gateway` config + Customer Portal frontend (10-module IA, zone-centric). Custom non-CRUD endpoints live in each service's `src/routes.rs` |
+| `data-plane/` | Business portal (source of truth): Zone, DDoS policy, firewall rule, vulnerability scan, incident, alert — built on `metap`, full CRUD/workflow/permission UI | 3 services (`zones`/`scanning`/`alerting`) + `waf-graphql-gateway` (own binary, `data-plane/graphql-gateway/`, not just config — 7 custom mutations, wraps `metap`'s generic gateway library via `build_with_extensions`) + Customer Portal frontend (10-module IA, zone-centric). Custom non-CRUD endpoints live in each service's `src/routes.rs`. **Both compose files must build/run `waf-graphql-gateway`, not `metap/crates/graphql-gateway`'s generic binary** — found live, 2026-09-04: they'd been pointed at the generic one, silently dropping every custom field (`docs/roadmap/76-waf-portal-live-bugfixes.md`) |
 | `control-plane/` | Headless worker: pulls config changes from `data-plane` (RabbitMQ outbox subscribe), compiles them into an edge-ready rule-set, writes to Redis/DragonflyDB. No UI, not CRUD | `waf-config-distributor` — 3 jobs in one process: subscribe (fast path), periodic full resync (**the convergence guarantee**), telemetry ingest. The Redis contract is `waf-config-distributor/src/ruleset.rs` |
 | `edge-plane/` | High-performance, low-latency mitigation engine: evaluates rules against real traffic, blocks/challenges/logs. Deliberately **not** built on `metap`/metadata-driven approach | `waf-edge` — hyper 1.x, **zero `metap` dependency anywhere in the tree**. `ArcSwap` rule snapshot (a request never touches Redis), DDoS budget → priority-ordered rules → block/challenge/log → proxy to origin |
 
@@ -153,3 +153,20 @@ Zone), Developer (owns ScanFinding remediation only, no DdosPolicy/FirewallRule 
   `72-control-edge-planes.md`.
 - Docs are the spec. If an implementation choice isn't settled in `data-plane/docs/`, don't invent
   one silently — it's likely one of the explicitly-flagged open questions above.
+- **Auth moved from a shared static RSA keypair to `metap-jwks` (Ed25519, 2026-09-04).** The 3
+  `data-plane` services + `graphql-gateway` used to share 1 `dev-jwt-private.pem` file (copied
+  into every container) for both mint and verify. They now default to a `metap-jwks` trust root
+  instead — `zones-service` publishes `/.well-known/jwks.json`, every service (including
+  `zones-service` itself) verifies via `JWKS_URL`, and `graphql-gateway` verifies the same way
+  (no private key file needed there at all now). This was additive/opt-in work in `metap` core
+  (`metap-http::AppState.token_verifier`/`token_signer`, `metap-jwks::{TokenVerifier,
+  TokenSigner}`, `dev-tools gen-jwks-key`) — `metap-demo-crm`/`metap-demo-jira`/`metap-lowcode`
+  are unaffected, verified by building them unchanged. **Scope deliberately stopped short of a
+  single-issuer topology**: all 3 services still hold the same private key locally (mint
+  themselves), matching the old RSA topology's blast radius — only rotation got safer (`JwksKeyStore`'s
+  3-step add/promote/retire), not the "1 process holds the only private key" property JWKS
+  otherwise enables. See `data-plane/README.md`'s GraphQL gateway section for the auth-flow
+  detail and the 3 services' own `.env.example` for the exact env vars
+  (`JWKS_PRIVATE_KEY_PATH`/`JWKS_KID_PATH`/`JWKS_URL`). RSA (`AUTH_JWT_PUBLIC_KEY_PATH`/
+  `AUTH_JWT_PRIVATE_KEY_PATH`, `dev-tools gen-keys`) still works as an explicit fallback if the
+  JWKS env vars are unset.
