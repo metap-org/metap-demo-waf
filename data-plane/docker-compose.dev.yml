@@ -1,6 +1,6 @@
 # metap-demo-waf/data-plane/docker-compose.dev.yml — one-command HOT-RELOAD dev loop for all 5
 # data-plane pieces: the 3 pillar services (zones-service/scanning-service/alerting-service),
-# `graphql-gateway` (BFF aggregating the 3, source lives in `../../metap/crates/graphql-gateway`
+# `graphql-gateway` (BFF aggregating the 3, source lives in `../../metap/crates/metap-graphql-gateway`
 # — a `metap` workspace member, NOT under `data-plane/`'s own `services/`), and `web` (the React
 # portal, Vite dev server). Same shape/rationale as `../../metap-demo-crm/docker-compose.dev.yml`
 # for the Rust services — read that file's top comment for the full explanation, not repeated

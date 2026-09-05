@@ -1,13 +1,13 @@
 # Build context is the metap-org ROOT (`../../docker-compose.yml` builds this with
 # `context: ../../`, not `.`/`data-plane/`) — needed to reach the `metap-graphql-gateway = { path
-# = "../../../metap/crates/graphql-gateway" }` dependency in `Cargo.toml`, which points outside
+# = "../../../metap/crates/metap-graphql-gateway" }` dependency in `Cargo.toml`, which points outside
 # `data-plane/` and so outside any build context narrower than the org root. Same pattern
 # `../services/zones-service/Dockerfile` already uses (see that file's own comment for the full
 # reasoning) — this crate just sits one level shallower (`data-plane/graphql-gateway/`, not
 # `data-plane/services/zones-service/`).
 #
 # Builds `waf-graphql-gateway` — this repo's own custom GraphQL BFF (`docs/roadmap/
-# 73-waf-graphql-protocol.md`), NOT `metap/crates/graphql-gateway`'s generic binary. Building the
+# 73-waf-graphql-protocol.md`), NOT `metap/crates/metap-graphql-gateway`'s generic binary. Building the
 # generic one instead (even labeled/tagged "waf-graphql-gateway") silently drops the 7 custom
 # mutations (`verifyZoneDns` etc.) and the `Query.aggregate` this binary forwards to REST — found
 # live, 2026-09-04, when `docker-compose.dev.yml` had exactly this mix-up.
