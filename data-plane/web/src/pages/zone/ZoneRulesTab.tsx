@@ -17,8 +17,10 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  EmptyState,
   Input,
   Label,
+  SectionCard,
   Select,
   Table,
   TableBody,
@@ -39,11 +41,8 @@ import {
   useRecords,
   type WafRecord,
 } from "../../api/waf";
-import {
-  EmptyState,
-  SectionCard,
-  StatusBadge,
-} from "../../components/primitives";
+import { useAsyncAction } from "@metap/platform-ui";
+import { StatusBadge } from "../../components/primitives";
 
 type RuleData = {
   zoneId?: string;
@@ -76,7 +75,7 @@ export function ZoneRulesTab({ zoneId }: { zoneId: string }) {
     JSON.stringify(EMPTY.matchCondition, null, 2),
   );
   const [open, setOpen] = useState(false);
-  const [busy, setBusy] = useState(false);
+  const { busy, run } = useAsyncAction();
 
   // Sorted here rather than by the list API: `priority` is not in the entity's sortable fields,
   // and the list is small (one zone's rules), so ordering client-side is cheaper than widening
@@ -104,8 +103,7 @@ export function ZoneRulesTab({ zoneId }: { zoneId: string }) {
   }
 
   async function save() {
-    setBusy(true);
-    try {
+    await run(async () => {
       let matchCondition: unknown;
       try {
         matchCondition = JSON.parse(conditionText);
@@ -130,29 +128,16 @@ export function ZoneRulesTab({ zoneId }: { zoneId: string }) {
       invalidate();
       setOpen(false);
       toast(t("waf.zoneTabs.rules.toastSaved"), { variant: "default" });
-    } catch (e) {
-      toast(e instanceof Error ? e.message : String(e), {
-        variant: "destructive",
-      });
-    } finally {
-      setBusy(false);
-    }
+    });
   }
 
   async function remove(rule: WafRecord<RuleData>) {
-    setBusy(true);
-    try {
+    await run(async () => {
       await deleteRecord(ENTITIES.firewallRules, rule.id, rule.version);
       await syncConfigState(zoneId);
       invalidate();
       toast(t("waf.zoneTabs.rules.toastDeleted"), { variant: "default" });
-    } catch (e) {
-      toast(e instanceof Error ? e.message : String(e), {
-        variant: "destructive",
-      });
-    } finally {
-      setBusy(false);
-    }
+    });
   }
 
   /** Swaps this rule's priority with its neighbour's — see the file header for why swap, not
@@ -161,8 +146,7 @@ export function ZoneRulesTab({ zoneId }: { zoneId: string }) {
     const index = ordered.findIndex((r) => r.id === rule.id);
     const neighbour = ordered[index + direction];
     if (!neighbour) return;
-    setBusy(true);
-    try {
+    await run(async () => {
       await updateRecord(ENTITIES.firewallRules, rule.id, rule.version, {
         priority: neighbour.data.priority,
       });
@@ -173,13 +157,7 @@ export function ZoneRulesTab({ zoneId }: { zoneId: string }) {
         { priority: rule.data.priority },
       );
       invalidate();
-    } catch (e) {
-      toast(e instanceof Error ? e.message : String(e), {
-        variant: "destructive",
-      });
-    } finally {
-      setBusy(false);
-    }
+    });
   }
 
   return (

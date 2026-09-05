@@ -11,6 +11,8 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   Button,
+  EmptyState,
+  PageHeader,
   Table,
   TableBody,
   TableCell,
@@ -27,12 +29,8 @@ import {
   useRecords,
   type WafRecord,
 } from "../api/waf";
-import {
-  EmptyState,
-  PageHeader,
-  StatusBadge,
-  shortDate,
-} from "../components/primitives";
+import { shortDate, useAsyncAction } from "@metap/platform-ui";
+import { StatusBadge } from "../components/primitives";
 
 export type IncidentData = {
   zoneId?: string;
@@ -58,7 +56,7 @@ export function IncidentsPage() {
   const { t } = useTranslation();
   const invalidate = useInvalidateWaf();
   const [status, setStatus] = useState("open");
-  const [busy, setBusy] = useState(false);
+  const { busy, run } = useAsyncAction();
   const incidents = useRecords<IncidentData>(
     ENTITIES.incidents,
     { status: status || undefined },
@@ -74,8 +72,7 @@ export function IncidentsPage() {
   async function advance(incident: WafRecord<IncidentData>) {
     const next = NEXT_ACTION[incident.data.status ?? incident.status ?? ""];
     if (!next) return;
-    setBusy(true);
-    try {
+    await run(async () => {
       await transitionRecord(
         ENTITIES.incidents,
         incident.id,
@@ -83,18 +80,11 @@ export function IncidentsPage() {
         incident.version,
       );
       invalidate();
-    } catch (e) {
-      toast(e instanceof Error ? e.message : String(e), {
-        variant: "destructive",
-      });
-    } finally {
-      setBusy(false);
-    }
+    });
   }
 
   async function correlate() {
-    setBusy(true);
-    try {
+    await run(async () => {
       const result = await correlateIncidents();
       invalidate();
       toast(
@@ -106,13 +96,7 @@ export function IncidentsPage() {
           variant: "default",
         },
       );
-    } catch (e) {
-      toast(e instanceof Error ? e.message : String(e), {
-        variant: "destructive",
-      });
-    } finally {
-      setBusy(false);
-    }
+    });
   }
 
   return (

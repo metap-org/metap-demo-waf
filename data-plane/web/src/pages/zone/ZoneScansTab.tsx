@@ -16,8 +16,10 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  EmptyState,
   Input,
   Label,
+  SectionCard,
   Select,
   Table,
   TableBody,
@@ -34,12 +36,8 @@ import {
   useInvalidateWaf,
   useRecords,
 } from "../../api/waf";
-import {
-  EmptyState,
-  SectionCard,
-  StatusBadge,
-  shortDate,
-} from "../../components/primitives";
+import { shortDate, useAsyncAction } from "@metap/platform-ui";
+import { StatusBadge } from "../../components/primitives";
 
 type ScanJobData = {
   zoneId?: string;
@@ -61,7 +59,9 @@ export function ZoneScansTab({ zoneId }: { zoneId: string }) {
   const invalidate = useInvalidateWaf();
   const jobs = useRecords<ScanJobData>(ENTITIES.scanJobs, { zoneId }, 50);
   const [open, setOpen] = useState(false);
-  const [busy, setBusy] = useState(false);
+  // `run` (the hook's async wrapper) is renamed here — this file already has a domain-level
+  // `run(jobId)` function below (triggers a scan run), which would otherwise shadow it.
+  const { busy, run: runAsync } = useAsyncAction();
   const [draft, setDraft] = useState<ScanJobData>({
     scanType: "passive",
     schedule: "0 3 * * *",
@@ -82,36 +82,22 @@ export function ZoneScansTab({ zoneId }: { zoneId: string }) {
   );
 
   async function createJob() {
-    setBusy(true);
-    try {
+    await runAsync(async () => {
       await createRecord(ENTITIES.scanJobs, { ...draft, zoneId });
       invalidate();
       setOpen(false);
       toast(t("waf.zoneTabs.scans.toastCreated"), { variant: "default" });
-    } catch (e) {
-      toast(e instanceof Error ? e.message : String(e), {
-        variant: "destructive",
-      });
-    } finally {
-      setBusy(false);
-    }
+    });
   }
 
   async function run(jobId: string) {
-    setBusy(true);
-    try {
+    await runAsync(async () => {
       const result = await runScanJob(jobId);
       invalidate();
       toast(result.data.detail, {
         variant: result.data.dispatched ? "default" : "default",
       });
-    } catch (e) {
-      toast(e instanceof Error ? e.message : String(e), {
-        variant: "destructive",
-      });
-    } finally {
-      setBusy(false);
-    }
+    });
   }
 
   return (

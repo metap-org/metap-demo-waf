@@ -12,11 +12,7 @@ import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   Button,
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
+  PageHeader,
   Tabs,
   TabsContent,
   TabsList,
@@ -26,7 +22,7 @@ import {
 import {
   useEntity,
   useEntityLabels,
-  WorkflowDiagram,
+  WorkflowVisualizeDialog,
   type TransitionAvailability,
 } from "@metap/platform-ui";
 import {
@@ -37,7 +33,7 @@ import {
   verifyDns,
   type ZoneData,
 } from "../api/waf";
-import { PageHeader, StatusBadge } from "../components/primitives";
+import { StatusBadge } from "../components/primitives";
 import { ZoneOverviewTab } from "./zone/ZoneOverviewTab";
 import { ZoneDdosTab } from "./zone/ZoneDdosTab";
 import { ZoneRulesTab } from "./zone/ZoneRulesTab";
@@ -189,27 +185,16 @@ export function ZoneDetailPage() {
               </Button>
             ))}
             {workflow ? (
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button size="sm" variant="outline">
-                    {t("workflow.visualize")}
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-3xl">
-                  <DialogHeader>
-                    <DialogTitle>{t("workflow.visualize")}</DialogTitle>
-                  </DialogHeader>
-                  <WorkflowDiagram
-                    workflow={workflow}
-                    currentState={status}
-                    availableTransitions={availableTransitions}
-                    transitionInfo={transitionInfo}
-                    pendingAction={pendingAction}
-                    onTransition={(action) => void act(action)}
-                    transitionLabel={transitionLabel}
-                  />
-                </DialogContent>
-              </Dialog>
+              <WorkflowVisualizeDialog
+                label={t("workflow.visualize")}
+                workflow={workflow}
+                currentState={status}
+                availableTransitions={availableTransitions}
+                transitionInfo={transitionInfo}
+                pendingAction={pendingAction}
+                onTransition={(action) => void act(action)}
+                transitionLabel={transitionLabel}
+              />
             ) : null}
           </>
         }

@@ -10,13 +10,16 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Button,
+  EmptyState,
+  PageHeader,
+  SectionCard,
+  StatTile,
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
-  toast,
 } from "@metap/ui";
 import {
   ENTITIES,
@@ -26,14 +29,8 @@ import {
   useRecords,
   type WafRecord,
 } from "../api/waf";
-import {
-  EmptyState,
-  PageHeader,
-  StatTile,
-  StatusBadge,
-  SectionCard,
-  shortDate,
-} from "../components/primitives";
+import { shortDate, useAsyncAction } from "@metap/platform-ui";
+import { StatusBadge } from "../components/primitives";
 
 type FindingData = {
   scanJobId?: string;
@@ -73,7 +70,7 @@ export function FindingsPage() {
   const invalidate = useInvalidateWaf();
   const [status, setStatus] = useState("open");
   const [severity, setSeverity] = useState("");
-  const [busy, setBusy] = useState(false);
+  const { busy, run } = useAsyncAction();
 
   const findings = useRecords<FindingData>(
     ENTITIES.scanFindings,
@@ -87,8 +84,7 @@ export function FindingsPage() {
     bySeverity.data?.find((row) => row.group === group)?.count ?? 0;
 
   async function act(finding: WafRecord<FindingData>, action: string) {
-    setBusy(true);
-    try {
+    await run(async () => {
       await transitionRecord(
         ENTITIES.scanFindings,
         finding.id,
@@ -96,13 +92,7 @@ export function FindingsPage() {
         finding.version,
       );
       invalidate();
-    } catch (e) {
-      toast(e instanceof Error ? e.message : String(e), {
-        variant: "destructive",
-      });
-    } finally {
-      setBusy(false);
-    }
+    });
   }
 
   return (

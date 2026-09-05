@@ -10,11 +10,8 @@ import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   Button,
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
+  PageHeader,
+  SectionCard,
   Table,
   TableBody,
   TableCell,
@@ -25,9 +22,10 @@ import {
 } from "@metap/ui";
 import { useState } from "react";
 import {
+  shortDate,
   useEntity,
   useEntityLabels,
-  WorkflowDiagram,
+  WorkflowVisualizeDialog,
   type TransitionAvailability,
 } from "@metap/platform-ui";
 import {
@@ -37,12 +35,7 @@ import {
   useRecord,
   useRecords,
 } from "../api/waf";
-import {
-  PageHeader,
-  SectionCard,
-  StatusBadge,
-  shortDate,
-} from "../components/primitives";
+import { StatusBadge } from "../components/primitives";
 import { NEXT_ACTION, type IncidentData } from "./IncidentsPage";
 
 const INCIDENT_ACTION_TOAST_KEY: Record<string, string> = {
@@ -146,27 +139,16 @@ export function IncidentDetailPage() {
               </Button>
             ) : null}
             {workflow ? (
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button size="sm" variant="outline">
-                    {t("workflow.visualize")}
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-3xl">
-                  <DialogHeader>
-                    <DialogTitle>{t("workflow.visualize")}</DialogTitle>
-                  </DialogHeader>
-                  <WorkflowDiagram
-                    workflow={workflow}
-                    currentState={state}
-                    availableTransitions={availableTransitions}
-                    transitionInfo={transitionInfo}
-                    pendingAction={pendingAction}
-                    onTransition={() => void advance()}
-                    transitionLabel={transitionLabel}
-                  />
-                </DialogContent>
-              </Dialog>
+              <WorkflowVisualizeDialog
+                label={t("workflow.visualize")}
+                workflow={workflow}
+                currentState={state}
+                availableTransitions={availableTransitions}
+                transitionInfo={transitionInfo}
+                pendingAction={pendingAction}
+                onTransition={() => void advance()}
+                transitionLabel={transitionLabel}
+              />
             ) : null}
           </>
         }

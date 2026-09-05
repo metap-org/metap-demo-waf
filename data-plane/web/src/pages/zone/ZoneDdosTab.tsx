@@ -9,7 +9,17 @@
  */
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, Input, Label, Select, Toggle, toast } from "@metap/ui";
+import {
+  Button,
+  EmptyState,
+  Input,
+  Label,
+  Select,
+  SectionCard,
+  Toggle,
+  toast,
+} from "@metap/ui";
+import { useAsyncAction } from "@metap/platform-ui";
 import {
   ENTITIES,
   createRecord,
@@ -19,7 +29,6 @@ import {
   useInvalidateWaf,
   useRecords,
 } from "../../api/waf";
-import { EmptyState, SectionCard } from "../../components/primitives";
 
 type DdosData = {
   zoneId?: string;
@@ -44,15 +53,14 @@ export function ZoneDdosTab({ zoneId }: { zoneId: string }) {
   const policies = useRecords<DdosData>(ENTITIES.ddosPolicies, { zoneId }, 1);
   const policy = policies.data?.[0];
   const [draft, setDraft] = useState<DdosData>(DEFAULTS);
-  const [busy, setBusy] = useState(false);
+  const { busy, run } = useAsyncAction();
 
   useEffect(() => {
     if (policy) setDraft({ ...DEFAULTS, ...policy.data });
   }, [policy?.id, policy?.version]);
 
   async function save() {
-    setBusy(true);
-    try {
+    await run(async () => {
       if (policy) {
         await updateRecord(
           ENTITIES.ddosPolicies,
@@ -66,31 +74,18 @@ export function ZoneDdosTab({ zoneId }: { zoneId: string }) {
       await syncConfigState(zoneId);
       invalidate();
       toast(t("waf.zoneTabs.ddos.toastSaved"), { variant: "default" });
-    } catch (e) {
-      toast(e instanceof Error ? e.message : String(e), {
-        variant: "destructive",
-      });
-    } finally {
-      setBusy(false);
-    }
+    });
   }
 
   async function remove() {
     if (!policy) return;
-    setBusy(true);
-    try {
+    await run(async () => {
       await deleteRecord(ENTITIES.ddosPolicies, policy.id, policy.version);
       await syncConfigState(zoneId);
       invalidate();
       setDraft(DEFAULTS);
       toast(t("waf.zoneTabs.ddos.toastRemoved"), { variant: "default" });
-    } catch (e) {
-      toast(e instanceof Error ? e.message : String(e), {
-        variant: "destructive",
-      });
-    } finally {
-      setBusy(false);
-    }
+    });
   }
 
   if (policies.isLoading)

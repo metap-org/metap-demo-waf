@@ -12,24 +12,21 @@ import { useTranslation } from "react-i18next";
 import {
   BarChart,
   Button,
+  EmptyState,
+  PageHeader,
+  SectionCard,
   Select,
+  StatTile,
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
+  TimeSeries,
 } from "@metap/ui";
 import { ENTITIES, daysAgo, useAggregate, useRecords } from "../api/waf";
-import {
-  EmptyState,
-  PageHeader,
-  SectionCard,
-  StatTile,
-  TimeSeries,
-  dayLabel,
-  shortDate,
-} from "../components/primitives";
+import { dayLabel, shortDate } from "@metap/platform-ui";
 
 // `DEFAULT_WINDOW` named separately (rather than `WINDOWS[1]`) so the fallback below has a type
 // TypeScript can see is never `undefined` — `noUncheckedIndexedAccess` makes any indexed access

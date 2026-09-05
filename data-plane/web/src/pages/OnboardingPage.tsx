@@ -17,6 +17,8 @@ import {
   Button,
   Input,
   Label,
+  PageHeader,
+  SectionCard,
   Select,
   Stepper,
   StepperConnector,
@@ -34,7 +36,7 @@ import {
   type OriginTestResult,
   type Zone,
 } from "../api/waf";
-import { PageHeader, SectionCard, StatusBadge } from "../components/primitives";
+import { StatusBadge } from "../components/primitives";
 
 /** The zone's DNS-TXT challenge value.
  *

@@ -11,10 +11,12 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
-import { apiFetch, useAuth } from "@metap/platform-ui";
+import { apiFetch, useAsyncAction, useAuth } from "@metap/platform-ui";
 import {
   Button,
   Input,
+  PageHeader,
+  SectionCard,
   Table,
   TableBody,
   TableCell,
@@ -23,7 +25,7 @@ import {
   TableRow,
   toast,
 } from "@metap/ui";
-import { PageHeader, SectionCard, StatusBadge } from "../components/primitives";
+import { StatusBadge } from "../components/primitives";
 
 type ConfigItem = {
   key: string;
@@ -37,7 +39,7 @@ export function SettingsPage() {
   const { t } = useTranslation();
   const { status } = useAuth();
   const [drafts, setDrafts] = useState<Record<string, string>>({});
-  const [busy, setBusy] = useState(false);
+  const { busy, run } = useAsyncAction();
 
   const config = useQuery({
     queryKey: ["waf-tenant-config"],
@@ -49,8 +51,7 @@ export function SettingsPage() {
   async function save(item: ConfigItem) {
     const raw = drafts[item.key];
     if (raw === undefined) return;
-    setBusy(true);
-    try {
+    await run(async () => {
       // Numbers and booleans must go over the wire as their real JSON types — the key's validator
       // in Rust type-checks the value, so sending "30" where a number is expected is a 400.
       let value: unknown = raw;
@@ -69,18 +70,11 @@ export function SettingsPage() {
       toast(t("waf.settings.toastSaved", { key: item.key }), {
         variant: "default",
       });
-    } catch (e) {
-      toast(e instanceof Error ? e.message : String(e), {
-        variant: "destructive",
-      });
-    } finally {
-      setBusy(false);
-    }
+    });
   }
 
   async function reset(item: ConfigItem) {
-    setBusy(true);
-    try {
+    await run(async () => {
       await apiFetch(`/admin/config/${encodeURIComponent(item.key)}`, {
         method: "DELETE",
       });
@@ -88,13 +82,7 @@ export function SettingsPage() {
       toast(t("waf.settings.toastReset", { key: item.key }), {
         variant: "default",
       });
-    } catch (e) {
-      toast(e instanceof Error ? e.message : String(e), {
-        variant: "destructive",
-      });
-    } finally {
-      setBusy(false);
-    }
+    });
   }
 
   const items = config.data ?? [];

@@ -11,7 +11,15 @@
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { BarChart, Button } from "@metap/ui";
+import {
+  BarChart,
+  Button,
+  EmptyState,
+  PageHeader,
+  SectionCard,
+  StatTile,
+  TimeSeries,
+} from "@metap/ui";
 import {
   ENTITIES,
   daysAgo,
@@ -19,15 +27,8 @@ import {
   useRecords,
   type AggregateRow,
 } from "../api/waf";
-import {
-  EmptyState,
-  PageHeader,
-  SectionCard,
-  StatTile,
-  StatusBadge,
-  TimeSeries,
-  dayLabel,
-} from "../components/primitives";
+import { dayLabel } from "@metap/platform-ui";
+import { StatusBadge } from "../components/primitives";
 
 /** Sums `count` across every returned group — the "how many in total" reading of a grouped
  *  aggregate, so one request answers both the tile and the chart next to it. */

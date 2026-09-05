@@ -10,6 +10,8 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Button,
+  EmptyState,
+  SectionCard,
   Select,
   Table,
   TableBody,
@@ -25,12 +27,8 @@ import {
   useInvalidateWaf,
   useRecords,
 } from "../../api/waf";
-import {
-  EmptyState,
-  SectionCard,
-  StatusBadge,
-  shortDate,
-} from "../../components/primitives";
+import { shortDate, useAsyncAction } from "@metap/platform-ui";
+import { StatusBadge } from "../../components/primitives";
 
 type EventData = {
   zoneId?: string;
@@ -46,7 +44,7 @@ export function ZoneEventsTab({ zoneId }: { zoneId: string }) {
   const { t } = useTranslation();
   const invalidate = useInvalidateWaf();
   const [action, setAction] = useState("");
-  const [busy, setBusy] = useState(false);
+  const { busy, run } = useAsyncAction();
   const events = useRecords<EventData>(
     ENTITIES.securityEvents,
     { zoneId, action: action || undefined },
@@ -54,8 +52,7 @@ export function ZoneEventsTab({ zoneId }: { zoneId: string }) {
   );
 
   async function correlate() {
-    setBusy(true);
-    try {
+    await run(async () => {
       const result = await correlateIncidents(zoneId);
       invalidate();
       toast(
@@ -65,13 +62,7 @@ export function ZoneEventsTab({ zoneId }: { zoneId: string }) {
         }),
         { variant: "default" },
       );
-    } catch (e) {
-      toast(e instanceof Error ? e.message : String(e), {
-        variant: "destructive",
-      });
-    } finally {
-      setBusy(false);
-    }
+    });
   }
 
   return (

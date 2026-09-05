@@ -7,7 +7,9 @@
 import { Link } from "react-router-dom";
 import {
   Button,
+  EmptyState,
   Input,
+  PageHeader,
   Table,
   TableBody,
   TableCell,
@@ -18,7 +20,7 @@ import {
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ENTITIES, useRecords, type ZoneData } from "../api/waf";
-import { EmptyState, PageHeader, StatusBadge } from "../components/primitives";
+import { StatusBadge } from "../components/primitives";
 
 export function ZonesPage() {
   const { t } = useTranslation();

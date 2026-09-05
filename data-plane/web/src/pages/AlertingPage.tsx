@@ -16,8 +16,11 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  EmptyState,
   Input,
   Label,
+  PageHeader,
+  SectionCard,
   Table,
   TableBody,
   TableCell,
@@ -38,13 +41,8 @@ import {
   useRecords,
   type WafRecord,
 } from "../api/waf";
-import {
-  EmptyState,
-  PageHeader,
-  SectionCard,
-  StatusBadge,
-  shortDate,
-} from "../components/primitives";
+import { shortDate, useAsyncAction } from "@metap/platform-ui";
+import { StatusBadge } from "../components/primitives";
 
 type PolicyData = {
   name?: string;
@@ -84,7 +82,7 @@ export function AlertingPage() {
   const [channelsText, setChannelsText] = useState(
     JSON.stringify(EMPTY.channels, null, 2),
   );
-  const [busy, setBusy] = useState(false);
+  const { busy, run } = useAsyncAction();
 
   function startCreate() {
     setEditing(null);
@@ -101,8 +99,7 @@ export function AlertingPage() {
   }
 
   async function save() {
-    setBusy(true);
-    try {
+    await run(async () => {
       let channels: unknown;
       try {
         channels = JSON.parse(channelsText);
@@ -124,18 +121,11 @@ export function AlertingPage() {
       invalidate();
       setOpen(false);
       toast(t("waf.alerting.toastSaved"), { variant: "default" });
-    } catch (e) {
-      toast(e instanceof Error ? e.message : String(e), {
-        variant: "destructive",
-      });
-    } finally {
-      setBusy(false);
-    }
+    });
   }
 
   async function sendTest(policy: WafRecord<PolicyData>) {
-    setBusy(true);
-    try {
+    await run(async () => {
       const result = await testAlertPolicy(policy.id);
       invalidate();
       toast(
@@ -151,18 +141,11 @@ export function AlertingPage() {
           variant: result.data.delivered ? "default" : "destructive",
         },
       );
-    } catch (e) {
-      toast(e instanceof Error ? e.message : String(e), {
-        variant: "destructive",
-      });
-    } finally {
-      setBusy(false);
-    }
+    });
   }
 
   async function evaluateNow() {
-    setBusy(true);
-    try {
+    await run(async () => {
       const result = await evaluateAlerts();
       invalidate();
       toast(
@@ -174,13 +157,7 @@ export function AlertingPage() {
           variant: "default",
         },
       );
-    } catch (e) {
-      toast(e instanceof Error ? e.message : String(e), {
-        variant: "destructive",
-      });
-    } finally {
-      setBusy(false);
-    }
+    });
   }
 
   const policyName = (id?: string) =>

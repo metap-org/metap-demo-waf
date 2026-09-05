@@ -2,7 +2,7 @@
  *  API so the counts are real totals rather than "however many rows fit on one page". */
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { BarChart } from "@metap/ui";
+import { BarChart, SectionCard, StatTile, TimeSeries } from "@metap/ui";
 import {
   ENTITIES,
   daysAgo,
@@ -10,14 +10,8 @@ import {
   useRecords,
   type Zone,
 } from "../../api/waf";
-import {
-  SectionCard,
-  StatTile,
-  StatusBadge,
-  TimeSeries,
-  dayLabel,
-  shortDate,
-} from "../../components/primitives";
+import { dayLabel, shortDate } from "@metap/platform-ui";
+import { StatusBadge } from "../../components/primitives";
 
 export function ZoneOverviewTab({ zone }: { zone: Zone }) {
   const { t } = useTranslation();
