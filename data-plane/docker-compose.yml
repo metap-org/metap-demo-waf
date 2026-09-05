@@ -128,9 +128,9 @@ services:
   graphql-gateway:
     build:
       # Root context + this repo's own Dockerfile — builds `waf-graphql-gateway` (the 7 custom
-      # mutations + `aggregate` proxy this app needs), NOT `metap/crates/graphql-gateway`'s
+      # mutations + `aggregate` proxy this app needs), NOT `metap/crates/metap-graphql-gateway`'s
       # generic binary. Found live, 2026-09-04: this used to build the generic one (context
-      # `../../metap`, `crates/graphql-gateway/Dockerfile`), silently missing every custom field
+      # `../../metap`, `crates/metap-graphql-gateway/Dockerfile`), silently missing every custom field
       # the frontend actually calls — `docker-compose.dev.yml` had the identical mix-up, see that
       # file's own comment for the full story.
       context: ../../

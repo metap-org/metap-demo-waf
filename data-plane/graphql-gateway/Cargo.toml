@@ -12,7 +12,7 @@ path = "src/main.rs"
 # level shallower than services/*/Cargo.toml's `../../../../metap/...` since this crate lives
 # directly under data-plane/, not under data-plane/services/. Swap to `git = ...` for CI/deploy
 # once this stabilizes on a real branch/tag, same convention as every other crate here.
-metap-graphql-gateway = { path = "../../../metap/crates/graphql-gateway" }
+metap-graphql-gateway = { path = "../../../metap/crates/metap-graphql-gateway" }
 metap-graphql = { path = "../../../metap/crates/metap-graphql" }
 metap-infra = { path = "../../../metap/crates/metap-infra" }
 metap-permission = { path = "../../../metap/crates/metap-permission" }

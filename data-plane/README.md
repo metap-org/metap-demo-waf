@@ -28,7 +28,7 @@ tách theo data layer — xem lý do kỹ thuật ở doc-comment mỗi service'
 Zone". Chi tiết đầy đủ ở từng service's `main.rs` doc comment.
 
 **[GraphQL gateway](graphql-gateway/README.md)** (cho FE gộp query cross-service) — đã dựng, chạy
-thật, tái dùng nguyên trạng `metap/crates/graphql-gateway` (không code mới, chỉ cấu hình ở
+thật, tái dùng nguyên trạng `metap/crates/metap-graphql-gateway` (không code mới, chỉ cấu hình ở
 `graphql-gateway/.env`) — 1 instance riêng cho WAF (không gộp chung upstream với
 `metap-demo-crm`/`metap-demo-jira`), 3 `UPSTREAM_<N>_*` trỏ vào 3 service trên, port 4000. **Dùng
 được cho cả mutation** (2026-09-02, đã verify sống: mutation qua `/graphql` phản ánh đúng
@@ -135,10 +135,10 @@ admin, `Plan`/`Subscription`
 ```bash
 # 1 lần cho cả 3 service — Postgres/RabbitMQ dùng chung với ../metap (docker compose up -d
 # postgres rabbitmq ở đó nếu chưa chạy). Key JWT dùng chung, đặt ở data-plane/keys/.
-cargo run --manifest-path ../../metap/crates/dev-tools/Cargo.toml -- gen-keys keys           # RSA fallback
-cargo run --manifest-path ../../metap/crates/dev-tools/Cargo.toml -- gen-jwks-key keys       # EdDSA trust root (mặc định dùng cái này, xem README's auth section)
-cargo run --manifest-path ../../metap/crates/dev-tools/Cargo.toml -- provision-tenant <tenantId> schema <email> <password>
-cargo run --manifest-path ../../metap/crates/dev-tools/Cargo.toml -- mint-token <tenantId> <userId>
+cargo run --manifest-path ../../metap/crates/metap-dev-tools/Cargo.toml -- gen-keys keys           # RSA fallback
+cargo run --manifest-path ../../metap/crates/metap-dev-tools/Cargo.toml -- gen-jwks-key keys       # EdDSA trust root (mặc định dùng cái này, xem README's auth section)
+cargo run --manifest-path ../../metap/crates/metap-dev-tools/Cargo.toml -- provision-tenant <tenantId> schema <email> <password>
+cargo run --manifest-path ../../metap/crates/metap-dev-tools/Cargo.toml -- mint-token <tenantId> <userId>
 
 # Mỗi service: copy .env.example riêng rồi chạy (từ data-plane/, workspace root)
 cp services/zones-service/.env.example services/zones-service/.env
@@ -178,7 +178,7 @@ cần bước riêng.
 
 `docker-compose.yml` (thư mục này) orchestrate 5 container: `zones-service`, `scanning-service`,
 `alerting-service`, `graphql-gateway`, `web` — build từ 5 Dockerfile (3 service's
-`services/*/Dockerfile`, `../../metap/crates/graphql-gateway/Dockerfile`, `web/Dockerfile`).
+`services/*/Dockerfile`, `../../metap/crates/metap-graphql-gateway/Dockerfile`, `web/Dockerfile`).
 **Không tự chạy Postgres/RabbitMQ riêng** — 3 service backend trỏ vào cùng instance dev dùng
 chung với `../../metap` (`docker compose up -d postgres rabbitmq` từ đó, cổng host 5433/5672)
 qua `host.docker.internal` (đúng pattern `../../metap/docker-compose.yml`'s `prometheus`/`k6` đã

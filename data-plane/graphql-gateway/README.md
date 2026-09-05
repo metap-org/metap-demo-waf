@@ -16,7 +16,7 @@ frontend-checklist.md` — chuyển hẳn từ REST sang GraphQL, trừ `/auth/*
 sang chính bản generic đó** dù code binary này đã tồn tại, gây mọi field custom + `aggregate` báo
 "Unknown field" — xem `../../../metap-docs/docs/roadmap/76-waf-portal-live-bugfixes.md`) —
 `src/main.rs` là 1 binary mỏng dựng trên thư viện `metap-graphql-gateway`
-(`../../../metap/crates/graphql-gateway`), gọi `schema_builder::build_with_extensions` để merge
+(`../../../metap/crates/metap-graphql-gateway`), gọi `schema_builder::build_with_extensions` để merge
 7 field custom vào schema generic trước khi finish. Chạy:
 
 ```bash
@@ -78,7 +78,7 @@ root 3 service dùng", chỉ đổi cơ chế phân phối (fetch qua HTTP, khô
 nguyên tắc.
 
 Gateway decode-only ở bước NÀY (xác nhận người gọi có token hợp lệ để vào `/graphql` được). Từ
-đó xuống upstream (2026-09-02, xem `metap/crates/graphql-gateway/README.md`'s Auth section cho
+đó xuống upstream (2026-09-02, xem `metap/crates/metap-graphql-gateway/README.md`'s Auth section cho
 chi tiết đầy đủ, và 7 field custom ở trên forward cùng token đó thẳng tới REST endpoint): vì
 gateway + cả 3 service WAF share đúng 1 trust root, token của caller được
 **forward nguyên vẹn** xuống upstream — permission check ở upstream chạy theo đúng identity/role
