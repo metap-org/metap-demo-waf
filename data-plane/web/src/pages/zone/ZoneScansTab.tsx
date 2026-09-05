@@ -220,7 +220,7 @@ export function ZoneScansTab({ zoneId }: { zoneId: string }) {
               <Select
                 id="scan-type"
                 value={draft.scanType}
-                onChange={(value) =>
+                onValueChange={(value) =>
                   setDraft({ ...draft, scanType: String(value) })
                 }
                 options={[

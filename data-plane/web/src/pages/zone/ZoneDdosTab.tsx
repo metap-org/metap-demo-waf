@@ -133,7 +133,7 @@ export function ZoneDdosTab({ zoneId }: { zoneId: string }) {
             <Select
               id="sensitivity"
               value={draft.sensitivity}
-              onChange={(value) =>
+              onValueChange={(value) =>
                 setDraft({ ...draft, sensitivity: String(value) })
               }
               options={[
@@ -158,7 +158,7 @@ export function ZoneDdosTab({ zoneId }: { zoneId: string }) {
             <Select
               id="action"
               value={draft.action}
-              onChange={(value) =>
+              onValueChange={(value) =>
                 setDraft({ ...draft, action: String(value) })
               }
               options={[

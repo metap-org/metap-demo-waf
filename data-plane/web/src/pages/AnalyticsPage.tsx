@@ -116,7 +116,7 @@ export function AnalyticsPage() {
           <>
             <Select
               value={zoneId}
-              onChange={(value) => setZoneId(String(value))}
+              onValueChange={(value) => setZoneId(String(value))}
               options={[
                 { value: "", label: t("waf.analytics.allZones") },
                 ...(zones.data ?? []).map((zone) => ({

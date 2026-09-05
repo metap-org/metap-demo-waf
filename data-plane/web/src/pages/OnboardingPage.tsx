@@ -234,7 +234,7 @@ export function OnboardingPage() {
               <Select
                 id="mode"
                 value={protectionMode}
-                onChange={(value) => setProtectionMode(String(value))}
+                onValueChange={(value) => setProtectionMode(String(value))}
                 options={[
                   {
                     value: "monitor",

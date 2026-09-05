@@ -282,7 +282,7 @@ export function ZoneRulesTab({ zoneId }: { zoneId: string }) {
                 <Select
                   id="rule-type"
                   value={draft.ruleType}
-                  onChange={(value) =>
+                  onValueChange={(value) =>
                     setDraft({ ...draft, ruleType: String(value) })
                   }
                   options={[
@@ -309,7 +309,7 @@ export function ZoneRulesTab({ zoneId }: { zoneId: string }) {
                 <Select
                   id="rule-action"
                   value={draft.action}
-                  onChange={(value) =>
+                  onValueChange={(value) =>
                     setDraft({ ...draft, action: String(value) })
                   }
                   options={[

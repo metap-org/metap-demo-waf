@@ -74,7 +74,7 @@ export function ZoneEventsTab({ zoneId }: { zoneId: string }) {
           <>
             <Select
               value={action}
-              onChange={(value) => setAction(String(value))}
+              onValueChange={(value) => setAction(String(value))}
               options={[
                 { value: "", label: t("waf.zoneTabs.events.allActions") },
                 { value: "blocked", label: t("waf.status.blocked") },
