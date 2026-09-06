@@ -21,10 +21,13 @@
 //! non-gating field — whether the hostname's DNS has actually been pointed at edge-plane yet is
 //! informational only, checked independently of ownership.
 
+use std::collections::HashMap;
+
 use metap::permission::{ConditionOp, PolicyValue};
 use metap::prelude::{
-    submit_entity, submit_related_views, EntityDefinition, EntityField, EntityListView,
-    EntityWorkflow, FieldKind, PolicyCondition, RelatedView, WorkflowTransition,
+    submit_entity, submit_field_display_hints, submit_related_views, EntityDefinition,
+    EntityField, EntityListView, EntityWorkflow, FieldDisplayHint, FieldKind, PolicyCondition,
+    RelatedView, WorkflowTransition,
 };
 use serde_json::json;
 
@@ -342,3 +345,25 @@ fn zone_related_views() -> Vec<RelatedView> {
 }
 
 submit_related_views!("waf.zones", zone_related_views);
+
+/// First real consumer of `FieldDisplayHint.enum_tones`
+/// (`docs/features/29-field-value-enum-tone-mapping.md`) — mirrors `primitives.tsx`'s `TONES`
+/// zone-status mapping exactly, so `waf.zones`'s `status` reads the same colour on the generic
+/// `/records/waf.zones` escape-hatch screen (`GeneratedList`/`FieldValue`) as it already does on
+/// the product's own `ZonesPage`/`StatusBadge`. Not a reason to migrate `StatusBadge` itself onto
+/// this — that stays app-local per `platform-ui/docs/audits/03-waf-demo-component-placement-audit.md`,
+/// this only keeps the *generic* renderer from disagreeing with it.
+fn zone_field_display_hints() -> Vec<FieldDisplayHint> {
+    vec![FieldDisplayHint {
+        field: "status".to_string(),
+        resolve_via: None,
+        enum_tones: Some(HashMap::from([
+            ("active".to_string(), "default".to_string()),
+            ("pending".to_string(), "secondary".to_string()),
+            ("paused".to_string(), "outline".to_string()),
+            ("suspended".to_string(), "destructive".to_string()),
+        ])),
+    }]
+}
+
+submit_field_display_hints!("waf.zones", zone_field_display_hints);
