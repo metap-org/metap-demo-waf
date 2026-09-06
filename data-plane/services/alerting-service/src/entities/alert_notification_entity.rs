@@ -100,6 +100,7 @@ pub fn alert_notification_entity() -> EntityDefinition {
                 "deliveryStatus".to_string(),
             ],
             filters: vec!["alertPolicyId".to_string(), "deliveryStatus".to_string()],
+            required_fields: vec![],
             default_sort: Some("-triggeredAt".to_string()),
             max_limit: 50,
         }],

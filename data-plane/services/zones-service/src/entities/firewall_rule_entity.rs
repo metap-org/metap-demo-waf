@@ -139,6 +139,7 @@ pub fn firewall_rule_entity() -> EntityDefinition {
                 "ruleType".to_string(),
                 "enabled".to_string(),
             ],
+            required_fields: vec![],
             default_sort: Some("priority".to_string()),
             max_limit: 100,
         }],

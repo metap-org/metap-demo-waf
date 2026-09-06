@@ -156,6 +156,7 @@ pub fn scan_finding_entity() -> EntityDefinition {
                 "severity".to_string(),
                 "remediationStatus".to_string(),
             ],
+            required_fields: vec![],
             default_sort: Some("-lastSeenAt".to_string()),
             max_limit: 50,
         }],

@@ -199,6 +199,11 @@ pub fn zone_entity() -> EntityDefinition {
                 "status".to_string(),
                 "protectionMode".to_string(),
             ],
+            // Live example for `docs/features/32-generated-list-column-visibility.md` — `hostname`
+            // (which zone) and `status` (is it even protecting anything) are the 2 columns nobody
+            // should be able to hide from this list; `protectionMode`/`configVersion` are fine to
+            // toggle off on a narrow viewport.
+            required_fields: vec!["hostname".to_string(), "status".to_string()],
             default_sort: Some("-createdAt".to_string()),
             max_limit: 50,
         }],

@@ -70,6 +70,7 @@ pub fn alert_policy_entity() -> EntityDefinition {
                 "enabled".to_string(),
             ],
             filters: vec!["enabled".to_string()],
+            required_fields: vec![],
             default_sort: Some("-createdAt".to_string()),
             max_limit: 50,
         }],

@@ -131,6 +131,7 @@ pub fn incident_entity() -> EntityDefinition {
                 "status".to_string(),
                 "assignedTo".to_string(),
             ],
+            required_fields: vec![],
             default_sort: Some("-createdAt".to_string()),
             max_limit: 50,
         }],
@@ -161,7 +162,8 @@ submit_entity!(incident_entity);
 fn incident_field_display_hints() -> Vec<FieldDisplayHint> {
     vec![FieldDisplayHint {
         field: "assignedTo".to_string(),
-        resolve_via: "users".to_string(),
+        resolve_via: Some("users".to_string()),
+        enum_tones: None,
     }]
 }
 

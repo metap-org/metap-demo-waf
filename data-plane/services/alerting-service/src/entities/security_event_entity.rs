@@ -144,6 +144,7 @@ pub fn security_event_entity() -> EntityDefinition {
                 "action".to_string(),
                 "sourceIp".to_string(),
             ],
+            required_fields: vec![],
             default_sort: Some("-occurredAt".to_string()),
             max_limit: 50,
         }],
