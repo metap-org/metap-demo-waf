@@ -170,6 +170,13 @@ traffic must query `records` directly for row counts per (tenant, entity) first 
 "no seed script" are not a substitute.
 
 Notable open questions flagged in the docs (don't resolve unilaterally — surface them):
+- **Deleting a `Zone` that still has a live `DdosPolicy` is blocked with `record_referenced`**
+  (confirmed live 2026-09-08, not a bug — `find_referencing_record` correctly finds a genuine
+  non-deleted policy row and reports it clearly; see
+  `../metap-docs/docs/roadmap/81-record-referenced-delete-guard-and-schema-layout-notes.md`).
+  Open product question: should deleting a `Zone` cascade-soft-delete its owned
+  `DdosPolicy`/`FirewallRule`s instead of blocking, or should the block stay and the portal just
+  guide the operator to remove dependents first? Not decided.
 - Whether `FirewallRule.matchCondition` reuses `metap-permission`'s `PolicyCondition` grammar or
   needs its own (request fields like `uri.path`/`header.x`/`body.y` vs. entity fields).
 - Whether `Incident` correlation is a static rule or per-tenant configurable threshold.
