@@ -59,7 +59,7 @@ pub fn firewall_rule_entity() -> EntityDefinition {
     EntityDefinition {
         name: "waf.firewall_rules".to_string(),
         label: "Firewall Rule".to_string(),
-        table_name: "records".to_string(),
+        table_name: metap_reconciler::qualified_table_name_for("waf.firewall_rules"),
         fields: vec![
             EntityField {
                 name: "zoneId".to_string(),
@@ -144,6 +144,7 @@ pub fn firewall_rule_entity() -> EntityDefinition {
             max_limit: 100,
         }],
         workflow: None,
+        unique_constraints: vec![],
     }
 }
 

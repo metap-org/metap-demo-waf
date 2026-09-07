@@ -22,6 +22,11 @@
 mod entities;
 mod routes;
 
+use entities::{
+    ddos_policy_entity::ddos_policy_entity, firewall_rule_entity::firewall_rule_entity,
+    zone_entity::zone_entity,
+};
+
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -45,6 +50,27 @@ async fn main() -> anyhow::Result<()> {
     registry.register_all_submitted()?;
     registry.validate_references()?;
     let metadata_base = Arc::new(registry);
+
+    // Order is load-bearing: `DdosPolicy.zoneId`/`FirewallRule.zoneId` each build a real FK
+    // straight into `waf.zones`'s table at DDL time (`compile()`), so `waf.zones` must be
+    // reconciled — its table must physically exist — before either of them. `waf.ddos_policies`
+    // and `waf.firewall_rules` don't reference each other, so their own order doesn't matter.
+    // All 3 `Schema`-strategy tenants in this shared dev DB use one physical pool/schema (see
+    // this file's module doc comment) — the physical `entities.*` table this creates isn't
+    // itself tenant-scoped (only rows are, via `tenant_id`), so the plain bootstrap `pool` +
+    // `metap::control::PLATFORM_TENANT_ID` sentinel is enough here; no real tenant's rows are
+    // touched by this DDL-only boot step.
+    for entity in [zone_entity(), ddos_policy_entity(), firewall_rule_entity()] {
+        let outcome =
+            metap_reconciler::reconcile(&pool, metap::control::PLATFORM_TENANT_ID, &entity, &[])
+                .await?;
+        tracing::info!(
+            entity = entity.name,
+            table = outcome.table,
+            ops_applied = outcome.ops_applied,
+            "reconciled dedicated table"
+        );
+    }
 
     let entities = metadata_base.list_entities();
     check_metadata_drift(&pool, &entities).await;

@@ -23,6 +23,12 @@
 mod entities;
 mod routes;
 
+use entities::{
+    alert_notification_entity::alert_notification_entity,
+    alert_policy_entity::alert_policy_entity, incident_entity::incident_entity,
+    security_event_entity::security_event_entity,
+};
+
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -46,6 +52,30 @@ async fn main() -> anyhow::Result<()> {
     registry.register_all_submitted()?;
     registry.validate_references()?;
     let metadata_base = Arc::new(registry);
+
+    // Order is load-bearing for `waf.alert_policies` -> `waf.alert_notifications`
+    // (`AlertNotification.alertPolicyId` builds a real FK at DDL time). `waf.security_events`
+    // and `waf.incidents` have no `Reference` field to anything (`zoneId`/`assignedTo` etc. are
+    // plain `String` — see this file's own module doc comment) — no FK dependency, so they
+    // reconcile independently, order irrelevant. See `zones-service/src/main.rs`'s reconcile
+    // loop for why the plain bootstrap `pool` + `metap::control::PLATFORM_TENANT_ID` sentinel is
+    // enough here.
+    for entity in [
+        alert_policy_entity(),
+        alert_notification_entity(),
+        security_event_entity(),
+        incident_entity(),
+    ] {
+        let outcome =
+            metap_reconciler::reconcile(&pool, metap::control::PLATFORM_TENANT_ID, &entity, &[])
+                .await?;
+        tracing::info!(
+            entity = entity.name,
+            table = outcome.table,
+            ops_applied = outcome.ops_applied,
+            "reconciled dedicated table"
+        );
+    }
 
     let entities = metadata_base.list_entities();
     check_metadata_drift(&pool, &entities).await;

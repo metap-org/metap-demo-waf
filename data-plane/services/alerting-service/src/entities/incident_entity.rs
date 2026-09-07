@@ -80,7 +80,7 @@ pub fn incident_entity() -> EntityDefinition {
     EntityDefinition {
         name: "waf.incidents".to_string(),
         label: "Incident".to_string(),
-        table_name: "records".to_string(),
+        table_name: metap_reconciler::qualified_table_name_for("waf.incidents"),
         fields: vec![
             field("zoneId", "Zone", FieldKind::String, true, true, false),
             field("title", "Title", FieldKind::String, true, false, true),
@@ -150,6 +150,7 @@ pub fn incident_entity() -> EntityDefinition {
                 transition("resolve", "mitigating", "resolved", "Resolve"),
             ],
         }),
+        unique_constraints: vec![],
     }
 }
 

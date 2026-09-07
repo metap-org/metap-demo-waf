@@ -16,9 +16,10 @@
 //! `/api/:entity*` route (see `scan_job_entity.rs`'s `zoneId` doc comment in `scanning-service`
 //! for the full explanation — same fix applied here).
 //!
-//! `table_name: "records"` for now (shared table) — table-per-entity is available
-//! (`metap-reconciler` + `reconciler-orchestrator`, `docs/05-metap-technical-mapping.md`) but not
-//! worth flipping on until real volume shows up; demo-scale traffic doesn't need it yet.
+//! On a dedicated table now (`metap_reconciler::qualified_table_name_for`, `main.rs` reconciles
+//! it at boot) — this was the entity CLAUDE.md originally flagged as the one candidate worth
+//! doing regardless of the other 8 (highest write volume of any WAF entity), and the migration
+//! ended up covering all 9 in one pass instead of just this one.
 
 use metap::prelude::{submit_entity, EntityDefinition, EntityField, EntityListView, FieldKind};
 
@@ -69,7 +70,7 @@ pub fn security_event_entity() -> EntityDefinition {
     EntityDefinition {
         name: "waf.security_events".to_string(),
         label: "Security Event".to_string(),
-        table_name: "records".to_string(),
+        table_name: metap_reconciler::qualified_table_name_for("waf.security_events"),
         fields: vec![
             field("zoneId", "Zone", FieldKind::String, true, true, false),
             enum_field(
@@ -149,6 +150,7 @@ pub fn security_event_entity() -> EntityDefinition {
             max_limit: 50,
         }],
         workflow: None,
+        unique_constraints: vec![],
     }
 }
 

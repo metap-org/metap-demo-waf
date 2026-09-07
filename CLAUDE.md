@@ -75,19 +75,106 @@ Tenant (reused from metap control.tenants)
        │    ordered by priority, first match wins)
        ├─ ScanJob (0..N, schedule via metap-cron cron expression)
        │    └─ ScanFinding (0..N; remediationStatus workflow: open→confirmed→fixed / falsePositive / accepted)
-       ├─ SecurityEvent (0..N — high volume, written by edge-plane, candidate for
-       │    metap-reconciler table-per-entity instead of the generic `records` table)
+       ├─ SecurityEvent (0..N — high volume, written by edge-plane)
        └─ Incident (0..N — correlates SecurityEvents; status: open→acknowledged→mitigating→resolved,
             a metap-workflow EntityWorkflow)
 AlertPolicy (Tenant-scoped, watches N zones)
   └─ AlertNotification (delivery log, sent/failed)
 ```
 
+**All 9 entities across the 3 `data-plane` services are on dedicated tables now** (2026-09-07,
+`../metap-docs/docs/roadmap/79-lowcode-dynamic-table-per-entity-and-waf-migration.md`),
+not just `SecurityEvent`. Each service's `main.rs` reconciles its own entities at boot
+(`metap_reconciler::reconcile`, hand-ordered: `zones-service` — `waf.zones` before
+`waf.ddos_policies`/`waf.firewall_rules`; `scanning-service` — `waf.scan_jobs` before
+`waf.scan_findings`; `alerting-service` — `waf.alert_policies` before
+`waf.alert_notifications`, `waf.security_events`/`waf.incidents` independent of everything). All
+9 converge to `ops_applied: 0` on a second boot, confirmed live.
+
+**This migration found and fixed 4 real bugs in `metap` core** (`crates/metap-reconciler`,
+`crates/metap-crud`), all pre-existing and unrelated to this repo's own code, all newly exposed
+because `waf.ddos_policies.zoneId`/`waf.zones.hostname` are the first `unique: true` fields
+anywhere in this codebase's history to go through table-per-entity:
+
+1. **Non-convergent reconcile.** `compile.rs` used to emit *two* redundant unique constructs for
+   the same field (an `IndexSpec` unique index **and** a `UniqueSpec` table constraint), and
+   separately `diff.rs`'s orphan-index cleanup didn't know a constraint's own backing index isn't
+   an independently-droppable object — together these meant `ops_applied` never reached 0 for any
+   `unique: true` real-column field.
+2. **No soft-delete awareness.** The resulting blanket `UNIQUE` constraint had no notion of
+   `deleted = false` — a soft-deleted row permanently occupied its unique value, so
+   deleting-then-recreating a `DdosPolicy` for the same zone (a real portal action) was rejected
+   with `unique_violation` against its own soft-deleted predecessor. Reported live by the user
+   mid-session, from the actual portal.
+3. **`searchable` silently dropped `unique`.** `compile()`'s `searchable` branch `continue`d
+   unconditionally, skipping the unique-handling logic entirely for any field that was *also*
+   `unique: true` — `waf.zones.hostname` (searchable + unique) lost its uniqueness enforcement
+   completely the moment `waf.zones` moved to table-per-entity, even though it was enforced on the
+   old shared `records` table. Found by auditing every `unique: true` field across
+   `metap-demo-waf`/`metap-demo-jira`/`metap-demo-crm` after fixing #1/#2 (only WAF has any —
+   `waf.ddos_policies.zoneId` and `waf.zones.hostname`; jira/crm's code-authored entities have
+   none).
+4. **`unique_violation`'s field-name extraction only worked for the shared `records` table.**
+   `metap-crud`'s error mapper guessed the violated constraint's name from a single hardcoded
+   prefix (`uniq_records_<entity>_`) — a dedicated table's constraint is named
+   `uniq_<table>_<field>` instead (no `records_`), so every unique-violation on *any*
+   table-per-entity entity (not just WAF's) silently fell back to a bare `409
+   {"code":"unique_violation"}` with no field or table named at all. This is what the user saw
+   directly in the browser ("lỗi k rõ ràng") and flagged as its own issue.
+
+All 4 fixed in `metap` core (`crates/metap-reconciler/src/{compile,diff}.rs`,
+`crates/metap-crud/src/crud_service/{helpers,create,update}.rs`), never worked around here.
+Regression-tested there (`compile.rs`/`reconcile_postgres.rs`/`crud_service_postgres.rs` unit +
+e2e tests) and verified live: `zones-service` converges to `ops_applied: 0` for every entity
+across repeated boots, `waf.zones.hostname`'s uniqueness is enforced again, and a duplicate
+`waf.ddos_policies` create now returns `field_errors: {"zoneId": [...]}` instead of a bare code.
+
+**A 5th bug hit live on the portal the same day, after these 4 fixes had already landed**
+(2026-09-07, `../metap-docs/docs/roadmap/80-composite-unique-constraints-and-partial-unique-index-fix.md`):
+recreating a `DdosPolicy` for a zone whose prior policy had been soft-deleted still failed with
+`unique_violation`, because `waf.ddos_policies` on the dev DB was still sitting on the *pre-fix*
+blanket `UNIQUE` constraint from before bug #2 above was fixed — bug #2's fix changes what
+`compile()` builds for *new* reconciles, it doesn't retroactively convert an index that already
+exists. Immediate unblock: deleted the 1 colliding soft-deleted row (user-confirmed). Root-cause
+fix: converted `waf.ddos_policies` to the partial unique index bug #2 already describes. **This
+surfaced a 6th, still-unresolved gap**: after the `compile()` fix, the old blanket index did not
+get replaced by the new partial one through a normal `reconcile()` call — `ops_applied` stayed
+nonzero indefinitely on repeated boots, even though the same mechanism converges correctly for a
+brand-new entity (e2e-tested). Worked around once with a manual non-concurrent `DROP INDEX IF
+EXISTS` (reconcile then converged normally on the next boot); suspected `CREATE INDEX
+CONCURRENTLY` leaving state that lets a later `IF NOT EXISTS` silently no-op, but **not
+root-caused** — treat as a known gap in the executor-level transition logic, not proof the
+mechanism is broken for fresh entities.
+
+**Composite/multi-field unique constraints were also built this same pass** (`EntityDefinition
+.unique_constraints`, `metap-metadata`/`metap-reconciler`/`metap-crud`/`metap-lowcode`), prompted
+by the user asking what a multi-field case would need (illustrated with a blacklist/whitelist
+`(type, value)` example, not a request for a new real entity). **No entity in this repo uses it**
+— all `unique: true` fields here (`waf.zones.hostname`, `waf.ddos_policies.zoneId`) stay
+single-field; re-confirmed by grepping `unique: Some(true)` across all 9 entities after this pass,
+same 2 fields as before, nothing else needs it yet.
+
+**Real data-loss incident during this same migration, worth recording so it isn't repeated**: the
+first pass wrongly assumed all 9 entities had 0 rows in `records` (based on "no seed script
+exists" + `docs/05-metap-technical-mapping.md`'s stale note, never a direct query) — in fact 2
+tenants (`2e87cf98-46a7-473f-bebc-20307e17d3b3`, `9de4259e-dd15-44e2-a0ff-70d323ad0ae9`) had 25
+real rows across all 9 entities from live portal testing. Flipping `table_name` + reconciling
+empty dedicated tables without copying that data made it invisible through the API (login still
+worked — auth is unrelated to entity data — but every list came back empty), reported live by the
+user as "login vẫn được nhưng dữ liệu mất". Recovered same session via
+`metap_reconciler::migrate_generic_to_dedicated` per (tenant, entity) — row counts now match
+`records` exactly for 8 of 9 entities; `waf.ddos_policies` needed a `deleted=false`-only copy
+(bug #2 above hadn't been fixed yet at that point in the session) to avoid colliding with its own
+soft-deleted history. **Lesson**: any future table-per-entity migration on a table that's had real
+traffic must query `records` directly for row counts per (tenant, entity) first — doc claims and
+"no seed script" are not a substitute.
+
 Notable open questions flagged in the docs (don't resolve unilaterally — surface them):
 - Whether `FirewallRule.matchCondition` reuses `metap-permission`'s `PolicyCondition` grammar or
   needs its own (request fields like `uri.path`/`header.x`/`body.y` vs. entity fields).
 - Whether `Incident` correlation is a static rule or per-tenant configurable threshold.
-- `SecurityEvent` retention/archival policy (cold storage via `metap-storage`?).
+- `SecurityEvent` retention/archival policy (cold storage via `metap-storage`?) — unaffected by
+  the table-per-entity move above, still open.
 
 ## v1 scope
 

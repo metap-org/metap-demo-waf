@@ -99,6 +99,7 @@ fn test_entity() -> EntityDefinition {
             max_limit: 50,
         }],
         workflow: None,
+        unique_constraints: vec![],
     }
 }
 

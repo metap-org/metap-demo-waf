@@ -70,7 +70,7 @@ pub fn scan_finding_entity() -> EntityDefinition {
     EntityDefinition {
         name: "waf.scan_findings".to_string(),
         label: "Scan Finding".to_string(),
-        table_name: "records".to_string(),
+        table_name: metap_reconciler::qualified_table_name_for("waf.scan_findings"),
         fields: vec![
             EntityField {
                 name: "scanJobId".to_string(),
@@ -180,6 +180,7 @@ pub fn scan_finding_entity() -> EntityDefinition {
                 transition("accept", "open", "accepted", "Accept Risk"),
             ],
         }),
+        unique_constraints: vec![],
     }
 }
 

@@ -19,6 +19,8 @@
 mod entities;
 mod routes;
 
+use entities::{scan_finding_entity::scan_finding_entity, scan_job_entity::scan_job_entity};
+
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -42,6 +44,23 @@ async fn main() -> anyhow::Result<()> {
     registry.register_all_submitted()?;
     registry.validate_references()?;
     let metadata_base = Arc::new(registry);
+
+    // Order is load-bearing: `ScanFinding.scanJobId` builds a real FK straight into
+    // `waf.scan_jobs`'s table at DDL time, so `waf.scan_jobs` must be reconciled first. See
+    // `zones-service/src/main.rs`'s reconcile loop for why the plain bootstrap `pool` +
+    // `metap::control::PLATFORM_TENANT_ID` sentinel is enough here (this DDL-only boot step
+    // doesn't touch any real tenant's rows).
+    for entity in [scan_job_entity(), scan_finding_entity()] {
+        let outcome =
+            metap_reconciler::reconcile(&pool, metap::control::PLATFORM_TENANT_ID, &entity, &[])
+                .await?;
+        tracing::info!(
+            entity = entity.name,
+            table = outcome.table,
+            ops_applied = outcome.ops_applied,
+            "reconciled dedicated table"
+        );
+    }
 
     let entities = metadata_base.list_entities();
     check_metadata_drift(&pool, &entities).await;

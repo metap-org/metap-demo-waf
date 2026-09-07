@@ -8,6 +8,7 @@ edition = "2021"
 # Swap to `git = "git@github.com:metap-org/metap.git", branch = "..."` for CI/deploy once this
 # stabilizes on a real branch/tag.
 metap = { path = "../../../../metap/crates/metap" }
+metap-reconciler = { path = "../../../../metap/crates/metap-reconciler" }
 anyhow = "1"
 arc-swap = "1"
 axum = "0.8"
