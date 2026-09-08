@@ -80,7 +80,7 @@ pub fn incident_entity() -> EntityDefinition {
     EntityDefinition {
         name: "waf.incidents".to_string(),
         label: "Incident".to_string(),
-        table_name: metap_reconciler::qualified_table_name_for("waf.incidents"),
+        table_name: metap_reconciler::qualified_table_name_in("waf.incidents", "waf"),
         fields: vec![
             field("zoneId", "Zone", FieldKind::String, true, true, false),
             field("title", "Title", FieldKind::String, true, false, true),

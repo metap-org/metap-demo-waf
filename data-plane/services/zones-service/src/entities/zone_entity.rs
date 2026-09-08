@@ -88,7 +88,7 @@ pub fn zone_entity() -> EntityDefinition {
     EntityDefinition {
         name: "waf.zones".to_string(),
         label: "Zone".to_string(),
-        table_name: metap_reconciler::qualified_table_name_for("waf.zones"),
+        table_name: metap_reconciler::qualified_table_name_in("waf.zones", "waf"),
         fields: vec![
             EntityField {
                 unique: Some(true),

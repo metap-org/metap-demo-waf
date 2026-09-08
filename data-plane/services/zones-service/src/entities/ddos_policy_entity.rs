@@ -46,7 +46,7 @@ pub fn ddos_policy_entity() -> EntityDefinition {
     EntityDefinition {
         name: "waf.ddos_policies".to_string(),
         label: "DDoS Policy".to_string(),
-        table_name: metap_reconciler::qualified_table_name_for("waf.ddos_policies"),
+        table_name: metap_reconciler::qualified_table_name_in("waf.ddos_policies", "waf"),
         fields: vec![
             EntityField {
                 name: "zoneId".to_string(),

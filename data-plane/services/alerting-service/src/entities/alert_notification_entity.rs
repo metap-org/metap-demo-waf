@@ -51,7 +51,7 @@ pub fn alert_notification_entity() -> EntityDefinition {
     EntityDefinition {
         name: "waf.alert_notifications".to_string(),
         label: "Alert Notification".to_string(),
-        table_name: metap_reconciler::qualified_table_name_for("waf.alert_notifications"),
+        table_name: metap_reconciler::qualified_table_name_in("waf.alert_notifications", "waf"),
         fields: vec![
             EntityField {
                 name: "alertPolicyId".to_string(),

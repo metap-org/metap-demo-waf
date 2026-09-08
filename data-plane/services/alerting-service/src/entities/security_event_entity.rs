@@ -70,7 +70,7 @@ pub fn security_event_entity() -> EntityDefinition {
     EntityDefinition {
         name: "waf.security_events".to_string(),
         label: "Security Event".to_string(),
-        table_name: metap_reconciler::qualified_table_name_for("waf.security_events"),
+        table_name: metap_reconciler::qualified_table_name_in("waf.security_events", "waf"),
         fields: vec![
             field("zoneId", "Zone", FieldKind::String, true, true, false),
             enum_field(

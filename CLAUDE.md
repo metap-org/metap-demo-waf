@@ -169,14 +169,22 @@ soft-deleted history. **Lesson**: any future table-per-entity migration on a tab
 traffic must query `records` directly for row counts per (tenant, entity) first — doc claims and
 "no seed script" are not a substitute.
 
+**Resolved 2026-09-09** (`../metap-docs/docs/roadmap/82-record-referenced-ux-and-metadata-control-schema-split.md`):
+deleting a `Zone` that still has a live `DdosPolicy`/`FirewallRule` stays blocked with
+`record_referenced` (confirmed correct, not a bug, since Phase 81) — the user chose to keep the
+block rather than cascade-soft-delete, and improve the error's UX instead:
+`metap-crud::find_referencing_records` now reports every blocking record (not just the first),
+and `../platform-ui`'s `ReferencedByErrorMessage.tsx` renders each as a link straight to the
+blocking record, generically for every entity/app that uses the generic delete flow, not a
+WAF-specific fix.
+
+`entities.waf_*` (all 9 tables) also moved into their own `waf` schema the same pass, out of the
+schema shared with `../metap-demo-crm` — `table_name` is `qualified_table_name_in(name, "waf")`
+now, not the old shared-`entities` default; see the phase doc and `../metap/CLAUDE.md`'s
+`metap-control`/`metap-reconciler` bullets for the full mechanism and the `compile()` bug it
+exposed (fixed at the root, not worked around here).
+
 Notable open questions flagged in the docs (don't resolve unilaterally — surface them):
-- **Deleting a `Zone` that still has a live `DdosPolicy` is blocked with `record_referenced`**
-  (confirmed live 2026-09-08, not a bug — `find_referencing_record` correctly finds a genuine
-  non-deleted policy row and reports it clearly; see
-  `../metap-docs/docs/roadmap/81-record-referenced-delete-guard-and-schema-layout-notes.md`).
-  Open product question: should deleting a `Zone` cascade-soft-delete its owned
-  `DdosPolicy`/`FirewallRule`s instead of blocking, or should the block stay and the portal just
-  guide the operator to remove dependents first? Not decided.
 - Whether `FirewallRule.matchCondition` reuses `metap-permission`'s `PolicyCondition` grammar or
   needs its own (request fields like `uri.path`/`header.x`/`body.y` vs. entity fields).
 - Whether `Incident` correlation is a static rule or per-tenant configurable threshold.

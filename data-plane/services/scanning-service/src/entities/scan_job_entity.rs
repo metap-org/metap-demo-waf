@@ -87,7 +87,7 @@ pub fn scan_job_entity() -> EntityDefinition {
     EntityDefinition {
         name: "waf.scan_jobs".to_string(),
         label: "Scan Job".to_string(),
-        table_name: metap_reconciler::qualified_table_name_for("waf.scan_jobs"),
+        table_name: metap_reconciler::qualified_table_name_in("waf.scan_jobs", "waf"),
         fields: vec![
             field("zoneId", "Zone", FieldKind::String, true, true, false),
             enum_field(
