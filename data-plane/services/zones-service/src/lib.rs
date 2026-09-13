@@ -5,6 +5,7 @@
 //! modules from here rather than declaring them itself, so there is exactly one definition of
 //! each, never two copies to drift.
 
+pub mod apex_domain;
 pub mod entities;
 pub mod ip_format;
 pub mod match_condition;

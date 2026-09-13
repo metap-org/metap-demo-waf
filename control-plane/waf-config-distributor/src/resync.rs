@@ -38,12 +38,12 @@ pub async fn run_once(data_plane: &DataPlane, distributor: &Distributor) -> anyh
         // from the record would be wrong anyway: the API only ever returns this tenant's rows.
         let tenant_id = zone.str("tenantId").unwrap_or_default().to_string();
 
-        let ddos = data_plane.ddos_policy_for(&zone.id).await?;
+        let ddos_policies = data_plane.ddos_policies_for(&zone.id).await?;
         let mut rules = data_plane.rules_for(&zone.id).await?;
         rules.extend(tenant_wide_rules.iter().cloned());
         let mut access_lists = data_plane.ip_access_lists_for(&zone.id).await?;
         access_lists.extend(tenant_wide_access_lists.iter().cloned());
-        let Some(compiled) = compile_zone(zone, &tenant_id, ddos.as_ref(), &rules, &access_lists)
+        let Some(compiled) = compile_zone(zone, &tenant_id, &ddos_policies, &rules, &access_lists)
         else {
             continue;
         };

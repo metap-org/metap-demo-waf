@@ -130,15 +130,15 @@ impl DataPlane {
             .await
     }
 
-    pub async fn ddos_policy_for(&self, zone_id: &str) -> anyhow::Result<Option<Record>> {
-        let mut rows = self
-            .list(
-                &self.zones_url,
-                "waf.ddos_policies",
-                &[("zoneId", zone_id), ("limit", "1")],
-            )
-            .await?;
-        Ok(rows.pop())
+    /// Every DDoS policy on this zone — a zone can carry more than one, scoped by path/method
+    /// (Increment 4), so this is a list rather than the single `Option<Record>` it used to be.
+    pub async fn ddos_policies_for(&self, zone_id: &str) -> anyhow::Result<Vec<Record>> {
+        self.list(
+            &self.zones_url,
+            "waf.ddos_policies",
+            &[("zoneId", zone_id), ("limit", "50")],
+        )
+        .await
     }
 
     pub async fn rules_for(&self, zone_id: &str) -> anyhow::Result<Vec<Record>> {

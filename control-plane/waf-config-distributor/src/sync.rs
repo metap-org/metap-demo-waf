@@ -48,10 +48,10 @@ pub async fn sync_zone(
         return Ok(());
     }
 
-    let ddos = data_plane.ddos_policy_for(zone_id).await?;
+    let ddos_policies = data_plane.ddos_policies_for(zone_id).await?;
     let rules = data_plane.rules_for(zone_id).await?;
     let access_lists = data_plane.ip_access_lists_for(zone_id).await?;
-    let Some(compiled) = compile_zone(&zone, tenant_id, ddos.as_ref(), &rules, &access_lists)
+    let Some(compiled) = compile_zone(&zone, tenant_id, &ddos_policies, &rules, &access_lists)
     else {
         tracing::warn!(
             zone_id,

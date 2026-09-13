@@ -30,7 +30,7 @@ import {
   transitionRecord,
   useInvalidateWaf,
   useRecord,
-  verifyDns,
+  verifyDomainDns,
   type ZoneData,
 } from "../api/waf";
 import { StatusBadge } from "../components/primitives";
@@ -128,10 +128,11 @@ export function ZoneDetailPage() {
   }
 
   async function recheckDns() {
-    if (!zoneId) return;
+    const domainId = record.data.domainId;
+    if (!domainId) return;
     setDnsBusy(true);
     try {
-      const result = await verifyDns(zoneId);
+      const result = await verifyDomainDns(domainId);
       invalidate();
       toast(
         t(

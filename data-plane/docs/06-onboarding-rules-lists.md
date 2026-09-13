@@ -7,6 +7,18 @@ cần áp dụng" ở cuối là checklist để fold vào `02`/`05`/code khi b�
 
 ## 1. Domain vs Subdomain — giữ nguyên model hiện tại, không làm Cloudflare-style
 
+**Đảo ngược 2026-09-13**: quyết định "không tạo entity `Domain`" bên dưới đã bị **chủ dự án chủ
+động đảo ngược** — `waf.domains` giờ là entity thật, `Zone.domainId` (Reference, required) trỏ vào
+đó, tự động gán lúc tạo Zone (`zones-service/src/routes.rs::zone_domain_guard`, suy ra apex domain
+từ `hostname` qua `zones-service/src/apex_domain.rs`, tìm-hoặc-tạo Domain cùng apex cho tenant đó).
+Lý do đảo ngược: xác thực quyền sở hữu domain (mục 2 bên dưới) nên làm **1 lần cho cả apex domain**
+thay vì lặp lại cho từng subdomain — `verificationToken`/`verificationMethod`/`verificationStatus`
+chuyển hẳn từ `Zone` sang `Domain`; `Zone.verificationStatus` vẫn còn nhưng chỉ là field kỹ thuật
+"mirror", được `Domain`'s verify-dns cascade cập nhật (cùng pattern `hasConfig` đã dùng), guard
+`activate` ở mục 2 không đổi gì. Wildcard hostname (`*.example.com`, đề xuất bên dưới) **không**
+được làm cùng đợt này — vẫn là việc chưa làm, để dành riêng nếu cần sau. Phần phân tích gốc bên
+dưới giữ nguyên làm lịch sử/bối cảnh dẫn tới quyết định ban đầu, không xoá.
+
 Cloudflare thật: **Zone = domain gốc** (`example.com`), khách delegate nameserver cho Cloudflare,
 Cloudflare quản lý toàn bộ DNS record của domain đó, mỗi subdomain là 1 DNS record có thể
 "proxied" (qua edge, được bảo vệ) hoặc "DNS only" (đi thẳng, không bảo vệ).
@@ -110,6 +122,18 @@ Xem lại `FirewallRule` (đã build): 2 nhu cầu người dùng hay hỏi khi 
 quyết định "v2+" của `01-product-vision.md`, không kéo vào v1.
 
 ## 5. Whitelist / Blacklist — tái dùng `FirewallRule`, KHÔNG tạo entity mới
+
+**Đảo ngược 2026-09-13**: chủ dự án chủ động chọn tạo entity `waf.ip_access_lists` riêng (IP/CIDR
+only — geo/country vẫn ở lại `FirewallRule` như cũ, chỉ đổi nhãn `ruleType: geoFirewall` → `waf`),
+thay vì tái dùng `FirewallRule` như đề xuất gốc bên dưới — API/UI rõ ràng hơn cho whitelist/
+blacklist, không cần khách hiểu `matchCondition` JSON. `compile.rs::compile_ip_access_list` vẫn
+dịch xuống đúng `CompiledRule`/`Predicate` shape đã có (không có wire type mới). Thứ tự evaluate ở
+§5a bên dưới **đã code thật** (`edge-plane/waf-edge/src/evaluate.rs`): DDoS chuyển thành bước cuối
+cùng, chỉ check khi không entry/rule nào match — áp dụng cho `IpAccessList` lẫn `FirewallRule`
+thường, không riêng gì `ruleType ∈ {ipFirewall, geoFirewall}` như văn bản gốc hình dung (đơn giản
+hoá hơn, vì `IpAccessList` giờ là nguồn riêng biệt, không còn là 1 `ruleType` của `FirewallRule`
+nữa). Scope tenant-wide ở §5b **đã code thật** ở cả `FirewallRule` lẫn `IpAccessList`. Phần phân
+tích gốc bên dưới giữ nguyên làm bối cảnh, không xoá.
 
 `01-product-vision.md` đã chốt lý do gộp WAF/rate-limit/IP-geo firewall vào 1 entity để tránh
 "3 UI khác nhau trùng lặp logic" — whitelist/blacklist chính là `ruleType: ipFirewall` hoặc

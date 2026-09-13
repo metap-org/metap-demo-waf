@@ -239,18 +239,38 @@ fn compile_ddos(policy: &Record) -> Option<CompiledDdos> {
     if policy.bool("enabled") == Some(false) {
         return None;
     }
+    let path_prefix = policy
+        .str("pathPrefix")
+        .filter(|p| !p.is_empty())
+        .map(str::to_string);
+    let http_method = policy
+        .str("httpMethod")
+        .filter(|m| !m.is_empty())
+        .map(str::to_string);
     Some(CompiledDdos {
+        id: policy.id.clone(),
         sensitivity: policy.str("sensitivity").unwrap_or("medium").to_string(),
         action: action_from(policy.str("action")),
         request_rate_threshold: policy.i64("requestRateThreshold").unwrap_or(500).max(1) as u32,
         burst_window_seconds: policy.i64("burstWindow").unwrap_or(60).max(1) as u32,
+        path_prefix,
+        http_method,
+        priority: policy.i64("priority").unwrap_or(1000),
     })
+}
+
+/// Every enabled policy, priority-sorted ascending — `evaluate()` at the edge walks this in order,
+/// first scope-matching-and-over-budget policy wins (Increment 4).
+fn compile_ddos_policies(policies: &[Record]) -> Vec<CompiledDdos> {
+    let mut compiled: Vec<CompiledDdos> = policies.iter().filter_map(compile_ddos).collect();
+    compiled.sort_by_key(|policy| policy.priority);
+    compiled
 }
 
 pub fn compile_zone(
     zone: &Record,
     tenant_id: &str,
-    ddos: Option<&Record>,
+    ddos_policies: &[Record],
     rules: &[Record],
     ip_access_lists: &[Record],
 ) -> Option<CompiledZone> {
@@ -298,7 +318,7 @@ pub fn compile_zone(
             .to_string(),
         protection_mode: zone.str("protectionMode").unwrap_or("monitor").to_string(),
         config_version: zone.i64("configVersion").unwrap_or(0),
-        ddos: ddos.and_then(compile_ddos),
+        ddos: compile_ddos_policies(ddos_policies),
         rules: compiled,
         compiled_at: chrono::Utc::now().to_rfc3339(),
     })
@@ -558,7 +578,7 @@ mod tests {
                 json!({ "name": "disabled", "ruleType": "waf", "action": "block", "priority": 1, "enabled": false }),
             ),
         ];
-        let compiled = compile_zone(&z, "tenant-1", None, &rules, &[]).unwrap();
+        let compiled = compile_zone(&z, "tenant-1", &[], &rules, &[]).unwrap();
         assert_eq!(compiled.rules.len(), 2, "the disabled rule must be dropped");
         assert_eq!(
             compiled.rules[0].name, "first",
@@ -573,7 +593,7 @@ mod tests {
     #[test]
     fn compile_zone_without_hostname_fails() {
         let z = record("zone-1", Some("active"), json!({ "status": "active" }));
-        assert!(compile_zone(&z, "tenant-1", None, &[], &[]).is_none());
+        assert!(compile_zone(&z, "tenant-1", &[], &[], &[]).is_none());
     }
 
     #[test]
@@ -584,11 +604,61 @@ mod tests {
             None,
             json!({ "sensitivity": "medium", "action": "challenge", "requestRateThreshold": 500, "burstWindow": 60, "enabled": true }),
         );
-        let compiled = compile_zone(&z, "tenant-1", Some(&ddos), &[], &[]).unwrap();
-        assert!(compiled.ddos.is_some());
+        let compiled = compile_zone(&z, "tenant-1", &[ddos], &[], &[]).unwrap();
+        assert_eq!(compiled.ddos.len(), 1);
 
-        let compiled_no_ddos = compile_zone(&z, "tenant-1", None, &[], &[]).unwrap();
-        assert!(compiled_no_ddos.ddos.is_none());
+        let compiled_no_ddos = compile_zone(&z, "tenant-1", &[], &[], &[]).unwrap();
+        assert!(compiled_no_ddos.ddos.is_empty());
+    }
+
+    #[test]
+    fn compile_ddos_policies_sorts_by_priority_and_drops_disabled() {
+        let policies = vec![
+            record(
+                "high-priority-num",
+                None,
+                json!({ "sensitivity": "low", "action": "log", "requestRateThreshold": 100, "burstWindow": 60, "priority": 200, "enabled": true }),
+            ),
+            record(
+                "low-priority-num",
+                None,
+                json!({ "sensitivity": "high", "action": "block", "requestRateThreshold": 10, "burstWindow": 60, "priority": 10, "enabled": true }),
+            ),
+            record(
+                "disabled",
+                None,
+                json!({ "sensitivity": "high", "action": "block", "requestRateThreshold": 10, "burstWindow": 60, "priority": 1, "enabled": false }),
+            ),
+        ];
+        let compiled = compile_ddos_policies(&policies);
+        assert_eq!(compiled.len(), 2, "the disabled policy must be dropped");
+        assert_eq!(compiled[0].id, "low-priority-num");
+        assert_eq!(compiled[1].id, "high-priority-num");
+    }
+
+    #[test]
+    fn compile_ddos_reads_scope_fields() {
+        let policy = record(
+            "policy-1",
+            None,
+            json!({ "sensitivity": "high", "action": "block", "requestRateThreshold": 500, "burstWindow": 60, "priority": 50, "pathPrefix": "/login", "httpMethod": "POST", "enabled": true }),
+        );
+        let compiled = compile_ddos(&policy).unwrap();
+        assert_eq!(compiled.path_prefix.as_deref(), Some("/login"));
+        assert_eq!(compiled.http_method.as_deref(), Some("POST"));
+        assert_eq!(compiled.priority, 50);
+    }
+
+    #[test]
+    fn compile_ddos_empty_scope_fields_mean_unscoped() {
+        let policy = record(
+            "policy-1",
+            None,
+            json!({ "sensitivity": "high", "action": "block", "requestRateThreshold": 500, "burstWindow": 60, "pathPrefix": "", "httpMethod": "", "enabled": true }),
+        );
+        let compiled = compile_ddos(&policy).unwrap();
+        assert!(compiled.path_prefix.is_none());
+        assert!(compiled.http_method.is_none());
     }
 
     // --- compile_ip_access_list / compile_zone tier ordering ---
@@ -644,7 +714,7 @@ mod tests {
             access_list_entry("bl-1", "blacklist", "10.0.0.1", true),
             access_list_entry("wl-1", "whitelist", "10.0.0.2", true),
         ];
-        let compiled = compile_zone(&z, "tenant-1", None, &rules, &access_lists).unwrap();
+        let compiled = compile_zone(&z, "tenant-1", &[], &rules, &access_lists).unwrap();
         assert_eq!(compiled.rules.len(), 3);
         // Whitelist (allow) first regardless of input order, then blacklist (block), then the
         // regular rule last regardless of its own (lower) priority number.

@@ -32,23 +32,14 @@ import {
   testOrigin,
   transitionRecord,
   useInvalidateWaf,
+  useRecord,
   verifyDns,
+  verifyDomainDns,
+  type Domain,
   type OriginTestResult,
   type Zone,
 } from "../api/waf";
 import { StatusBadge } from "../components/primitives";
-
-/** The zone's DNS-TXT challenge value.
- *
- * Generated here rather than server-side because `metap`'s create path is metadata-driven — there
- * is no per-entity "before create" hook to mint a token in, and adding one to core for a single
- * app's field would be exactly the business-entity knowledge `metap-*` crates must not carry. The
- * value only has to be unguessable-per-zone, which `crypto.randomUUID()` satisfies; a future
- * `computed` field default would be the cleaner home for it.
- */
-function newVerificationToken(): string {
-  return `waf-verify-${crypto.randomUUID()}`;
-}
 
 type Step = 0 | 1 | 2 | 3;
 
@@ -65,8 +56,16 @@ export function OnboardingPage() {
   const [originAddress, setOriginAddress] = useState("");
   const [protectionMode, setProtectionMode] = useState("monitor");
   const [zone, setZone] = useState<Zone | null>(null);
-  const [dnsResult, setDnsResult] = useState<{
-    ownershipVerified: boolean;
+  // Ownership lives on the zone's parent `Domain` now (Increment 3) — `createZone` doesn't know
+  // the domain id until the server assigns one (`routes::zone_domain_guard`), so this is fetched
+  // separately once `zone` exists.
+  const domainQuery = useRecord<Domain["data"]>(
+    ENTITIES.domains,
+    zone?.data.domainId,
+  );
+  const domain = domainQuery.data as Domain | undefined;
+  const [ownershipVerified, setOwnershipVerified] = useState(false);
+  const [routingResult, setRoutingResult] = useState<{
     dnsRouted: boolean;
     target: string;
   } | null>(null);
@@ -88,13 +87,12 @@ export function OnboardingPage() {
 
   const createZone = () =>
     guard(async () => {
+      // `domainId` is assigned server-side (`routes::zone_domain_guard`, auto-attached from the
+      // hostname's apex) — this app never picks or creates a `Domain` by hand.
       const response = await createRecord<Zone["data"]>(ENTITIES.zones, {
         hostname: hostname.trim(),
         originAddress: originAddress.trim(),
         protectionMode,
-        verificationMethod: "dnsTxt",
-        verificationToken: newVerificationToken(),
-        verificationStatus: "unverified",
         dnsRoutingStatus: "unknown",
         hasConfig: false,
         configVersion: 1,
@@ -104,13 +102,29 @@ export function OnboardingPage() {
       setStep(1);
     });
 
-  const runVerify = () =>
+  const runVerifyOwnership = () =>
+    guard(async () => {
+      if (!domain) return;
+      const response = await verifyDomainDns(domain.id);
+      setOwnershipVerified(response.data.ownershipVerified);
+      // The server cascades `verificationStatus` onto every zone under this domain, but `zone`
+      // here is local component state, not a live query — mirror it optimistically rather than
+      // waiting on a refetch, since we already know the cascade succeeded server-side.
+      if (response.data.ownershipVerified && zone) {
+        setZone({
+          ...zone,
+          data: { ...zone.data, verificationStatus: "verified" },
+        });
+      }
+      invalidate();
+    });
+
+  const runVerifyRouting = () =>
     guard(async () => {
       if (!zone) return;
       const response = await verifyDns(zone.id);
       setZone(response.data.zone);
-      setDnsResult({
-        ownershipVerified: response.data.ownershipVerified,
+      setRoutingResult({
         dnsRouted: response.data.dnsRouted,
         target: response.data.checked.expectedTarget,
       });
@@ -268,50 +282,67 @@ export function OnboardingPage() {
             title={t("waf.onboarding.verifyTitle")}
             description={t("waf.onboarding.verifyDescription")}
           >
-            <div className="rounded-md bg-muted/50 p-3 font-mono text-xs">
-              <div>
-                <span className="text-muted-foreground">
-                  {t("waf.onboarding.recordName")}
-                </span>
-                _waf-verify.{zone.data.hostname}
-              </div>
-              <div>
-                <span className="text-muted-foreground">
-                  {t("waf.onboarding.recordType")}
-                </span>
-                TXT
-              </div>
-              <div className="break-all">
-                <span className="text-muted-foreground">
-                  {t("waf.onboarding.recordValue")}
-                </span>
-                {zone.data.verificationToken}
-              </div>
-            </div>
-            <div className="mt-3 flex items-center gap-3">
-              <Button onClick={runVerify} disabled={busy}>
-                {t("waf.onboarding.checkDns")}
+            {domain ? (
+              <>
+                <div className="rounded-md bg-muted/50 p-3 font-mono text-xs">
+                  <div>
+                    <span className="text-muted-foreground">
+                      {t("waf.onboarding.recordName")}
+                    </span>
+                    _waf-verify.{domain.data.apexDomain}
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">
+                      {t("waf.onboarding.recordType")}
+                    </span>
+                    TXT
+                  </div>
+                  <div className="break-all">
+                    <span className="text-muted-foreground">
+                      {t("waf.onboarding.recordValue")}
+                    </span>
+                    {domain.data.verificationToken}
+                  </div>
+                </div>
+                <div className="mt-3 flex items-center gap-3">
+                  <Button onClick={runVerifyOwnership} disabled={busy}>
+                    {t("waf.onboarding.checkOwnership")}
+                  </Button>
+                  <span className="text-sm">
+                    {t("waf.onboarding.ownershipLabel")}{" "}
+                    <StatusBadge
+                      value={
+                        ownershipVerified
+                          ? "verified"
+                          : (domain.data.verificationStatus ?? "unverified")
+                      }
+                    />
+                  </span>
+                </div>
+              </>
+            ) : null}
+            <div className="mt-4 flex items-center gap-3">
+              <Button
+                variant="outline"
+                onClick={runVerifyRouting}
+                disabled={busy}
+              >
+                {t("waf.onboarding.checkRouting")}
               </Button>
-              {dnsResult ? (
+              {routingResult ? (
                 <span className="text-sm">
-                  {t("waf.onboarding.ownershipLabel")}{" "}
+                  {t("waf.onboarding.routingLabel")}{" "}
                   <StatusBadge
-                    value={
-                      dnsResult.ownershipVerified ? "verified" : "unverified"
-                    }
-                  />{" "}
-                  · {t("waf.onboarding.routingLabel")}{" "}
-                  <StatusBadge
-                    value={dnsResult.dnsRouted ? "routed" : "notRouted"}
+                    value={routingResult.dnsRouted ? "routed" : "notRouted"}
                   />
                 </span>
               ) : null}
             </div>
-            {dnsResult && !dnsResult.dnsRouted ? (
+            {routingResult && !routingResult.dnsRouted ? (
               <p className="mt-2 text-xs text-muted-foreground">
                 {t("waf.onboarding.routingInfo", {
                   hostname: zone.data.hostname,
-                  target: dnsResult.target,
+                  target: routingResult.target,
                 })}
               </p>
             ) : null}

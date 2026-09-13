@@ -47,6 +47,7 @@ const GRAPHQL_PATH = "/graphql";
 
 export const ENTITIES = {
   zones: "waf.zones",
+  domains: "waf.domains",
   ddosPolicies: "waf.ddos_policies",
   firewallRules: "waf.firewall_rules",
   ipAccessLists: "waf.ip_access_lists",
@@ -72,14 +73,26 @@ export type ZoneData = {
   protectionMode?: string;
   configVersion?: number;
   hasConfig?: boolean;
-  verificationToken?: string;
-  verificationMethod?: string;
+  /** Set automatically by `routes::zone_domain_guard` from the hostname's apex — never chosen by
+   *  hand. Ownership verification itself lives on the `Domain` this points at (`DomainData`
+   *  below); `verificationStatus` here is a technical mirror kept in sync by `verifyDomainDns`'s
+   *  cascade, not something this app writes directly. */
+  domainId?: string;
   verificationStatus?: string;
   dnsRoutingStatus?: string;
   lastDnsCheckAt?: string;
 };
 
 export type Zone = WafRecord<ZoneData>;
+
+export type DomainData = {
+  apexDomain?: string;
+  verificationToken?: string;
+  verificationMethod?: string;
+  verificationStatus?: string;
+};
+
+export type Domain = WafRecord<DomainData>;
 
 /* ------------------------------------------------------------------ generic record CRUD */
 // Re-exported under their pre-extraction names — see this file's own doc comment above.
@@ -109,12 +122,13 @@ async function graphqlAuthed<T>(
   return graphqlFetch<T>(GRAPHQL_PATH, query, variables);
 }
 
+/** Routing-only now — see `DomainVerifyResult`/`verifyDomainDns` for ownership, moved to `Domain`
+ *  (Increment 3). */
 export type DnsVerifyResult = {
   data: {
     zone: Zone;
-    ownershipVerified: boolean;
     dnsRouted: boolean;
-    checked: { txt: string[]; cname: string[]; expectedTarget: string };
+    checked: { cname: string[]; expectedTarget: string };
   };
 };
 
@@ -122,6 +136,23 @@ export function verifyDns(zoneId: string) {
   return graphqlAuthed<{ result: DnsVerifyResult }>(
     `mutation VerifyZoneDns($zoneId: ID!) { result: verifyZoneDns(zoneId: $zoneId) }`,
     { zoneId },
+  ).then((r) => r.result);
+}
+
+export type DomainVerifyResult = {
+  data: {
+    domain: Domain;
+    ownershipVerified: boolean;
+    checked: { txt: string[]; expectedToken: string };
+  };
+};
+
+/** Domain-ownership check (Increment 3) — verified once per apex domain, cascades onto every
+ *  `Zone` under it (each zone's own `verificationStatus` mirror gets updated server-side). */
+export function verifyDomainDns(domainId: string) {
+  return graphqlAuthed<{ result: DomainVerifyResult }>(
+    `mutation VerifyDomainDns($domainId: ID!) { result: verifyDomainDns(domainId: $domainId) }`,
+    { domainId },
   ).then((r) => r.result);
 }
 

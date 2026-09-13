@@ -1,12 +1,12 @@
 //! WAF's own GraphQL BFF — a thin wrapper around `metap`'s generic `metap-graphql-gateway`
 //! library (same boot sequence, same 3 upstreams: zones-service/scanning-service/
 //! alerting-service, see `../graphql-gateway/README.md` for the env config) that additionally
-//! exposes the 7 custom, non-CRUD REST endpoints as GraphQL mutations, so the Customer Portal
+//! exposes the 8 custom, non-CRUD REST endpoints as GraphQL mutations, so the Customer Portal
 //! frontend (`data-plane/web`) can reach them through the same GraphQL endpoint as everything
 //! else instead of a REST/GraphQL split.
 //!
 //! **This binary, not `metap`'s generic gateway, is where this logic has to live.** None of these
-//! 7 fields are `EntityDefinition` CRUD operations `metap-graphql`'s schema builder can synthesize
+//! 8 fields are `EntityDefinition` CRUD operations `metap-graphql`'s schema builder can synthesize
 //! from metadata — they're real WAF business actions (DNS verification, scan dispatch, incident
 //! correlation, ...) — and `metap-graphql`/`graphql-gateway` must stay entity-agnostic, the same
 //! "no `metap-*` library crate gets business-entity knowledge" rule that keeps every REST route
@@ -102,7 +102,7 @@ fn id_arg(ctx: &ResolverContext<'_>, name: &str) -> Result<String, GqlError> {
     Ok(ctx.args.try_get(name)?.string()?.to_string())
 }
 
-/// Adds the 7 custom action mutations — see the module doc comment for why these live here
+/// Adds the 8 custom action mutations — see the module doc comment for why these live here
 /// rather than in `metap-graphql`/`graphql-gateway` (and for why `aggregate` isn't among them
 /// anymore). Takes only the 3 derived REST base URLs (owned `String`s, cheap to clone per
 /// closure), not the upstream config list itself — `UpstreamConfig` carries login credentials
@@ -130,6 +130,23 @@ fn add_custom_fields(
                 })
             })
             .argument(InputValue::new("zoneId", TypeRef::named_nn(TypeRef::ID))),
+        );
+    }
+
+    {
+        let zones = zones.clone();
+        mutation = mutation.field(
+            Field::new("verifyDomainDns", TypeRef::named(JSON_SCALAR), move |ctx| {
+                let zones = zones.clone();
+                FieldFuture::new(async move {
+                    let domain_id = id_arg(&ctx, "domainId")?;
+                    let url = format!("{zones}/api/waf.domains/{domain_id}/verify-dns");
+                    Ok(Some(FieldValue::value(
+                        forward_post(&ctx, url, serde_json::json!({})).await?,
+                    )))
+                })
+            })
+            .argument(InputValue::new("domainId", TypeRef::named_nn(TypeRef::ID))),
         );
     }
 

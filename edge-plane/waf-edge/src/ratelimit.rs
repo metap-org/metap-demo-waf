@@ -111,10 +111,10 @@ pub fn rule_key(zone_id: &str, rule_id: &str, client_ip: &str) -> String {
     format!("r:{zone_id}:{rule_id}:{client_ip}")
 }
 
-/// Rate-limit key for the zone's DDoS policy: one budget per (zone, client), independent of any
-/// rule.
-pub fn ddos_key(zone_id: &str, client_ip: &str) -> String {
-    format!("d:{zone_id}:{client_ip}")
+/// Rate-limit key for one DDoS policy: one budget per (zone, policy, client) — a zone can now
+/// carry more than one scoped policy (Increment 4), each with its own independent budget.
+pub fn ddos_key(zone_id: &str, policy_id: &str, client_ip: &str) -> String {
+    format!("d:{zone_id}:{policy_id}:{client_ip}")
 }
 
 #[cfg(test)]
@@ -185,7 +185,7 @@ mod tests {
         // Same zone/client, different rule — the two key spaces must never collide, or a
         // firewall rule's budget could be silently shared with the zone's DDoS budget.
         let rule = rule_key("zone-1", "rule-1", "1.2.3.4");
-        let ddos = ddos_key("zone-1", "1.2.3.4");
+        let ddos = ddos_key("zone-1", "policy-1", "1.2.3.4");
         assert_ne!(rule, ddos);
         assert!(rule.starts_with("r:"));
         assert!(ddos.starts_with("d:"));

@@ -30,7 +30,12 @@ use serde::{Deserialize, Serialize};
 /// Bumped to 2 when `Op::Regex` was added (edge-plane's own copy of this file bumped alongside
 /// it) — a new enum variant is exactly the kind of incompatible shape change this constant exists
 /// to guard.
-pub const RULESET_SCHEMA_VERSION: u32 = 2;
+///
+/// Bumped to 3 when `CompiledZone.ddos` changed from `Option<CompiledDdos>` to `Vec<CompiledDdos>`
+/// (Increment 4, multiple scoped DDoS policies per zone) — an edge still on schema 2 would
+/// otherwise fail to deserialize a rule-set with more than one policy, or silently only see the
+/// first field of a JSON array where it expected an object.
+pub const RULESET_SCHEMA_VERSION: u32 = 3;
 
 /// Redis key holding one zone's compiled rule-set, keyed by hostname (what the edge has in hand
 /// from the `Host` header — no lookup table needed on the hot path).
@@ -166,13 +171,23 @@ pub struct CompiledRule {
     pub rate_limit: Option<RateLimit>,
 }
 
+/// One DDoS policy, scoped. `path_prefix`/`http_method` both `None` (or `http_method:
+/// Some("any")`) means "applies to the whole zone" — the shape a single, unscoped policy already
+/// had before Increment 4. `id` exists so `edge-plane` can key its rate-limit budget and
+/// `triggered_by_id` per policy now that a zone can have more than one (`ratelimit::ddos_key`).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CompiledDdos {
+    pub id: String,
     pub sensitivity: String,
     pub action: Action,
     pub request_rate_threshold: u32,
     pub burst_window_seconds: u32,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub path_prefix: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub http_method: Option<String>,
+    pub priority: i64,
 }
 
 /// One zone, fully resolved. Disabled rules and disabled policies are dropped during compilation
@@ -194,8 +209,10 @@ pub struct CompiledZone {
     /// so telemetry can report what *would* have happened.
     pub protection_mode: String,
     pub config_version: i64,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub ddos: Option<CompiledDdos>,
+    /// Already sorted by `priority` ascending (Increment 4) — empty means no DDoS policy at all,
+    /// same meaning `None` used to carry before this became a `Vec`.
+    #[serde(default)]
+    pub ddos: Vec<CompiledDdos>,
     /// Already sorted by `priority` ascending — first match wins, and the edge must not have to
     /// sort on the hot path.
     pub rules: Vec<CompiledRule>,

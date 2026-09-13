@@ -31,7 +31,7 @@ use std::net::IpAddr;
 use std::time::Duration;
 
 use crate::ratelimit::{ddos_key, rule_key, RateLimiter};
-use crate::ruleset::{Action, CompiledZone, Field, MatchExpr, Op, Predicate};
+use crate::ruleset::{Action, CompiledDdos, CompiledZone, Field, MatchExpr, Op, Predicate};
 
 /// Everything a predicate can test, extracted from the request once per request rather than
 /// re-parsed per rule.
@@ -252,10 +252,16 @@ pub fn evaluate(
     }
 
     // Only reached when nothing above matched — see this module's doc comment for why DDoS is
-    // the last resort rather than the first check.
-    if let Some(ddos) = &zone.ddos {
+    // the last resort rather than the first check. `zone.ddos` is already priority-sorted by the
+    // control-plane (Increment 4: a zone can carry more than one scoped policy) — first policy
+    // whose scope matches this request *and* whose own budget is exceeded wins, exactly the same
+    // "first match wins" contract `zone.rules` above already has.
+    for ddos in &zone.ddos {
+        if !ddos_scope_matches(ddos, context) {
+            continue;
+        }
         let over_budget = limiter.check(
-            &ddos_key(&zone.zone_id, &context.client_ip_text),
+            &ddos_key(&zone.zone_id, &ddos.id, &context.client_ip_text),
             ddos.request_rate_threshold,
             Duration::from_secs(ddos.burst_window_seconds as u64),
         );
@@ -263,10 +269,7 @@ pub fn evaluate(
             return Some(Decision {
                 action: ddos.action,
                 triggered_by: "ddosPolicy",
-                // The policy's own record id isn't in the compiled form — the portal only ever
-                // shows one DDoS policy per zone, so the zone id identifies it unambiguously and
-                // the compiled shape stays one field smaller on the hot path.
-                triggered_by_id: zone.zone_id.clone(),
+                triggered_by_id: ddos.id.clone(),
                 triggered_by_name: format!("DDoS policy ({})", ddos.sensitivity),
             });
         }
@@ -275,10 +278,27 @@ pub fn evaluate(
     None
 }
 
+/// Does this policy's scope apply to the current request? Both `path_prefix`/`http_method` absent
+/// (or `http_method: "any"`) means "every request" — the default shape a single, unscoped policy
+/// already had before Increment 4.
+fn ddos_scope_matches(ddos: &CompiledDdos, context: &RequestContext<'_>) -> bool {
+    if let Some(prefix) = &ddos.path_prefix {
+        if !context.path.starts_with(prefix.as_str()) {
+            return false;
+        }
+    }
+    if let Some(method) = &ddos.http_method {
+        if method != "any" && method != context.method {
+            return false;
+        }
+    }
+    true
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ruleset::{CompiledDdos, CompiledRule, CompiledZone, RateLimit};
+    use crate::ruleset::{CompiledRule, RateLimit};
     use std::net::Ipv4Addr;
 
     fn headers() -> hyper::HeaderMap {
@@ -308,9 +328,29 @@ mod tests {
             status: "active".to_string(),
             protection_mode: "enforce".to_string(),
             config_version: 1,
-            ddos: None,
+            ddos: Vec::new(),
             rules,
             compiled_at: String::new(),
+        }
+    }
+
+    fn ddos_policy(
+        id: &str,
+        action: Action,
+        threshold: u32,
+        path_prefix: Option<&str>,
+        http_method: Option<&str>,
+        priority: i64,
+    ) -> CompiledDdos {
+        CompiledDdos {
+            id: id.to_string(),
+            sensitivity: "high".to_string(),
+            action,
+            request_rate_threshold: threshold,
+            burst_window_seconds: 60,
+            path_prefix: path_prefix.map(str::to_string),
+            http_method: http_method.map(str::to_string),
+            priority,
         }
     }
 
@@ -601,12 +641,7 @@ mod tests {
             Op::Eq,
             "/nope",
         )]);
-        zone.ddos = Some(CompiledDdos {
-            sensitivity: "high".to_string(),
-            action: Action::Challenge,
-            request_rate_threshold: 1,
-            burst_window_seconds: 60,
-        });
+        zone.ddos = vec![ddos_policy("ddos-1", Action::Challenge, 1, None, None, 100)];
         let h = headers();
         let context = ctx("/", [9, 9, 9, 9], &h);
         let limiter = RateLimiter::new();
@@ -620,6 +655,74 @@ mod tests {
             .expect("second request should trip the DDoS budget");
         assert_eq!(decision.action, Action::Challenge);
         assert_eq!(decision.triggered_by, "ddosPolicy");
+        assert_eq!(decision.triggered_by_id, "ddos-1");
+    }
+
+    #[test]
+    fn evaluate_scoped_ddos_policies_only_apply_to_their_own_path() {
+        // Two policies on the same zone, scoped to different paths — a request to /login must
+        // only ever be checked against the /login-scoped policy's own budget, never the
+        // catch-all one, and vice versa.
+        let mut zone = zone_with_rules(vec![]);
+        zone.ddos = vec![
+            ddos_policy("login-policy", Action::Block, 1, Some("/login"), None, 10),
+            ddos_policy("catch-all", Action::Challenge, 1, None, None, 100),
+        ];
+        let h = headers();
+        let limiter = RateLimiter::new();
+
+        let login_ctx = ctx("/login", [1, 1, 1, 1], &h);
+        assert!(
+            evaluate(&zone, &login_ctx, &limiter).is_none(),
+            "1st /login request is in budget"
+        );
+        let decision = evaluate(&zone, &login_ctx, &limiter)
+            .expect("2nd /login request trips the /login-scoped policy");
+        assert_eq!(decision.triggered_by_id, "login-policy");
+        assert_eq!(decision.action, Action::Block);
+
+        // A different client hitting a different path never touches the /login policy's budget —
+        // it falls through to the catch-all policy instead, with its own independent counter.
+        let other_ctx = ctx("/checkout", [2, 2, 2, 2], &h);
+        assert!(
+            evaluate(&zone, &other_ctx, &limiter).is_none(),
+            "1st /checkout request is in budget under the catch-all policy"
+        );
+        let decision = evaluate(&zone, &other_ctx, &limiter)
+            .expect("2nd /checkout request trips the catch-all policy");
+        assert_eq!(decision.triggered_by_id, "catch-all");
+        assert_eq!(decision.action, Action::Challenge);
+    }
+
+    #[test]
+    fn evaluate_scoped_ddos_policy_respects_http_method() {
+        let mut zone = zone_with_rules(vec![]);
+        zone.ddos = vec![ddos_policy(
+            "post-only",
+            Action::Block,
+            1,
+            None,
+            Some("POST"),
+            10,
+        )];
+        let limiter = RateLimiter::new();
+        let h = headers();
+
+        let mut get_ctx = ctx("/", [3, 3, 3, 3], &h);
+        get_ctx.method = "GET";
+        // A GET request never matches a POST-scoped policy, however many times it repeats.
+        assert!(evaluate(&zone, &get_ctx, &limiter).is_none());
+        assert!(evaluate(&zone, &get_ctx, &limiter).is_none());
+
+        let mut post_ctx = ctx("/", [3, 3, 3, 3], &h);
+        post_ctx.method = "POST";
+        assert!(
+            evaluate(&zone, &post_ctx, &limiter).is_none(),
+            "1st POST is in budget"
+        );
+        let decision =
+            evaluate(&zone, &post_ctx, &limiter).expect("2nd POST trips the POST-scoped policy");
+        assert_eq!(decision.triggered_by_id, "post-only");
     }
 
     #[test]
@@ -634,12 +737,7 @@ mod tests {
             Op::StartsWith,
             "",
         )]);
-        zone.ddos = Some(CompiledDdos {
-            sensitivity: "high".to_string(),
-            action: Action::Challenge,
-            request_rate_threshold: 1,
-            burst_window_seconds: 60,
-        });
+        zone.ddos = vec![ddos_policy("ddos-1", Action::Challenge, 1, None, None, 100)];
         let h = headers();
         let context = ctx("/", [7, 7, 7, 7], &h);
         let limiter = RateLimiter::new();
@@ -672,12 +770,7 @@ mod tests {
             "",
         );
         let mut zone = zone_with_rules(vec![access_rule, block_everything]);
-        zone.ddos = Some(CompiledDdos {
-            sensitivity: "high".to_string(),
-            action: Action::Challenge,
-            request_rate_threshold: 1,
-            burst_window_seconds: 60,
-        });
+        zone.ddos = vec![ddos_policy("ddos-1", Action::Challenge, 1, None, None, 100)];
         let h = headers();
         let context = ctx("/", [5, 5, 5, 5], &h);
         let limiter = RateLimiter::new();

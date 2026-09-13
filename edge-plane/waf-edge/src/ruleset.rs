@@ -24,7 +24,10 @@ use serde::Deserialize;
 /// enum variant is exactly the kind of incompatible shape change this constant exists to guard,
 /// per this file's own doc comment: an older edge build must reject a rule-set it cannot parse
 /// rather than silently mis-evaluate an unknown operator.
-pub const SCHEMA_VERSION: u32 = 2;
+///
+/// Bumped to 3 when `CompiledZone.ddos` changed from `Option<CompiledDdos>` to `Vec<CompiledDdos>`
+/// (Increment 4, multiple scoped DDoS policies per zone).
+pub const SCHEMA_VERSION: u32 = 3;
 
 pub const ZONE_INDEX_KEY: &str = "waf:zones";
 pub const EPOCH_KEY: &str = "waf:ruleset-epoch";
@@ -143,13 +146,26 @@ pub struct CompiledRule {
     pub rate_limit: Option<RateLimit>,
 }
 
+/// One DDoS policy, scoped. `path_prefix`/`http_method` both absent (or `http_method: "any"`)
+/// means "applies to the whole zone" — the shape a single, unscoped policy already had before
+/// Increment 4. `id` keys `ratelimit::ddos_key`'s per-policy budget and `Decision::triggered_by_id`
+/// now that a zone can have more than one.
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CompiledDdos {
+    pub id: String,
     pub sensitivity: String,
     pub action: Action,
     pub request_rate_threshold: u32,
     pub burst_window_seconds: u32,
+    #[serde(default)]
+    pub path_prefix: Option<String>,
+    #[serde(default)]
+    pub http_method: Option<String>,
+    /// Already priority-sorted by the control-plane, same as `CompiledRule` below — `evaluate()`
+    /// walks `CompiledZone.ddos` in order, it never sorts.
+    #[allow(dead_code)]
+    pub priority: i64,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -168,8 +184,10 @@ pub struct CompiledZone {
     pub status: String,
     pub protection_mode: String,
     pub config_version: i64,
+    /// Already priority-sorted by the control-plane (Increment 4) — empty means no DDoS policy at
+    /// all, same meaning `None` used to carry before this became a `Vec`.
     #[serde(default)]
-    pub ddos: Option<CompiledDdos>,
+    pub ddos: Vec<CompiledDdos>,
     /// Already priority-sorted by the control-plane — the edge iterates, it never sorts.
     pub rules: Vec<CompiledRule>,
     /// When the control-plane compiled this zone. Not read today; kept for the same reason as

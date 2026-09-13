@@ -207,6 +207,113 @@ pub async fn zone_delete_guard(
     next.run(request).await
 }
 
+/// Auto-attaches a new `Zone` to its `Domain` at create time, so the customer only ever types a
+/// `hostname` — never picks or creates a `Domain` by hand (`domain_entity.rs`'s doc comment
+/// explains why `Domain` exists as a real entity at all).
+///
+/// Looks up (or lazily creates) the `Domain` row for `hostname`'s apex (`apex_domain::apex_domain`)
+/// and injects `domainId` into the request body before `CrudService::create` ever sees it — a
+/// middleware for the same reason `firewall_rule_match_condition_guard` below is one: `POST
+/// /api/waf.zones` is `metap`'s generic CRUD route, not something this crate hand-writes a handler
+/// for. Needs `AppState` (unlike the two guards below) because it calls `state.crud` directly
+/// in-process, the same way `verify_dns`/`verify_domain_dns` do, rather than validating the body in
+/// isolation.
+pub async fn zone_domain_guard(
+    State(state): State<AppState>,
+    AuthContext(context): AuthContext,
+    request: Request,
+    next: Next,
+) -> Response {
+    if !(request.method() == Method::POST && request.uri().path() == "/api/waf.zones") {
+        return next.run(request).await;
+    }
+
+    let (parts, body) = request.into_parts();
+    let bytes = match axum::body::to_bytes(body, 1024 * 1024).await {
+        Ok(bytes) => bytes,
+        Err(_) => {
+            let request = Request::from_parts(parts, axum::body::Body::empty());
+            return next.run(request).await;
+        }
+    };
+
+    let Ok(mut payload) = serde_json::from_slice::<Value>(&bytes) else {
+        // Malformed JSON — let the real handler's own extractor produce its usual error.
+        let request = Request::from_parts(parts, axum::body::Body::from(bytes));
+        return next.run(request).await;
+    };
+    let hostname = payload
+        .get("data")
+        .and_then(|d| d.get("hostname"))
+        .and_then(Value::as_str)
+        .map(str::to_string);
+    let Some(hostname) = hostname.filter(|h| !h.is_empty()) else {
+        // No hostname at all — let the real handler reject it with its own "required field"
+        // validation error rather than this guard inventing a different one.
+        let request = Request::from_parts(parts, axum::body::Body::from(bytes));
+        return next.run(request).await;
+    };
+
+    let apex = crate::apex_domain::apex_domain(&hostname);
+    let existing = state
+        .crud
+        .list(
+            "waf.domains",
+            &ListInput {
+                limit: 1,
+                filters: vec![("apexDomain".to_string(), apex.clone())],
+                ..Default::default()
+            },
+            &context,
+        )
+        .await;
+    let domain_id = match existing {
+        Ok(ServiceResult::Ok { data, .. }) if !data.is_empty() => data[0].id,
+        Ok(ServiceResult::Ok { .. }) => {
+            let mut new_domain = metap::crud::JsonObject::new();
+            new_domain.insert("apexDomain".to_string(), json!(apex));
+            new_domain.insert(
+                "verificationToken".to_string(),
+                json!(format!("waf-verify-{}", Uuid::new_v4())),
+            );
+            new_domain.insert("verificationMethod".to_string(), json!("dnsTxt"));
+            new_domain.insert("verificationStatus".to_string(), json!("unverified"));
+            match state
+                .crud
+                .create("waf.domains", &new_domain, &context, None)
+                .await
+            {
+                Ok(ServiceResult::Ok { data, .. }) => data.id,
+                Ok(ServiceResult::Err {
+                    status,
+                    error,
+                    message,
+                    field_errors,
+                }) => {
+                    return service_error_response(status, &error, message.as_deref(), field_errors)
+                }
+                Err(e) => return internal_error_response(e),
+            }
+        }
+        Ok(ServiceResult::Err {
+            status,
+            error,
+            message,
+            field_errors,
+        }) => return service_error_response(status, &error, message.as_deref(), field_errors),
+        Err(e) => return internal_error_response(e),
+    };
+
+    if let Some(data) = payload.get_mut("data").and_then(Value::as_object_mut) {
+        data.insert("domainId".to_string(), json!(domain_id));
+    }
+    let request = Request::from_parts(
+        parts,
+        axum::body::Body::from(serde_json::to_vec(&payload).unwrap_or_default()),
+    );
+    next.run(request).await
+}
+
 /// Validates `FirewallRule.matchCondition` at write time, rather than letting an unrepresentable
 /// value save successfully and only surface as "this rule doesn't seem to do anything" once
 /// `waf-config-distributor` silently drops it at compile time (see that crate's `compile.rs`,
@@ -361,18 +468,18 @@ async fn dns_lookup(
         .unwrap_or_default())
 }
 
-/// `POST /api/waf.zones/{id}/verify-dns` — domain-ownership check (`docs/06`) plus the
-/// informational routing check (`docs/11`), in one call because both read the same zone's DNS.
+/// `POST /api/waf.zones/{id}/verify-dns` — the informational DNS **routing** check (`docs/11`):
+/// is this zone's own hostname actually pointed at edge-plane yet? Never gates activation, purely
+/// informational.
 ///
-/// Ownership sets `verificationStatus` to `verified` only on a real match of the zone's own
-/// `verificationToken` in a `_waf-verify.<hostname>` TXT record. Routing sets `dnsRoutingStatus`
-/// independently — it never gates activation, it only tells the customer whether traffic is
-/// actually reaching the edge yet.
+/// **Ownership verification moved to the parent `Domain`** (`verify_domain_dns` below,
+/// `domain_entity.rs`'s doc comment) — a zone's own hostname can still have its own CNAME target
+/// even when subdomains share one apex domain, so routing stays a per-zone check, unlike
+/// ownership (proven once for the whole apex domain).
 async fn verify_dns(
     State(state): State<AppState>,
     Path(zone_id): Path<Uuid>,
     AuthContext(context): AuthContext,
-    body: Option<Json<VerifyDnsBody>>,
 ) -> Response {
     let zone = match state.crud.get("waf.zones", zone_id, &context).await {
         Ok(ServiceResult::Ok {
@@ -401,33 +508,16 @@ async fn verify_dns(
             None,
         );
     }
-    let expected_token = body
-        .and_then(|Json(b)| b.expected_token)
-        .or_else(|| {
-            zone.data
-                .get("verificationToken")
-                .and_then(Value::as_str)
-                .map(str::to_string)
-        })
-        .unwrap_or_default();
 
     let client = http_client();
-    let txt = dns_lookup(&client, &format!("_waf-verify.{hostname}"), "TXT")
-        .await
-        .unwrap_or_default();
     let cname = dns_lookup(&client, &hostname, "CNAME")
         .await
         .unwrap_or_default();
 
-    let ownership_ok =
-        !expected_token.is_empty() && txt.iter().any(|record| record == &expected_token);
     let target = edge_cname_target();
     let routed = cname.iter().any(|record| record.ends_with(&target));
 
     let mut patch = metap::crud::JsonObject::new();
-    if ownership_ok {
-        patch.insert("verificationStatus".to_string(), json!("verified"));
-    }
     patch.insert(
         "dnsRoutingStatus".to_string(),
         json!(if routed { "routed" } else { "notRouted" }),
@@ -445,9 +535,8 @@ async fn verify_dns(
         Ok(ServiceResult::Ok { data, .. }) => Json(json!({
             "data": {
                 "zone": data,
-                "ownershipVerified": ownership_ok,
                 "dnsRouted": routed,
-                "checked": { "txt": txt, "cname": cname, "expectedTarget": target },
+                "checked": { "cname": cname, "expectedTarget": target },
             }
         }))
         .into_response(),
@@ -459,6 +548,147 @@ async fn verify_dns(
         }) => service_error_response(status, &error, message.as_deref(), field_errors),
         Err(e) => internal_error_response(e),
     }
+}
+
+/// `POST /api/waf.domains/{id}/verify-dns` — domain-**ownership** check (`docs/06`), proven once
+/// per apex domain rather than once per `Zone` (`domain_entity.rs`'s doc comment explains why this
+/// moved off `Zone`).
+///
+/// On a real match of the domain's own `verificationToken` in a `_waf-verify.<apexDomain>` TXT
+/// record, this both marks the `Domain` itself verified **and cascades** that onto every `Zone`
+/// under it — writing each zone's own `verificationStatus` mirror field directly, the same
+/// "app layer keeps a technical field in sync" pattern `hasConfig`/`sync_config_state` already
+/// use, since a workflow guard (`zone_entity.rs`'s `activate` transition) cannot read a related
+/// entity's field itself.
+async fn verify_domain_dns(
+    State(state): State<AppState>,
+    Path(domain_id): Path<Uuid>,
+    AuthContext(context): AuthContext,
+    body: Option<Json<VerifyDnsBody>>,
+) -> Response {
+    let domain = match state.crud.get("waf.domains", domain_id, &context).await {
+        Ok(ServiceResult::Ok {
+            data: (record, _), ..
+        }) => record,
+        Ok(ServiceResult::Err {
+            status,
+            error,
+            message,
+            field_errors,
+        }) => return service_error_response(status, &error, message.as_deref(), field_errors),
+        Err(e) => return internal_error_response(e),
+    };
+
+    let apex_domain = domain
+        .data
+        .get("apexDomain")
+        .and_then(Value::as_str)
+        .unwrap_or_default()
+        .to_string();
+    if apex_domain.is_empty() {
+        return service_error_response(
+            400,
+            "validation_failed",
+            Some("Domain has no apexDomain."),
+            None,
+        );
+    }
+    let expected_token = body
+        .and_then(|Json(b)| b.expected_token)
+        .or_else(|| {
+            domain
+                .data
+                .get("verificationToken")
+                .and_then(Value::as_str)
+                .map(str::to_string)
+        })
+        .unwrap_or_default();
+
+    let client = http_client();
+    let txt = dns_lookup(&client, &format!("_waf-verify.{apex_domain}"), "TXT")
+        .await
+        .unwrap_or_default();
+    let ownership_ok =
+        !expected_token.is_empty() && txt.iter().any(|record| record == &expected_token);
+
+    if !ownership_ok {
+        return Json(json!({
+            "data": {
+                "domain": domain,
+                "ownershipVerified": false,
+                "checked": { "txt": txt, "expectedToken": expected_token },
+            }
+        }))
+        .into_response();
+    }
+
+    let mut patch = metap::crud::JsonObject::new();
+    patch.insert("verificationStatus".to_string(), json!("verified"));
+    let updated_domain = match state
+        .crud
+        .update(
+            "waf.domains",
+            domain_id,
+            domain.version,
+            &patch,
+            &context,
+            None,
+        )
+        .await
+    {
+        Ok(ServiceResult::Ok { data, .. }) => data,
+        Ok(ServiceResult::Err {
+            status,
+            error,
+            message,
+            field_errors,
+        }) => return service_error_response(status, &error, message.as_deref(), field_errors),
+        Err(e) => return internal_error_response(e),
+    };
+
+    // Cascade onto every zone under this domain — best-effort per zone (one failing zone must not
+    // stop the others, and must not undo the domain's own now-verified status).
+    let list_input = ListInput {
+        limit: 100,
+        filters: vec![("domainId".to_string(), domain_id.to_string())],
+        ..Default::default()
+    };
+    if let Ok(ServiceResult::Ok { data: zones, .. }) =
+        state.crud.list("waf.zones", &list_input, &context).await
+    {
+        for zone in zones {
+            let mut zone_patch = metap::crud::JsonObject::new();
+            zone_patch.insert("verificationStatus".to_string(), json!("verified"));
+            if let Err(e) = state
+                .crud
+                .update(
+                    "waf.zones",
+                    zone.id,
+                    zone.version,
+                    &zone_patch,
+                    &context,
+                    None,
+                )
+                .await
+            {
+                tracing::error!(
+                    zone_id = %zone.id,
+                    domain_id = %domain_id,
+                    error = %e,
+                    "domain verified but cascading verificationStatus onto this zone failed"
+                );
+            }
+        }
+    }
+
+    Json(json!({
+        "data": {
+            "domain": updated_domain,
+            "ownershipVerified": true,
+            "checked": { "txt": txt, "expectedToken": expected_token },
+        }
+    }))
+    .into_response()
 }
 
 /// `POST /api/waf.zones/{id}/test-origin` — "can we actually reach the origin the customer gave
@@ -629,6 +859,7 @@ async fn deep_health() -> Response {
 pub fn router() -> Router<AppState> {
     Router::new()
         .route("/api/waf.zones/{id}/verify-dns", post(verify_dns))
+        .route("/api/waf.domains/{id}/verify-dns", post(verify_domain_dns))
         .route("/api/waf.zones/{id}/test-origin", post(test_origin))
         .route(
             "/api/waf.zones/{id}/sync-config-state",

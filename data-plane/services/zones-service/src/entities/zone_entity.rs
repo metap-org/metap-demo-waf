@@ -15,11 +15,20 @@
 //! rule on/off is a runtime concern with its own edge-sync SLA (10-30s,
 //! `04-architecture-boundary.md`), separate from "has this zone been configured at all".
 //!
-//! `verificationStatus`/`verificationToken`/`verificationMethod` gate `activate` alongside
-//! `hasConfig` — proves the customer controls the hostname (ACME-style DNS-TXT/HTTP-file
-//! challenge) before edge-plane ever routes traffic for it. `dnsRoutingStatus` is a separate,
-//! non-gating field — whether the hostname's DNS has actually been pointed at edge-plane yet is
-//! informational only, checked independently of ownership.
+//! `verificationStatus` gates `activate` alongside `hasConfig` — proves the customer controls the
+//! hostname (ACME-style DNS-TXT/HTTP-file challenge) before edge-plane ever routes traffic for it.
+//! `dnsRoutingStatus` is a separate, non-gating field — whether the hostname's DNS has actually
+//! been pointed at edge-plane yet is informational only, checked independently of ownership.
+//!
+//! **`domainId`/`verificationStatus` split, 2026-09-13 (reverses `docs/06`'s original "no parent
+//! Domain entity" decision — see `domain_entity.rs`'s own doc comment for why):**
+//! `verificationToken`/`verificationMethod` moved to the new `waf.domains` entity — ownership is
+//! now verified once per apex domain, not once per subdomain. `verificationStatus` **stays here**
+//! as a technical mirror field, exactly like `hasConfig` above: `routes::verify_domain_dns`
+//! cascades a successful domain verification onto every `Zone` under it by writing this field
+//! directly, so the `activate` guard below never needs to read a related entity's field (which
+//! `PolicyCondition` cannot do at all). `domainId` is set automatically by
+//! `routes::zone_domain_guard` at create time from the hostname's apex — never chosen by hand.
 
 use std::collections::HashMap;
 
@@ -145,23 +154,26 @@ pub fn zone_entity() -> EntityDefinition {
                 false,
                 false,
             ),
-            field(
-                "verificationToken",
-                "Verification Token",
-                FieldKind::String,
-                false,
-                false,
-                false,
-                false,
-            ),
-            enum_field(
-                "verificationMethod",
-                "Verification Method",
-                &["dnsTxt", "httpFile"],
-                false,
-                false,
-                false,
-            ),
+            EntityField {
+                name: "domainId".to_string(),
+                label: "Domain".to_string(),
+                kind: FieldKind::Reference,
+                required: Some(true),
+                indexed: Some(true),
+                unique: None,
+                enum_values: None,
+                ref_entity: Some("waf.domains".to_string()),
+                ref_display_field: Some("apexDomain".to_string()),
+                searchable: None,
+                search_mode: None,
+                sortable: None,
+                storage: None,
+                min: None,
+                max: None,
+                min_length: None,
+                max_length: None,
+                computed: None,
+            },
             enum_field(
                 "verificationStatus",
                 "Verification Status",

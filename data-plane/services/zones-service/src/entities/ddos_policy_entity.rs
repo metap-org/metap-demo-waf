@@ -1,7 +1,12 @@
-//! `waf.ddos_policies` — DDoS L7 policy for a `Zone`. `zoneId` is `unique` because the business
-//! rule is "0..1 policy in effect per zone at a time" (`docs/02-domain-model.md`); metap has no
-//! separate 1:1-relationship concept, so a unique constraint on the FK field is how that's
-//! expressed.
+//! `waf.ddos_policies` — DDoS L7 policy for a `Zone`.
+//!
+//! **`zoneId` uniqueness removed 2026-09-13** (Increment 4, anti-DDoS L7 expansion): a zone can now
+//! have multiple policies at once, scoped by `pathPrefix`/`httpMethod` so different endpoints can
+//! carry different thresholds (e.g. a tighter budget on `/login` than the rest of the site).
+//! `priority` breaks ties the same way `FirewallRule.priority` already does — first match (by
+//! scope, in priority order) wins, checked in `edge-plane/waf-edge/src/evaluate.rs`'s DDoS
+//! fallback step. An absent `pathPrefix`/`httpMethod` (or `httpMethod: "any"`) matches everything,
+//! preserving today's "one policy protects the whole zone" behaviour as the default shape.
 
 use metap::prelude::{
     submit_entity, EntityAuditConfig, EntityDefinition, EntityField, EntityListView, FieldKind,
@@ -56,7 +61,7 @@ pub fn ddos_policy_entity() -> EntityDefinition {
                 kind: FieldKind::Reference,
                 required: Some(true),
                 indexed: Some(true),
-                unique: Some(true),
+                unique: None,
                 enum_values: None,
                 ref_entity: Some("waf.zones".to_string()),
                 ref_display_field: Some("hostname".to_string()),
@@ -94,6 +99,25 @@ pub fn ddos_policy_entity() -> EntityDefinition {
             ),
             enum_field("action", "Action", &["log", "challenge", "block"], true),
             field("enabled", "Enabled", FieldKind::Boolean, false, true, false),
+            field("priority", "Priority", FieldKind::Number, true, false, true),
+            // Absent/empty = applies to every path — same "empty means unscoped" convention as
+            // `FirewallRule.matchCondition`'s `None` case.
+            field(
+                "pathPrefix",
+                "Path Prefix",
+                FieldKind::String,
+                false,
+                false,
+                false,
+            ),
+            enum_field(
+                "httpMethod",
+                "HTTP Method",
+                &[
+                    "any", "GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS",
+                ],
+                false,
+            ),
         ],
         list_views: vec![EntityListView {
             name: "default".to_string(),
@@ -102,11 +126,14 @@ pub fn ddos_policy_entity() -> EntityDefinition {
                 "zoneId".to_string(),
                 "sensitivity".to_string(),
                 "action".to_string(),
+                "pathPrefix".to_string(),
+                "httpMethod".to_string(),
+                "priority".to_string(),
                 "enabled".to_string(),
             ],
             filters: vec!["zoneId".to_string(), "enabled".to_string()],
             required_fields: vec![],
-            default_sort: Some("-createdAt".to_string()),
+            default_sort: Some("priority".to_string()),
             max_limit: 50,
         }],
         workflow: None,
