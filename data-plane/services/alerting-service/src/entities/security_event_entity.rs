@@ -151,6 +151,7 @@ pub fn security_event_entity() -> EntityDefinition {
         }],
         workflow: None,
         unique_constraints: vec![],
+        audit: None,
     }
 }
 

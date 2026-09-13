@@ -308,7 +308,7 @@ async fn verify_dns(
 
     match state
         .crud
-        .update("waf.zones", zone_id, zone.version, &patch, &context)
+        .update("waf.zones", zone_id, zone.version, &patch, &context, None)
         .await
     {
         Ok(ServiceResult::Ok { data, .. }) => Json(json!({
@@ -442,7 +442,7 @@ async fn sync_config_state(
     patch.insert("hasConfig".to_string(), json!(has_config));
     match state
         .crud
-        .update("waf.zones", zone_id, zone.version, &patch, &context)
+        .update("waf.zones", zone_id, zone.version, &patch, &context, None)
         .await
     {
         Ok(ServiceResult::Ok { .. }) => {

@@ -145,6 +145,7 @@ pub fn firewall_rule_entity() -> EntityDefinition {
         }],
         workflow: None,
         unique_constraints: vec![],
+        audit: None,
     }
 }
 

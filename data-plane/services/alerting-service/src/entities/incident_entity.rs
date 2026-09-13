@@ -151,6 +151,7 @@ pub fn incident_entity() -> EntityDefinition {
             ],
         }),
         unique_constraints: vec![],
+        audit: None,
     }
 }
 

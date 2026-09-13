@@ -106,6 +106,7 @@ pub fn alert_notification_entity() -> EntityDefinition {
         }],
         workflow: None,
         unique_constraints: vec![],
+        audit: None,
     }
 }
 

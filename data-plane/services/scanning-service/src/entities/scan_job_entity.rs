@@ -150,6 +150,7 @@ pub fn scan_job_entity() -> EntityDefinition {
             ],
         }),
         unique_constraints: vec![],
+        audit: None,
     }
 }
 

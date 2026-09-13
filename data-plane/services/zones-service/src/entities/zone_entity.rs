@@ -280,6 +280,7 @@ pub fn zone_entity() -> EntityDefinition {
             ],
         }),
         unique_constraints: vec![],
+        audit: None,
     }
 }
 

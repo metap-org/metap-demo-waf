@@ -181,6 +181,7 @@ pub fn scan_finding_entity() -> EntityDefinition {
             ],
         }),
         unique_constraints: vec![],
+        audit: None,
     }
 }
 

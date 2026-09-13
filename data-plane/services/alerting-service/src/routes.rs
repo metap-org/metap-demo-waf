@@ -214,7 +214,7 @@ async fn correlate_incidents(
         );
         data.insert("severity".to_string(), json!(severity_for(count)));
         data.insert("eventCount".to_string(), json!(count));
-        match state.crud.create("waf.incidents", &data, &context).await {
+        match state.crud.create("waf.incidents", &data, &context, None).await {
             Ok(ServiceResult::Ok { data, .. }) => created.push(data.id),
             Ok(ServiceResult::Err {
                 status,
@@ -274,7 +274,7 @@ async fn record_notification(
         json!(if delivered { "sent" } else { "failed" }),
     );
     data.insert("triggeredAt".to_string(), json!(chrono::Utc::now().to_rfc3339()));
-    match state.crud.create("waf.alert_notifications", &data, context).await? {
+    match state.crud.create("waf.alert_notifications", &data, context, None).await? {
         ServiceResult::Ok { data, .. } => Ok(data.id),
         ServiceResult::Err { error, .. } => Err(anyhow::anyhow!("alert_notifications: {error}")),
     }
