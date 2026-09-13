@@ -192,6 +192,49 @@ fn compile_rule(rule: &Record) -> Option<CompiledRule> {
     })
 }
 
+/// Translates one `IpAccessList` row into the same `CompiledRule` shape `compile_rule` produces
+/// for a `FirewallRule` — no new wire type (`data-plane/services/zones-service/src/entities/
+/// ip_access_list_entity.rs`'s doc comment explains why this entity exists separately at all).
+///
+/// Always compiles to `Field::SourceIpCidr` + `Op::Eq`, whether `value` is a bare IP or a real
+/// CIDR — `evaluate.rs`'s `eval_predicate` already handles both for that field (a bare address via
+/// exact-match fallback, a real CIDR via prefix containment), so there is nothing left for this
+/// function to branch on.
+///
+/// `rule_type: "ipAccessList"` is informational only (telemetry/display) — `compile_zone` below is
+/// what actually gives these rows evaluate-before-everything-else priority, by where it places
+/// them in the compiled list, not anything `evaluate()` reads off this field.
+fn compile_ip_access_list(entry: &Record) -> Option<CompiledRule> {
+    if entry.bool("enabled") == Some(false) {
+        return None;
+    }
+    let list_type = entry.str("type")?;
+    let value = entry.str("value")?.to_string();
+    let action = if list_type == "whitelist" {
+        Action::Allow
+    } else {
+        Action::Block
+    };
+    Some(CompiledRule {
+        id: entry.id.clone(),
+        name: format!("{list_type} {value}"),
+        rule_type: "ipAccessList".to_string(),
+        action,
+        // Not a real ordering signal — see this function's own doc comment and `compile_zone`'s
+        // `access_rules.sort_by_key` below for where the actual allow-before-block order comes
+        // from.
+        priority: 0,
+        match_expr: MatchExpr::Predicate(Predicate {
+            field: Field::SourceIpCidr,
+            op: Op::Eq,
+            value: Some(value),
+            values: Vec::new(),
+            param: None,
+        }),
+        rate_limit: None,
+    })
+}
+
 fn compile_ddos(policy: &Record) -> Option<CompiledDdos> {
     if policy.bool("enabled") == Some(false) {
         return None;
@@ -209,20 +252,38 @@ pub fn compile_zone(
     tenant_id: &str,
     ddos: Option<&Record>,
     rules: &[Record],
+    ip_access_lists: &[Record],
 ) -> Option<CompiledZone> {
     let hostname = zone.str("hostname")?.to_string();
-    let mut compiled: Vec<CompiledRule> = rules.iter().filter_map(compile_rule).collect();
-    let dropped = rules.len() - compiled.len();
+
+    // `IpAccessList` entries evaluate before every regular `FirewallRule` — allow first (so a
+    // whitelist match bypasses everything, including `DdosPolicy`), then block — regardless of
+    // any rule's own `priority`. See `edge-plane/waf-edge/src/evaluate.rs`'s module doc comment
+    // for the full evaluate-order contract this ordering exists to satisfy; that function's own
+    // "first match wins" loop is unchanged, it just walks a list built in this order.
+    let mut access_rules: Vec<CompiledRule> = ip_access_lists
+        .iter()
+        .filter_map(compile_ip_access_list)
+        .collect();
+    access_rules.sort_by_key(|rule| rule.action != Action::Allow);
+
+    let mut regular_rules: Vec<CompiledRule> = rules.iter().filter_map(compile_rule).collect();
+    regular_rules.sort_by_key(|rule| rule.priority);
+
+    let dropped =
+        (rules.len() - regular_rules.len()) + (ip_access_lists.len() - access_rules.len());
     if dropped > 0 {
         // Loud on purpose: a rule silently disappearing between the portal and the edge is
         // exactly the failure mode nobody notices until an attack gets through.
         tracing::warn!(
             hostname,
             dropped,
-            "some firewall rules were not compiled (disabled, or an unrepresentable match condition)"
+            "some firewall rules or IP access list entries were not compiled (disabled, or an unrepresentable value)"
         );
     }
-    compiled.sort_by_key(|rule| rule.priority);
+
+    let mut compiled = access_rules;
+    compiled.extend(regular_rules);
 
     Some(CompiledZone {
         schema_version: RULESET_SCHEMA_VERSION,
@@ -497,7 +558,7 @@ mod tests {
                 json!({ "name": "disabled", "ruleType": "waf", "action": "block", "priority": 1, "enabled": false }),
             ),
         ];
-        let compiled = compile_zone(&z, "tenant-1", None, &rules).unwrap();
+        let compiled = compile_zone(&z, "tenant-1", None, &rules, &[]).unwrap();
         assert_eq!(compiled.rules.len(), 2, "the disabled rule must be dropped");
         assert_eq!(
             compiled.rules[0].name, "first",
@@ -512,7 +573,7 @@ mod tests {
     #[test]
     fn compile_zone_without_hostname_fails() {
         let z = record("zone-1", Some("active"), json!({ "status": "active" }));
-        assert!(compile_zone(&z, "tenant-1", None, &[]).is_none());
+        assert!(compile_zone(&z, "tenant-1", None, &[], &[]).is_none());
     }
 
     #[test]
@@ -523,10 +584,72 @@ mod tests {
             None,
             json!({ "sensitivity": "medium", "action": "challenge", "requestRateThreshold": 500, "burstWindow": 60, "enabled": true }),
         );
-        let compiled = compile_zone(&z, "tenant-1", Some(&ddos), &[]).unwrap();
+        let compiled = compile_zone(&z, "tenant-1", Some(&ddos), &[], &[]).unwrap();
         assert!(compiled.ddos.is_some());
 
-        let compiled_no_ddos = compile_zone(&z, "tenant-1", None, &[]).unwrap();
+        let compiled_no_ddos = compile_zone(&z, "tenant-1", None, &[], &[]).unwrap();
         assert!(compiled_no_ddos.ddos.is_none());
+    }
+
+    // --- compile_ip_access_list / compile_zone tier ordering ---
+
+    fn access_list_entry(id: &str, list_type: &str, value: &str, enabled: bool) -> Record {
+        record(
+            id,
+            None,
+            json!({ "type": list_type, "value": value, "enabled": enabled }),
+        )
+    }
+
+    #[test]
+    fn compile_ip_access_list_whitelist_compiles_to_allow() {
+        let entry = access_list_entry("wl-1", "whitelist", "10.0.0.5", true);
+        let compiled = compile_ip_access_list(&entry).unwrap();
+        assert_eq!(compiled.action, Action::Allow);
+        assert_eq!(compiled.rule_type, "ipAccessList");
+        assert_eq!(
+            compiled.match_expr,
+            MatchExpr::Predicate(Predicate {
+                field: Field::SourceIpCidr,
+                op: Op::Eq,
+                value: Some("10.0.0.5".to_string()),
+                values: vec![],
+                param: None,
+            })
+        );
+    }
+
+    #[test]
+    fn compile_ip_access_list_blacklist_compiles_to_block() {
+        let entry = access_list_entry("bl-1", "blacklist", "10.0.0.0/24", true);
+        let compiled = compile_ip_access_list(&entry).unwrap();
+        assert_eq!(compiled.action, Action::Block);
+    }
+
+    #[test]
+    fn compile_ip_access_list_drops_disabled_entries() {
+        let entry = access_list_entry("wl-1", "whitelist", "10.0.0.5", false);
+        assert!(compile_ip_access_list(&entry).is_none());
+    }
+
+    #[test]
+    fn compile_zone_places_ip_access_lists_before_regular_rules_allow_before_block() {
+        let z = zone("active", json!({}));
+        let rules = vec![record(
+            "r-1",
+            None,
+            json!({ "name": "regular", "ruleType": "waf", "action": "block", "priority": 1, "enabled": true }),
+        )];
+        let access_lists = vec![
+            access_list_entry("bl-1", "blacklist", "10.0.0.1", true),
+            access_list_entry("wl-1", "whitelist", "10.0.0.2", true),
+        ];
+        let compiled = compile_zone(&z, "tenant-1", None, &rules, &access_lists).unwrap();
+        assert_eq!(compiled.rules.len(), 3);
+        // Whitelist (allow) first regardless of input order, then blacklist (block), then the
+        // regular rule last regardless of its own (lower) priority number.
+        assert_eq!(compiled.rules[0].id, "wl-1");
+        assert_eq!(compiled.rules[1].id, "bl-1");
+        assert_eq!(compiled.rules[2].id, "r-1");
     }
 }

@@ -4,12 +4,24 @@
 //! rules arrive pre-sorted and pre-filtered, the match grammar is a closed enum (no string
 //! dispatch), and nothing here allocates unless a predicate actually needs a lowercase copy.
 //!
-//! Evaluation order, matching what the portal tells users
-//! (`../../data-plane/web/src/pages/zone/ZoneDdosTab.tsx`: "applies to every request for this zone
-//! before firewall rules run"):
+//! Evaluation order (`data-plane/docs/06-onboarding-rules-lists.md` §5a — whitelist/blacklist
+//! only means something if it bypasses everything else, `DdosPolicy` included, the way real
+//! Cloudflare-style IP Access Rules work):
 //!
-//! 1. **DDoS policy** — a per-client request budget for the whole zone.
-//! 2. **Firewall rules** — priority order, **first match wins** (`docs/02-domain-model.md`).
+//! 1. **`IpAccessList` rules** — allow (whitelist) first, then block (blacklist), regardless of
+//!    any rule's own `priority`. `priority` only tie-breaks within the same action group; a match
+//!    here stops evaluation immediately, same as any other rule match below.
+//! 2. **Regular firewall rules** — priority order, **first match wins** (`docs/02-domain-model.md`).
+//! 3. **DDoS policy** — a per-client request budget for the whole zone, checked **only when
+//!    nothing above matched**. A request already decided by an `IpAccessList` entry or a
+//!    `FirewallRule` is not also counted against the DDoS budget — avoids double-guarding a
+//!    request a rule has already ruled on, and is what actually makes an allow rule "bypass DDoS"
+//!    true rather than aspirational.
+//!
+//! `compile_zone` (control-plane) is what puts `zone.rules` in this order (`IpAccessList`-derived
+//! entries first, allow before block, then regular rules by priority) — this function's own loop
+//! is a plain, unconditional "first match wins" walk that does not need to know a rule's origin
+//! to respect the contract above.
 //!
 //! Monitor mode is applied last, at the boundary, by `Decision::effective_action` — so the
 //! decision itself always records what *would* have happened, which is what makes monitor mode
@@ -212,25 +224,6 @@ pub fn evaluate(
     context: &RequestContext<'_>,
     limiter: &RateLimiter,
 ) -> Option<Decision> {
-    if let Some(ddos) = &zone.ddos {
-        let over_budget = limiter.check(
-            &ddos_key(&zone.zone_id, &context.client_ip_text),
-            ddos.request_rate_threshold,
-            Duration::from_secs(ddos.burst_window_seconds as u64),
-        );
-        if over_budget {
-            return Some(Decision {
-                action: ddos.action,
-                triggered_by: "ddosPolicy",
-                // The policy's own record id isn't in the compiled form — the portal only ever
-                // shows one DDoS policy per zone, so the zone id identifies it unambiguously and
-                // the compiled shape stays one field smaller on the hot path.
-                triggered_by_id: zone.zone_id.clone(),
-                triggered_by_name: format!("DDoS policy ({})", ddos.sensitivity),
-            });
-        }
-    }
-
     for rule in &zone.rules {
         if !eval_match(context, &rule.match_expr) {
             continue;
@@ -256,6 +249,27 @@ pub fn evaluate(
             triggered_by_id: rule.id.clone(),
             triggered_by_name: rule.name.clone(),
         });
+    }
+
+    // Only reached when nothing above matched — see this module's doc comment for why DDoS is
+    // the last resort rather than the first check.
+    if let Some(ddos) = &zone.ddos {
+        let over_budget = limiter.check(
+            &ddos_key(&zone.zone_id, &context.client_ip_text),
+            ddos.request_rate_threshold,
+            Duration::from_secs(ddos.burst_window_seconds as u64),
+        );
+        if over_budget {
+            return Some(Decision {
+                action: ddos.action,
+                triggered_by: "ddosPolicy",
+                // The policy's own record id isn't in the compiled form — the portal only ever
+                // shows one DDoS policy per zone, so the zone id identifies it unambiguously and
+                // the compiled shape stays one field smaller on the hot path.
+                triggered_by_id: zone.zone_id.clone(),
+                triggered_by_name: format!("DDoS policy ({})", ddos.sensitivity),
+            });
+        }
     }
 
     None
@@ -579,7 +593,7 @@ mod tests {
     }
 
     #[test]
-    fn evaluate_ddos_budget_is_checked_before_rules() {
+    fn evaluate_ddos_budget_is_checked_only_when_no_rule_matched() {
         let mut zone = zone_with_rules(vec![predicate_rule(
             "never-matches",
             Action::Block,
@@ -600,11 +614,81 @@ mod tests {
         // First request is within budget (threshold 1 means the 2nd request in the window is
         // over budget) — nothing matches, DDoS policy included.
         assert!(evaluate(&zone, &context, &limiter).is_none());
-        // Second request from the same client crosses the threshold.
+        // Second request from the same client crosses the threshold. The zone's only rule never
+        // matches this path, so the DDoS check is still reached and fires.
         let decision = evaluate(&zone, &context, &limiter)
             .expect("second request should trip the DDoS budget");
         assert_eq!(decision.action, Action::Challenge);
         assert_eq!(decision.triggered_by, "ddosPolicy");
+    }
+
+    #[test]
+    fn evaluate_a_matching_rule_suppresses_the_ddos_check() {
+        // Same threshold-1 setup as above, but this time the zone's rule matches every request
+        // (`Op::StartsWith` against an empty prefix) — the DDoS budget must never be consulted,
+        // even on the 2nd request that would otherwise trip it.
+        let mut zone = zone_with_rules(vec![predicate_rule(
+            "always-matches",
+            Action::Log,
+            Field::UriPath,
+            Op::StartsWith,
+            "",
+        )]);
+        zone.ddos = Some(CompiledDdos {
+            sensitivity: "high".to_string(),
+            action: Action::Challenge,
+            request_rate_threshold: 1,
+            burst_window_seconds: 60,
+        });
+        let h = headers();
+        let context = ctx("/", [7, 7, 7, 7], &h);
+        let limiter = RateLimiter::new();
+
+        for _ in 0..2 {
+            let decision = evaluate(&zone, &context, &limiter).expect("the rule always matches");
+            assert_eq!(decision.triggered_by, "firewallRule");
+            assert_eq!(decision.triggered_by_id, "always-matches");
+        }
+    }
+
+    #[test]
+    fn evaluate_an_ip_access_list_allow_match_bypasses_ddos_and_later_rules() {
+        // `rule_type: "ipAccessList"` is set here purely for realism (telemetry) — `evaluate()`
+        // itself never reads it; what actually gives this rule priority is its position at the
+        // front of `zone.rules`, which is `compile_zone`'s job in the real pipeline.
+        let mut access_rule = predicate_rule(
+            "wl-1",
+            Action::Allow,
+            Field::SourceIpCidr,
+            Op::Eq,
+            "5.5.5.5",
+        );
+        access_rule.rule_type = "ipAccessList".to_string();
+        let block_everything = predicate_rule(
+            "block-all",
+            Action::Block,
+            Field::UriPath,
+            Op::StartsWith,
+            "",
+        );
+        let mut zone = zone_with_rules(vec![access_rule, block_everything]);
+        zone.ddos = Some(CompiledDdos {
+            sensitivity: "high".to_string(),
+            action: Action::Challenge,
+            request_rate_threshold: 1,
+            burst_window_seconds: 60,
+        });
+        let h = headers();
+        let context = ctx("/", [5, 5, 5, 5], &h);
+        let limiter = RateLimiter::new();
+
+        // Even on the 2nd request (which would trip the DDoS budget) and despite a
+        // block-everything rule right after it, the whitelist match wins.
+        for _ in 0..2 {
+            let decision = evaluate(&zone, &context, &limiter).expect("the allow rule matches");
+            assert_eq!(decision.action, Action::Allow);
+            assert_eq!(decision.triggered_by_id, "wl-1");
+        }
     }
 
     #[test]

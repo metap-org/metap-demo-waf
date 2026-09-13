@@ -37,6 +37,7 @@ import { StatusBadge } from "../components/primitives";
 import { ZoneOverviewTab } from "./zone/ZoneOverviewTab";
 import { ZoneDdosTab } from "./zone/ZoneDdosTab";
 import { ZoneRulesTab } from "./zone/ZoneRulesTab";
+import { ZoneAccessListTab } from "./zone/ZoneAccessListTab";
 import { ZoneScansTab } from "./zone/ZoneScansTab";
 import { ZoneEventsTab } from "./zone/ZoneEventsTab";
 
@@ -209,6 +210,9 @@ export function ZoneDetailPage() {
           <TabsTrigger value="rules">
             {t("waf.zoneDetail.tabRules")}
           </TabsTrigger>
+          <TabsTrigger value="accessLists">
+            {t("waf.zoneDetail.tabAccessLists")}
+          </TabsTrigger>
           <TabsTrigger value="scans">
             {t("waf.zoneDetail.tabScans")}
           </TabsTrigger>
@@ -224,6 +228,9 @@ export function ZoneDetailPage() {
         </TabsContent>
         <TabsContent value="rules">
           <ZoneRulesTab zoneId={record.id} />
+        </TabsContent>
+        <TabsContent value="accessLists">
+          <ZoneAccessListTab zoneId={record.id} />
         </TabsContent>
         <TabsContent value="scans">
           <ZoneScansTab zoneId={record.id} />

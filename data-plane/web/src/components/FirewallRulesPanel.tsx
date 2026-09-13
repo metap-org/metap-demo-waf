@@ -413,19 +413,15 @@ export function FirewallRulesPanel({ zoneId }: { zoneId?: string }) {
                   onValueChange={(value) =>
                     setDraft({ ...draft, ruleType: String(value) })
                   }
+                  // `ipFirewall`/`geoFirewall` removed (Increment 2) — IP/CIDR whitelist and
+                  // blacklist now live on their own `IpAccessListPanel` screen; a geo (country)
+                  // rule is still expressible here as an ordinary `waf` rule with a
+                  // `matchCondition` field of `country`.
                   options={[
                     { value: "waf", label: t("waf.zoneTabs.rules.typeWaf") },
                     {
                       value: "rateLimit",
                       label: t("waf.zoneTabs.rules.typeRateLimit"),
-                    },
-                    {
-                      value: "ipFirewall",
-                      label: t("waf.zoneTabs.rules.typeIpFirewall"),
-                    },
-                    {
-                      value: "geoFirewall",
-                      label: t("waf.zoneTabs.rules.typeGeoFirewall"),
                     },
                   ]}
                 />

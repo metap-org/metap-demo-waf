@@ -4,7 +4,7 @@
 //! the entity/workflow spec, and the plan doc referenced from the roadmap entry for why the
 //! split happened and how the 3 services are bounded).
 //!
-//! Owns `waf.zones` + `waf.ddos_policies` + `waf.firewall_rules` — kept together because
+//! Owns `waf.zones` + `waf.ddos_policies` + `waf.firewall_rules` + `waf.ip_access_lists` — kept together because
 //! `Zone`'s workflow guard `activate` depends on the technical field `hasConfig`, updated by
 //! app logic whenever a `DdosPolicy`/`FirewallRule` is created/deleted for that zone; keeping
 //! that hook in-process (not a cross-service call) matters most at exactly this sensitive a
@@ -21,7 +21,7 @@
 
 use zones_service::entities::{
     ddos_policy_entity::ddos_policy_entity, firewall_rule_entity::firewall_rule_entity,
-    zone_entity::zone_entity,
+    ip_access_list_entity::ip_access_list_entity, zone_entity::zone_entity,
 };
 use zones_service::routes;
 
@@ -49,16 +49,21 @@ async fn main() -> anyhow::Result<()> {
     registry.validate_references()?;
     let metadata_base = Arc::new(registry);
 
-    // Order is load-bearing: `DdosPolicy.zoneId`/`FirewallRule.zoneId` each build a real FK
-    // straight into `waf.zones`'s table at DDL time (`compile()`), so `waf.zones` must be
-    // reconciled — its table must physically exist — before either of them. `waf.ddos_policies`
-    // and `waf.firewall_rules` don't reference each other, so their own order doesn't matter.
+    // Order is load-bearing: `DdosPolicy.zoneId`/`FirewallRule.zoneId`/`IpAccessList.zoneId` each
+    // build a real FK straight into `waf.zones`'s table at DDL time (`compile()`), so `waf.zones`
+    // must be reconciled — its table must physically exist — before any of them. The other 3
+    // don't reference each other, so their own order doesn't matter.
     // All 3 `Schema`-strategy tenants in this shared dev DB use one physical pool/schema (see
     // this file's module doc comment) — the physical `entities.*` table this creates isn't
     // itself tenant-scoped (only rows are, via `tenant_id`), so the plain bootstrap `pool` +
     // `metap::control::PLATFORM_TENANT_ID` sentinel is enough here; no real tenant's rows are
     // touched by this DDL-only boot step.
-    for entity in [zone_entity(), ddos_policy_entity(), firewall_rule_entity()] {
+    for entity in [
+        zone_entity(),
+        ddos_policy_entity(),
+        firewall_rule_entity(),
+        ip_access_list_entity(),
+    ] {
         let outcome =
             metap_reconciler::reconcile(&pool, metap::control::PLATFORM_TENANT_ID, &entity, &[])
                 .await?;
@@ -199,6 +204,9 @@ async fn main() -> anyhow::Result<()> {
         // than a route override.
         .layer(axum::middleware::from_fn(
             routes::firewall_rule_match_condition_guard,
+        ))
+        .layer(axum::middleware::from_fn(
+            routes::ip_access_list_value_guard,
         ));
 
     let addr = format!("{}:{}", config.host, config.port);
@@ -228,7 +236,7 @@ mod tests {
     // that forgot its `submit_entity!` call, a name collision, or (the failure mode this split
     // specifically introduced) another service's entity accidentally ending up registered here.
     #[test]
-    fn owns_exactly_its_own_three_entities() {
+    fn owns_exactly_its_own_four_entities() {
         let mut registry = MetadataRegistry::new();
         registry.register_all_submitted().unwrap();
         registry.validate_references().unwrap();
@@ -238,12 +246,17 @@ mod tests {
             .into_iter()
             .map(|e| e.name)
             .collect();
-        for expected in ["waf.zones", "waf.ddos_policies", "waf.firewall_rules"] {
+        for expected in [
+            "waf.zones",
+            "waf.ddos_policies",
+            "waf.firewall_rules",
+            "waf.ip_access_lists",
+        ] {
             assert!(
                 names.contains(&expected.to_string()),
                 "missing entity: {expected}"
             );
         }
-        assert_eq!(names.len(), 3, "unexpected entity count: {names:?}");
+        assert_eq!(names.len(), 4, "unexpected entity count: {names:?}");
     }
 }

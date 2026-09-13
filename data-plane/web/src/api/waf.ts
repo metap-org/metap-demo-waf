@@ -49,6 +49,7 @@ export const ENTITIES = {
   zones: "waf.zones",
   ddosPolicies: "waf.ddos_policies",
   firewallRules: "waf.firewall_rules",
+  ipAccessLists: "waf.ip_access_lists",
   scanJobs: "waf.scan_jobs",
   scanFindings: "waf.scan_findings",
   securityEvents: "waf.security_events",

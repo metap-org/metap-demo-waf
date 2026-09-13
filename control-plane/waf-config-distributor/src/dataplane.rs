@@ -164,6 +164,26 @@ impl DataPlane {
         .await
     }
 
+    pub async fn ip_access_lists_for(&self, zone_id: &str) -> anyhow::Result<Vec<Record>> {
+        self.list(
+            &self.zones_url,
+            "waf.ip_access_lists",
+            &[("zoneId", zone_id), ("limit", "100")],
+        )
+        .await
+    }
+
+    /// Tenant-wide ("global") `IpAccessList` entries — same `?zoneId=` (empty) convention as
+    /// `tenant_wide_rules_for` above.
+    pub async fn tenant_wide_ip_access_lists_for(&self) -> anyhow::Result<Vec<Record>> {
+        self.list(
+            &self.zones_url,
+            "waf.ip_access_lists",
+            &[("zoneId", ""), ("limit", "100")],
+        )
+        .await
+    }
+
     /// Writes one `SecurityEvent` into `alerting-service` — the up-direction, going through the
     /// same generic CRUD route the portal uses, so validation/permission/outbox all still apply.
     /// This is the reason telemetry routes through this worker at all rather than the edge

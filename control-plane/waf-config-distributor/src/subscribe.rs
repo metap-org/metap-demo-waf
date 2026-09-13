@@ -20,7 +20,12 @@ use crate::sync::{hostname_from_event, sync_zone, zone_id_from_event};
 /// Entities whose changes can alter what the edge should do. `waf.scan_*`, `waf.incidents`,
 /// `waf.alert_*` all flow through the same exchange and are deliberately ignored here — none of
 /// them affects request handling.
-const WATCHED: [&str; 3] = ["waf.zones", "waf.ddos_policies", "waf.firewall_rules"];
+const WATCHED: [&str; 4] = [
+    "waf.zones",
+    "waf.ddos_policies",
+    "waf.firewall_rules",
+    "waf.ip_access_lists",
+];
 
 pub async fn run(
     amqp_url: String,

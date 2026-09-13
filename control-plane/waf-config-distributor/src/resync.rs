@@ -23,6 +23,7 @@ pub async fn run_once(data_plane: &DataPlane, distributor: &Distributor) -> anyh
     // below. `compile_zone` doesn't care where `rules` came from — merging is purely this
     // caller's job (concatenate, then let `compile_zone`'s own priority sort interleave them).
     let tenant_wide_rules = data_plane.tenant_wide_rules_for().await?;
+    let tenant_wide_access_lists = data_plane.tenant_wide_ip_access_lists_for().await?;
     let mut expected: HashSet<String> = HashSet::new();
 
     for zone in &zones {
@@ -40,7 +41,10 @@ pub async fn run_once(data_plane: &DataPlane, distributor: &Distributor) -> anyh
         let ddos = data_plane.ddos_policy_for(&zone.id).await?;
         let mut rules = data_plane.rules_for(&zone.id).await?;
         rules.extend(tenant_wide_rules.iter().cloned());
-        let Some(compiled) = compile_zone(zone, &tenant_id, ddos.as_ref(), &rules) else {
+        let mut access_lists = data_plane.ip_access_lists_for(&zone.id).await?;
+        access_lists.extend(tenant_wide_access_lists.iter().cloned());
+        let Some(compiled) = compile_zone(zone, &tenant_id, ddos.as_ref(), &rules, &access_lists)
+        else {
             continue;
         };
         distributor.publish(&compiled).await?;

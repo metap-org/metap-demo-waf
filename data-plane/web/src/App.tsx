@@ -46,6 +46,7 @@ import { AlertingPage } from "./pages/AlertingPage";
 import { AnalyticsPage } from "./pages/AnalyticsPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { GlobalRulesPage } from "./pages/GlobalRulesPage";
+import { GlobalAccessListPage } from "./pages/GlobalAccessListPage";
 
 /** A layout route (rendered once via `<Route element={<RequireAuth />}>`, `<Outlet/>` swapping
  *  only the matched child) — not a per-route wrapper called from the route table anymore
@@ -80,6 +81,7 @@ function RequireAuth() {
     { to: "/", label: t("waf.nav.dashboard") },
     { to: "/zones", label: t("waf.nav.zones") },
     { to: "/rules/global", label: t("waf.nav.globalRules") },
+    { to: "/access-lists/global", label: t("waf.nav.globalAccessLists") },
     { to: "/incidents", label: t("waf.nav.incidents") },
     { to: "/findings", label: t("waf.nav.findings") },
     { to: "/alerting", label: t("waf.nav.alerting") },
@@ -165,6 +167,10 @@ export default function App() {
             <Route path="/zones" element={<ZonesPage />} />
             <Route path="/zones/:zoneId" element={<ZoneDetailPage />} />
             <Route path="/rules/global" element={<GlobalRulesPage />} />
+            <Route
+              path="/access-lists/global"
+              element={<GlobalAccessListPage />}
+            />
             <Route path="/incidents" element={<IncidentsPage />} />
             <Route
               path="/incidents/:incidentId"

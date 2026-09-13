@@ -100,13 +100,16 @@ pub fn firewall_rule_entity() -> EntityDefinition {
                 false,
                 false,
             ),
-            enum_field(
-                "ruleType",
-                "Rule Type",
-                &["waf", "rateLimit", "ipFirewall", "geoFirewall"],
-                true,
-                true,
-            ),
+            // `ipFirewall`/`geoFirewall` were removed 2026-09-13 (Increment 2) once
+            // `waf.ip_access_lists` (`ip_access_list_entity.rs`) took over IP/CIDR whitelist and
+            // blacklist — see that entity's own doc comment for why it's a separate entity at
+            // all. Geo (country-code) access rules stay expressible as an ordinary `ruleType:
+            // "waf"` rule with a `matchCondition` field of `country` — nothing else changes for
+            // them. The single pre-existing `ipFirewall` row in the dev DB was unrepresentable
+            // test debris (`matchCondition: {}`, inconsistent rate-limit fields set on a non-
+            // rate-limit type) and was soft-deleted by hand rather than migrated — confirmed via
+            // a direct query before removing these values, not assumed.
+            enum_field("ruleType", "Rule Type", &["waf", "rateLimit"], true, true),
             field(
                 "rateLimitThreshold",
                 "Rate Limit Threshold",

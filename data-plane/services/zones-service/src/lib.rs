@@ -6,5 +6,6 @@
 //! each, never two copies to drift.
 
 pub mod entities;
+pub mod ip_format;
 pub mod match_condition;
 pub mod routes;

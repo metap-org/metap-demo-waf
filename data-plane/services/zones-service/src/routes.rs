@@ -267,6 +267,62 @@ pub async fn firewall_rule_match_condition_guard(request: Request, next: Next) -
     next.run(request).await
 }
 
+/// Validates `IpAccessList.value` at write time — same reasoning and shape as
+/// `firewall_rule_match_condition_guard` above (a middleware, not a body extractor, since
+/// create/update on `waf.ip_access_lists` are `metap`'s generic CRUD routes). A row with an
+/// unparseable `value` would never match anything at the edge (`ip_in_cidr` treats a malformed
+/// CIDR as "never matches" rather than widening), which for an access-list entry is worse than
+/// `matchCondition`'s "silently dropped" failure mode — a *blacklist* entry that silently never
+/// matches is a false sense of being blocked.
+///
+/// Only inspects `waf.ip_access_lists` create/update bodies with a `value` field present; any
+/// other write (or a `waf.ip_access_lists` PATCH touching only `enabled`, say) passes through
+/// unexamined.
+pub async fn ip_access_list_value_guard(request: Request, next: Next) -> Response {
+    let path = request.uri().path().to_string();
+    let is_create = request.method() == Method::POST && path == "/api/waf.ip_access_lists";
+    let is_update = request.method() == Method::PATCH
+        && path.starts_with("/api/waf.ip_access_lists/")
+        && path.matches('/').count() == 3;
+    if !is_create && !is_update {
+        return next.run(request).await;
+    }
+
+    let (parts, body) = request.into_parts();
+    let bytes = match axum::body::to_bytes(body, 1024 * 1024).await {
+        Ok(bytes) => bytes,
+        Err(_) => {
+            let request = Request::from_parts(parts, axum::body::Body::empty());
+            return next.run(request).await;
+        }
+    };
+
+    let value = serde_json::from_slice::<Value>(&bytes)
+        .ok()
+        .and_then(|json| {
+            json.get("data")
+                .and_then(|d| d.get("value"))
+                .and_then(Value::as_str)
+                .map(str::to_string)
+        });
+    if let Some(value) = &value {
+        if !crate::ip_format::is_valid_ip_or_cidr(value) {
+            return service_error_response(
+                422,
+                "validation_failed",
+                Some("value is not a valid IP address or CIDR (e.g. \"10.0.0.5\" or \"10.0.0.0/24\")."),
+                Some(std::collections::HashMap::from([(
+                    "value".to_string(),
+                    vec!["not a valid IP address or CIDR".to_string()],
+                )])),
+            );
+        }
+    }
+
+    let request = Request::from_parts(parts, axum::body::Body::from(bytes));
+    next.run(request).await
+}
+
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct VerifyDnsBody {
