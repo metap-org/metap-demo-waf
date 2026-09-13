@@ -103,11 +103,15 @@ async fn main() -> anyhow::Result<()> {
     // auth section for the rationale (no private key copied to a process that only ever
     // verifies — not true yet for the 2 sibling services below, since all 3 still hold the same
     // signing key today; see that section for the topology this stops short of).
-    let jwks_key_store = match (std::env::var("JWKS_PRIVATE_KEY_PATH"), std::env::var("JWKS_KID_PATH")) {
+    let jwks_key_store = match (
+        std::env::var("JWKS_PRIVATE_KEY_PATH"),
+        std::env::var("JWKS_KID_PATH"),
+    ) {
         (Ok(private_key_path), Ok(kid_path)) => {
             let kid = std::fs::read_to_string(&kid_path)?.trim().to_string();
             let private_pkcs8 = std::fs::read(&private_key_path)?;
-            let signing_key = metap::jwks::JwksKeyPair::from_pkcs8(kid.clone(), private_pkcs8.clone())?;
+            let signing_key =
+                metap::jwks::JwksKeyPair::from_pkcs8(kid.clone(), private_pkcs8.clone())?;
             state.token_signer = Some(Arc::new(metap::jwks::TokenSigner::Jwks {
                 key: Arc::new(signing_key),
             }));
@@ -116,52 +120,44 @@ async fn main() -> anyhow::Result<()> {
                 "http://localhost:3000/.well-known/jwks.json".to_string(),
             );
             state.token_verifier = Some(Arc::new(metap::jwks::TokenVerifier::Jwks {
-                client: Arc::new(metap::jwks::JwksClient::new(jwks_url, Duration::from_secs(300))),
+                client: Arc::new(metap::jwks::JwksClient::new(
+                    jwks_url,
+                    Duration::from_secs(300),
+                )),
                 leeway: 20,
             }));
             // A second, independently-owned key (same bytes) for the `JwksKeyStore` this
             // process publishes — `JwksKeyStore::new` takes ownership, and `token_signer` above
             // already claimed the first one.
             let published_key = metap::jwks::JwksKeyPair::from_pkcs8(kid, private_pkcs8)?;
-            Some(Arc::new(tokio::sync::RwLock::new(metap::jwks::JwksKeyStore::new(
-                published_key,
-            ))))
+            Some(Arc::new(tokio::sync::RwLock::new(
+                metap::jwks::JwksKeyStore::new(published_key),
+            )))
         }
         _ => None,
     };
 
     // gRPC opt-in (`GRPC_ENABLED`/`GRPC_PORT`) — lets a `graphql-gateway` instance aggregate
     // this service alongside `scanning-service`/`alerting-service` for the WAF Customer Portal's
-    // cross-service, read-only views (e.g. a Zone overview page). Read `state` before it's
-    // moved into `build_router` below. Bypasses `metap::grpc::optional_serve` (which only ever
-    // builds `TokenVerifier::Static`, see that fn's doc comment) so gRPC verifies against the
-    // same JWKS trust root as REST above when configured, falling back to the static keypair
-    // identically to `optional_serve`'s own behavior otherwise.
-    let grpc_verifier = state.token_verifier.clone().unwrap_or_else(|| {
-        Arc::new(metap::jwks::TokenVerifier::Static {
-            decoding_key: (*state.jwt_decoding_key).clone(),
-            leeway: 20,
-        })
-    });
-    let grpc_handle = if metap::runtime::env::flag_enabled("GRPC_ENABLED") {
-        let grpc_port: u16 = metap::runtime::env::env_or("GRPC_PORT", 3001);
-        let grpc_addr: std::net::SocketAddr = format!("{}:{grpc_port}", config.host).parse()?;
-        let auth = metap::grpc::AuthConfig {
-            verifier: (*grpc_verifier).clone(),
+    // cross-service, read-only views (e.g. a Zone overview page). Read `state` before it's moved
+    // into `build_router` below. `token_verifier_override` (audit 04 finding A#10, fixed
+    // 2026-09-13 in `../../../../metap` — this call site used to hand-reimplement all of
+    // `optional_serve`'s body just to pass this through) makes gRPC verify against the same JWKS
+    // trust root as REST above when configured, falling back to `optional_serve`'s own
+    // `TokenVerifier::Static` default otherwise.
+    let grpc_handle = metap::grpc::optional_serve(
+        &config.host,
+        3001,
+        metap::grpc::OptionalServeConfig {
+            crud: state.crud.clone(),
             router: state.router.clone(),
+            jwt_decoding_key: state.jwt_decoding_key.clone(),
             auth_context_entity: state.auth_context_entity.as_deref().map(str::to_string),
             context_attributes_cache: state.context_attributes_cache.clone(),
-        };
-        let service = metap::grpc::GrpcRecordService::new(state.crud.clone(), auth);
-        tracing::info!(%grpc_addr, "gRPC listening");
-        Some(tokio::spawn(async move {
-            if let Err(err) = metap::grpc::serve(grpc_addr, service, None).await {
-                tracing::error!(error = %err, "gRPC server exited with error");
-            }
-        }))
-    } else {
-        None
-    };
+            token_verifier_override: state.token_verifier.clone(),
+        },
+    )
+    .await?;
 
     // `routes::router()` goes through `extra_routes` so the custom onboarding/ops endpoints get
     // the same CORS/rate-limit/tracing/security-header layers as every generic route.
@@ -184,7 +180,10 @@ async fn main() -> anyhow::Result<()> {
     if let Some(jwks_key_store) = jwks_key_store {
         router = router.fallback_service(metap::jwks_http::router(jwks_key_store));
     }
-    let router = router.layer(axum::middleware::from_fn_with_state(guard_state, routes::zone_delete_guard));
+    let router = router.layer(axum::middleware::from_fn_with_state(
+        guard_state,
+        routes::zone_delete_guard,
+    ));
 
     let addr = format!("{}:{}", config.host, config.port);
 

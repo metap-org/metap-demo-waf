@@ -25,9 +25,9 @@ use std::collections::HashMap;
 
 use metap::permission::{ConditionOp, PolicyValue};
 use metap::prelude::{
-    submit_entity, submit_field_display_hints, submit_related_views, EntityDefinition,
-    EntityField, EntityListView, EntityWorkflow, FieldDisplayHint, FieldKind, PolicyCondition,
-    RelatedView, WorkflowTransition,
+    submit_entity, submit_field_display_hints, submit_related_views, EntityDefinition, EntityField,
+    EntityListView, EntityWorkflow, FieldDisplayHint, FieldKind, PolicyCondition, RelatedView,
+    WorkflowTransition,
 };
 use serde_json::json;
 
