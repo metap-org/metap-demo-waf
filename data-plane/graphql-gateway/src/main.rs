@@ -269,15 +269,33 @@ async fn main() -> anyhow::Result<()> {
         depth: config.graphql_max_depth,
         complexity: config.graphql_max_complexity,
     };
-    let built =
+    // `extend` is now `Fn`, not `FnOnce` (`metap`'s `metap-graphql-gateway` audit 04 B1 fix,
+    // 2026-09-13) — called on every schema refresh, not just once at boot, so `zones`/
+    // `scanning`/`alerting` are cloned per call rather than moved into `add_custom_fields`.
+    let cache =
         schema_builder::build_with_extensions(&config.upstreams, limits, move |query, mutation| {
-            add_custom_fields(query, mutation, zones, scanning, alerting)
+            add_custom_fields(
+                query,
+                mutation,
+                zones.clone(),
+                scanning.clone(),
+                alerting.clone(),
+            )
         })
         .await?;
+    let snapshot = cache.current().await;
+    let degraded = snapshot
+        .health
+        .upstreams
+        .iter()
+        .filter(|u| !u.reachable)
+        .count();
     tracing::info!(
-        entities = built.entity_count,
+        entities = snapshot.entity_count,
+        upstreams = snapshot.health.upstreams.len(),
+        degraded,
         "schema built, starting server"
     );
 
-    server::serve(config, built).await
+    server::serve(config, cache).await
 }

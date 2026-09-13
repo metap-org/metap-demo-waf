@@ -2,13 +2,23 @@
 # service Dockerfiles exist elsewhere; see ../../README.md's Docker section). Build context MUST
 # be the metap-org ROOT (`../../../docker-compose.yml` builds this with `context: ../../`), not
 # this directory or even `data-plane/` — this app's `package.json` depends on
-# `@metap/platform-ui`/`@metap/ui` via `link:../../../platform-ui`/`link:../../../design-system`
+# `@metap/platform-ui`/`@metap/ui` via `link:../../../platform-ui`/`link:../../../design-system`,
+# plus `@metap/theme-enterprise` via `link:../../../metap-themes/packages/enterprise`
 # (real pnpm symlinks to sibling repos, not published packages), so the sibling repos have to be
 # visible in the same build context at the same relative nesting they have on disk
-# (`design-system/`, `platform-ui/`, `metap-demo-waf/data-plane/web/`, all under 1 root) for
-# `pnpm install` to resolve them. The root `../../../.dockerignore` (metap-org/.dockerignore, new
-# alongside this file) keeps that wide context from also shipping every sibling repo's
-# `target/`/`node_modules/`/`.git` — read that file's own comment before touching either.
+# (`design-system/`, `platform-ui/`, `metap-themes/`, `metap-demo-waf/data-plane/web/`, all under
+# 1 root) for `pnpm install` to resolve them. The root `../../../.dockerignore`
+# (metap-org/.dockerignore, new alongside this file) keeps that wide context from also shipping
+# every sibling repo's `target/`/`node_modules/`/`.git` — read that file's own comment before
+# touching either.
+#
+# `@metap/theme-enterprise` is source-consumed (`main`/`exports` point straight at `src/`, no
+# build step, no `dependencies` of its own) and pnpm resolves the `link:` symlink lazily — the
+# earlier `pnpm install --frozen-lockfile` for `web` succeeds even before this directory is
+# copied in, but `web`'s `pnpm build` (which actually imports `@metap/theme-enterprise/theme.css`)
+# fails to resolve it if the copy below is missing (found live building this Dockerfile for the
+# first time, 2026-09-11 — this dependency was added 2026-09-03 but nothing had rebuilt the image
+# since).
 #
 # `@metap/ui` (design-system) is NOT source-consumed like `@metap/platform-ui` — its
 # `package.json`'s `main`/`exports` point at `dist/`, so it needs its own `pnpm build`
@@ -47,6 +57,7 @@ RUN cd metap-demo-waf/data-plane/web && pnpm install --frozen-lockfile
 
 COPY design-system/ design-system/
 COPY platform-ui/ platform-ui/
+COPY metap-themes/packages/enterprise/ metap-themes/packages/enterprise/
 COPY metap-demo-waf/data-plane/web/ metap-demo-waf/data-plane/web/
 
 RUN cd design-system && pnpm build

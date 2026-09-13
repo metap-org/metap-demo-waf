@@ -77,6 +77,15 @@ async fn main() -> anyhow::Result<()> {
         private_key_pem,
         router,
     );
+    // General-purpose audit trail (`metap-audit`, audit finding 05) — every write on both
+    // entities this service owns now lands a row in `metadata.audit_trail_entries`. Same
+    // `Schema`-strategy shared `pool` reasoning as `zones-service`'s own wiring.
+    state.crud = Arc::new(CrudService::with_audit(
+        state.router.clone(),
+        state.metadata.clone(),
+        state.permissions.clone(),
+        Arc::new(PostgresAuditTrailStore::new(state.pool.clone())),
+    ));
     // Dev binary serves plain `http://localhost:3010` — a `Secure` session cookie (the
     // `AppState::new` default) is silently dropped by the browser over non-HTTPS. See
     // `docs/roadmap/64-cookie-session-persistence.md` in `../../metap-docs`.
@@ -103,43 +112,35 @@ async fn main() -> anyhow::Result<()> {
             "http://localhost:3000/.well-known/jwks.json".to_string(),
         );
         state.token_verifier = Some(Arc::new(metap::jwks::TokenVerifier::Jwks {
-            client: Arc::new(metap::jwks::JwksClient::new(jwks_url, Duration::from_secs(300))),
+            client: Arc::new(metap::jwks::JwksClient::new(
+                jwks_url,
+                Duration::from_secs(300),
+            )),
             leeway: 20,
         }));
     }
 
     // gRPC opt-in (`GRPC_ENABLED`/`GRPC_PORT`) — lets a `graphql-gateway` instance aggregate
     // this service alongside `zones-service`/`alerting-service` for the WAF Customer Portal's
-    // cross-service, read-only views (e.g. a Zone overview page). Read `state` before it's
-    // moved into `build_router` below. Bypasses `metap::grpc::optional_serve` (only ever builds
-    // `TokenVerifier::Static`) so gRPC verifies against the same JWKS trust root as REST above
-    // when configured, falling back to the static keypair identically to `optional_serve`'s own
-    // behavior otherwise.
-    let grpc_verifier = state.token_verifier.clone().unwrap_or_else(|| {
-        Arc::new(metap::jwks::TokenVerifier::Static {
-            decoding_key: (*state.jwt_decoding_key).clone(),
-            leeway: 20,
-        })
-    });
-    let grpc_handle = if metap::runtime::env::flag_enabled("GRPC_ENABLED") {
-        let grpc_port: u16 = metap::runtime::env::env_or("GRPC_PORT", 3011);
-        let grpc_addr: std::net::SocketAddr = format!("{}:{grpc_port}", config.host).parse()?;
-        let auth = metap::grpc::AuthConfig {
-            verifier: (*grpc_verifier).clone(),
+    // cross-service, read-only views (e.g. a Zone overview page). Read `state` before it's moved
+    // into `build_router` below. `token_verifier_override` (audit 04 finding A#10, fixed
+    // 2026-09-13 in `../../../../metap` — this call site used to hand-reimplement all of
+    // `optional_serve`'s body just to pass this through) makes gRPC verify against the same JWKS
+    // trust root as REST above when configured, falling back to `optional_serve`'s own
+    // `TokenVerifier::Static` default otherwise.
+    let grpc_handle = metap::grpc::optional_serve(
+        &config.host,
+        3011,
+        metap::grpc::OptionalServeConfig {
+            crud: state.crud.clone(),
             router: state.router.clone(),
+            jwt_decoding_key: state.jwt_decoding_key.clone(),
             auth_context_entity: state.auth_context_entity.as_deref().map(str::to_string),
             context_attributes_cache: state.context_attributes_cache.clone(),
-        };
-        let service = metap::grpc::GrpcRecordService::new(state.crud.clone(), auth);
-        tracing::info!(%grpc_addr, "gRPC listening");
-        Some(tokio::spawn(async move {
-            if let Err(err) = metap::grpc::serve(grpc_addr, service, None).await {
-                tracing::error!(error = %err, "gRPC server exited with error");
-            }
-        }))
-    } else {
-        None
-    };
+            token_verifier_override: state.token_verifier.clone(),
+        },
+    )
+    .await?;
 
     let router = build_router(state, &config.cors_origins, routes::router());
 

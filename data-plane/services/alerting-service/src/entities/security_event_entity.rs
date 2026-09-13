@@ -21,7 +21,9 @@
 //! doing regardless of the other 8 (highest write volume of any WAF entity), and the migration
 //! ended up covering all 9 in one pass instead of just this one.
 
-use metap::prelude::{submit_entity, EntityDefinition, EntityField, EntityListView, FieldKind};
+use metap::prelude::{
+    submit_entity, EntityAuditConfig, EntityDefinition, EntityField, EntityListView, FieldKind,
+};
 
 fn field(
     name: &str,
@@ -151,7 +153,7 @@ pub fn security_event_entity() -> EntityDefinition {
         }],
         workflow: None,
         unique_constraints: vec![],
-        audit: None,
+        audit: Some(EntityAuditConfig { enabled: true }),
     }
 }
 

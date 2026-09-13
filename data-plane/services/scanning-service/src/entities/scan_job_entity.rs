@@ -24,8 +24,8 @@
 //! zone's hostname by calling `zones-service` directly (or via the GraphQL gateway once wired).
 
 use metap::prelude::{
-    submit_entity, EntityDefinition, EntityField, EntityListView, EntityWorkflow, FieldKind,
-    WorkflowTransition,
+    submit_entity, EntityAuditConfig, EntityDefinition, EntityField, EntityListView,
+    EntityWorkflow, FieldKind, WorkflowTransition,
 };
 
 fn field(
@@ -150,7 +150,7 @@ pub fn scan_job_entity() -> EntityDefinition {
             ],
         }),
         unique_constraints: vec![],
-        audit: None,
+        audit: Some(EntityAuditConfig { enabled: true }),
     }
 }
 

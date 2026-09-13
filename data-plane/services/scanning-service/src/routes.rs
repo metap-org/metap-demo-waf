@@ -55,7 +55,15 @@ async fn transition(
 ) -> anyhow::Result<RecordDto> {
     match state
         .crud
-        .transition("waf.scan_jobs", job.id, action, job.version, None, context, None)
+        .transition(
+            "waf.scan_jobs",
+            job.id,
+            action,
+            job.version,
+            None,
+            context,
+            None,
+        )
         .await?
     {
         ServiceResult::Ok { data, .. } => Ok(data),
@@ -66,9 +74,15 @@ async fn transition(
     }
 }
 
-async fn load_job(state: &AppState, id: Uuid, context: &RequestContext) -> Result<RecordDto, Response> {
+async fn load_job(
+    state: &AppState,
+    id: Uuid,
+    context: &RequestContext,
+) -> Result<RecordDto, Response> {
     match state.crud.get("waf.scan_jobs", id, context).await {
-        Ok(ServiceResult::Ok { data: (record, _), .. }) => Ok(record),
+        Ok(ServiceResult::Ok {
+            data: (record, _), ..
+        }) => Ok(record),
         Ok(ServiceResult::Err {
             status,
             error,
@@ -146,10 +160,10 @@ async fn run_scan_job(
             let detail = format!("Scanner rejected the request ({})", response.status());
             match transition(&state, &queued, "start", &context).await {
                 Ok(running) => match transition(&state, &running, "fail", &context).await {
-                    Ok(failed) => {
-                        Json(json!({ "data": { "job": failed, "dispatched": false, "detail": detail } }))
-                            .into_response()
-                    }
+                    Ok(failed) => Json(
+                        json!({ "data": { "job": failed, "dispatched": false, "detail": detail } }),
+                    )
+                    .into_response(),
                     Err(e) => internal_error_response(e),
                 },
                 Err(e) => internal_error_response(e),
@@ -218,7 +232,11 @@ async fn submit_findings(
         }
         data.insert("firstSeenAt".to_string(), json!(now));
         data.insert("lastSeenAt".to_string(), json!(now));
-        match state.crud.create("waf.scan_findings", &data, &context, None).await {
+        match state
+            .crud
+            .create("waf.scan_findings", &data, &context, None)
+            .await
+        {
             Ok(ServiceResult::Ok { data, .. }) => created.push(data.id),
             Ok(ServiceResult::Err {
                 status,
@@ -251,7 +269,14 @@ async fn submit_findings(
     patch.insert("lastRunAt".to_string(), json!(now));
     let job_after = match state
         .crud
-        .update("waf.scan_jobs", finished.id, finished.version, &patch, &context, None)
+        .update(
+            "waf.scan_jobs",
+            finished.id,
+            finished.version,
+            &patch,
+            &context,
+            None,
+        )
         .await
     {
         // `JsonObject` (`serde_json::Map<String, Value>`) converts to `Value::Object` directly —

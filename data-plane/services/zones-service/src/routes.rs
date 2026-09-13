@@ -109,10 +109,7 @@ async fn has_references(
     for (name, value) in auth {
         request = request.header(name, value);
     }
-    let response = request
-        .send()
-        .await
-        .map_err(|e| format!("{entity}: {e}"))?;
+    let response = request.send().await.map_err(|e| format!("{entity}: {e}"))?;
     if !response.status().is_success() {
         return Err(format!("{entity}: upstream returned {}", response.status()));
     }
@@ -146,7 +143,11 @@ async fn has_references(
 /// deletion is a rare admin action and the window is milliseconds; closing it properly needs a
 /// distributed lock or two-phase delete, which is not worth it here — see this repo's roadmap
 /// entry for the discussion.
-pub async fn zone_delete_guard(State(state): State<AppState>, request: Request, next: Next) -> Response {
+pub async fn zone_delete_guard(
+    State(state): State<AppState>,
+    request: Request,
+    next: Next,
+) -> Response {
     let path = request.uri().path().to_string();
     let is_zone_delete = request.method() == Method::DELETE
         && path.starts_with("/api/waf.zones/")
@@ -216,7 +217,11 @@ struct VerifyDnsBody {
 }
 
 /// Answers one DoH question, returning every answer record's data string.
-async fn dns_lookup(client: &reqwest::Client, name: &str, record_type: &str) -> Result<Vec<String>, String> {
+async fn dns_lookup(
+    client: &reqwest::Client,
+    name: &str,
+    record_type: &str,
+) -> Result<Vec<String>, String> {
     let response = client
         .get(doh_url())
         .query(&[("name", name), ("type", record_type)])
@@ -254,7 +259,9 @@ async fn verify_dns(
     body: Option<Json<VerifyDnsBody>>,
 ) -> Response {
     let zone = match state.crud.get("waf.zones", zone_id, &context).await {
-        Ok(ServiceResult::Ok { data: (record, _), .. }) => record,
+        Ok(ServiceResult::Ok {
+            data: (record, _), ..
+        }) => record,
         Ok(ServiceResult::Err {
             status,
             error,
@@ -271,7 +278,12 @@ async fn verify_dns(
         .unwrap_or_default()
         .to_string();
     if hostname.is_empty() {
-        return service_error_response(400, "validation_failed", Some("Zone has no hostname."), None);
+        return service_error_response(
+            400,
+            "validation_failed",
+            Some("Zone has no hostname."),
+            None,
+        );
     }
     let expected_token = body
         .and_then(|Json(b)| b.expected_token)
@@ -287,9 +299,12 @@ async fn verify_dns(
     let txt = dns_lookup(&client, &format!("_waf-verify.{hostname}"), "TXT")
         .await
         .unwrap_or_default();
-    let cname = dns_lookup(&client, &hostname, "CNAME").await.unwrap_or_default();
+    let cname = dns_lookup(&client, &hostname, "CNAME")
+        .await
+        .unwrap_or_default();
 
-    let ownership_ok = !expected_token.is_empty() && txt.iter().any(|record| record == &expected_token);
+    let ownership_ok =
+        !expected_token.is_empty() && txt.iter().any(|record| record == &expected_token);
     let target = edge_cname_target();
     let routed = cname.iter().any(|record| record.ends_with(&target));
 
@@ -340,7 +355,9 @@ async fn test_origin(
     AuthContext(context): AuthContext,
 ) -> Response {
     let zone = match state.crud.get("waf.zones", zone_id, &context).await {
-        Ok(ServiceResult::Ok { data: (record, _), .. }) => record,
+        Ok(ServiceResult::Ok {
+            data: (record, _), ..
+        }) => record,
         Ok(ServiceResult::Err {
             status,
             error,
@@ -357,7 +374,12 @@ async fn test_origin(
         .unwrap_or_default()
         .to_string();
     if origin.is_empty() {
-        return service_error_response(400, "validation_failed", Some("Zone has no origin address."), None);
+        return service_error_response(
+            400,
+            "validation_failed",
+            Some("Zone has no origin address."),
+            None,
+        );
     }
     // A customer types `1.2.3.4` or `origin.example.com` as often as a full URL.
     let url = if origin.starts_with("http://") || origin.starts_with("https://") {
@@ -399,7 +421,12 @@ async fn sync_config_state(
     Path(zone_id): Path<Uuid>,
     AuthContext(context): AuthContext,
 ) -> Response {
-    async fn any_for_zone(state: &AppState, entity: &str, zone_id: Uuid, context: &metap::permission::RequestContext) -> anyhow::Result<bool> {
+    async fn any_for_zone(
+        state: &AppState,
+        entity: &str,
+        zone_id: Uuid,
+        context: &metap::permission::RequestContext,
+    ) -> anyhow::Result<bool> {
         let input = ListInput {
             limit: 1,
             filters: vec![("zoneId".to_string(), zone_id.to_string())],
@@ -422,7 +449,9 @@ async fn sync_config_state(
     };
 
     let zone = match state.crud.get("waf.zones", zone_id, &context).await {
-        Ok(ServiceResult::Ok { data: (record, _), .. }) => record,
+        Ok(ServiceResult::Ok {
+            data: (record, _), ..
+        }) => record,
         Ok(ServiceResult::Err {
             status,
             error,
@@ -435,7 +464,8 @@ async fn sync_config_state(
     if zone.data.get("hasConfig").and_then(Value::as_bool) == Some(has_config) {
         // Already correct — skip the write so this doesn't bump `version`/`updatedAt` on every
         // call and turn an idempotent sync into a source of version conflicts for the portal.
-        return Json(json!({ "data": { "hasConfig": has_config, "changed": false } })).into_response();
+        return Json(json!({ "data": { "hasConfig": has_config, "changed": false } }))
+            .into_response();
     }
 
     let mut patch = metap::crud::JsonObject::new();
@@ -473,13 +503,20 @@ async fn deep_health() -> Response {
             .unwrap_or(false);
         checks.insert(name.to_string(), json!({ "reachable": ok, "url": base }));
     }
-    (StatusCode::OK, Json(json!({ "data": { "self": "ok", "upstreams": checks } }))).into_response()
+    (
+        StatusCode::OK,
+        Json(json!({ "data": { "self": "ok", "upstreams": checks } })),
+    )
+        .into_response()
 }
 
 pub fn router() -> Router<AppState> {
     Router::new()
         .route("/api/waf.zones/{id}/verify-dns", post(verify_dns))
         .route("/api/waf.zones/{id}/test-origin", post(test_origin))
-        .route("/api/waf.zones/{id}/sync-config-state", post(sync_config_state))
+        .route(
+            "/api/waf.zones/{id}/sync-config-state",
+            post(sync_config_state),
+        )
         .route("/internal/health/deep", axum::routing::get(deep_health))
 }

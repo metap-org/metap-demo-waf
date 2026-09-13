@@ -2,7 +2,9 @@
 //! (config) since it's history, not configuration. See `docs/02-domain-model.md`. No workflow —
 //! append-only, written once when a send is attempted.
 
-use metap::prelude::{submit_entity, EntityDefinition, EntityField, EntityListView, FieldKind};
+use metap::prelude::{
+    submit_entity, EntityAuditConfig, EntityDefinition, EntityField, EntityListView, FieldKind,
+};
 
 fn field(
     name: &str,
@@ -106,7 +108,7 @@ pub fn alert_notification_entity() -> EntityDefinition {
         }],
         workflow: None,
         unique_constraints: vec![],
-        audit: None,
+        audit: Some(EntityAuditConfig { enabled: true }),
     }
 }
 

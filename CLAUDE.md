@@ -178,6 +178,130 @@ and `../platform-ui`'s `ReferencedByErrorMessage.tsx` renders each as a link str
 blocking record, generically for every entity/app that uses the generic delete flow, not a
 WAF-specific fix.
 
+**2 more incidents found live 2026-09-12, debugging a "policy created but portal doesn't seem to
+reflect it" report** (`waf.ddos_policies`, zone `fb2137d0-d012-4a01-9032-8ad3bed24de1`) — both are
+the same *class* of bug as the 6th gap above (a tracking/ledger table says "done", but the actual
+database object silently isn't there anymore), just in 2 different places:
+
+**7th: the `pg_trgm` extension itself had silently vanished from the shared dev database**,
+despite `_sqlx_migrations` recording migration 16 (`CREATE EXTENSION IF NOT EXISTS pg_trgm;`) as
+applied. `zones-service` failed to boot entirely (`operator class "gin_trgm_ops" does not exist
+for access method "gin"`, reconcile can't build the trigram index a `searchable` field needs).
+Exactly why the extension disappeared while the ledger still says "applied" is unknown — not
+root-caused, same as the 6th gap's own "not root-caused" note. Immediate fix: re-ran `CREATE
+EXTENSION IF NOT EXISTS pg_trgm;` by hand (idempotent, took effect this time), restarted
+`zones-service` — reconciled clean, `ops_applied=1/0/0` across its 3 entities.
+
+**8th, still open: `waf.ddos_policies.zoneId`'s sync trigger had also silently vanished**, and
+this one *did* let real duplicate data through. `zoneId` is a `Reference` field — per
+`compile.rs`'s doc comment, a `Reference` field with `ref_entity` set gets `ColumnOrigin::Generated`
+exactly like an explicit `storage: column` field does, meaning `compile()` intends it to get the
+same `BEFORE INSERT OR UPDATE` sync trigger (`executor::build_sync_trigger_sql`) keeping the real
+column in sync with `data ->> 'zoneId'` — this is not a design gap, `metap-crud`'s `create()`/
+`update()` were never supposed to write that column directly, the trigger was. But querying the
+live DB found **both the trigger and its backing function gone** (`pg_trigger`/`pg_proc` empty for
+`waf_ddos_policies`), while `reconciler_backfill_progress` still has 4 rows marked
+`completed = true` for this exact `(table, zoneId)` backfill, dated 2026-09-07/2026-09-08 (from
+the original table-per-entity migration and the later `waf` schema-rename pass) — so the trigger
+genuinely existed once and was later lost by some means not yet identified. Consequence: every
+`createWafDdosPolicies` since then wrote a correct `data->>'zoneId'` (so the portal read the right
+value back — this is why it looked like "created, portal doesn't show it" rather than "creation
+failed") but left the real `"zoneId"` column `NULL`, and Postgres's own `NULL <> NULL` semantics
+mean `uniq_waf_ddos_policies_zoneId ... WHERE deleted = false` **enforces nothing** against a NULL
+column — 11 duplicate policies for the same zone got created back to back with zero rejection.
+**Why `reconcile()` never re-detects or re-heals this on its own, every boot, `ops_applied=0`
+regardless**: `diff.rs`'s convergence check for an *already-existing* `Generated` column only
+re-asserts the sync trigger when `introspect()` reports `backfilled: false` — and `introspect()`
+derives that flag *purely* from `reconciler_backfill_progress.completed`, never by actually
+checking `pg_trigger`/`pg_proc` for the trigger's real presence. Once a row is marked
+`completed = true`, nothing in the reconcile loop will ever re-verify the trigger is still there,
+so a trigger dropped outside the reconciler's own lifecycle (however that happened here — not
+root-caused) becomes a **silent, permanent, self-inflicted-looking gap**: the entity that already
+converged once never gets re-checked again. This is the exact same failure shape as the 6th gap
+above (blanket→partial unique index never retried) and the 7th (`pg_trgm`) — a real convergence
+promise `metap-reconciler` makes ("level-triggered, always resumes from actual state") that
+currently only holds for the specific properties `introspect()` actually re-derives from
+`pg_catalog` each run, not for anything it instead trusts a bookkeeping table's flag for.
+
+**Immediate unblock — applied, 2026-09-12**: deleted the 10 duplicate NULL-`zoneId` rows (kept the
+newest of the original batch), flipped the nil-tenant `reconciler_backfill_progress` row for
+`backfill:waf.waf_ddos_policies:zoneId` back to `completed = false`, restarted `zones-service` —
+`reconcile()` re-asserted the trigger through the normal mechanism (`ops_applied=2`, confirmed
+`trg_sync_waf_ddos_policies_zoneId` + its function both present again). This surfaced the 9th
+finding below (the accompanying backfill silently touched 0 rows) — worked around by hand-backfilling
+the 1 real surviving row directly, and soft-deleting a duplicate this verification pass itself
+created while confirming the fix. Re-verified live end to end afterward: a repeat
+`createWafDdosPolicies` for the same zone now correctly returns `409 unique_violation` with
+`fieldErrors: {"zoneId": [...]}`, not a silent duplicate.
+
+**Root-cause fix, 3 parts, none applied yet** (docs-first per project owner's request — this
+section is the plan, not a changelog of what's done):
+1. **Close the specific gap**: make `introspect()`'s `ColumnOrigin::Generated` classification (or
+   a new check `diff()` runs alongside it) also verify the sync trigger/function actually exist in
+   `pg_catalog` (`pg_trigger`/`pg_proc`), not just trust `reconciler_backfill_progress.completed`.
+   A `Generated` column whose trigger is missing should read back as `backfilled: false` (or a new,
+   more precisely-named state) regardless of what the ledger says, so `diff()`'s existing
+   `push_sync_and_backfill` re-assertion path fires on the very next reconcile — no new DDL op type
+   needed, just a more honest `actual` read.
+2. **Close the general pattern**: the 6th gap, the `pg_trgm` incident, and this one are 3 separate
+   instances of "a ledger says done, `introspect()`/migration-runner never re-verifies the real
+   object" — worth a project-owner decision on whether `metap-reconciler`'s `introspect()` should
+   more broadly re-derive *every* convergence signal from `pg_catalog` directly (no trusted
+   ledger at all, more expensive per reconcile) versus keeping ledgers as a performance
+   optimization but adding a cheap periodic/best-effort cross-check (e.g. `reconciler-orchestrator`'s
+   existing poll loop spot-checking a sample of `Generated` columns' triggers). Flagging, not
+   deciding — same "don't resolve unilaterally" convention as the open questions below.
+3. **Close the 9th finding below**: `backfill::run_batched_update` needs to accept "backfill every
+   tenant's rows in this table", not just one `tenant_id`, for any table reconciled with a
+   sentinel/non-owning tenant id (`PLATFORM_TENANT_ID` at a `Schema`-strategy service's own boot,
+   same pattern `zones-service`/`scanning-service`/`alerting-service` all use) — either drop the
+   `tenant_id` filter entirely for a caller that already knows the table is shared (a new
+   `BackfillColumn` variant or parameter), or have `executor.rs` resolve the *real* tenant id set
+   to iterate (e.g. `SELECT DISTINCT tenant_id FROM {table}`) before calling
+   `run_batched_update` once per real tenant, instead of once with whatever sentinel `reconcile()`
+   itself was called with. Whichever direction, `mark_completed` firing after a query that matched
+   zero rows for the *wrong reason* (not "already done", but "was never going to find anything")
+   needs to stop looking identical to genuine completion — the 8th and 9th together mean a
+   `Generated` column on a shared table can pass every convergence check available today
+   (`ops_applied=0`, `backfilled=true`) while never actually holding correct data outside whichever
+   single tenant id someone happened to reconcile it with by hand.
+
+**9th, found while manually unblocking the 8th**: flipping the backfill-progress row and
+restarting `zones-service` *did* restore the trigger (confirmed: `trg_sync_waf_ddos_policies_zoneId`
++ its function both back in `pg_catalog`), but the accompanying `BackfillColumn` op reported
+success while backfilling **zero** real rows — `146a49e1-...` (the surviving real policy from the
+8th's cleanup) still had `"zoneId" IS NULL` immediately after. Root cause:
+`backfill::run_batched_update`'s batch query scopes every row it touches by `t.tenant_id = $2`,
+and `zones-service`'s own boot-time `reconcile()` call always passes `metap::control::
+PLATFORM_TENANT_ID` (`Uuid::nil()`) — a sentinel with zero real rows in a **shared, `Schema`-strategy**
+table like `waf.waf_ddos_policies` (many real tenants' zones' policies all live in this one table,
+distinguished by their own `tenant_id` column per row — this is not a `DedicatedDb` tenant's own
+exclusively-owned table). The backfill batch's `WHERE t.tenant_id = $2` query matches nothing,
+the loop exits immediately (`ids.is_empty()`), and `mark_completed` still fires — a real historical
+row belonging to any actual tenant can never be reached by a boot-time reconcile's backfill, only
+by a reconcile explicitly invoked with that tenant's own id. `run_batched_update`'s own doc comment
+already states the assumption this violates: "every dedicated table belongs to exactly one
+`DedicatedDb` tenant" — true for `../metap-demo-jira`'s per-tenant dedicated databases, **false**
+for every `Schema`-strategy shared table in this repo (all 9 WAF entities). Immediate unblock used
+here: hand-run the single-row `UPDATE ... SET "zoneId" = (data->>'zoneId')::uuid WHERE id = ...`
+directly (bypassing the batch backfill's broken tenant scoping) for the one surviving real row.
+Not yet fixed at the root — see the fix plan below, item 3.
+
+**Broader audit of `metap-reconciler` for the same failure class, done same day**: checked
+`introspect.rs`'s other reads (indexes/FKs/unique constraints — all already re-derived fresh from
+`pg_catalog` every call, no ledger trust there), `diff.rs` (compares only against that fresh data),
+`watchdog.rs` (no independent cached state, re-derives everything via the next `reconcile()`), and
+`orchestrator.rs`'s `reconciler_entity_deployments` (written immediately after a real `reconcile()`
+call succeeds in the same call chain — not read back later as a substitute for checking reality, so
+no drift window). Found one more instance of the same shape as the 9th finding above, lower risk:
+`migrate.rs::copy_generic_records`'s `mark_completed` also fires unconditionally regardless of how
+many rows the one-shot copy actually moved — but unlike `run_batched_update`, every current caller
+of this specific function always passes a real tenant_id for a real one-shot migration, never the
+`PLATFORM_TENANT_ID` sentinel that triggered the 9th finding, so this is a latent defense-in-depth
+gap, not a live bug today. No other instances found — the `sync_trigger_exists` fix already shipped
+(8th) and the backfill tenant-scoping gap (9th, still open) are the only 2 real instances of this
+failure class in this crate.
+
 `entities.waf_*` (all 9 tables) also moved into their own `waf` schema the same pass, out of the
 schema shared with `../metap-demo-crm` — `table_name` is `qualified_table_name_in(name, "waf")`
 now, not the old shared-`entities` default; see the phase doc and `../metap/CLAUDE.md`'s

@@ -210,11 +210,17 @@ async fn correlate_incidents(
         data.insert("zoneId".to_string(), json!(zone_id));
         data.insert(
             "title".to_string(),
-            json!(format!("{count} events from {source_ip} in {window_minutes}m")),
+            json!(format!(
+                "{count} events from {source_ip} in {window_minutes}m"
+            )),
         );
         data.insert("severity".to_string(), json!(severity_for(count)));
         data.insert("eventCount".to_string(), json!(count));
-        match state.crud.create("waf.incidents", &data, &context, None).await {
+        match state
+            .crud
+            .create("waf.incidents", &data, &context, None)
+            .await
+        {
             Ok(ServiceResult::Ok { data, .. }) => created.push(data.id),
             Ok(ServiceResult::Err {
                 status,
@@ -245,7 +251,9 @@ async fn correlate_incidents(
 async fn deliver(channels: &Value, payload: &Value) -> (bool, String) {
     if let Some(url) = channels.get("webhook").and_then(Value::as_str) {
         return match http_client().post(url).json(payload).send().await {
-            Ok(response) if response.status().is_success() => (true, format!("webhook {}", response.status())),
+            Ok(response) if response.status().is_success() => {
+                (true, format!("webhook {}", response.status()))
+            }
             Ok(response) => (false, format!("webhook {}", response.status())),
             Err(e) => (false, format!("webhook error: {e}")),
         };
@@ -273,8 +281,15 @@ async fn record_notification(
         "deliveryStatus".to_string(),
         json!(if delivered { "sent" } else { "failed" }),
     );
-    data.insert("triggeredAt".to_string(), json!(chrono::Utc::now().to_rfc3339()));
-    match state.crud.create("waf.alert_notifications", &data, context, None).await? {
+    data.insert(
+        "triggeredAt".to_string(),
+        json!(chrono::Utc::now().to_rfc3339()),
+    );
+    match state
+        .crud
+        .create("waf.alert_notifications", &data, context, None)
+        .await?
+    {
         ServiceResult::Ok { data, .. } => Ok(data.id),
         ServiceResult::Err { error, .. } => Err(anyhow::anyhow!("alert_notifications: {error}")),
     }
@@ -292,7 +307,10 @@ fn channel_name(channels: &Value) -> &'static str {
 
 /// `POST /internal/alerts/evaluate` — every enabled `AlertPolicy`, evaluated against the recent
 /// event stream, counted **per zone** (never summed across zones).
-async fn evaluate_alerts(State(state): State<AppState>, AuthContext(context): AuthContext) -> Response {
+async fn evaluate_alerts(
+    State(state): State<AppState>,
+    AuthContext(context): AuthContext,
+) -> Response {
     let policies = match list_records(
         &state,
         "waf.alert_policies",
@@ -306,7 +324,15 @@ async fn evaluate_alerts(State(state): State<AppState>, AuthContext(context): Au
         Err(e) => return internal_error_response(e),
     };
 
-    let events = match list_records(&state, "waf.security_events", Vec::new(), EVENT_SCAN_LIMIT, &context).await {
+    let events = match list_records(
+        &state,
+        "waf.security_events",
+        Vec::new(),
+        EVENT_SCAN_LIMIT,
+        &context,
+    )
+    .await
+    {
         Ok(rows) => rows,
         Err(e) => return internal_error_response(e),
     };
@@ -352,7 +378,9 @@ async fn evaluate_alerts(State(state): State<AppState>, AuthContext(context): Au
                 "windowMinutes": window_minutes,
             });
             let (delivered, detail) = deliver(&channels, &payload).await;
-            match record_notification(&state, &context, policy, channel_name(&channels), delivered).await {
+            match record_notification(&state, &context, policy, channel_name(&channels), delivered)
+                .await
+            {
                 Ok(id) => fired.push(json!({
                     "notificationId": id,
                     "policyId": policy.id,
@@ -378,8 +406,14 @@ async fn test_alert_policy(
     Path(policy_id): Path<Uuid>,
     AuthContext(context): AuthContext,
 ) -> Response {
-    let policy = match state.crud.get("waf.alert_policies", policy_id, &context).await {
-        Ok(ServiceResult::Ok { data: (record, _), .. }) => record,
+    let policy = match state
+        .crud
+        .get("waf.alert_policies", policy_id, &context)
+        .await
+    {
+        Ok(ServiceResult::Ok {
+            data: (record, _), ..
+        }) => record,
         Ok(ServiceResult::Err {
             status,
             error,
@@ -396,7 +430,15 @@ async fn test_alert_policy(
         "message": "Test alert from the WAF portal",
     });
     let (delivered, detail) = deliver(&channels, &payload).await;
-    match record_notification(&state, &context, &policy, channel_name(&channels), delivered).await {
+    match record_notification(
+        &state,
+        &context,
+        &policy,
+        channel_name(&channels),
+        delivered,
+    )
+    .await
+    {
         Ok(id) => Json(json!({
             "data": { "notificationId": id, "delivered": delivered, "detail": detail }
         }))

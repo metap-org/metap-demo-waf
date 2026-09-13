@@ -7,8 +7,8 @@
 //! not here; this entity just needs `firstSeenAt`/`lastSeenAt` to support it.
 
 use metap::prelude::{
-    submit_entity, EntityDefinition, EntityField, EntityListView, EntityWorkflow, FieldKind,
-    WorkflowTransition,
+    submit_entity, EntityAuditConfig, EntityDefinition, EntityField, EntityListView,
+    EntityWorkflow, FieldKind, WorkflowTransition,
 };
 
 fn field(
@@ -181,7 +181,7 @@ pub fn scan_finding_entity() -> EntityDefinition {
             ],
         }),
         unique_constraints: vec![],
-        audit: None,
+        audit: Some(EntityAuditConfig { enabled: true }),
     }
 }
 
