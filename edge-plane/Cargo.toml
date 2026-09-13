@@ -21,6 +21,10 @@ http-body-util = "0.1"
 hyper = { version = "1", features = ["http1", "server", "client"] }
 hyper-util = { version = "0.1", features = ["tokio", "client", "client-legacy", "server"] }
 redis = { version = "0.27", default-features = false, features = ["tokio-comp"] }
+# `Op::Regex` (matchCondition authoring, see `data-plane/docs/05-metap-technical-mapping.md`'s
+# matchCondition decision) — the one operator that genuinely needs a real regex engine; every
+# other operator is hand-rolled precisely to keep this dependency list short.
+regex = "1"
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"

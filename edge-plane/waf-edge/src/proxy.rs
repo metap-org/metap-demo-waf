@@ -83,7 +83,11 @@ pub async fn forward(
     // Buffered, not streamed: streaming a request body through hyper 1.x means threading the
     // incoming body type through every handler, and this proxy's job is evaluating rules rather
     // than moving large uploads. A real edge would stream; this one is honest about not doing so.
-    let collected = body.collect().await.map_err(|_| ProxyError::BadRequestBody)?.to_bytes();
+    let collected = body
+        .collect()
+        .await
+        .map_err(|_| ProxyError::BadRequestBody)?
+        .to_bytes();
 
     let mut upstream = Request::builder().method(parts.method.clone()).uri(uri);
     {
@@ -103,17 +107,26 @@ pub async fn forward(
             headers.insert(HeaderName::from_static("x-forwarded-for"), value.clone());
             headers.insert(HeaderName::from_static("x-real-ip"), value);
         }
-        headers.insert(HeaderName::from_static("x-forwarded-proto"), HeaderValue::from_static("http"));
+        headers.insert(
+            HeaderName::from_static("x-forwarded-proto"),
+            HeaderValue::from_static("http"),
+        );
         // Lets an origin tell WAF-proxied traffic from direct traffic — the basis of any
         // "only accept traffic from the edge" origin lock-down.
-        headers.insert(HeaderName::from_static("x-waf-edge"), HeaderValue::from_static("1"));
+        headers.insert(
+            HeaderName::from_static("x-waf-edge"),
+            HeaderValue::from_static("1"),
+        );
     }
 
     let upstream = upstream
         .body(http_body_util::Full::new(collected))
         .map_err(|_| ProxyError::BadOrigin)?;
 
-    let response = client.request(upstream).await.map_err(|_| ProxyError::Unreachable)?;
+    let response = client
+        .request(upstream)
+        .await
+        .map_err(|_| ProxyError::Unreachable)?;
     let (parts, body) = response.into_parts();
     let mut out = Response::builder().status(parts.status);
     {

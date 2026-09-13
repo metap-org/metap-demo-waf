@@ -43,7 +43,13 @@ fn sign(secret: &str, zone_id: &str, client_ip: &str, expires_at: u64) -> String
 ///
 /// `HttpOnly` so page scripts can't read it, `SameSite=Lax` so it survives a normal navigation
 /// back to the site, and `Path=/` because a challenge clears the visitor for the whole zone.
-pub fn issue(cookie_name: &str, secret: &str, zone_id: &str, client_ip: &str, ttl: Duration) -> String {
+pub fn issue(
+    cookie_name: &str,
+    secret: &str,
+    zone_id: &str,
+    client_ip: &str,
+    ttl: Duration,
+) -> String {
     let expires_at = now_secs() + ttl.as_secs();
     let signature = sign(secret, zone_id, client_ip, expires_at);
     format!(
@@ -53,7 +59,13 @@ pub fn issue(cookie_name: &str, secret: &str, zone_id: &str, client_ip: &str, tt
 }
 
 /// Is the cookie this client presented a valid, unexpired clearance for this zone and IP?
-pub fn verify(cookie_header: &str, cookie_name: &str, secret: &str, zone_id: &str, client_ip: &str) -> bool {
+pub fn verify(
+    cookie_header: &str,
+    cookie_name: &str,
+    secret: &str,
+    zone_id: &str,
+    client_ip: &str,
+) -> bool {
     let Some(value) = cookie_value(cookie_header, cookie_name) else {
         return false;
     };
@@ -92,42 +104,102 @@ mod tests {
 
     #[test]
     fn issued_clearance_verifies_for_the_same_zone_and_ip() {
-        let cookie = issue("waf_clearance", "secret", "zone-1", "1.2.3.4", Duration::from_secs(60));
+        let cookie = issue(
+            "waf_clearance",
+            "secret",
+            "zone-1",
+            "1.2.3.4",
+            Duration::from_secs(60),
+        );
         let header = as_cookie_header(&cookie);
-        assert!(verify(&header, "waf_clearance", "secret", "zone-1", "1.2.3.4"));
+        assert!(verify(
+            &header,
+            "waf_clearance",
+            "secret",
+            "zone-1",
+            "1.2.3.4"
+        ));
     }
 
     #[test]
     fn clearance_does_not_transfer_to_a_different_zone() {
-        let cookie = issue("waf_clearance", "secret", "zone-1", "1.2.3.4", Duration::from_secs(60));
+        let cookie = issue(
+            "waf_clearance",
+            "secret",
+            "zone-1",
+            "1.2.3.4",
+            Duration::from_secs(60),
+        );
         let header = as_cookie_header(&cookie);
-        assert!(!verify(&header, "waf_clearance", "secret", "zone-2", "1.2.3.4"));
+        assert!(!verify(
+            &header,
+            "waf_clearance",
+            "secret",
+            "zone-2",
+            "1.2.3.4"
+        ));
     }
 
     #[test]
     fn clearance_does_not_transfer_to_a_different_ip() {
-        let cookie = issue("waf_clearance", "secret", "zone-1", "1.2.3.4", Duration::from_secs(60));
+        let cookie = issue(
+            "waf_clearance",
+            "secret",
+            "zone-1",
+            "1.2.3.4",
+            Duration::from_secs(60),
+        );
         let header = as_cookie_header(&cookie);
-        assert!(!verify(&header, "waf_clearance", "secret", "zone-1", "9.9.9.9"));
+        assert!(!verify(
+            &header,
+            "waf_clearance",
+            "secret",
+            "zone-1",
+            "9.9.9.9"
+        ));
     }
 
     #[test]
     fn wrong_secret_is_rejected() {
-        let cookie = issue("waf_clearance", "secret-a", "zone-1", "1.2.3.4", Duration::from_secs(60));
+        let cookie = issue(
+            "waf_clearance",
+            "secret-a",
+            "zone-1",
+            "1.2.3.4",
+            Duration::from_secs(60),
+        );
         let header = as_cookie_header(&cookie);
-        assert!(!verify(&header, "waf_clearance", "secret-b", "zone-1", "1.2.3.4"));
+        assert!(!verify(
+            &header,
+            "waf_clearance",
+            "secret-b",
+            "zone-1",
+            "1.2.3.4"
+        ));
     }
 
     #[test]
     fn tampered_expiry_is_rejected_because_expiry_is_inside_the_signed_input() {
-        let cookie = issue("waf_clearance", "secret", "zone-1", "1.2.3.4", Duration::from_secs(60));
+        let cookie = issue(
+            "waf_clearance",
+            "secret",
+            "zone-1",
+            "1.2.3.4",
+            Duration::from_secs(60),
+        );
         let header = as_cookie_header(&cookie);
         // Append a digit to the numeric expiry prefix (before the signature) to try to extend
         // the clearance's lifetime — the signature was computed over the original expiry, so
         // this must fail rather than being accepted with a longer expiry than was issued.
         let (name_and_expiry, signature) = header.rsplit_once('.').unwrap();
         let forged = format!("{name_and_expiry}9.{signature}");
-        assert!(!verify(&forged, "waf_clearance", "secret", "zone-1", "1.2.3.4"));
+        assert!(!verify(
+            &forged,
+            "waf_clearance",
+            "secret",
+            "zone-1",
+            "1.2.3.4"
+        ));
     }
 
     #[test]
@@ -137,20 +209,50 @@ mod tests {
         let past = now_secs().saturating_sub(10);
         let signature = sign("secret", "zone-1", "1.2.3.4", past);
         let header = format!("waf_clearance={past}.{signature}");
-        assert!(!verify(&header, "waf_clearance", "secret", "zone-1", "1.2.3.4"));
+        assert!(!verify(
+            &header,
+            "waf_clearance",
+            "secret",
+            "zone-1",
+            "1.2.3.4"
+        ));
     }
 
     #[test]
     fn missing_cookie_is_rejected() {
-        assert!(!verify("other_cookie=xyz", "waf_clearance", "secret", "zone-1", "1.2.3.4"));
+        assert!(!verify(
+            "other_cookie=xyz",
+            "waf_clearance",
+            "secret",
+            "zone-1",
+            "1.2.3.4"
+        ));
         assert!(!verify("", "waf_clearance", "secret", "zone-1", "1.2.3.4"));
     }
 
     #[test]
     fn malformed_cookie_value_is_rejected_not_panicking() {
-        assert!(!verify("waf_clearance=not-a-valid-format", "waf_clearance", "secret", "zone-1", "1.2.3.4"));
-        assert!(!verify("waf_clearance=123", "waf_clearance", "secret", "zone-1", "1.2.3.4"));
-        assert!(!verify("waf_clearance=abc.def", "waf_clearance", "secret", "zone-1", "1.2.3.4"));
+        assert!(!verify(
+            "waf_clearance=not-a-valid-format",
+            "waf_clearance",
+            "secret",
+            "zone-1",
+            "1.2.3.4"
+        ));
+        assert!(!verify(
+            "waf_clearance=123",
+            "waf_clearance",
+            "secret",
+            "zone-1",
+            "1.2.3.4"
+        ));
+        assert!(!verify(
+            "waf_clearance=abc.def",
+            "waf_clearance",
+            "secret",
+            "zone-1",
+            "1.2.3.4"
+        ));
     }
 
     #[test]
@@ -162,7 +264,13 @@ mod tests {
 
     #[test]
     fn issued_cookie_carries_the_expected_attributes() {
-        let cookie = issue("waf_clearance", "secret", "zone-1", "1.2.3.4", Duration::from_secs(1800));
+        let cookie = issue(
+            "waf_clearance",
+            "secret",
+            "zone-1",
+            "1.2.3.4",
+            Duration::from_secs(1800),
+        );
         assert!(cookie.contains("HttpOnly"));
         assert!(cookie.contains("SameSite=Lax"));
         assert!(cookie.contains("Path=/"));

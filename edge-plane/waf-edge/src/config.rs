@@ -42,7 +42,9 @@ fn var(name: &str) -> Option<String> {
 }
 
 fn parsed<T: std::str::FromStr>(name: &str, default: T) -> T {
-    var(name).and_then(|value| value.parse().ok()).unwrap_or(default)
+    var(name)
+        .and_then(|value| value.parse().ok())
+        .unwrap_or(default)
 }
 
 pub fn load() -> Config {
@@ -50,7 +52,8 @@ pub fn load() -> Config {
         listen_addr: var("LISTEN_ADDR").unwrap_or_else(|| "0.0.0.0:8080".to_string()),
         redis_url: var("REDIS_URL").unwrap_or_else(|| "redis://localhost:6379".to_string()),
         refresh_interval: Duration::from_secs(parsed("REFRESH_INTERVAL_SECONDS", 10u64)),
-        ingest_url: var("INGEST_URL").unwrap_or_else(|| "http://localhost:4100/ingest/events".to_string()),
+        ingest_url: var("INGEST_URL")
+            .unwrap_or_else(|| "http://localhost:4100/ingest/events".to_string()),
         ingest_token: var("INGEST_TOKEN"),
         telemetry_buffer: parsed("TELEMETRY_BUFFER", 10_000usize),
         telemetry_max_batch: parsed("TELEMETRY_MAX_BATCH", 100usize),

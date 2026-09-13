@@ -48,12 +48,21 @@ pub fn load() -> anyhow::Result<Config> {
     Ok(Config {
         zones_url: env_or("ZONES_URL", "http://localhost:3000".to_string()),
         alerting_url: env_or("ALERTING_URL", "http://localhost:3020".to_string()),
-        login_url: env_or("CONTROL_LOGIN_URL", "http://localhost:3000/auth/login".to_string()),
+        login_url: env_or(
+            "CONTROL_LOGIN_URL",
+            "http://localhost:3000/auth/login".to_string(),
+        ),
         service_email: require_env("CONTROL_SERVICE_EMAIL")?,
         service_password: require_env("CONTROL_SERVICE_PASSWORD")?,
         redis_url: env_or("REDIS_URL", "redis://localhost:6379".to_string()),
-        amqp_url: env_or("AMQP_URL", "amqp://guest:guest@localhost:5672/%2f".to_string()),
-        queue: env_or("CONFIG_DISTRIBUTOR_QUEUE", "waf.config-distributor".to_string()),
+        amqp_url: env_or(
+            "AMQP_URL",
+            "amqp://guest:guest@localhost:5672/%2f".to_string(),
+        ),
+        queue: env_or(
+            "CONFIG_DISTRIBUTOR_QUEUE",
+            "waf.config-distributor".to_string(),
+        ),
         resync_interval: Duration::from_secs(env_or("RESYNC_INTERVAL_SECONDS", 60u64)),
         port: env_or("PORT", 4100u16),
         host: env_or("HOST", "0.0.0.0".to_string()),

@@ -19,7 +19,12 @@
 use serde::Deserialize;
 
 /// Highest rule-set schema this binary can read.
-pub const SCHEMA_VERSION: u32 = 1;
+///
+/// Bumped to 2 when `Op::Regex` was added (both copies of this file changed together) — a new
+/// enum variant is exactly the kind of incompatible shape change this constant exists to guard,
+/// per this file's own doc comment: an older edge build must reject a rule-set it cannot parse
+/// rather than silently mis-evaluate an unknown operator.
+pub const SCHEMA_VERSION: u32 = 2;
 
 pub const ZONE_INDEX_KEY: &str = "waf:zones";
 pub const EPOCH_KEY: &str = "waf:ruleset-epoch";
@@ -78,6 +83,11 @@ pub enum Op {
     In,
     NotIn,
     ContainsCi,
+    /// `value` is a regex pattern (validated by the control-plane at compile time — an invalid
+    /// pattern never reaches the edge, per `compile.rs`'s "drop rather than publish broken" rule).
+    /// The edge compiles patterns lazily, cached by pattern text (`regex_cache.rs`) — never on the
+    /// per-request hot path itself.
+    Regex,
 }
 
 #[derive(Debug, Clone, Deserialize)]

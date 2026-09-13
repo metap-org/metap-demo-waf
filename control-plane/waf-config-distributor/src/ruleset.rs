@@ -26,7 +26,11 @@ use serde::{Deserialize, Serialize};
 
 /// Bumped whenever this file's shape changes incompatibly. The edge refuses anything higher than
 /// the version it was built against.
-pub const RULESET_SCHEMA_VERSION: u32 = 1;
+///
+/// Bumped to 2 when `Op::Regex` was added (edge-plane's own copy of this file bumped alongside
+/// it) — a new enum variant is exactly the kind of incompatible shape change this constant exists
+/// to guard.
+pub const RULESET_SCHEMA_VERSION: u32 = 2;
 
 /// Redis key holding one zone's compiled rule-set, keyed by hostname (what the edge has in hand
 /// from the `Host` header — no lookup table needed on the hot path).
@@ -98,6 +102,11 @@ pub enum Op {
     /// Case-insensitive substring — the common case for user-agent and path matching, spelled
     /// explicitly so the edge never has to guess about casing.
     ContainsCi,
+    /// `value` is a regex pattern. `compile.rs`'s `parse_match` validates it compiles before
+    /// publishing — a rule the edge would fail to compile at request time never reaches it (see
+    /// `parse_match`'s own doc comment: an unrepresentable condition drops the rule, never widens
+    /// it).
+    Regex,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

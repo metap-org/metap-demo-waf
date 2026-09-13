@@ -12,6 +12,9 @@ anyhow = "1"
 axum = "0.8"
 chrono = "0.4"
 dotenvy = "0.15"
+# `Op::Regex` validation at compile time (`compile.rs`'s `parse_match`) — a pattern that fails to
+# compile must never be published to the edge.
+regex = "1"
 redis = { version = "0.27", default-features = false, features = ["tokio-comp"] }
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
 serde = { version = "1", features = ["derive"] }
