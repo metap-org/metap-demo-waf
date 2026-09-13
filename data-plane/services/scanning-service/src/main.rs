@@ -77,6 +77,15 @@ async fn main() -> anyhow::Result<()> {
         private_key_pem,
         router,
     );
+    // General-purpose audit trail (`metap-audit`, audit finding 05) — every write on both
+    // entities this service owns now lands a row in `metadata.audit_trail_entries`. Same
+    // `Schema`-strategy shared `pool` reasoning as `zones-service`'s own wiring.
+    state.crud = Arc::new(CrudService::with_audit(
+        state.router.clone(),
+        state.metadata.clone(),
+        state.permissions.clone(),
+        Arc::new(PostgresAuditTrailStore::new(state.pool.clone())),
+    ));
     // Dev binary serves plain `http://localhost:3010` — a `Secure` session cookie (the
     // `AppState::new` default) is silently dropped by the browser over non-HTTPS. See
     // `docs/roadmap/64-cookie-session-persistence.md` in `../../metap-docs`.

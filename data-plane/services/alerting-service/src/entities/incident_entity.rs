@@ -17,8 +17,8 @@
 //! module 7). This entity is just where the result lands.
 
 use metap::prelude::{
-    submit_entity, submit_field_display_hints, EntityDefinition, EntityField, EntityListView,
-    EntityWorkflow, FieldDisplayHint, FieldKind, WorkflowTransition,
+    submit_entity, submit_field_display_hints, EntityAuditConfig, EntityDefinition, EntityField,
+    EntityListView, EntityWorkflow, FieldDisplayHint, FieldKind, WorkflowTransition,
 };
 
 fn field(
@@ -151,7 +151,7 @@ pub fn incident_entity() -> EntityDefinition {
             ],
         }),
         unique_constraints: vec![],
-        audit: None,
+        audit: Some(EntityAuditConfig { enabled: true }),
     }
 }
 

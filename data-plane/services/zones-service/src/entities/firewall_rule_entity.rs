@@ -10,7 +10,9 @@
 //! Stored as opaque `Json` here; the grammar itself and its validation belong to `edge-plane`/
 //! `control-plane`, not this entity definition.
 
-use metap::prelude::{submit_entity, EntityDefinition, EntityField, EntityListView, FieldKind};
+use metap::prelude::{
+    submit_entity, EntityAuditConfig, EntityDefinition, EntityField, EntityListView, FieldKind,
+};
 
 fn field(
     name: &str,
@@ -145,7 +147,7 @@ pub fn firewall_rule_entity() -> EntityDefinition {
         }],
         workflow: None,
         unique_constraints: vec![],
-        audit: None,
+        audit: Some(EntityAuditConfig { enabled: true }),
     }
 }
 

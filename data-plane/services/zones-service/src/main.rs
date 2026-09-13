@@ -87,6 +87,17 @@ async fn main() -> anyhow::Result<()> {
         private_key_pem,
         router,
     );
+    // General-purpose audit trail (`metap-audit`, audit finding 05) — every write on all 3
+    // entities this service owns now lands a row in `metadata.audit_trail_entries` (each opted in
+    // via its own `EntityAuditConfig`). This is a `Schema`-strategy tenant sharing the platform's
+    // own `pool`, unlike `../metap-demo-jira`'s `DedicatedDb` example — the audit store lives in
+    // that same shared database, not a separate one.
+    state.crud = Arc::new(CrudService::with_audit(
+        state.router.clone(),
+        state.metadata.clone(),
+        state.permissions.clone(),
+        Arc::new(PostgresAuditTrailStore::new(state.pool.clone())),
+    ));
     // Dev binary serves plain `http://localhost:3000` — a `Secure` session cookie (the
     // `AppState::new` default) is silently dropped by the browser over non-HTTPS, which looks
     // exactly like "login succeeds but nothing stays logged in" (`GET /auth/me` never sees the
