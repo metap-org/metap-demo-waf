@@ -20,7 +20,7 @@
 
 use std::time::{Duration, Instant};
 
-use axum::extract::{Path, Request, State};
+use axum::extract::{FromRequestParts, Path, Request, State};
 use axum::http::{HeaderMap, Method, StatusCode};
 use axum::middleware::Next;
 use axum::response::{IntoResponse, Response};
@@ -220,7 +220,6 @@ pub async fn zone_delete_guard(
 /// isolation.
 pub async fn zone_domain_guard(
     State(state): State<AppState>,
-    AuthContext(context): AuthContext,
     request: Request,
     next: Next,
 ) -> Response {
@@ -228,7 +227,17 @@ pub async fn zone_domain_guard(
         return next.run(request).await;
     }
 
-    let (parts, body) = request.into_parts();
+    let (mut parts, body) = request.into_parts();
+    // Extracted here, not as a blanket `AuthContext` middleware parameter — axum resolves every
+    // function parameter *before* the body runs, so declaring it that way would demand a valid
+    // bearer/cookie on every request this middleware wraps, including ones the path/method check
+    // above already let straight through (`/health`, `/.well-known/jwks.json`, ...). Found live:
+    // an earlier version of this guard did exactly that and made every unauthenticated route on
+    // this service 401, `/health` included, breaking the container's own Docker healthcheck.
+    let context = match AuthContext::from_request_parts(&mut parts, &state).await {
+        Ok(AuthContext(context)) => context,
+        Err(rejection) => return rejection.into_response(),
+    };
     let bytes = match axum::body::to_bytes(body, 1024 * 1024).await {
         Ok(bytes) => bytes,
         Err(_) => {

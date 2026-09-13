@@ -128,6 +128,18 @@ async fn zone_domain_guard_auto_attaches_and_dedupes_by_apex() {
     let base = format!("http://{addr}");
     let client = reqwest::Client::new();
 
+    // 0. Regression check for the bug this guard shipped with once, live: declaring `AuthContext`
+    // as a blanket middleware parameter makes axum resolve it for *every* request the middleware
+    // wraps, before the path/method check ever runs — 401ing routes this guard was never meant to
+    // touch, `/health` included, which is exactly what broke the container's own Docker
+    // healthcheck. No `Authorization` header at all here, and no zone-create in sight.
+    let health = client.get(format!("{base}/health")).send().await.unwrap();
+    assert_eq!(
+        health.status(),
+        200,
+        "an unrelated, unauthenticated route must never be rejected by this guard"
+    );
+
     // 2 labels only, so `apex_domain()` returns this exact string unchanged and never collides
     // with a real apex like "example.com" — a 3-label value here (e.g. ending "example.com")
     // would silently collide with real data from an earlier real-DB migration.
