@@ -14,7 +14,11 @@ import "@metap/theme-enterprise/theme.css";
 import "./index.css";
 
 document.documentElement.setAttribute("data-theme", "enterprise");
-import { ApiError, ReactRouterNavigationProvider } from "@metap/platform-ui";
+import {
+  ApiError,
+  GraphQLError,
+  ReactRouterNavigationProvider,
+} from "@metap/platform-ui";
 // Side-effect only — merges this app's `waf.*` translation keys into `platform-ui`'s shared
 // `i18n` instance. Must run before anything calls `useTranslation()`/`t("waf....")`.
 import "./i18n/register";
@@ -25,6 +29,16 @@ const queryClient = new QueryClient({
     queries: {
       retry: (failureCount, error) => {
         if (error instanceof ApiError && error.status < 500) {
+          return false;
+        }
+        // This app's own queries (`api/waf.ts`) go through GraphQL, not REST — `ApiError` above
+        // only ever covers `SettingsPage`'s plain `apiFetch` call. A `GraphQLError` means the
+        // gateway executed the request and came back with `{errors: [...]}` (permission denied,
+        // entity not found, a business validation failure) — a definitive rejection, not a
+        // transient failure, so retrying just re-asks the same denied question 3 times with
+        // backoff before the UI can show anything. Found live: a forbidden `waf.zones` read kept
+        // "loading" for several seconds while this retried, before finally rendering the error.
+        if (error instanceof GraphQLError) {
           return false;
         }
         return failureCount < 3;
