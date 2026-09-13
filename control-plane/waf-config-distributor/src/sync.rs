@@ -71,6 +71,13 @@ pub async fn sync_zone(
 
 /// Resolves which zone a change event is about. A `waf.zones` event names the zone directly; a
 /// policy/rule event names its own record, whose `zoneId` is the zone to recompile.
+/// `None` for a `waf.firewall_rules` event whose `zoneId` is JSON `null` too — a tenant-wide
+/// ("global") rule create/update/delete has no single zone to resolve to, so `subscribe.rs`'s
+/// `handle` already falls through to its existing "let the next resync pick it up" path for
+/// exactly the same reason it does for a delete event (see that function's own comment). This is
+/// an accepted v1 trade-off, not an oversight: a tenant-wide rule change takes effect within one
+/// `RESYNC_INTERVAL_SECONDS` instead of immediately, rather than building a "fan this event out to
+/// every zone in the tenant" path for the incremental route.
 pub fn zone_id_from_event(entity: &str, payload: &serde_json::Value) -> Option<String> {
     let data = payload.get("data");
     match entity {

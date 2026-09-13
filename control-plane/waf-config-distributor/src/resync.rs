@@ -18,6 +18,11 @@ use crate::distribute::Distributor;
 
 pub async fn run_once(data_plane: &DataPlane, distributor: &Distributor) -> anyhow::Result<()> {
     let zones = data_plane.all_zones().await?;
+    // Fetched once per sweep, not once per zone: this worker serves exactly one tenant (the
+    // service account it logs in as), so "tenant-wide" rules are the same list for every zone
+    // below. `compile_zone` doesn't care where `rules` came from — merging is purely this
+    // caller's job (concatenate, then let `compile_zone`'s own priority sort interleave them).
+    let tenant_wide_rules = data_plane.tenant_wide_rules_for().await?;
     let mut expected: HashSet<String> = HashSet::new();
 
     for zone in &zones {
@@ -33,7 +38,8 @@ pub async fn run_once(data_plane: &DataPlane, distributor: &Distributor) -> anyh
         let tenant_id = zone.str("tenantId").unwrap_or_default().to_string();
 
         let ddos = data_plane.ddos_policy_for(&zone.id).await?;
-        let rules = data_plane.rules_for(&zone.id).await?;
+        let mut rules = data_plane.rules_for(&zone.id).await?;
+        rules.extend(tenant_wide_rules.iter().cloned());
         let Some(compiled) = compile_zone(zone, &tenant_id, ddos.as_ref(), &rules) else {
             continue;
         };

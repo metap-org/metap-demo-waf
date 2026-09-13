@@ -150,6 +150,20 @@ impl DataPlane {
         .await
     }
 
+    /// Tenant-wide ("global") `FirewallRule`s — `zoneId` unset applies to every zone. `?zoneId=`
+    /// (empty value) is `metap-query`'s own "field is unset" convention
+    /// (`crates/metap-query/src/query_planner.rs`: empty filter value compiles to `IS NULL`, not
+    /// an equality match against the literal empty string), the same convention already used
+    /// throughout this platform for an optional `Reference` field with no value assigned.
+    pub async fn tenant_wide_rules_for(&self) -> anyhow::Result<Vec<Record>> {
+        self.list(
+            &self.zones_url,
+            "waf.firewall_rules",
+            &[("zoneId", ""), ("limit", "50")],
+        )
+        .await
+    }
+
     /// Writes one `SecurityEvent` into `alerting-service` — the up-direction, going through the
     /// same generic CRUD route the portal uses, so validation/permission/outbox all still apply.
     /// This is the reason telemetry routes through this worker at all rather than the edge

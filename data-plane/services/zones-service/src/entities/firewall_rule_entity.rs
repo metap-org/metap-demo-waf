@@ -67,7 +67,14 @@ pub fn firewall_rule_entity() -> EntityDefinition {
                 name: "zoneId".to_string(),
                 label: "Zone".to_string(),
                 kind: FieldKind::Reference,
-                required: Some(true),
+                // Nullable since the tenant-wide ("global") scope feature: `zoneId: null` means
+                // this rule applies to every zone in the tenant, not just one. Every existing row
+                // already has a real `zoneId` — widening this to optional needs no backfill of
+                // its own, only relaxing the DB's NOT NULL constraint via the normal reconcile()
+                // path. See `control-plane/waf-config-distributor/src/dataplane.rs`'s
+                // `tenant_wide_rules_for` and `resync.rs` for how a `null` row gets merged into
+                // every zone's compiled rule-set.
+                required: Some(false),
                 indexed: Some(true),
                 unique: None,
                 enum_values: None,

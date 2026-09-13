@@ -13,6 +13,7 @@ export const wafEn = {
     nav: {
       dashboard: "Dashboard",
       zones: "Zones",
+      globalRules: "Global Rules",
       incidents: "Incidents",
       findings: "Findings",
       alerting: "Alerting",
@@ -510,6 +511,11 @@ export const wafEn = {
       toastSaved: "{{key}} saved",
       toastReset: "{{key}} reset to the platform default",
     },
+    globalRules: {
+      title: "Global Rules",
+      description:
+        "Firewall rules with no zone attached apply to every zone in this tenant — merged into each zone's rule-set on the next periodic sync.",
+    },
   },
 };
 
@@ -518,6 +524,7 @@ export const wafVi = {
     nav: {
       dashboard: "Tổng quan",
       zones: "Zone",
+      globalRules: "Rule toàn tenant",
       incidents: "Sự cố",
       findings: "Lỗ hổng",
       alerting: "Cảnh báo",
@@ -1013,6 +1020,11 @@ export const wafVi = {
       reset: "Đặt lại",
       toastSaved: "Đã lưu {{key}}",
       toastReset: "Đã đặt lại {{key}} về mặc định nền tảng",
+    },
+    globalRules: {
+      title: "Rule toàn tenant",
+      description:
+        "Rule firewall không gắn zone nào sẽ áp dụng cho mọi zone trong tenant này — được gộp vào rule-set của từng zone ở lần đồng bộ định kỳ tiếp theo.",
     },
   },
 };
