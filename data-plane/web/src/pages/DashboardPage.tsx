@@ -27,7 +27,7 @@ import {
   useRecords,
   type AggregateRow,
 } from "../api/waf";
-import { dayLabel } from "@metap/platform-ui";
+import { ApiErrorMessage, dayLabel } from "@metap/platform-ui";
 import { StatusBadge } from "../components/primitives";
 
 /** Sums `count` across every returned group — the "how many in total" reading of a grouped
@@ -94,6 +94,19 @@ export function DashboardPage() {
   const openIncidents = countFor(incidentsByStatus.data, "open");
   const blocked24h = countFor(eventsByAction.data, "blocked");
 
+  // One combined banner rather than gating each panel individually — see AnalyticsPage.tsx's own
+  // version of this for the reasoning (several independent aggregates that almost always fail
+  // together on a permission/network error).
+  const queryError =
+    zonesByStatus.error ??
+    eventsByAction.error ??
+    eventsPerDay.error ??
+    eventsByZone.error ??
+    incidentsByStatus.error ??
+    findingsBySeverity.error ??
+    recentIncidents.error ??
+    zones.error;
+
   return (
     <div>
       <PageHeader
@@ -105,6 +118,12 @@ export function DashboardPage() {
           </Button>
         }
       />
+
+      {queryError ? (
+        <div className="mb-4">
+          <ApiErrorMessage error={queryError} />
+        </div>
+      ) : null}
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
         <StatTile

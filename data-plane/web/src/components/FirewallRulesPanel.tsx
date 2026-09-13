@@ -56,7 +56,7 @@ import {
   useRecords,
   type WafRecord,
 } from "../api/waf";
-import { useAsyncAction } from "@metap/platform-ui";
+import { ApiErrorMessage, useAsyncAction } from "@metap/platform-ui";
 import { StatusBadge } from "./primitives";
 import {
   FIELDS,
@@ -299,7 +299,13 @@ export function FirewallRulesPanel({ zoneId }: { zoneId?: string }) {
           </Button>
         }
       >
-        {ordered.length === 0 ? (
+        {rules.isLoading ? (
+          <p className="text-sm text-muted-foreground">
+            {t("waf.common.loading")}
+          </p>
+        ) : rules.error ? (
+          <ApiErrorMessage error={rules.error} />
+        ) : ordered.length === 0 ? (
           <EmptyState
             title={t("waf.zoneTabs.rules.noRulesYet")}
             description={t("waf.zoneTabs.rules.noRulesYetDescription")}

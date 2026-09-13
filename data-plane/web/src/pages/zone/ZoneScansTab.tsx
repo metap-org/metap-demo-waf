@@ -36,7 +36,7 @@ import {
   useInvalidateWaf,
   useRecords,
 } from "../../api/waf";
-import { shortDate, useAsyncAction } from "@metap/platform-ui";
+import { ApiErrorMessage, shortDate, useAsyncAction } from "@metap/platform-ui";
 import { StatusBadge } from "../../components/primitives";
 
 type ScanJobData = {
@@ -111,7 +111,13 @@ export function ZoneScansTab({ zoneId }: { zoneId: string }) {
           </Button>
         }
       >
-        {(jobs.data ?? []).length === 0 ? (
+        {jobs.isLoading ? (
+          <p className="text-sm text-muted-foreground">
+            {t("waf.common.loading")}
+          </p>
+        ) : jobs.error ? (
+          <ApiErrorMessage error={jobs.error} />
+        ) : (jobs.data ?? []).length === 0 ? (
           <EmptyState
             title={t("waf.zoneTabs.scans.noJobs")}
             description={t("waf.zoneTabs.scans.noJobsDescription")}
@@ -170,7 +176,9 @@ export function ZoneScansTab({ zoneId }: { zoneId: string }) {
           </Button>
         }
       >
-        {zoneFindings.length === 0 ? (
+        {findings.error ? (
+          <ApiErrorMessage error={findings.error} />
+        ) : zoneFindings.length === 0 ? (
           <EmptyState
             title={t("waf.zoneTabs.scans.noFindings")}
             description={t("waf.zoneTabs.scans.noFindingsDescription")}

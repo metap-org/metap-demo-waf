@@ -43,7 +43,7 @@ import {
   useRecords,
   type WafRecord,
 } from "../api/waf";
-import { useAsyncAction } from "@metap/platform-ui";
+import { ApiErrorMessage, useAsyncAction } from "@metap/platform-ui";
 import { StatusBadge } from "./primitives";
 
 type AccessListType = "whitelist" | "blacklist";
@@ -162,7 +162,13 @@ export function IpAccessListPanel({ zoneId }: { zoneId?: string }) {
           </div>
         }
       >
-        {rows.length === 0 ? (
+        {entries.isLoading ? (
+          <p className="text-sm text-muted-foreground">
+            {t("waf.common.loading")}
+          </p>
+        ) : entries.error ? (
+          <ApiErrorMessage error={entries.error} />
+        ) : rows.length === 0 ? (
           <EmptyState
             title={t("waf.accessLists.noEntriesYet")}
             description={t("waf.accessLists.noEntriesYetDescription")}

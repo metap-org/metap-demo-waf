@@ -10,7 +10,7 @@ import {
   useRecords,
   type Zone,
 } from "../../api/waf";
-import { dayLabel, shortDate } from "@metap/platform-ui";
+import { ApiErrorMessage, dayLabel, shortDate } from "@metap/platform-ui";
 import { StatusBadge } from "../../components/primitives";
 
 export function ZoneOverviewTab({ zone }: { zone: Zone }) {
@@ -49,8 +49,19 @@ export function ZoneOverviewTab({ zone }: { zone: Zone }) {
   const openIncidents =
     incidents.data?.find((row) => row.group === "open")?.count ?? 0;
 
+  // One combined banner rather than gating each panel individually — see AnalyticsPage.tsx's own
+  // version of this for the reasoning.
+  const queryError =
+    eventsPerDay.error ??
+    byAction.error ??
+    incidents.error ??
+    rules.error ??
+    policies.error;
+
   return (
     <div className="mt-4 grid gap-4">
+      {queryError ? <ApiErrorMessage error={queryError} /> : null}
+
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatTile
           label={t("waf.zoneTabs.overview.statEvents7d")}

@@ -19,6 +19,7 @@ import {
 } from "@metap/ui";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { ApiErrorMessage } from "@metap/platform-ui";
 import { ENTITIES, useRecords, type ZoneData } from "../api/waf";
 import { StatusBadge } from "../components/primitives";
 
@@ -71,6 +72,8 @@ export function ZonesPage() {
         <p className="text-sm text-muted-foreground">
           {t("waf.common.loading")}
         </p>
+      ) : zones.error ? (
+        <ApiErrorMessage error={zones.error} />
       ) : (zones.data ?? []).length === 0 ? (
         <EmptyState
           title={t("waf.zones.noZonesYet")}

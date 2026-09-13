@@ -22,6 +22,7 @@ import {
 } from "@metap/ui";
 import { useState } from "react";
 import {
+  ApiErrorMessage,
   shortDate,
   useEntity,
   useEntityLabels,
@@ -70,6 +71,7 @@ export function IncidentDetailPage() {
     return (
       <p className="text-sm text-muted-foreground">{t("waf.common.loading")}</p>
     );
+  if (incident.error) return <ApiErrorMessage error={incident.error} />;
   if (!incident.data)
     return (
       <p className="text-sm text-muted-foreground">

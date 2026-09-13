@@ -33,7 +33,7 @@ import {
   Toggle,
   toast,
 } from "@metap/ui";
-import { useAsyncAction } from "@metap/platform-ui";
+import { ApiErrorMessage, useAsyncAction } from "@metap/platform-ui";
 import {
   ENTITIES,
   createRecord,
@@ -141,6 +141,12 @@ export function ZoneDdosTab({ zoneId }: { zoneId: string }) {
       <p className="mt-4 text-sm text-muted-foreground">
         {t("waf.zoneTabs.ddos.loading")}
       </p>
+    );
+  if (policies.error)
+    return (
+      <div className="mt-4">
+        <ApiErrorMessage error={policies.error} />
+      </div>
     );
 
   return (

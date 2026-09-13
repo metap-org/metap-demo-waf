@@ -39,6 +39,7 @@ import {
   type OriginTestResult,
   type Zone,
 } from "../api/waf";
+import { ApiErrorMessage } from "@metap/platform-ui";
 import { StatusBadge } from "../components/primitives";
 
 type Step = 0 | 1 | 2 | 3;
@@ -282,7 +283,9 @@ export function OnboardingPage() {
             title={t("waf.onboarding.verifyTitle")}
             description={t("waf.onboarding.verifyDescription")}
           >
-            {domain ? (
+            {domainQuery.error ? (
+              <ApiErrorMessage error={domainQuery.error} />
+            ) : domain ? (
               <>
                 <div className="rounded-md bg-muted/50 p-3 font-mono text-xs">
                   <div>

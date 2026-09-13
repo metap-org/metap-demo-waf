@@ -27,7 +27,7 @@ import {
   useInvalidateWaf,
   useRecords,
 } from "../../api/waf";
-import { shortDate, useAsyncAction } from "@metap/platform-ui";
+import { ApiErrorMessage, shortDate, useAsyncAction } from "@metap/platform-ui";
 import { StatusBadge } from "../../components/primitives";
 
 type EventData = {
@@ -93,7 +93,13 @@ export function ZoneEventsTab({ zoneId }: { zoneId: string }) {
           </>
         }
       >
-        {(events.data ?? []).length === 0 ? (
+        {events.isLoading ? (
+          <p className="text-sm text-muted-foreground">
+            {t("waf.common.loading")}
+          </p>
+        ) : events.error ? (
+          <ApiErrorMessage error={events.error} />
+        ) : (events.data ?? []).length === 0 ? (
           <EmptyState
             title={t("waf.zoneTabs.events.noEvents")}
             description={t("waf.zoneTabs.events.noEventsDescription")}

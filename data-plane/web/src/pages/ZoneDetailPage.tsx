@@ -20,6 +20,7 @@ import {
   toast,
 } from "@metap/ui";
 import {
+  ApiErrorMessage,
   useEntity,
   useEntityLabels,
   WorkflowVisualizeDialog,
@@ -82,6 +83,7 @@ export function ZoneDetailPage() {
     return (
       <p className="text-sm text-muted-foreground">{t("waf.common.loading")}</p>
     );
+  if (zone.error) return <ApiErrorMessage error={zone.error} />;
   if (!zone.data)
     return (
       <p className="text-sm text-muted-foreground">

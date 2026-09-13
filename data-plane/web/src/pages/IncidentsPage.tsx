@@ -29,7 +29,7 @@ import {
   useRecords,
   type WafRecord,
 } from "../api/waf";
-import { shortDate, useAsyncAction } from "@metap/platform-ui";
+import { ApiErrorMessage, shortDate, useAsyncAction } from "@metap/platform-ui";
 import { StatusBadge } from "../components/primitives";
 
 export type IncidentData = {
@@ -124,7 +124,13 @@ export function IncidentsPage() {
         ))}
       </div>
 
-      {(incidents.data ?? []).length === 0 ? (
+      {incidents.isLoading ? (
+        <p className="text-sm text-muted-foreground">
+          {t("waf.common.loading")}
+        </p>
+      ) : incidents.error ? (
+        <ApiErrorMessage error={incidents.error} />
+      ) : (incidents.data ?? []).length === 0 ? (
         <EmptyState
           title={t("waf.incidents.nothingHere")}
           description={t("waf.incidents.nothingHereDescription")}

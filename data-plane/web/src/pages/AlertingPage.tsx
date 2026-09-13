@@ -41,7 +41,7 @@ import {
   useRecords,
   type WafRecord,
 } from "../api/waf";
-import { shortDate, useAsyncAction } from "@metap/platform-ui";
+import { ApiErrorMessage, shortDate, useAsyncAction } from "@metap/platform-ui";
 import { StatusBadge } from "../components/primitives";
 
 type PolicyData = {
@@ -183,7 +183,13 @@ export function AlertingPage() {
           title={t("waf.alerting.policiesTitle")}
           description={t("waf.alerting.policiesDescription")}
         >
-          {(policies.data ?? []).length === 0 ? (
+          {policies.isLoading ? (
+            <p className="text-sm text-muted-foreground">
+              {t("waf.common.loading")}
+            </p>
+          ) : policies.error ? (
+            <ApiErrorMessage error={policies.error} />
+          ) : (policies.data ?? []).length === 0 ? (
             <EmptyState
               title={t("waf.alerting.noPolicies")}
               description={t("waf.alerting.noPoliciesDescription")}
@@ -251,7 +257,13 @@ export function AlertingPage() {
           title={t("waf.alerting.logTitle")}
           description={t("waf.alerting.logDescription")}
         >
-          {(notifications.data ?? []).length === 0 ? (
+          {notifications.isLoading ? (
+            <p className="text-sm text-muted-foreground">
+              {t("waf.common.loading")}
+            </p>
+          ) : notifications.error ? (
+            <ApiErrorMessage error={notifications.error} />
+          ) : (notifications.data ?? []).length === 0 ? (
             <EmptyState title={t("waf.alerting.noDeliveries")} />
           ) : (
             <Table>

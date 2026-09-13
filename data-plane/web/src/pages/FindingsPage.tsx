@@ -29,7 +29,7 @@ import {
   useRecords,
   type WafRecord,
 } from "../api/waf";
-import { shortDate, useAsyncAction } from "@metap/platform-ui";
+import { ApiErrorMessage, shortDate, useAsyncAction } from "@metap/platform-ui";
 import { StatusBadge } from "../components/primitives";
 
 type FindingData = {
@@ -156,7 +156,13 @@ export function FindingsPage() {
           </div>
         }
       >
-        {(findings.data ?? []).length === 0 ? (
+        {findings.isLoading ? (
+          <p className="text-sm text-muted-foreground">
+            {t("waf.common.loading")}
+          </p>
+        ) : findings.error ? (
+          <ApiErrorMessage error={findings.error} />
+        ) : (findings.data ?? []).length === 0 ? (
           <EmptyState
             title={t("waf.findings.nothingToRemediate")}
             description={t("waf.findings.nothingToRemediateDescription")}

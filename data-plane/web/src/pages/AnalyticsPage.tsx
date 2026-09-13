@@ -26,7 +26,7 @@ import {
   TimeSeries,
 } from "@metap/ui";
 import { ENTITIES, daysAgo, useAggregate, useRecords } from "../api/waf";
-import { dayLabel, shortDate } from "@metap/platform-ui";
+import { ApiErrorMessage, dayLabel, shortDate } from "@metap/platform-ui";
 
 // `DEFAULT_WINDOW` named separately (rather than `WINDOWS[1]`) so the fallback below has a type
 // TypeScript can see is never `undefined` — `noUncheckedIndexedAccess` makes any indexed access
@@ -107,6 +107,18 @@ export function AnalyticsPage() {
   const blockRate =
     totalEvents > 0 ? Math.round((blocked / totalEvents) * 100) : 0;
 
+  // One combined banner rather than gating each of the 6 panels above individually — every panel
+  // here reads from the same handful of `securityEvents`/`incidents` aggregates, so a permission
+  // or network failure almost always fails all of them together, and a single explanation is more
+  // useful than 6 empty-looking charts with no indication why.
+  const queryError =
+    zones.error ??
+    overTime.error ??
+    byAction.error ??
+    byTrigger.error ??
+    topSources.error ??
+    incidentsBySeverity.error;
+
   return (
     <div>
       <PageHeader
@@ -140,6 +152,12 @@ export function AnalyticsPage() {
           </>
         }
       />
+
+      {queryError ? (
+        <div className="mb-4">
+          <ApiErrorMessage error={queryError} />
+        </div>
+      ) : null}
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatTile
