@@ -130,13 +130,18 @@ fn ip_in_cidr(ip: IpAddr, cidr: &str) -> bool {
 }
 
 fn network_eq(ip: IpAddr, text: &str) -> bool {
-    text.parse::<IpAddr>().map(|parsed| parsed == ip).unwrap_or(false)
+    text.parse::<IpAddr>()
+        .map(|parsed| parsed == ip)
+        .unwrap_or(false)
 }
 
 fn eval_predicate(context: &RequestContext<'_>, predicate: &Predicate) -> bool {
     if predicate.field == Field::SourceIpCidr {
         let inside = match predicate.op {
-            Op::In | Op::NotIn => predicate.values.iter().any(|cidr| ip_in_cidr(context.client_ip, cidr)),
+            Op::In | Op::NotIn => predicate
+                .values
+                .iter()
+                .any(|cidr| ip_in_cidr(context.client_ip, cidr)),
             _ => predicate
                 .value
                 .as_deref()
@@ -153,17 +158,38 @@ fn eval_predicate(context: &RequestContext<'_>, predicate: &Predicate) -> bool {
     match predicate.op {
         Op::Eq => predicate.value.as_deref() == Some(actual),
         Op::NotEq => predicate.value.as_deref() != Some(actual),
-        Op::Contains => predicate.value.as_deref().is_some_and(|v| actual.contains(v)),
-        Op::NotContains => !predicate.value.as_deref().is_some_and(|v| actual.contains(v)),
-        Op::StartsWith => predicate.value.as_deref().is_some_and(|v| actual.starts_with(v)),
-        Op::EndsWith => predicate.value.as_deref().is_some_and(|v| actual.ends_with(v)),
+        Op::Contains => predicate
+            .value
+            .as_deref()
+            .is_some_and(|v| actual.contains(v)),
+        Op::NotContains => !predicate
+            .value
+            .as_deref()
+            .is_some_and(|v| actual.contains(v)),
+        Op::StartsWith => predicate
+            .value
+            .as_deref()
+            .is_some_and(|v| actual.starts_with(v)),
+        Op::EndsWith => predicate
+            .value
+            .as_deref()
+            .is_some_and(|v| actual.ends_with(v)),
         Op::In => predicate.values.iter().any(|v| v == actual),
         Op::NotIn => !predicate.values.iter().any(|v| v == actual),
         Op::ContainsCi => predicate
             .value
             .as_deref()
             // The only allocating branch, and only for rules that ask for it.
-            .is_some_and(|v| actual.to_ascii_lowercase().contains(&v.to_ascii_lowercase())),
+            .is_some_and(|v| {
+                actual
+                    .to_ascii_lowercase()
+                    .contains(&v.to_ascii_lowercase())
+            }),
+        Op::Regex => predicate
+            .value
+            .as_deref()
+            .and_then(crate::regex_cache::compiled)
+            .is_some_and(|re| re.is_match(actual)),
     }
 }
 
@@ -181,7 +207,11 @@ fn eval_match(context: &RequestContext<'_>, expr: &MatchExpr) -> bool {
 ///
 /// Returns `None` when nothing matched — the overwhelmingly common case, and the one this
 /// function is optimised for: no allocation, no clone, just a walk down a short pre-sorted list.
-pub fn evaluate(zone: &CompiledZone, context: &RequestContext<'_>, limiter: &RateLimiter) -> Option<Decision> {
+pub fn evaluate(
+    zone: &CompiledZone,
+    context: &RequestContext<'_>,
+    limiter: &RateLimiter,
+) -> Option<Decision> {
     if let Some(ddos) = &zone.ddos {
         let over_budget = limiter.check(
             &ddos_key(&zone.zone_id, &context.client_ip_text),
@@ -407,7 +437,10 @@ mod tests {
             values: vec!["10.0.0.0/24".to_string()],
             param: None,
         });
-        assert!(!eval_match(&context, &outside_not_in), "client IS inside, so NotIn is false");
+        assert!(
+            !eval_match(&context, &outside_not_in),
+            "client IS inside, so NotIn is false"
+        );
     }
 
     #[test]
@@ -428,8 +461,14 @@ mod tests {
             values: vec![],
             param: None,
         });
-        assert!(eval_match(&context, &MatchExpr::All(vec![is_admin.clone(), is_get.clone()])));
-        assert!(eval_match(&context, &MatchExpr::Any(vec![is_admin.clone(), predicate_false()])));
+        assert!(eval_match(
+            &context,
+            &MatchExpr::All(vec![is_admin.clone(), is_get.clone()])
+        ));
+        assert!(eval_match(
+            &context,
+            &MatchExpr::Any(vec![is_admin.clone(), predicate_false()])
+        ));
         assert!(!eval_match(&context, &MatchExpr::Not(Box::new(is_admin))));
         // Sanity: `is_get` alone is also true for this context.
         assert!(eval_match(&context, &is_get));
@@ -446,9 +485,43 @@ mod tests {
     }
 
     #[test]
+    fn predicate_regex_matches_the_pattern() {
+        let h = headers();
+        let context = ctx("/admin/42", [1, 2, 3, 4], &h);
+        let expr = MatchExpr::Predicate(Predicate {
+            field: Field::UriPath,
+            op: Op::Regex,
+            value: Some(r"^/admin/\d+$".to_string()),
+            values: vec![],
+            param: None,
+        });
+        assert!(eval_match(&context, &expr));
+
+        let non_matching = ctx("/admin/abc", [1, 2, 3, 4], &h);
+        assert!(!eval_match(&non_matching, &expr));
+    }
+
+    #[test]
+    fn predicate_regex_with_an_invalid_pattern_never_matches() {
+        let h = headers();
+        let context = ctx("/anything", [1, 2, 3, 4], &h);
+        let expr = MatchExpr::Predicate(Predicate {
+            field: Field::UriPath,
+            op: Op::Regex,
+            value: Some("[invalid(regex".to_string()),
+            values: vec![],
+            param: None,
+        });
+        assert!(!eval_match(&context, &expr));
+    }
+
+    #[test]
     fn header_field_reads_the_named_header_case_insensitively() {
         let mut h = hyper::HeaderMap::new();
-        h.insert("x-api-key", hyper::header::HeaderValue::from_static("secret"));
+        h.insert(
+            "x-api-key",
+            hyper::header::HeaderValue::from_static("secret"),
+        );
         let context = ctx("/x", [1, 2, 3, 4], &h);
         let expr = MatchExpr::Predicate(Predicate {
             field: Field::Header,
@@ -482,8 +555,20 @@ mod tests {
         // Both rules would match `/admin`; priority order (already sorted by the control-plane —
         // this is just list order here) means the first one decides.
         let zone = zone_with_rules(vec![
-            predicate_rule("allow-rule", Action::Allow, Field::UriPath, Op::StartsWith, "/admin"),
-            predicate_rule("block-rule", Action::Block, Field::UriPath, Op::StartsWith, "/admin"),
+            predicate_rule(
+                "allow-rule",
+                Action::Allow,
+                Field::UriPath,
+                Op::StartsWith,
+                "/admin",
+            ),
+            predicate_rule(
+                "block-rule",
+                Action::Block,
+                Field::UriPath,
+                Op::StartsWith,
+                "/admin",
+            ),
         ]);
         let h = headers();
         let context = ctx("/admin/panel", [1, 2, 3, 4], &h);
@@ -516,7 +601,8 @@ mod tests {
         // over budget) — nothing matches, DDoS policy included.
         assert!(evaluate(&zone, &context, &limiter).is_none());
         // Second request from the same client crosses the threshold.
-        let decision = evaluate(&zone, &context, &limiter).expect("second request should trip the DDoS budget");
+        let decision = evaluate(&zone, &context, &limiter)
+            .expect("second request should trip the DDoS budget");
         assert_eq!(decision.action, Action::Challenge);
         assert_eq!(decision.triggered_by, "ddosPolicy");
     }
@@ -545,8 +631,12 @@ mod tests {
         let context = ctx("/login", [8, 8, 8, 8], &h);
         let limiter = RateLimiter::new();
 
-        assert!(evaluate(&zone, &context, &limiter).is_none(), "first hit is within budget");
-        let decision = evaluate(&zone, &context, &limiter).expect("second hit should trip the rate limit");
+        assert!(
+            evaluate(&zone, &context, &limiter).is_none(),
+            "first hit is within budget"
+        );
+        let decision =
+            evaluate(&zone, &context, &limiter).expect("second hit should trip the rate limit");
         assert_eq!(decision.action, Action::Block);
         assert_eq!(decision.triggered_by_id, "rl-1");
     }

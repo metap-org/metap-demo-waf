@@ -207,6 +207,66 @@ pub async fn zone_delete_guard(
     next.run(request).await
 }
 
+/// Validates `FirewallRule.matchCondition` at write time, rather than letting an unrepresentable
+/// value save successfully and only surface as "this rule doesn't seem to do anything" once
+/// `waf-config-distributor` silently drops it at compile time (see that crate's `compile.rs`,
+/// `parse_match`'s own doc comment). A middleware, not a body extractor on a custom route, for the
+/// same reason `zone_delete_guard` above is one: `create`/`update` on `waf.firewall_rules` are
+/// `metap`'s generic CRUD routes, not something this crate hand-writes a handler for.
+///
+/// Only inspects `waf.firewall_rules` create/update bodies — every other entity's writes (and any
+/// `waf.firewall_rules` write with no `matchCondition` field at all, e.g. patching just `enabled`)
+/// pass straight through unexamined.
+pub async fn firewall_rule_match_condition_guard(request: Request, next: Next) -> Response {
+    let path = request.uri().path().to_string();
+    let is_create = request.method() == Method::POST && path == "/api/waf.firewall_rules";
+    let is_update = request.method() == Method::PATCH
+        && path.starts_with("/api/waf.firewall_rules/")
+        && path.matches('/').count() == 3;
+    if !is_create && !is_update {
+        return next.run(request).await;
+    }
+
+    let (parts, body) = request.into_parts();
+    let bytes = match axum::body::to_bytes(body, 1024 * 1024).await {
+        Ok(bytes) => bytes,
+        // Not this middleware's job to explain a malformed/oversized body — let the real handler's
+        // own `Json<...>` extractor produce its usual error for it, against an empty body (the
+        // original body is already consumed and cannot be replayed once `to_bytes` fails).
+        Err(_) => {
+            let request = Request::from_parts(parts, axum::body::Body::empty());
+            return next.run(request).await;
+        }
+    };
+
+    let condition = serde_json::from_slice::<Value>(&bytes)
+        .ok()
+        .and_then(|json| {
+            json.get("data")
+                .and_then(|d| d.get("matchCondition"))
+                .cloned()
+        });
+    if let Some(condition) = &condition {
+        if !crate::match_condition::is_valid_match_condition(Some(condition)) {
+            return service_error_response(
+                422,
+                "validation_failed",
+                Some(
+                    "matchCondition is not a recognized rule expression — check the field/operator \
+                     names (and that a regex pattern actually compiles).",
+                ),
+                Some(std::collections::HashMap::from([(
+                    "matchCondition".to_string(),
+                    vec!["not a recognized rule expression".to_string()],
+                )])),
+            );
+        }
+    }
+
+    let request = Request::from_parts(parts, axum::body::Body::from(bytes));
+    next.run(request).await
+}
+
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct VerifyDnsBody {

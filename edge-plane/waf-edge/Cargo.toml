@@ -13,6 +13,7 @@ http-body-util = { workspace = true }
 hyper = { workspace = true }
 hyper-util = { workspace = true }
 redis = { workspace = true }
+regex = { workspace = true }
 # Telemetry shipping only — a plain HTTP POST to control-plane, off the request path.
 reqwest = { workspace = true }
 serde = { workspace = true }

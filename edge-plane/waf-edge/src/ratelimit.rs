@@ -130,7 +130,10 @@ mod tests {
         assert!(!limiter.check("k", 3, window));
         assert!(!limiter.check("k", 3, window));
         assert!(limiter.check("k", 3, window));
-        assert!(limiter.check("k", 3, window), "stays over budget for further hits in the same window");
+        assert!(
+            limiter.check("k", 3, window),
+            "stays over budget for further hits in the same window"
+        );
     }
 
     #[test]
@@ -156,9 +159,15 @@ mod tests {
         let limiter = RateLimiter::new();
         let window = Duration::from_millis(30);
         assert!(!limiter.check("k", 1, window));
-        assert!(limiter.check("k", 1, window), "still inside the window, over budget");
+        assert!(
+            limiter.check("k", 1, window),
+            "still inside the window, over budget"
+        );
         std::thread::sleep(Duration::from_millis(60));
-        assert!(!limiter.check("k", 1, window), "a new window resets the counter");
+        assert!(
+            !limiter.check("k", 1, window),
+            "a new window resets the counter"
+        );
     }
 
     #[test]

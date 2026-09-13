@@ -54,7 +54,12 @@ pub struct DataPlane {
 }
 
 impl DataPlane {
-    pub fn new(http: reqwest::Client, zones_url: String, alerting_url: String, token: ServiceTokenSource) -> Self {
+    pub fn new(
+        http: reqwest::Client,
+        zones_url: String,
+        alerting_url: String,
+        token: ServiceTokenSource,
+    ) -> Self {
         Self {
             http,
             zones_url,
@@ -63,7 +68,12 @@ impl DataPlane {
         }
     }
 
-    async fn list(&self, base: &str, entity: &str, query: &[(&str, &str)]) -> anyhow::Result<Vec<Record>> {
+    async fn list(
+        &self,
+        base: &str,
+        entity: &str,
+        query: &[(&str, &str)],
+    ) -> anyhow::Result<Vec<Record>> {
         let url = format!("{base}/api/{entity}");
         let response = self
             .http
@@ -77,7 +87,10 @@ impl DataPlane {
         if !status.is_success() {
             anyhow::bail!("GET {url} returned {status}");
         }
-        let body: Envelope<Vec<Record>> = response.json().await.with_context(|| format!("parsing {url}"))?;
+        let body: Envelope<Vec<Record>> = response
+            .json()
+            .await
+            .with_context(|| format!("parsing {url}"))?;
         Ok(body.data)
     }
 
@@ -98,7 +111,10 @@ impl DataPlane {
         if !response.status().is_success() {
             anyhow::bail!("GET {url} returned {}", response.status());
         }
-        let body: Envelope<Record> = response.json().await.with_context(|| format!("parsing {url}"))?;
+        let body: Envelope<Record> = response
+            .json()
+            .await
+            .with_context(|| format!("parsing {url}"))?;
         Ok(Some(body.data))
     }
 
@@ -110,12 +126,17 @@ impl DataPlane {
     /// asking for more is silently clamped, so this pages with the cursor the list API returns
     /// rather than pretending one request is enough.
     pub async fn all_zones(&self) -> anyhow::Result<Vec<Record>> {
-        self.list(&self.zones_url, "waf.zones", &[("limit", "50")]).await
+        self.list(&self.zones_url, "waf.zones", &[("limit", "50")])
+            .await
     }
 
     pub async fn ddos_policy_for(&self, zone_id: &str) -> anyhow::Result<Option<Record>> {
         let mut rows = self
-            .list(&self.zones_url, "waf.ddos_policies", &[("zoneId", zone_id), ("limit", "1")])
+            .list(
+                &self.zones_url,
+                "waf.ddos_policies",
+                &[("zoneId", zone_id), ("limit", "1")],
+            )
             .await?;
         Ok(rows.pop())
     }

@@ -74,6 +74,7 @@ fn op_from(raw: &str) -> Option<Op> {
         "endsWith" => Some(Op::EndsWith),
         "in" => Some(Op::In),
         "notIn" => Some(Op::NotIn),
+        "regex" => Some(Op::Regex),
         _ => None,
     }
 }
@@ -94,11 +95,13 @@ pub fn parse_match(raw: Option<&Value>) -> Option<MatchExpr> {
         Value::Null => Some(MatchExpr::Always),
         Value::Object(object) => {
             if let Some(Value::Array(items)) = object.get("all") {
-                let parsed: Option<Vec<_>> = items.iter().map(|item| parse_match(Some(item))).collect();
+                let parsed: Option<Vec<_>> =
+                    items.iter().map(|item| parse_match(Some(item))).collect();
                 return Some(MatchExpr::All(parsed?));
             }
             if let Some(Value::Array(items)) = object.get("any") {
-                let parsed: Option<Vec<_>> = items.iter().map(|item| parse_match(Some(item))).collect();
+                let parsed: Option<Vec<_>> =
+                    items.iter().map(|item| parse_match(Some(item))).collect();
                 return Some(MatchExpr::Any(parsed?));
             }
             if let Some(inner) = object.get("not") {
@@ -138,6 +141,18 @@ pub fn parse_match(raw: Option<&Value>) -> Option<MatchExpr> {
                 // header names without allocating per request.
                 .map(|s| s.to_ascii_lowercase());
             if matches!(field, Field::Header) && param.is_none() {
+                return None;
+            }
+            // `Op::Regex` is validated here, not just at authoring time — a pattern that fails to
+            // compile must never reach the edge (same "drop rather than publish broken" rule as
+            // every other unrepresentable condition in this function). `zones-service`'s own
+            // save-time validation should already have caught this, but that is a best-effort
+            // UX nicety at a different layer, not something this function may rely on.
+            if op == Op::Regex
+                && value
+                    .as_deref()
+                    .is_none_or(|pattern| regex::Regex::new(pattern).is_err())
+            {
                 return None;
             }
             Some(MatchExpr::Predicate(Predicate {
@@ -276,7 +291,10 @@ mod tests {
     #[test]
     fn parse_match_none_and_null_both_mean_always() {
         assert!(matches!(parse_match(None), Some(MatchExpr::Always)));
-        assert!(matches!(parse_match(Some(&Value::Null)), Some(MatchExpr::Always)));
+        assert!(matches!(
+            parse_match(Some(&Value::Null)),
+            Some(MatchExpr::Always)
+        ));
     }
 
     #[test]
@@ -295,7 +313,8 @@ mod tests {
 
     #[test]
     fn parse_match_header_field_lowercases_the_header_name() {
-        let raw = json!({ "field": "header", "op": "eq", "value": "1", "param": "X-Custom-Header" });
+        let raw =
+            json!({ "field": "header", "op": "eq", "value": "1", "param": "X-Custom-Header" });
         let expr = parse_match(Some(&raw)).unwrap();
         match expr {
             MatchExpr::Predicate(p) => assert_eq!(p.param.as_deref(), Some("x-custom-header")),
@@ -341,9 +360,34 @@ mod tests {
     }
 
     #[test]
+    fn parse_match_regex_with_a_valid_pattern_compiles() {
+        let raw = json!({ "field": "uri.path", "op": "regex", "value": r"^/admin/\d+$" });
+        let expr = parse_match(Some(&raw)).unwrap();
+        match expr {
+            MatchExpr::Predicate(p) => {
+                assert_eq!(p.field, Field::UriPath);
+                assert_eq!(p.op, Op::Regex);
+                assert_eq!(p.value.as_deref(), Some(r"^/admin/\d+$"));
+            }
+            other => panic!("expected Predicate, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn parse_match_regex_with_an_invalid_pattern_is_unrepresentable() {
+        let raw = json!({ "field": "uri.path", "op": "regex", "value": "[invalid(regex" });
+        assert!(parse_match(Some(&raw)).is_none());
+    }
+
+    #[test]
     fn parse_match_unknown_field_or_op_is_unrepresentable() {
-        assert!(parse_match(Some(&json!({ "field": "bogus", "op": "eq", "value": "x" }))).is_none());
-        assert!(parse_match(Some(&json!({ "field": "method", "op": "bogus", "value": "x" }))).is_none());
+        assert!(
+            parse_match(Some(&json!({ "field": "bogus", "op": "eq", "value": "x" }))).is_none()
+        );
+        assert!(parse_match(Some(
+            &json!({ "field": "method", "op": "bogus", "value": "x" })
+        ))
+        .is_none());
     }
 
     #[test]
@@ -387,7 +431,9 @@ mod tests {
         let compiled = compile_rule(&rule).unwrap();
         assert_eq!(compiled.id, "rule-1");
         assert_eq!(compiled.action, Action::Challenge);
-        let rl = compiled.rate_limit.expect("rate limit expected for rateLimit rule type");
+        let rl = compiled
+            .rate_limit
+            .expect("rate limit expected for rateLimit rule type");
         assert_eq!(rl.threshold, 20);
         assert_eq!(rl.window_seconds, 30);
         // No condition given -> Always, meaning the budget applies to every request the rule
@@ -453,7 +499,10 @@ mod tests {
         ];
         let compiled = compile_zone(&z, "tenant-1", None, &rules).unwrap();
         assert_eq!(compiled.rules.len(), 2, "the disabled rule must be dropped");
-        assert_eq!(compiled.rules[0].name, "first", "lower priority number sorts first");
+        assert_eq!(
+            compiled.rules[0].name, "first",
+            "lower priority number sorts first"
+        );
         assert_eq!(compiled.rules[1].name, "second");
         assert_eq!(compiled.schema_version, RULESET_SCHEMA_VERSION);
         assert_eq!(compiled.tenant_id, "tenant-1");

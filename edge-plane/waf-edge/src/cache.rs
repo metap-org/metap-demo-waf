@@ -25,7 +25,9 @@ use std::time::Duration;
 use arc_swap::ArcSwap;
 use redis::AsyncCommands;
 
-use crate::ruleset::{zone_key, zone_version_key, CompiledZone, EPOCH_KEY, SCHEMA_VERSION, ZONE_INDEX_KEY};
+use crate::ruleset::{
+    zone_key, zone_version_key, CompiledZone, EPOCH_KEY, SCHEMA_VERSION, ZONE_INDEX_KEY,
+};
 
 pub struct Snapshot {
     pub zones: HashMap<String, Arc<CompiledZone>>,
@@ -139,11 +141,20 @@ impl RuleSetCache {
     /// which looks exactly like a total outage to every zone it should be serving.
     pub async fn load_initial(&self) -> anyhow::Result<()> {
         let fetched = self.refresh_once().await?;
-        tracing::info!(zones = self.zone_count(), fetched, epoch = self.epoch(), "initial rule-sets loaded");
+        tracing::info!(
+            zones = self.zone_count(),
+            fetched,
+            epoch = self.epoch(),
+            "initial rule-sets loaded"
+        );
         Ok(())
     }
 
-    pub async fn run_refresh_loop(self: Arc<Self>, interval: Duration, shutdown: impl std::future::Future<Output = ()>) {
+    pub async fn run_refresh_loop(
+        self: Arc<Self>,
+        interval: Duration,
+        shutdown: impl std::future::Future<Output = ()>,
+    ) {
         let mut shutdown = std::pin::pin!(shutdown);
         let mut ticker = tokio::time::interval(interval);
         ticker.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);

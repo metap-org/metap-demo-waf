@@ -73,7 +73,11 @@ pub struct IngestState {
     pub ingest_token: Option<String>,
 }
 
-async fn ingest(State(state): State<IngestState>, headers: HeaderMap, body: Option<Json<IngestBody>>) -> Response {
+async fn ingest(
+    State(state): State<IngestState>,
+    headers: HeaderMap,
+    body: Option<Json<IngestBody>>,
+) -> Response {
     if let Some(expected) = &state.ingest_token {
         let presented = headers
             .get("x-waf-ingest-token")
@@ -82,12 +86,20 @@ async fn ingest(State(state): State<IngestState>, headers: HeaderMap, body: Opti
         // Length-independent comparison isn't worth reaching for here (this is a coarse
         // deployment boundary, not a per-user credential), but an absent token must never pass.
         if presented.is_empty() || presented != expected {
-            return (StatusCode::UNAUTHORIZED, Json(json!({ "error": "invalid ingest token" }))).into_response();
+            return (
+                StatusCode::UNAUTHORIZED,
+                Json(json!({ "error": "invalid ingest token" })),
+            )
+                .into_response();
         }
     }
 
     let Some(Json(body)) = body else {
-        return (StatusCode::BAD_REQUEST, Json(json!({ "error": "malformed body" }))).into_response();
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(json!({ "error": "malformed body" })),
+        )
+            .into_response();
     };
     if body.events.len() > state.max_request_events {
         return (
@@ -121,8 +133,16 @@ async fn ingest(State(state): State<IngestState>, headers: HeaderMap, body: Opti
 
 async fn health(State(state): State<IngestState>) -> Response {
     let redis_ok = state.distributor.ping().await.is_ok();
-    let status = if redis_ok { StatusCode::OK } else { StatusCode::SERVICE_UNAVAILABLE };
-    (status, Json(json!({ "data": { "self": "ok", "redis": redis_ok } }))).into_response()
+    let status = if redis_ok {
+        StatusCode::OK
+    } else {
+        StatusCode::SERVICE_UNAVAILABLE
+    };
+    (
+        status,
+        Json(json!({ "data": { "self": "ok", "redis": redis_ok } })),
+    )
+        .into_response()
 }
 
 pub fn router(state: IngestState) -> Router {

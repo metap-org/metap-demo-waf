@@ -25,7 +25,8 @@ pub struct Distributor {
 
 impl Distributor {
     pub fn connect(redis_url: &str) -> anyhow::Result<Self> {
-        let client = redis::Client::open(redis_url).with_context(|| format!("opening redis at {redis_url}"))?;
+        let client = redis::Client::open(redis_url)
+            .with_context(|| format!("opening redis at {redis_url}"))?;
         Ok(Self { client })
     }
 
@@ -85,7 +86,10 @@ impl Distributor {
     /// disappeared from `data-plane` without this worker ever seeing the delete event.
     pub async fn published_hostnames(&self) -> anyhow::Result<Vec<String>> {
         let mut conn = self.conn().await?;
-        let members: Vec<String> = conn.smembers(ZONE_INDEX_KEY).await.context("reading zone index")?;
+        let members: Vec<String> = conn
+            .smembers(ZONE_INDEX_KEY)
+            .await
+            .context("reading zone index")?;
         Ok(members)
     }
 
@@ -99,6 +103,9 @@ impl Distributor {
 
     pub async fn ping(&self) -> anyhow::Result<()> {
         let mut conn = self.conn().await?;
-        redis::cmd("PING").query_async::<()>(&mut conn).await.context("redis ping")
+        redis::cmd("PING")
+            .query_async::<()>(&mut conn)
+            .await
+            .context("redis ping")
     }
 }

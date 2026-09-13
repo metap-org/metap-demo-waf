@@ -24,6 +24,11 @@ reqwest = { version = "0.12", default-features = false, features = ["json", "rus
 serde = { version = "1", features = ["derive"] }
 uuid = { version = "1", features = ["v4", "serde"] }
 chrono = "0.4"
+# `firewall_rule_match_condition_guard` (src/routes.rs) validates a regex `matchCondition`
+# actually compiles before letting the write through — same check
+# `control-plane/waf-config-distributor/src/compile.rs` does later, just surfaced immediately
+# instead of silently dropping the rule at compile time.
+regex = "1"
 
 [dev-dependencies]
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }

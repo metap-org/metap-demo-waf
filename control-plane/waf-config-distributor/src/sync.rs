@@ -32,7 +32,10 @@ pub async fn sync_zone(
         if let Some(hostname) = known_hostname {
             distributor.unpublish(hostname).await?;
         } else {
-            tracing::debug!(zone_id, "zone deleted and no known hostname — leaving it to the next resync");
+            tracing::debug!(
+                zone_id,
+                "zone deleted and no known hostname — leaving it to the next resync"
+            );
         }
         return Ok(());
     };
@@ -48,7 +51,10 @@ pub async fn sync_zone(
     let ddos = data_plane.ddos_policy_for(zone_id).await?;
     let rules = data_plane.rules_for(zone_id).await?;
     let Some(compiled) = compile_zone(&zone, tenant_id, ddos.as_ref(), &rules) else {
-        tracing::warn!(zone_id, "zone could not be compiled (missing hostname?), skipping");
+        tracing::warn!(
+            zone_id,
+            "zone could not be compiled (missing hostname?), skipping"
+        );
         return Ok(());
     };
 
@@ -68,7 +74,10 @@ pub async fn sync_zone(
 pub fn zone_id_from_event(entity: &str, payload: &serde_json::Value) -> Option<String> {
     let data = payload.get("data");
     match entity {
-        "waf.zones" => payload.get("recordId").and_then(|v| v.as_str()).map(str::to_string),
+        "waf.zones" => payload
+            .get("recordId")
+            .and_then(|v| v.as_str())
+            .map(str::to_string),
         "waf.ddos_policies" | "waf.firewall_rules" => data
             .and_then(|d| d.get("zoneId"))
             .and_then(|v| v.as_str())

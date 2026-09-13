@@ -39,6 +39,7 @@ mod evaluate;
 mod pages;
 mod proxy;
 mod ratelimit;
+mod regex_cache;
 mod ruleset;
 mod telemetry;
 
@@ -96,11 +97,10 @@ async fn main() -> anyhow::Result<()> {
         let _ = rx.recv().await;
     };
 
-    tokio::spawn(
-        cache
-            .clone()
-            .run_refresh_loop(config.refresh_interval, wait_for_shutdown(shutdown_tx.subscribe())),
-    );
+    tokio::spawn(cache.clone().run_refresh_loop(
+        config.refresh_interval,
+        wait_for_shutdown(shutdown_tx.subscribe()),
+    ));
     tokio::spawn(telemetry::run_shipper(
         telemetry.clone(),
         receiver,
@@ -321,7 +321,9 @@ async fn handle(
         }
         // `Log` and `Allow` both pass the request on: the event above is the whole effect of a
         // log rule, and this is also the branch every decision takes in monitor mode.
-        Action::Log | Action::Allow => Ok(pass_through(&edge, request, &zone, &ip_text, &host).await),
+        Action::Log | Action::Allow => {
+            Ok(pass_through(&edge, request, &zone, &ip_text, &host).await)
+        }
     }
 }
 

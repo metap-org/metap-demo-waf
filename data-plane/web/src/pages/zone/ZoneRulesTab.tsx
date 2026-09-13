@@ -22,6 +22,7 @@ import {
   Label,
   SectionCard,
   Select,
+  TagsInput,
   Table,
   TableBody,
   TableCell,
@@ -65,6 +66,174 @@ const EMPTY: RuleData = {
   matchCondition: { field: "uri.path", op: "contains", value: "/admin" },
 };
 
+/**
+ * The rule-builder's authoring grammar, matching exactly what
+ * `../../../control-plane/waf-config-distributor/src/compile.rs`'s `parse_match` accepts (and
+ * `zones-service`'s `firewall_rule_match_condition_guard` validates at save time before that) —
+ * flat `{field, op, value|values, param}` objects combined with `all`/`any`. `not` and further
+ * nesting are real, valid `matchCondition` shapes this grammar supports, but the builder below
+ * only ever *produces* one flat combinator level; anything it can't losslessly round-trip falls
+ * back to the raw JSON editor rather than silently reshaping a rule someone wrote by hand.
+ */
+const FIELDS = [
+  "uri.path",
+  "uri.query",
+  "method",
+  "header",
+  "sourceIp",
+  "sourceIpCidr",
+  "country",
+  "userAgent",
+] as const;
+type MatchField = (typeof FIELDS)[number];
+
+const OPS = [
+  "eq",
+  "ne",
+  "contains",
+  "notContains",
+  "containsCi",
+  "startsWith",
+  "endsWith",
+  "in",
+  "notIn",
+  "regex",
+] as const;
+type MatchOp = (typeof OPS)[number];
+
+type Predicate = {
+  field: MatchField;
+  op: MatchOp;
+  value: string;
+  values: string[];
+  param: string;
+};
+
+type BuilderCombinator = "all" | "any";
+
+type BuilderState = {
+  combinator: BuilderCombinator;
+  predicates: Predicate[];
+};
+
+function emptyPredicate(): Predicate {
+  return {
+    field: "uri.path",
+    op: "contains",
+    value: "",
+    values: [],
+    param: "",
+  };
+}
+
+function predicateToJson(p: Predicate): Record<string, unknown> {
+  const json: Record<string, unknown> = { field: p.field, op: p.op };
+  if (p.op === "in" || p.op === "notIn") {
+    json.values = p.values;
+  } else {
+    json.value = p.value;
+  }
+  if (p.field === "header") {
+    json.param = p.param;
+  }
+  return json;
+}
+
+/** `null`/no predicates compiles to `null` (`compile.rs`'s `parse_match` treats that as
+ *  `MatchExpr::Always` — "matches every request", the correct meaning for a bare IP-list or
+ *  rate-limit-only rule). A single predicate skips the combinator wrapper entirely — the same
+ *  shape a hand-written single-condition rule already used before this builder existed. */
+function builderToJson(builder: BuilderState): unknown {
+  const [first, ...rest] = builder.predicates;
+  if (!first) return null;
+  if (rest.length === 0) return predicateToJson(first);
+  return { [builder.combinator]: builder.predicates.map(predicateToJson) };
+}
+
+function isMatchField(value: unknown): value is MatchField {
+  return (
+    typeof value === "string" && (FIELDS as readonly string[]).includes(value)
+  );
+}
+
+function isMatchOp(value: unknown): value is MatchOp {
+  return (
+    typeof value === "string" && (OPS as readonly string[]).includes(value)
+  );
+}
+
+/** The inverse of `predicateToJson`, for one flat predicate object — `null` if `raw` isn't one
+ *  (unknown field/op, wrong shape), which is what tells the caller to fall back to Advanced mode
+ *  rather than misrepresent it. */
+function jsonToPredicate(raw: unknown): Predicate | null {
+  if (typeof raw !== "object" || raw === null || Array.isArray(raw))
+    return null;
+  const obj = raw as Record<string, unknown>;
+  if (!isMatchField(obj.field) || !isMatchOp(obj.op)) return null;
+  const values = Array.isArray(obj.values)
+    ? obj.values.filter((v) => typeof v === "string")
+    : [];
+  const value =
+    typeof obj.value === "string" ? obj.value : String(obj.value ?? "");
+  const param =
+    typeof obj.param === "string"
+      ? obj.param
+      : typeof obj.header === "string"
+        ? obj.header
+        : "";
+  return { field: obj.field, op: obj.op, value, values, param };
+}
+
+/** `undefined`/`null` -> an empty builder (matches every request). A single flat predicate -> one
+ *  row, combinator defaults to `all` (irrelevant with one row). `{all: [...]}`/`{any: [...]}`
+ *  where every child is itself a flat predicate -> that many rows under that combinator. Anything
+ *  else (a `not`, a nested `all`/`any` inside another, an unrecognized field/op) returns `null` —
+ *  the caller must fall back to the raw JSON editor rather than build a lossy approximation. */
+function jsonToBuilder(raw: unknown): BuilderState | null {
+  if (raw === null || raw === undefined)
+    return { combinator: "all", predicates: [] };
+  if (typeof raw !== "object" || Array.isArray(raw)) return null;
+  const obj = raw as Record<string, unknown>;
+  const combinatorKey: BuilderCombinator | null = Array.isArray(obj.all)
+    ? "all"
+    : Array.isArray(obj.any)
+      ? "any"
+      : null;
+  if (combinatorKey) {
+    const items = obj[combinatorKey] as unknown[];
+    const predicates = items.map(jsonToPredicate);
+    if (predicates.some((p) => p === null) || predicates.length === 0)
+      return null;
+    return { combinator: combinatorKey, predicates: predicates as Predicate[] };
+  }
+  const single = jsonToPredicate(obj);
+  return single ? { combinator: "all", predicates: [single] } : null;
+}
+
+const FIELD_LABEL_KEYS: Record<MatchField, string> = {
+  "uri.path": "fieldUriPath",
+  "uri.query": "fieldUriQuery",
+  method: "fieldMethod",
+  header: "fieldHeader",
+  sourceIp: "fieldSourceIp",
+  sourceIpCidr: "fieldSourceIpCidr",
+  country: "fieldCountry",
+  userAgent: "fieldUserAgent",
+};
+
+const OP_LABEL_KEYS: Record<MatchOp, string> = {
+  eq: "opEq",
+  ne: "opNe",
+  contains: "opContains",
+  notContains: "opNotContains",
+  containsCi: "opContainsCi",
+  startsWith: "opStartsWith",
+  endsWith: "opEndsWith",
+  in: "opIn",
+  notIn: "opNotIn",
+  regex: "opRegex",
+};
+
 export function ZoneRulesTab({ zoneId }: { zoneId: string }) {
   const { t } = useTranslation();
   const invalidate = useInvalidateWaf();
@@ -74,8 +243,86 @@ export function ZoneRulesTab({ zoneId }: { zoneId: string }) {
   const [conditionText, setConditionText] = useState(
     JSON.stringify(EMPTY.matchCondition, null, 2),
   );
+  // `null` builder means "this condition is too complex for the builder" — `mode` then stays
+  // (or is forced to) "advanced" and the raw JSON editor is the only way to change it.
+  const [builder, setBuilder] = useState<BuilderState>(
+    jsonToBuilder(EMPTY.matchCondition) ?? {
+      combinator: "all",
+      predicates: [],
+    },
+  );
+  const [conditionMode, setConditionMode] = useState<"builder" | "advanced">(
+    "builder",
+  );
+  // Distinguishes "started in advanced mode because this rule's saved condition uses nested
+  // groups the builder can't show" from "the user chose Advanced themselves" — only the former
+  // needs the persistent inline notice, the latter is just a normal mode the user picked.
+  const [autoFellBackToAdvanced, setAutoFellBackToAdvanced] = useState(false);
   const [open, setOpen] = useState(false);
   const { busy, run } = useAsyncAction();
+
+  function loadCondition(condition: unknown) {
+    setConditionText(JSON.stringify(condition ?? null, null, 2));
+    const parsed = jsonToBuilder(condition);
+    if (parsed) {
+      setBuilder(parsed);
+      setConditionMode("builder");
+      setAutoFellBackToAdvanced(false);
+    } else {
+      setConditionMode("advanced");
+      setAutoFellBackToAdvanced(true);
+    }
+  }
+
+  function updatePredicate(index: number, patch: Partial<Predicate>) {
+    setBuilder((current) => ({
+      ...current,
+      predicates: current.predicates.map((p, i) =>
+        i === index ? { ...p, ...patch } : p,
+      ),
+    }));
+  }
+
+  function addPredicate() {
+    setBuilder((current) => ({
+      ...current,
+      predicates: [...current.predicates, emptyPredicate()],
+    }));
+  }
+
+  function removePredicate(index: number) {
+    setBuilder((current) => ({
+      ...current,
+      predicates: current.predicates.filter((_, i) => i !== index),
+    }));
+  }
+
+  function switchToAdvanced() {
+    setConditionText(JSON.stringify(builderToJson(builder), null, 2));
+    setConditionMode("advanced");
+    setAutoFellBackToAdvanced(false);
+  }
+
+  function switchToBuilder() {
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(conditionText);
+    } catch {
+      toast(t("waf.zoneTabs.rules.toastInvalidJson"), {
+        variant: "destructive",
+      });
+      return;
+    }
+    const next = jsonToBuilder(parsed);
+    if (!next) {
+      toast(t("waf.zoneTabs.rules.advancedFallbackNotice"), {
+        variant: "destructive",
+      });
+      return;
+    }
+    setBuilder(next);
+    setConditionMode("builder");
+  }
 
   // Sorted here rather than by the list API: `priority` is not in the entity's sortable fields,
   // and the list is small (one zone's rules), so ordering client-side is cheaper than widening
@@ -91,27 +338,31 @@ export function ZoneRulesTab({ zoneId }: { zoneId: string }) {
         ? (ordered[ordered.length - 1]?.data.priority ?? 0) + 10
         : 100;
     setDraft({ ...EMPTY, priority: nextPriority });
-    setConditionText(JSON.stringify(EMPTY.matchCondition, null, 2));
+    loadCondition(EMPTY.matchCondition);
     setOpen(true);
   }
 
   function startEdit(rule: WafRecord<RuleData>) {
     setEditing(rule);
     setDraft(rule.data);
-    setConditionText(JSON.stringify(rule.data.matchCondition ?? {}, null, 2));
+    loadCondition(rule.data.matchCondition);
     setOpen(true);
   }
 
   async function save() {
     await run(async () => {
       let matchCondition: unknown;
-      try {
-        matchCondition = JSON.parse(conditionText);
-      } catch {
-        toast(t("waf.zoneTabs.rules.toastInvalidJson"), {
-          variant: "destructive",
-        });
-        return;
+      if (conditionMode === "builder") {
+        matchCondition = builderToJson(builder);
+      } else {
+        try {
+          matchCondition = JSON.parse(conditionText);
+        } catch {
+          toast(t("waf.zoneTabs.rules.toastInvalidJson"), {
+            variant: "destructive",
+          });
+          return;
+        }
       }
       const payload = { ...draft, matchCondition, zoneId };
       if (editing) {
@@ -367,23 +618,157 @@ export function ZoneRulesTab({ zoneId }: { zoneId: string }) {
               </div>
             ) : null}
             <div>
-              <Label htmlFor="rule-condition">
-                {t("waf.zoneTabs.rules.matchCondition")}
-              </Label>
-              {/* Raw JSON on purpose: whether this grammar reuses `metap-permission`'s
-                  `PolicyCondition` or needs its own (request fields like `uri.path` vs. entity
-                  fields) is still an open question in `docs/02-domain-model.md`. A visual builder
-                  built on the wrong grammar would be thrown away. */}
-              <Textarea
-                id="rule-condition"
-                rows={5}
-                className="font-mono text-xs"
-                value={conditionText}
-                onChange={(e) => setConditionText(e.target.value)}
-              />
-              <p className="mt-1 text-xs text-muted-foreground">
+              <div className="flex items-center justify-between">
+                <Label>{t("waf.zoneTabs.rules.matchCondition")}</Label>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  onClick={
+                    conditionMode === "builder"
+                      ? switchToAdvanced
+                      : switchToBuilder
+                  }
+                >
+                  {conditionMode === "builder"
+                    ? t("waf.zoneTabs.rules.switchToAdvanced")
+                    : t("waf.zoneTabs.rules.switchToBuilder")}
+                </Button>
+              </div>
+              <p className="mb-2 text-xs text-muted-foreground">
                 {t("waf.zoneTabs.rules.matchConditionHint")}
               </p>
+
+              {conditionMode === "builder" ? (
+                <div className="grid gap-2">
+                  {builder.predicates.length === 0 ? (
+                    <p className="text-xs text-muted-foreground">
+                      {t("waf.zoneTabs.rules.noPredicatesYet")}
+                    </p>
+                  ) : null}
+                  {builder.predicates.length > 1 ? (
+                    <Select
+                      value={builder.combinator}
+                      onValueChange={(value) =>
+                        setBuilder((current) => ({
+                          ...current,
+                          combinator: value as BuilderCombinator,
+                        }))
+                      }
+                      options={[
+                        {
+                          value: "all",
+                          label: t("waf.zoneTabs.rules.combinatorAll"),
+                        },
+                        {
+                          value: "any",
+                          label: t("waf.zoneTabs.rules.combinatorAny"),
+                        },
+                      ]}
+                    />
+                  ) : null}
+                  {builder.predicates.map((predicate, index) => (
+                    <div
+                      key={index}
+                      className="grid gap-2 rounded-md border border-border p-2 sm:grid-cols-[1fr_1fr_auto]"
+                    >
+                      <Select
+                        value={predicate.field}
+                        onValueChange={(value) =>
+                          updatePredicate(index, { field: value as MatchField })
+                        }
+                        options={FIELDS.map((f) => ({
+                          value: f,
+                          label: t(`waf.zoneTabs.rules.${FIELD_LABEL_KEYS[f]}`),
+                        }))}
+                      />
+                      <Select
+                        value={predicate.op}
+                        onValueChange={(value) =>
+                          updatePredicate(index, { op: value as MatchOp })
+                        }
+                        options={OPS.map((op) => ({
+                          value: op,
+                          label: t(`waf.zoneTabs.rules.${OP_LABEL_KEYS[op]}`),
+                        }))}
+                      />
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => removePredicate(index)}
+                      >
+                        {t("waf.zoneTabs.rules.removePredicate")}
+                      </Button>
+
+                      {predicate.field === "header" ? (
+                        <Input
+                          className="sm:col-span-3"
+                          placeholder={t(
+                            "waf.zoneTabs.rules.headerNamePlaceholder",
+                          )}
+                          aria-label={t("waf.zoneTabs.rules.headerNameLabel")}
+                          value={predicate.param}
+                          onChange={(e) =>
+                            updatePredicate(index, { param: e.target.value })
+                          }
+                        />
+                      ) : null}
+
+                      {predicate.op === "in" || predicate.op === "notIn" ? (
+                        <div className="sm:col-span-3">
+                          <TagsInput
+                            value={predicate.values}
+                            onChange={(values) =>
+                              updatePredicate(index, { values })
+                            }
+                            placeholder={t("waf.zoneTabs.rules.valuesLabel")}
+                          />
+                        </div>
+                      ) : (
+                        <Input
+                          className="sm:col-span-3"
+                          aria-label={t("waf.zoneTabs.rules.valueLabel")}
+                          placeholder={
+                            predicate.field === "sourceIpCidr"
+                              ? t("waf.zoneTabs.rules.valuePlaceholderCidr")
+                              : predicate.op === "regex"
+                                ? t("waf.zoneTabs.rules.valuePlaceholderRegex")
+                                : undefined
+                          }
+                          value={predicate.value}
+                          onChange={(e) =>
+                            updatePredicate(index, { value: e.target.value })
+                          }
+                        />
+                      )}
+                    </div>
+                  ))}
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={addPredicate}
+                  >
+                    {t("waf.zoneTabs.rules.addPredicate")}
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  {autoFellBackToAdvanced ? (
+                    <p className="mb-2 text-xs text-destructive">
+                      {t("waf.zoneTabs.rules.advancedFallbackNotice")}
+                    </p>
+                  ) : null}
+                  <Textarea
+                    id="rule-condition"
+                    rows={5}
+                    className="font-mono text-xs"
+                    value={conditionText}
+                    onChange={(e) => setConditionText(e.target.value)}
+                  />
+                </>
+              )}
             </div>
             <div>
               <Label htmlFor="rule-priority">

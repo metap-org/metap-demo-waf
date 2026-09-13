@@ -19,13 +19,11 @@
 //! `src/entities/mod.rs`. Reads config from the environment (or a `.env` file in this
 //! directory — see `.env.example`). Run from this directory so that resolves as expected.
 
-mod entities;
-mod routes;
-
-use entities::{
+use zones_service::entities::{
     ddos_policy_entity::ddos_policy_entity, firewall_rule_entity::firewall_rule_entity,
     zone_entity::zone_entity,
 };
+use zones_service::routes;
 
 use std::sync::Arc;
 use std::time::Duration;
@@ -191,10 +189,17 @@ async fn main() -> anyhow::Result<()> {
     if let Some(jwks_key_store) = jwks_key_store {
         router = router.fallback_service(metap::jwks_http::router(jwks_key_store));
     }
-    let router = router.layer(axum::middleware::from_fn_with_state(
-        guard_state,
-        routes::zone_delete_guard,
-    ));
+    let router = router
+        .layer(axum::middleware::from_fn_with_state(
+            guard_state,
+            routes::zone_delete_guard,
+        ))
+        // Needs no `AppState` — pure body-content validation, same reasoning as why it doesn't
+        // read the database at all. See its own doc comment for why this is a middleware rather
+        // than a route override.
+        .layer(axum::middleware::from_fn(
+            routes::firewall_rule_match_condition_guard,
+        ));
 
     let addr = format!("{}:{}", config.host, config.port);
 

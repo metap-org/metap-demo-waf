@@ -3348,6 +3348,7 @@ version = "0.1.0"
 dependencies = [
  "metap-app",
  "metap-attachments",
+ "metap-audit",
  "metap-auth",
  "metap-cache",
  "metap-config",
@@ -3381,7 +3382,9 @@ dependencies = [
  "metap-cache",
  "metap-control",
  "metap-infra",
+ "metap-metadata",
  "metap-permission",
+ "serde_norway",
  "sqlx",
  "tracing",
 ]
@@ -3393,6 +3396,20 @@ dependencies = [
  "anyhow",
  "chrono",
  "sqlx",
+ "uuid",
+]
+
+[[package]]
+name = "metap-audit"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "chrono",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "tracing",
  "uuid",
 ]
 
@@ -3448,6 +3465,7 @@ dependencies = [
  "metap-infra",
  "metap-peripherals",
  "metap-permission",
+ "metap-runtime",
  "moka",
  "secrecy",
  "serde",
@@ -3472,6 +3490,7 @@ dependencies = [
  "serde_json",
  "sqlx",
  "tracing",
+ "utoipa",
  "uuid",
 ]
 
@@ -3483,6 +3502,7 @@ dependencies = [
  "arc-swap",
  "async-trait",
  "chrono",
+ "metap-audit",
  "metap-control",
  "metap-metadata",
  "metap-permission",
@@ -3544,6 +3564,8 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "async-trait",
+ "governor",
+ "http 1.5.0",
  "jsonwebtoken",
  "metap-control",
  "metap-crud",
@@ -3561,6 +3583,9 @@ dependencies = [
  "tonic",
  "tonic-prost",
  "tonic-prost-build",
+ "tower-http 0.6.11",
+ "tower-layer",
+ "tower-service",
  "tracing",
  "uuid",
 ]
@@ -3585,6 +3610,7 @@ dependencies = [
  "metap-crud",
  "metap-dashboards",
  "metap-infra",
+ "metap-jwks",
  "metap-metadata",
  "metap-peripherals",
  "metap-permission",
@@ -3600,6 +3626,8 @@ dependencies = [
  "time",
  "tokio",
  "tracing",
+ "utoipa",
+ "utoipa-axum",
  "uuid",
 ]
 
@@ -3660,6 +3688,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2 0.10.9",
+ "utoipa",
 ]
 
 [[package]]
@@ -3768,6 +3797,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sqlx",
+ "utoipa",
  "uuid",
 ]
 
@@ -4216,6 +4246,12 @@ dependencies = [
  "rand_core 0.6.4",
  "subtle",
 ]
+
+[[package]]
+name = "paste"
+version = "1.0.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "57c0d7b74b563b49d38dae00a0c37d4d6de9b432382b2892f0574ddcae73fd0a"
 
 [[package]]
 name = "pbkdf2"
@@ -5602,6 +5638,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "serde_norway"
+version = "0.9.42"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e408f29489b5fd500fab51ff1484fc859bb655f32c671f307dcd733b72e8168c"
+dependencies = [
+ "indexmap 2.14.1",
+ "itoa",
+ "ryu",
+ "serde",
+ "unsafe-libyaml-norway",
+]
+
+[[package]]
 name = "serde_path_to_error"
 version = "0.1.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6743,6 +6792,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ebc1c04c71510c7f702b52b7c350734c9ff1295c464a03335b00bb84fc54f853"
 
 [[package]]
+name = "unsafe-libyaml-norway"
+version = "0.2.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b39abd59bf32521c7f2301b52d05a6a2c975b6003521cbd0c6dc1582f0a22104"
+
+[[package]]
 name = "untrusted"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6766,6 +6821,43 @@ name = "utf8_iter"
 version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b6c140620e7ffbb22c2dee59cafe6084a59b5ffc27a8859a5f0d494b5d52b6be"
+
+[[package]]
+name = "utoipa"
+version = "5.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8bde15df68e80b16c7d16b9616e80770ad158988daa56a27dccd1e55558b0160"
+dependencies = [
+ "indexmap 2.14.1",
+ "serde",
+ "serde_json",
+ "utoipa-gen",
+]
+
+[[package]]
+name = "utoipa-axum"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7c25bae5bccc842449ec0c5ddc5cbb6a3a1eaeac4503895dc105a1138f8234a0"
+dependencies = [
+ "axum",
+ "paste",
+ "tower-layer",
+ "tower-service",
+ "utoipa",
+]
+
+[[package]]
+name = "utoipa-gen"
+version = "5.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6ba0b99ee52df3028635d93840c797102da61f8a7bb3cf751032455895b52ef8"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.119",
+ "uuid",
+]
 
 [[package]]
 name = "uuid"
@@ -6833,6 +6925,7 @@ dependencies = [
  "dotenvy",
  "metap",
  "redis",
+ "regex",
  "reqwest 0.12.28",
  "serde",
  "serde_json",
