@@ -55,7 +55,7 @@ async fn transition(
 ) -> anyhow::Result<RecordDto> {
     match state
         .crud
-        .transition("waf.scan_jobs", job.id, action, job.version, None, context)
+        .transition("waf.scan_jobs", job.id, action, job.version, None, context, None)
         .await?
     {
         ServiceResult::Ok { data, .. } => Ok(data),
@@ -218,7 +218,7 @@ async fn submit_findings(
         }
         data.insert("firstSeenAt".to_string(), json!(now));
         data.insert("lastSeenAt".to_string(), json!(now));
-        match state.crud.create("waf.scan_findings", &data, &context).await {
+        match state.crud.create("waf.scan_findings", &data, &context, None).await {
             Ok(ServiceResult::Ok { data, .. }) => created.push(data.id),
             Ok(ServiceResult::Err {
                 status,
@@ -251,7 +251,7 @@ async fn submit_findings(
     patch.insert("lastRunAt".to_string(), json!(now));
     let job_after = match state
         .crud
-        .update("waf.scan_jobs", finished.id, finished.version, &patch, &context)
+        .update("waf.scan_jobs", finished.id, finished.version, &patch, &context, None)
         .await
     {
         // `JsonObject` (`serde_json::Map<String, Value>`) converts to `Value::Object` directly —
