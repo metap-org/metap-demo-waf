@@ -64,11 +64,17 @@ fn mint_token(private_pem: &str, tenant_id: Uuid, user_id: Uuid) -> String {
     encode(&Header::new(jsonwebtoken::Algorithm::RS256), &claims, &key).unwrap()
 }
 
+/// A dedicated table this test creates itself (`CREATE TABLE IF NOT EXISTS` below, matching
+/// `metap-query::query_planner_postgres.rs`'s pattern) — the shared generic `records` table this
+/// test used to run against was removed from `metap` core entirely (`crates/migrations/
+/// 0033_drop_records_table.sql`), and `table_name_ok` no longer accepts `"records"` at all.
+const TEST_TABLE: &str = "entities.test_tasks";
+
 fn test_entity() -> EntityDefinition {
     EntityDefinition {
         name: "test.tasks".to_string(),
         label: "Task".to_string(),
-        table_name: "records".to_string(),
+        table_name: TEST_TABLE.to_string(),
         fields: vec![EntityField {
             name: "title".to_string(),
             label: "Title".to_string(),
@@ -118,6 +124,24 @@ async fn connect() -> PgPool {
 #[ignore = "e2e: requires DATABASE_URL / a running Postgres"]
 async fn full_http_lifecycle_over_a_real_server_and_a_real_jwt() {
     let pool = connect().await;
+    sqlx::query(&format!(
+        "CREATE TABLE IF NOT EXISTS {TEST_TABLE} (
+            id uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+            tenant_id uuid NOT NULL,
+            code varchar(120),
+            status varchar(80),
+            data jsonb DEFAULT '{{}}'::jsonb NOT NULL,
+            version integer DEFAULT 1 NOT NULL,
+            deleted boolean DEFAULT false NOT NULL,
+            created_at timestamp with time zone DEFAULT now() NOT NULL,
+            updated_at timestamp with time zone DEFAULT now() NOT NULL,
+            created_by uuid,
+            updated_by uuid
+        )"
+    ))
+    .execute(&pool)
+    .await
+    .unwrap();
     let tenant_id = Uuid::new_v4();
     let user_id = Uuid::new_v4();
 
@@ -201,7 +225,7 @@ async fn full_http_lifecycle_over_a_real_server_and_a_real_jwt() {
         .unwrap();
     assert_eq!(get_res.status(), 200);
 
-    sqlx::query("DELETE FROM records WHERE tenant_id = $1")
+    sqlx::query(&format!("DELETE FROM {TEST_TABLE} WHERE tenant_id = $1"))
         .bind(tenant_id)
         .execute(&pool)
         .await

@@ -156,7 +156,19 @@ async fn main() -> anyhow::Result<()> {
     )
     .await?;
 
-    let router = build_router(state, &config.cors_origins, routes::router());
+    // `attachments`/`dashboards` trimmed (2026-09-15, see `zones-service/src/main.rs`'s own
+    // comment for the usage survey this is based on) — same 2 groups, same reasoning, applies
+    // uniformly across all 3 WAF services.
+    let router = build_router_with_groups(
+        state,
+        &config.cors_origins,
+        routes::router(),
+        RouteGroups {
+            attachments: false,
+            dashboards: false,
+            ..RouteGroups::all()
+        },
+    );
 
     let addr = format!("{}:{}", config.host, config.port);
 
