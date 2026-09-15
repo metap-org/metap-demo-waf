@@ -9,6 +9,15 @@ edition = "2021"
 # stabilizes on a real branch/tag.
 metap = { path = "../../../../metap/crates/metap" }
 metap-reconciler = { path = "../../../../metap/crates/metap-reconciler" }
+# The low-code entity-builder admin API (`/admin/lowcode/*`) — merged directly into this
+# service's own process (not run as `../../../../metap-lowcode/services/lowcode-admin-api`, a
+# separate service) because that standalone-service deployment has an unbuilt registry-
+# distribution gap (see `presenter`'s own crate-level doc comment, "Phase 53's T3/T5"): a
+# `publish`/`rollback` there updates only *that other process's* in-memory registry, which this
+# service's own `/api/:entity*` traffic would never see. Merged in-process, `apply_registry`
+# updates *this* process's live `MetadataRegistry` directly — the same pattern the now-deprecated
+# `metap-demo-crm/src/main.rs` used before this repo split the low-code crates out.
+presenter = { path = "../../../../metap-lowcode/crates/presenter" }
 anyhow = "1"
 arc-swap = "1"
 axum = "0.8"
