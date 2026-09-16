@@ -118,6 +118,23 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "330a5ed07fa54e4702c9d6c4174f74427fc0ef6e214bbd677ae50a5099946470"
 
 [[package]]
+name = "application"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "chrono",
+ "domain",
+ "metap-metadata",
+ "metap-reconciler",
+ "serde",
+ "sqlx",
+ "tracing",
+ "utoipa",
+ "uuid",
+]
+
+[[package]]
 name = "arc-swap"
 version = "1.9.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1775,6 +1792,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "780955b8b195a21ab8e4ac6b60dd1dbdcec1dc6c51c0617964b08c81785e12c9"
 
 [[package]]
+name = "domain"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "metap-metadata",
+ "serde",
+ "sqlx",
+ "utoipa",
+ "uuid",
+]
+
+[[package]]
 name = "dotenvy"
 version = "0.15.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2933,6 +2963,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "infra"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "application",
+ "async-trait",
+ "chrono",
+ "domain",
+ "metap-infra",
+ "metap-metadata",
+ "metap-reconciler",
+ "serde_json",
+ "sqlx",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "inout"
 version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3398,14 +3446,26 @@ name = "metap-app"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "arc-swap",
+ "axum",
  "jsonwebtoken",
+ "metap-audit",
  "metap-cache",
  "metap-control",
+ "metap-crud",
+ "metap-grpc",
+ "metap-http",
  "metap-infra",
+ "metap-jwks",
+ "metap-jwks-http",
  "metap-metadata",
+ "metap-peripherals",
  "metap-permission",
+ "metap-reconciler",
+ "metap-runtime",
  "serde_norway",
  "sqlx",
+ "tokio",
  "tracing",
 ]
 
@@ -3430,6 +3490,7 @@ dependencies = [
  "serde_json",
  "sqlx",
  "tracing",
+ "utoipa",
  "uuid",
 ]
 
@@ -3656,6 +3717,7 @@ dependencies = [
  "chrono",
  "jsonwebtoken",
  "metap-attachments",
+ "metap-audit",
  "metap-auth",
  "metap-config",
  "metap-control",
@@ -4639,6 +4701,34 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "85eae3c4ed2f50dcfe72643da4befc30deadb458a9b590d720cde2f2b1e97da9"
 dependencies = [
  "zerocopy",
+]
+
+[[package]]
+name = "presenter"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "application",
+ "axum",
+ "axum-extra",
+ "chrono",
+ "domain",
+ "infra",
+ "metap-config",
+ "metap-control",
+ "metap-http",
+ "metap-metadata",
+ "metap-peripherals",
+ "metap-permission",
+ "metap-reconciler",
+ "metap-runtime",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "tracing",
+ "utoipa",
+ "utoipa-axum",
+ "uuid",
 ]
 
 [[package]]
@@ -6941,6 +7031,7 @@ dependencies = [
  "getrandom 0.4.3",
  "js-sys",
  "serde_core",
+ "sha1_smol",
  "wasm-bindgen",
 ]
 
@@ -7635,6 +7726,7 @@ dependencies = [
  "jsonwebtoken",
  "metap",
  "metap-reconciler",
+ "presenter",
  "regex",
  "reqwest 0.12.28",
  "serde",

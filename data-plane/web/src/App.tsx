@@ -90,6 +90,7 @@ function RequireAuth() {
     { to: "/admin/users", label: t("shell.navUsers"), roles: ["admin"] },
     { to: "/admin/policies", label: t("shell.navPolicies"), roles: ["admin"] },
     { to: "/admin/cron-jobs", label: t("shell.navCronJobs"), roles: ["admin"] },
+    { to: "/admin/lowcode", label: t("shell.navLowCode"), roles: ["admin"] },
     // The old entity-per-nav-item harness, kept behind one link: still the fastest way to inspect
     // raw records when a product screen doesn't show the field you need.
     { to: "/records", label: t("waf.nav.rawRecords"), roles: ["admin"] },

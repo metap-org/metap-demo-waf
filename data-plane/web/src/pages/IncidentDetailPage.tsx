@@ -23,6 +23,7 @@ import {
 import { useState } from "react";
 import {
   ApiErrorMessage,
+  AuditTrail,
   shortDate,
   useEntity,
   useEntityLabels,
@@ -225,6 +226,12 @@ export function IncidentDetailPage() {
             </TableBody>
           </Table>
         </SectionCard>
+
+        {entity.data?.audit?.enabled ? (
+          <SectionCard title={t("waf.incidentDetail.auditTrail")}>
+            <AuditTrail entityName={ENTITIES.incidents} recordId={record.id} />
+          </SectionCard>
+        ) : null}
       </div>
     </div>
   );

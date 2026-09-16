@@ -4,10 +4,13 @@
 //!
 //! Same pattern as `http_server.rs`'s own e2e test — a minimal local entity, not the real
 //! `entities::firewall_rule_entity()` (this crate is a binary, not a library, so an integration
-//! test can't import from `src/`), registered on the generic `records` table specifically so this
-//! test needs no `metap_reconciler::reconcile()` call. It only needs to be named exactly
-//! `"waf.firewall_rules"`, since the guard matches on the literal request path, not on entity
-//! shape. `#[ignore]`d: needs `DATABASE_URL` pointed at a running Postgres.
+//! test can't import from `src/`), registered on a throwaway dedicated table this test creates
+//! itself (`CREATE TABLE IF NOT EXISTS` below) so this test needs no
+//! `metap_reconciler::reconcile()` call. It only needs to be named exactly `"waf.firewall_rules"`,
+//! since the guard matches on the literal request path, not on entity shape. Used to run against
+//! the shared generic `records` table, removed from `metap` core entirely (`crates/migrations/
+//! 0033_drop_records_table.sql`) — `table_name_ok` no longer accepts `"records"` at all.
+//! `#[ignore]`d: needs `DATABASE_URL` pointed at a running Postgres.
 
 use std::process::Command;
 use std::sync::Arc;
@@ -87,6 +90,8 @@ fn field(name: &str, kind: FieldKind, required: bool) -> EntityField {
     }
 }
 
+const TEST_TABLE: &str = "entities.test_waf_firewall_rules";
+
 /// Minimal stand-in for `entities::firewall_rule_entity()` — only what this test needs (a name,
 /// and a `matchCondition` JSON field the guard inspects), registered at the exact entity name the
 /// guard's path check hardcodes.
@@ -94,7 +99,7 @@ fn firewall_rule_test_entity() -> EntityDefinition {
     EntityDefinition {
         name: "waf.firewall_rules".to_string(),
         label: "Firewall Rule".to_string(),
-        table_name: "records".to_string(),
+        table_name: TEST_TABLE.to_string(),
         fields: vec![
             field("name", FieldKind::String, true),
             field("matchCondition", FieldKind::Json, false),
@@ -128,6 +133,24 @@ async fn connect() -> PgPool {
 #[ignore = "e2e: requires DATABASE_URL / a running Postgres"]
 async fn firewall_rule_match_condition_guard_blocks_invalid_and_allows_valid_conditions() {
     let pool = connect().await;
+    sqlx::query(&format!(
+        "CREATE TABLE IF NOT EXISTS {TEST_TABLE} (
+            id uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+            tenant_id uuid NOT NULL,
+            code varchar(120),
+            status varchar(80),
+            data jsonb DEFAULT '{{}}'::jsonb NOT NULL,
+            version integer DEFAULT 1 NOT NULL,
+            deleted boolean DEFAULT false NOT NULL,
+            created_at timestamp with time zone DEFAULT now() NOT NULL,
+            updated_at timestamp with time zone DEFAULT now() NOT NULL,
+            created_by uuid,
+            updated_by uuid
+        )"
+    ))
+    .execute(&pool)
+    .await
+    .unwrap();
     let tenant_id = Uuid::new_v4();
     let user_id = Uuid::new_v4();
 
@@ -256,7 +279,7 @@ async fn firewall_rule_match_condition_guard_blocks_invalid_and_allows_valid_con
         "header field with no param name is unrepresentable"
     );
 
-    sqlx::query("DELETE FROM records WHERE tenant_id = $1")
+    sqlx::query(&format!("DELETE FROM {TEST_TABLE} WHERE tenant_id = $1"))
         .bind(tenant_id)
         .execute(&pool)
         .await

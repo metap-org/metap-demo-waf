@@ -111,6 +111,15 @@ async fn main() -> anyhow::Result<()> {
     // cookie). See `docs/roadmap/64-cookie-session-persistence.md` in `../../metap-docs`.
     state.cookie_secure = false;
 
+    // Low-code entity-builder admin API (`presenter::lowcode_router()`, merged into
+    // `routes::router()` below via `extra_routes`) — both `paths` and `components.schemas` are
+    // required for its OpenAPI contribution to resolve (a `$ref` in the former without its target
+    // merged into the latter resolves to nothing in `/metadata/openapi.json` — see `AppState`'s
+    // doc comment on these 2 fields), same pattern `services/lowcode-admin-api/src/main.rs`
+    // (`../../../../metap-lowcode`) uses for its own standalone deployment.
+    state.extra_openapi_paths = Arc::new(presenter::openapi_paths::lowcode_openapi_paths());
+    state.extra_openapi_schemas = Arc::new(presenter::openapi_paths::lowcode_openapi_schemas());
+
     // JWKS trust root (opt-in via `JWKS_PRIVATE_KEY_PATH`/`JWKS_KID_PATH`) — replaces the static
     // RSA keypair above for both mint (`state.token_signer`) and verify (`state.token_verifier`)
     // once set, same "extra field, post-construction opt-in" shape `cookie_secure` above already
@@ -181,9 +190,25 @@ async fn main() -> anyhow::Result<()> {
     // the same CORS/rate-limit/tracing/security-header layers as every generic route.
     // `zone_delete_guard` is a middleware rather than a route override on purpose — see its own
     // doc comment for why overriding `DELETE /api/waf.zones/{id}` would break `GET`/`PATCH` on
-    // the same path.
+    // the same path. `presenter::lowcode_router()` (`/admin/lowcode/*`) merges in the same way —
+    // see the `presenter` dependency's own `Cargo.toml` comment for why it's merged here rather
+    // than run as its own service.
     let guard_state = state.clone();
-    let mut router = build_router(state, &config.cors_origins, routes::router());
+    // `attachments`/`dashboards` trimmed (2026-09-15) — a real cross-app usage survey found
+    // nothing in this repo's web app or any of its 3 services calls either: WAF has no file-
+    // upload feature, and its Analytics page is a bespoke aggregate query, not
+    // `metap-dashboards`' generic customizable-layout API. `cron`/`tenant_config` stay on —
+    // `/admin/cron-jobs` (ScanJob scheduling) and `SettingsPage.tsx` both call them for real.
+    let mut router = build_router_with_groups(
+        state,
+        &config.cors_origins,
+        routes::router().merge(presenter::lowcode_router()),
+        RouteGroups {
+            attachments: false,
+            dashboards: false,
+            ..RouteGroups::all()
+        },
+    );
     // `fallback_service`, not `route_service`/`nest_service("/", ...)` — axum 0.8 refuses both
     // for mounting a whole `Router`-typed service at/under this router's own root ("cannot be
     // used with Routers" / "Nesting at the root is no longer supported"; found live, 2026-09-04

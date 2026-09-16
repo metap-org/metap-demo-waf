@@ -68,7 +68,14 @@ services:
     ports:
       - "3000:3000"
       - "3001:3001"
-    command: cargo watch --watch src --watch ../../../../metap/crates -x run
+    # `--watch ../../../../metap-lowcode/crates` added alongside `metap/crates` (2026-09-15) —
+    # this service now also merges `presenter::lowcode_router()` (`presenter`/`application`/
+    # `domain`/`infra`, see `services/zones-service/Cargo.toml`'s own comment for why in-process
+    # rather than as a separate `lowcode-admin-api` service), so a change there should rebuild
+    # this container too, same as a `metap/crates` change already does. Same depth as
+    # `../../../../metap/crates` — `zones-service` sits 4 levels under `/workspace`, same as
+    # `metap-lowcode` does.
+    command: cargo watch --watch src --watch ../../../../metap/crates --watch ../../../../metap-lowcode/crates -x run
     # Lets `graphql-gateway` below `depends_on: condition: service_healthy` instead of just
     # "container started" — cargo-watch's first build takes minutes, and graphql-gateway only
     # discovers upstream schemas ONCE at its own boot (no retry loop), so starting it before the
@@ -79,6 +86,30 @@ services:
       timeout: 3s
       retries: 10
       start_period: 10s
+
+  # No HTTP of its own — the ticker `presenter::lowcode_router()`'s `publish` handler (merged into
+  # `zones-service` above) enqueues into via `metap_reconciler::orchestrator::enqueue_deployment`
+  # whenever a low-code entity is first published. Without this running, a publish succeeds
+  # (the entity appears in `zones-service`'s own live registry immediately, `apply_registry`) but
+  # its dedicated table never actually gets created, so every request against it 500s until this
+  # picks the job up (`RECONCILER_POLL_MS`, default 5s). See `services/zones-service/Cargo.toml`'s
+  # comment on the `presenter` dependency for why the low-code admin API itself is *not* run as
+  # its own service (`../../../metap-lowcode/services/lowcode-admin-api`) the way this ticker is.
+  reconciler-orchestrator:
+    extends:
+      file: ../../docker-compose.dev.base.yml
+      service: rust-dev
+    working_dir: /workspace/metap-lowcode/services/reconciler-orchestrator
+    environment:
+      DATABASE_URL: postgres://metap:metap@host.docker.internal:5433/metap
+      RABBITMQ_URL: amqp://metap:metap@host.docker.internal:5672
+      # `metap_infra::load_config` requires these unconditionally (empty-string-is-invalid) even
+      # though this ticker has no HTTP surface and never verifies/mints a JWT itself — just needs
+      # 2 real PEM files to parse at boot, so it points at the same dev keypair the 3 pillar
+      # services already have on disk rather than generating its own unused one.
+      AUTH_JWT_PUBLIC_KEY_PATH: ../../../metap-demo-waf/data-plane/keys/dev-jwt-public.pem
+      AUTH_JWT_PRIVATE_KEY_PATH: ../../../metap-demo-waf/data-plane/keys/dev-jwt-private.pem
+    command: cargo watch --watch src --watch ../../../metap/crates --watch ../../crates -x run
 
   scanning-service:
     extends:
