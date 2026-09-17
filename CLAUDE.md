@@ -234,8 +234,11 @@ created while confirming the fix. Re-verified live end to end afterward: a repea
 `createWafDdosPolicies` for the same zone now correctly returns `409 unique_violation` with
 `fieldErrors: {"zoneId": [...]}`, not a silent duplicate.
 
-**Root-cause fix, 3 parts, none applied yet** (docs-first per project owner's request — this
-section is the plan, not a changelog of what's done):
+**Root-cause fix, 3 parts** (docs-first per project owner's request — this section is the plan,
+not a changelog of what's done; **update 2026-09-17: items 1 and 3 are now done** —
+`../metap-docs/docs/roadmap/84-reconciler-sync-trigger-ledger-drift-fix.md` and
+`../metap-docs/docs/roadmap/89-backfill-tenant-scoping-fix.md` respectively. Item 2 remains a
+flagged, undecided architecture question):
 1. **Close the specific gap**: make `introspect()`'s `ColumnOrigin::Generated` classification (or
    a new check `diff()` runs alongside it) also verify the sync trigger/function actually exist in
    `pg_catalog` (`pg_trigger`/`pg_proc`), not just trust `reconciler_backfill_progress.completed`.
@@ -266,6 +269,18 @@ section is the plan, not a changelog of what's done):
    (`ops_applied=0`, `backfilled=true`) while never actually holding correct data outside whichever
    single tenant id someone happened to reconcile it with by hand.
 
+   **Done 2026-09-17** (`../metap-docs/docs/roadmap/89-backfill-tenant-scoping-fix.md`) — took the
+   first direction (drop the filter entirely), not the per-tenant loop: `metap-reconciler` gained
+   `BackfillScope::{SingleTenant,AllTenants}`, threaded through new `reconcile_with_scope`/
+   `execute_with_scope` (the existing `reconcile()`/`execute()` keep their old signatures,
+   defaulting to `SingleTenant`, since `../metap-demo-jira`/`../metap-demo-crm` call `reconcile()`
+   directly and a signature break there can't be fixed in the same session). All 3 services below
+   now call `reconcile_with_scope(..., BackfillScope::AllTenants)`. Same pass found this wasn't a
+   WAF peculiarity: `metap-app::MetapApp::with_entities` (the shared builder `templates/metap-app`/
+   `../metap-lowcode` also use) always reconciles with the same sentinel for every entity it
+   registers, so it was fixed there too — closes the gap for every service built on that builder,
+   not just these 3.
+
 **9th, found while manually unblocking the 8th**: flipping the backfill-progress row and
 restarting `zones-service` *did* restore the trigger (confirmed: `trg_sync_waf_ddos_policies_zoneId`
 + its function both back in `pg_catalog`), but the accompanying `BackfillColumn` op reported
@@ -285,7 +300,7 @@ already states the assumption this violates: "every dedicated table belongs to e
 for every `Schema`-strategy shared table in this repo (all 9 WAF entities). Immediate unblock used
 here: hand-run the single-row `UPDATE ... SET "zoneId" = (data->>'zoneId')::uuid WHERE id = ...`
 directly (bypassing the batch backfill's broken tenant scoping) for the one surviving real row.
-Not yet fixed at the root — see the fix plan below, item 3.
+**Fixed at the root 2026-09-17 — see the fix plan below, item 3.**
 
 **Broader audit of `metap-reconciler` for the same failure class, done same day**: checked
 `introspect.rs`'s other reads (indexes/FKs/unique constraints — all already re-derived fresh from
