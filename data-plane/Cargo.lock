@@ -3539,11 +3539,13 @@ name = "metap-control"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "arc-swap",
  "async-trait",
  "aws-sdk-secretsmanager",
  "chrono",
  "google-cloud-secretmanager-v1",
  "metap-infra",
+ "metap-metadata",
  "metap-peripherals",
  "metap-permission",
  "metap-runtime",
@@ -3677,6 +3679,7 @@ name = "metap-grpc"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "arc-swap",
  "async-trait",
  "governor",
  "http 1.5.0",
@@ -3684,6 +3687,7 @@ dependencies = [
  "metap-control",
  "metap-crud",
  "metap-jwks",
+ "metap-metadata",
  "metap-peripherals",
  "metap-permission",
  "metap-query",

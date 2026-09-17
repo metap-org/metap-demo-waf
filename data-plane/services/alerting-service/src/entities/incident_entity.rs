@@ -151,7 +151,10 @@ pub fn incident_entity() -> EntityDefinition {
             ],
         }),
         unique_constraints: vec![],
-        audit: Some(EntityAuditConfig { enabled: true }),
+        audit: Some(EntityAuditConfig {
+            enabled: true,
+            redacted_fields: vec![],
+        }),
     }
 }
 
