@@ -47,13 +47,19 @@ async fn main() -> anyhow::Result<()> {
 
     // Order is load-bearing: `ScanFinding.scanJobId` builds a real FK straight into
     // `waf.scan_jobs`'s table at DDL time, so `waf.scan_jobs` must be reconciled first. See
-    // `zones-service/src/main.rs`'s reconcile loop for why the plain bootstrap `pool` +
-    // `metap::control::PLATFORM_TENANT_ID` sentinel is enough here (this DDL-only boot step
-    // doesn't touch any real tenant's rows).
+    // `zones-service/src/main.rs`'s reconcile loop for the `PLATFORM_TENANT_ID` sentinel +
+    // `BackfillScope::AllTenants` reasoning — this boot step's DDL is tenant-agnostic, but a
+    // backfill it triggers is not: `waf.scan_jobs`/`waf.scan_findings` hold every real tenant's
+    // rows in one physical table.
     for entity in [scan_job_entity(), scan_finding_entity()] {
-        let outcome =
-            metap_reconciler::reconcile(&pool, metap::control::PLATFORM_TENANT_ID, &entity, &[])
-                .await?;
+        let outcome = metap_reconciler::reconcile_with_scope(
+            &pool,
+            metap::control::PLATFORM_TENANT_ID,
+            &entity,
+            &[],
+            metap_reconciler::BackfillScope::AllTenants,
+        )
+        .await?;
         tracing::info!(
             entity = entity.name,
             table = outcome.table,
@@ -136,6 +142,7 @@ async fn main() -> anyhow::Result<()> {
             router: state.router.clone(),
             jwt_decoding_key: state.jwt_decoding_key.clone(),
             auth_context_entity: state.auth_context_entity.as_deref().map(str::to_string),
+            metadata: state.metadata.clone(),
             context_attributes_cache: state.context_attributes_cache.clone(),
             token_verifier_override: state.token_verifier.clone(),
         },

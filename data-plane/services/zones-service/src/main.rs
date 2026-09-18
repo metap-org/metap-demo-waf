@@ -56,11 +56,21 @@ async fn main() -> anyhow::Result<()> {
     // `waf.zones` — so `waf.domains` must be reconciled before `waf.zones`, which must be
     // reconciled before the other 3 (which don't reference each other, so their own order doesn't
     // matter).
+    //
     // All 3 `Schema`-strategy tenants in this shared dev DB use one physical pool/schema (see
     // this file's module doc comment) — the physical `entities.*` table this creates isn't
     // itself tenant-scoped (only rows are, via `tenant_id`), so the plain bootstrap `pool` +
-    // `metap::control::PLATFORM_TENANT_ID` sentinel is enough here; no real tenant's rows are
-    // touched by this DDL-only boot step.
+    // `metap::control::PLATFORM_TENANT_ID` sentinel is correct for the DDL half of this boot
+    // step. It is **not** correct for a `BackfillColumn` op the same reconcile might also need to
+    // run (a `storage: column` field promoted on an already-populated entity, e.g. `zoneId`'s
+    // sync-trigger backfill) — found live 2026-09-12 (`../CLAUDE.md`'s 9th finding): the
+    // sentinel's own `WHERE t.tenant_id = $sentinel` filter matches zero rows in a table every
+    // real tenant's zones actually share, so a backfill reported success while touching nothing.
+    // `BackfillScope::AllTenants` (this repo's own `CLAUDE.md`'s 9th finding, root-cause item 3 —
+    // left open by Phase 84, which only closed item 1 — fixed 2026-09-17,
+    // `../metap-docs/docs/roadmap/89-backfill-tenant-scoping-fix.md`) is the fix — this reconcile still only ever runs DDL against this one
+    // shared table, but any backfill it triggers now sweeps every real tenant's rows in it,
+    // matching what the table actually holds.
     for entity in [
         domain_entity(),
         zone_entity(),
@@ -68,9 +78,14 @@ async fn main() -> anyhow::Result<()> {
         firewall_rule_entity(),
         ip_access_list_entity(),
     ] {
-        let outcome =
-            metap_reconciler::reconcile(&pool, metap::control::PLATFORM_TENANT_ID, &entity, &[])
-                .await?;
+        let outcome = metap_reconciler::reconcile_with_scope(
+            &pool,
+            metap::control::PLATFORM_TENANT_ID,
+            &entity,
+            &[],
+            metap_reconciler::BackfillScope::AllTenants,
+        )
+        .await?;
         tracing::info!(
             entity = entity.name,
             table = outcome.table,
@@ -180,6 +195,7 @@ async fn main() -> anyhow::Result<()> {
             router: state.router.clone(),
             jwt_decoding_key: state.jwt_decoding_key.clone(),
             auth_context_entity: state.auth_context_entity.as_deref().map(str::to_string),
+            metadata: state.metadata.clone(),
             context_attributes_cache: state.context_attributes_cache.clone(),
             token_verifier_override: state.token_verifier.clone(),
         },

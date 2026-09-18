@@ -57,17 +57,22 @@ async fn main() -> anyhow::Result<()> {
     // and `waf.incidents` have no `Reference` field to anything (`zoneId`/`assignedTo` etc. are
     // plain `String` — see this file's own module doc comment) — no FK dependency, so they
     // reconcile independently, order irrelevant. See `zones-service/src/main.rs`'s reconcile
-    // loop for why the plain bootstrap `pool` + `metap::control::PLATFORM_TENANT_ID` sentinel is
-    // enough here.
+    // loop for the `PLATFORM_TENANT_ID` sentinel + `BackfillScope::AllTenants` reasoning — these
+    // 4 tables hold every real tenant's rows in one physical table each.
     for entity in [
         alert_policy_entity(),
         alert_notification_entity(),
         security_event_entity(),
         incident_entity(),
     ] {
-        let outcome =
-            metap_reconciler::reconcile(&pool, metap::control::PLATFORM_TENANT_ID, &entity, &[])
-                .await?;
+        let outcome = metap_reconciler::reconcile_with_scope(
+            &pool,
+            metap::control::PLATFORM_TENANT_ID,
+            &entity,
+            &[],
+            metap_reconciler::BackfillScope::AllTenants,
+        )
+        .await?;
         tracing::info!(
             entity = entity.name,
             table = outcome.table,
@@ -150,6 +155,7 @@ async fn main() -> anyhow::Result<()> {
             router: state.router.clone(),
             jwt_decoding_key: state.jwt_decoding_key.clone(),
             auth_context_entity: state.auth_context_entity.as_deref().map(str::to_string),
+            metadata: state.metadata.clone(),
             context_attributes_cache: state.context_attributes_cache.clone(),
             token_verifier_override: state.token_verifier.clone(),
         },
