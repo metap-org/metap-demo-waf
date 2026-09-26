@@ -31,8 +31,10 @@ const queryClient = new QueryClient({
         if (error instanceof ApiError && error.status < 500) {
           return false;
         }
-        // This app's own queries (`api/waf.ts`) go through GraphQL, not REST — `ApiError` above
-        // only ever covers `SettingsPage`'s plain `apiFetch` call. A `GraphQLError` means the
+        // This app's own queries (`api/waf.ts`, `SettingsPage.tsx` since 2026-09-26) go through
+        // GraphQL, not REST — `ApiError` above only ever covers `platform-ui`'s own REST calls
+        // still running under this same `QueryClient` (login, `/metadata/*`, workflow-events/
+        // audit-events). A `GraphQLError` means the
         // gateway executed the request and came back with `{errors: [...]}` (permission denied,
         // entity not found, a business validation failure) — a definitive rejection, not a
         // transient failure, so retrying just re-asks the same denied question 3 times with
