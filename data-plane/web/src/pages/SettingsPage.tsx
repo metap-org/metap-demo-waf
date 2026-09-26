@@ -50,7 +50,7 @@ export function SettingsPage() {
     queryFn: () =>
       graphqlFetch<{ tenantConfig: ConfigItem[] }>(
         "/graphql",
-        "{ tenantConfig }",
+        "{ tenantConfig { key value level overridden public } }",
       ),
     select: (response) => response.tenantConfig,
     enabled: status === "authenticated",
@@ -67,7 +67,7 @@ export function SettingsPage() {
       else if (typeof item.value === "boolean") value = raw === "true";
       await graphqlFetch(
         "/graphql",
-        "mutation($key: String!, $value: Json!) { setTenantConfig(key: $key, value: $value) }",
+        "mutation($key: String!, $value: Json!) { setTenantConfig(key: $key, value: $value) { key } }",
         { key: item.key, value },
       );
       await config.refetch();
@@ -86,7 +86,7 @@ export function SettingsPage() {
     await run(async () => {
       await graphqlFetch(
         "/graphql",
-        "mutation($key: String!) { resetTenantConfig(key: $key) }",
+        "mutation($key: String!) { resetTenantConfig(key: $key) { key } }",
         { key: item.key },
       );
       await config.refetch();
