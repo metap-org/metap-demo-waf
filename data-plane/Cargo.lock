@@ -3670,11 +3670,23 @@ dependencies = [
  "async-graphql",
  "async-graphql-axum",
  "axum",
+ "metap-auth",
+ "metap-config",
+ "metap-control",
+ "metap-cron",
  "metap-crud",
+ "metap-dashboards",
  "metap-graphql",
  "metap-http",
  "metap-metadata",
+ "metap-oauth-server",
+ "metap-peripherals",
+ "metap-permission",
+ "serde",
+ "serde_json",
+ "sqlx",
  "tokio",
+ "uuid",
 ]
 
 [[package]]

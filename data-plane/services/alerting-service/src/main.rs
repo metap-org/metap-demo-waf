@@ -162,16 +162,16 @@ async fn main() -> anyhow::Result<()> {
     )
     .await?;
 
-    // `attachments`/`dashboards` trimmed (2026-09-15, see `zones-service/src/main.rs`'s own
-    // comment for the usage survey this is based on) — same 2 groups, same reasoning, applies
-    // uniformly across all 3 WAF services.
+    // `attachments` trimmed (2026-09-15, see `zones-service/src/main.rs`'s own comment for the
+    // usage survey this is based on), applies uniformly across all 3 WAF services. `dashboards`
+    // is no longer a `RouteGroups` toggle at all (see that same comment) — fixed here 2026-09-27
+    // alongside the same stale-field build break.
     let router = build_router_with_groups(
         state,
         &config.cors_origins,
         routes::router(),
         RouteGroups {
             attachments: false,
-            dashboards: false,
             ..RouteGroups::all()
         },
     );

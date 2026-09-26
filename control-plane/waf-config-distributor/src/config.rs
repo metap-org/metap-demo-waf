@@ -9,9 +9,15 @@ use std::time::Duration;
 use metap::runtime::env::{env_or, optional, require_env};
 
 pub struct Config {
-    /// Where `zones-service` lives — the only `data-plane` service this worker reads config from.
+    /// Where the `wafZones`/`wafDdosPolicies`/`wafFirewallRules`/`wafIpAccessLists` GraphQL
+    /// fields live — the **gateway** (`../data-plane/graphql-gateway`, port 4000 in dev), not
+    /// `zones-service`'s own port. Neither `zones-service` nor `alerting-service` mounts
+    /// `/graphql` itself (see `dataplane.rs`'s module doc comment) — only the gateway aggregates
+    /// all 3 `data-plane` services' entities into one reachable schema.
     pub zones_url: String,
-    /// Where `alerting-service` lives — telemetry coming up from the edge is written here.
+    /// Where `createWafSecurityEvents` lives — telemetry coming up from the edge is written
+    /// here. Same gateway URL as `zones_url` in practice (both point at port 4000), kept as a
+    /// separate config field in case a future deployment splits the gateway per upstream.
     pub alerting_url: String,
     /// A real user this process logs in as, exactly like `cron-scheduler` does. Not a hand-minted
     /// static JWT: that pattern already caused a live outage in `metap` when the token's TTL
@@ -46,8 +52,8 @@ pub struct Config {
 
 pub fn load() -> anyhow::Result<Config> {
     Ok(Config {
-        zones_url: env_or("ZONES_URL", "http://localhost:3000".to_string()),
-        alerting_url: env_or("ALERTING_URL", "http://localhost:3020".to_string()),
+        zones_url: env_or("ZONES_URL", "http://localhost:4000".to_string()),
+        alerting_url: env_or("ALERTING_URL", "http://localhost:4000".to_string()),
         login_url: env_or(
             "CONTROL_LOGIN_URL",
             "http://localhost:3000/auth/login".to_string(),

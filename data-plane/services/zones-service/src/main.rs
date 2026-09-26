@@ -210,18 +210,20 @@ async fn main() -> anyhow::Result<()> {
     // see the `presenter` dependency's own `Cargo.toml` comment for why it's merged here rather
     // than run as its own service.
     let guard_state = state.clone();
-    // `attachments`/`dashboards` trimmed (2026-09-15) — a real cross-app usage survey found
-    // nothing in this repo's web app or any of its 3 services calls either: WAF has no file-
-    // upload feature, and its Analytics page is a bespoke aggregate query, not
-    // `metap-dashboards`' generic customizable-layout API. `cron`/`tenant_config` stay on —
-    // `/admin/cron-jobs` (ScanJob scheduling) and `SettingsPage.tsx` both call them for real.
+    // `attachments` trimmed (2026-09-15) — a real cross-app usage survey found nothing in this
+    // repo's web app or any of its 3 services calls it: WAF has no file-upload feature.
+    // `dashboards`/`cron`/`tenant_config` are no longer `RouteGroups` toggles at all (found live
+    // 2026-09-27 while wiring the control-plane -> edge-plane live e2e proof — `metap` core
+    // migrated them off REST onto GraphQL `platform_fields` entirely, Phase 95, and this file's
+    // build broke on the stale `dashboards: false` field the same day this comment used to
+    // describe them by): `/admin/cron-jobs` (ScanJob scheduling) and `SettingsPage.tsx` now go
+    // through GraphQL (`cronJobs`/`tenantConfig`/...), unaffected by this struct at all.
     let mut router = build_router_with_groups(
         state,
         &config.cors_origins,
         routes::router().merge(presenter::lowcode_router()),
         RouteGroups {
             attachments: false,
-            dashboards: false,
             ..RouteGroups::all()
         },
     );

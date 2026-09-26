@@ -10,9 +10,13 @@ gateway config + Customer Portal frontend), `control-plane/` (`waf-config-distri
 `edge-plane/` (`waf-edge`, the mitigation engine). See the plane table below. **All 3 Rust
 workspaces build/clippy/test clean and `data-plane/web` passes `tsc`/`oxlint`/`prettier`/`vite
 build`, and `data-plane`'s own 3 e2e tests now pass against a real Postgres too** (verified
-2026-09-04, same day, two separate passes — see Working conventions for exactly what each covered
-and what still hasn't run: `control-plane`/`edge-plane` still have no live-infra e2e proof, and
-nothing has yet shown a portal rule change actually reaching the edge). The product/architecture
+2026-09-04, same day, two separate passes — see Working conventions for exactly what each covered).
+**The remaining gap this paragraph used to name — no live-infra proof for `control-plane`/
+`edge-plane`, nothing showing a portal rule change actually reaching the edge — was closed
+2026-09-27** (`../metap-docs/docs/roadmap/98-control-edge-live-e2e-proof.md`): a real Zone +
+FirewallRule created through the portal's own GraphQL path was compiled, published to Redis, and
+enforced by a real `waf-edge` process against a real HTTP request end to end, telemetry included.
+The product/architecture
 spec lives in `data-plane/docs/` and remains the source of truth
 for anything not yet built. Read
 `data-plane/docs/01-product-vision.md` through `04-architecture-boundary.md` in order before
@@ -383,11 +387,12 @@ Zone), Developer (owns ScanFinding remediation only, no DdosPolicy/FirewallRule 
   repo's copy had dropped that line. Fixed identically in all 3 (seed + matching teardown); all 3
   now pass against live Postgres. `metap` core's own `cargo test --workspace -- --ignored` (run
   the same session, same native Postgres/RabbitMQ) is green across dozens of test files — strong
-  evidence the platform primitives Phase 70-72 build on are sound beyond unit-test level. **Still
-  not covered**: `control-plane`/`edge-plane` have no live-infra e2e tests of their own yet (their
-  test suites are pure-logic unit tests, already green), and there is still no end-to-end proof
-  that a rule change on the portal reaches the edge and actually blocks a request — see "Còn lại"
-  in `../metap-docs/docs/roadmap/72-control-edge-planes.md` for exactly what that leaves open.
+  evidence the platform primitives Phase 70-72 build on are sound beyond unit-test level. **The gap
+  this paragraph used to name — no live-infra e2e proof for `control-plane`/`edge-plane`, no
+  end-to-end proof a portal rule change reaches the edge — was closed 2026-09-27**
+  (`../metap-docs/docs/roadmap/98-control-edge-live-e2e-proof.md`), see that phase doc and the
+  top-of-file summary above for what it found and fixed along the way (2 real, previously-unnoticed
+  build/runtime breaks in this exact pipeline, not just the missing proof itself).
   Full detail on all 3 passes (what shipped unverified, what the first verify pass then found, and
   what this live-Postgres pass found) is in the "Xác minh" / "Đã verify" sections of
   `../metap-docs/docs/roadmap/70-aggregate-api.md`, `71-waf-admin-portal.md`, and
