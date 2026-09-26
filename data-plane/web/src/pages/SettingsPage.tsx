@@ -1,7 +1,11 @@
 /**
  * Module 10 — tenant settings. Reads and writes `metap`'s tiered config surface
- * (`GET /admin/config`, `PUT /admin/config/{key}`), which already carries branding and session
- * policy, so this screen is a thin editor over it rather than a new settings store.
+ * (`tenantConfig`/`setTenantConfig`/`resetTenantConfig` GraphQL fields — `GET /admin/config`,
+ * `PUT/DELETE /admin/config/{key}`'s replacement since 2026-09-26,
+ * `metap-graphql-http::platform_fields`, see
+ * `../../../../metap-docs/docs/roadmap/95-platform-graphql-fields.md`), which already carries
+ * branding and session policy, so this screen is a thin editor over it rather than a new settings
+ * store.
  *
  * What a key *is* stays declared in Rust (`metap-config`'s key registry): tier, default and
  * validator. This screen therefore renders whatever the backend says exists — adding a key there
@@ -11,7 +15,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
-import { apiFetch, useAsyncAction, useAuth } from "@metap/platform-ui";
+import { graphqlFetch, useAsyncAction, useAuth } from "@metap/platform-ui";
 import {
   Button,
   Input,
@@ -43,8 +47,12 @@ export function SettingsPage() {
 
   const config = useQuery({
     queryKey: ["waf-tenant-config"],
-    queryFn: () => apiFetch<{ data: ConfigItem[] }>("/admin/config"),
-    select: (response) => response.data,
+    queryFn: () =>
+      graphqlFetch<{ tenantConfig: ConfigItem[] }>(
+        "/graphql",
+        "{ tenantConfig }",
+      ),
+    select: (response) => response.tenantConfig,
     enabled: status === "authenticated",
   });
 
@@ -57,10 +65,11 @@ export function SettingsPage() {
       let value: unknown = raw;
       if (typeof item.value === "number") value = Number(raw);
       else if (typeof item.value === "boolean") value = raw === "true";
-      await apiFetch(`/admin/config/${encodeURIComponent(item.key)}`, {
-        method: "PUT",
-        body: JSON.stringify({ value }),
-      });
+      await graphqlFetch(
+        "/graphql",
+        "mutation($key: String!, $value: Json!) { setTenantConfig(key: $key, value: $value) }",
+        { key: item.key, value },
+      );
       await config.refetch();
       setDrafts((current) => {
         const next = { ...current };
@@ -75,9 +84,11 @@ export function SettingsPage() {
 
   async function reset(item: ConfigItem) {
     await run(async () => {
-      await apiFetch(`/admin/config/${encodeURIComponent(item.key)}`, {
-        method: "DELETE",
-      });
+      await graphqlFetch(
+        "/graphql",
+        "mutation($key: String!) { resetTenantConfig(key: $key) }",
+        { key: item.key },
+      );
       await config.refetch();
       toast(t("waf.settings.toastReset", { key: item.key }), {
         variant: "default",

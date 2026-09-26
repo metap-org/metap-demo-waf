@@ -174,6 +174,17 @@ pnpm dev       # http://localhost:5173, proxy /api /metadata /auth /admin /healt
 Login bằng user local đã tạo lúc `provision-tenant` ở trên (email/password đã đặt lúc đó) — không
 cần bước riêng.
 
+## `SettingsPage` moved off `/admin/config*` onto GraphQL (2026-09-26)
+
+`metap` core migrated its remaining pre-Phase-90 REST backlog to GraphQL
+(`../../metap-docs/docs/roadmap/95-platform-graphql-fields.md`) — `web/src/pages/SettingsPage.tsx`
+(the tenant config editor) now calls `tenantConfig`/`setTenantConfig`/`resetTenantConfig`
+(`metap-graphql-http::platform_fields`) via `@metap/platform-ui`'s `graphqlFetch`, instead of
+`GET/PUT/DELETE /admin/config*`. This page never called `/platform/config*`, so there was nothing
+else to migrate here. `/graphql` was already proxied in `vite.config.ts` (this portal's generated
+UI has used GraphQL since Phase 93). `tsc -b`/`oxlint`/`prettier --check` clean; not yet verified
+through a real browser.
+
 ## Docker (2026-09-01)
 
 `docker-compose.yml` (thư mục này) orchestrate 5 container: `zones-service`, `scanning-service`,
