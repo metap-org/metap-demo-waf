@@ -10,10 +10,11 @@
 //! so this test calls it the same way, in-process, with a hand-built `RequestContext` (`admin` role
 //! bypasses policy checks via `RequestContext::is_admin()`, no JWT/`user_roles` row needed at all).
 
+use std::process::Command;
 use std::sync::Arc;
 
 use arc_swap::ArcSwap;
-use metap::crud::{RecordBackend, ServiceResult};
+use metap::crud::{JsonObject, RecordBackend, ServiceResult};
 use metap::prelude::*;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
@@ -21,6 +22,22 @@ use uuid::Uuid;
 use zones_service::entities::domain_entity::domain_entity;
 use zones_service::entities::zone_entity::zone_entity;
 use zones_service::guarded_backend::GuardedZonesBackend;
+
+/// Only the 3rd test below (the delete guard's cross-service check) needs a real signing key —
+/// it must successfully mint a token before it can even attempt (and fail to reach) the sibling
+/// services, so `Arc::from("unused-in-this-test")`'s placeholder PEM the other 2 tests use won't
+/// do here.
+fn openssl_genrsa(dir: &std::path::Path) -> String {
+    let private_path = dir.join("private.pem");
+    let status = Command::new("openssl")
+        .args(["genrsa", "-out"])
+        .arg(&private_path)
+        .arg("2048")
+        .status()
+        .expect("openssl genrsa must run for this e2e test");
+    assert!(status.success());
+    std::fs::read_to_string(private_path).unwrap()
+}
 
 async fn connect() -> PgPool {
     let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL required");
@@ -68,7 +85,13 @@ async fn guarded_backend_create_auto_attaches_zone_and_dedupes_domain_by_apex() 
         Arc::new(ArcSwap::new(registry)),
         permissions,
     ));
-    let backend = GuardedZonesBackend::new(crud);
+    let backend = GuardedZonesBackend::new(
+        crud,
+        None,
+        Arc::from("unused-in-this-test"),
+        "http://localhost:1".to_string(),
+        "http://localhost:1".to_string(),
+    );
 
     // 2 labels only, so `apex_domain()` returns this exact string unchanged and never collides
     // with a real apex like "example.com" — a 3-label value here (e.g. ending "example.com")
@@ -178,7 +201,13 @@ async fn guarded_backend_create_without_hostname_falls_through_to_the_real_valid
         Arc::new(ArcSwap::new(registry)),
         permissions,
     ));
-    let backend = GuardedZonesBackend::new(crud);
+    let backend = GuardedZonesBackend::new(
+        crud,
+        None,
+        Arc::from("unused-in-this-test"),
+        "http://localhost:1".to_string(),
+        "http://localhost:1".to_string(),
+    );
 
     // No `hostname` at all — the wrapper must not itself invent an error, it defers to the real
     // `create()`'s own required-field validation.
@@ -193,4 +222,99 @@ async fn guarded_backend_create_without_hostname_falls_through_to_the_real_valid
     };
     assert_eq!(status, 400);
     assert_eq!(error, "validation_failed");
+}
+
+/// The delete guard's cross-service reference check (ported same day as the create guard above,
+/// see `guarded_backend.rs`'s own doc comment for the identity-forwarding design) fails closed
+/// when a sibling is unreachable — same "unreachable = block" philosophy the old REST-era
+/// `zone_delete_guard` had. Needs a real signing key (unlike the other 2 tests here) because
+/// minting the forwarded token must actually succeed before the (then-failing) gRPC dial is even
+/// attempted.
+#[tokio::test]
+#[ignore = "e2e: requires DATABASE_URL / a running Postgres"]
+async fn guarded_backend_delete_blocks_when_cross_service_check_is_unreachable() {
+    let pool = connect().await;
+    let tenant_id = Uuid::new_v4();
+    let user_id = Uuid::new_v4();
+    let ctx = admin_context(tenant_id, user_id);
+
+    let keydir = std::env::temp_dir().join(format!("zone-delete-guard-test-{}", Uuid::new_v4()));
+    std::fs::create_dir_all(&keydir).unwrap();
+    let private_pem = openssl_genrsa(&keydir);
+
+    let mut registry = MetadataRegistry::new();
+    registry.register(zone_entity()).unwrap();
+    registry.register(domain_entity()).unwrap();
+    let registry = Arc::new(registry);
+    let tenant_registry = Arc::new(metap::control::PostgresTenantRegistry::new(pool.clone()));
+    let router = metap::control::Router::new(
+        pool.clone(),
+        metap::control::RegistryCache::new(tenant_registry),
+        Arc::new(metap::control::EnvStore),
+    );
+    let permissions = Arc::new(PermissionService::new(Box::new(PostgresPolicyStore::new(
+        router.clone(),
+    ))));
+    let crud: Arc<dyn metap::crud::RecordBackend> = Arc::new(CrudService::new(
+        router,
+        Arc::new(ArcSwap::new(registry)),
+        permissions,
+    ));
+    // No `token_signer` (JWKS) — this test exercises the RSA-fallback mint path, `None` here
+    // meaning `GuardedZonesBackend::mint_token` calls `metap::peripherals::mint_jwt` directly.
+    // Both `SCANNING_GRPC_ADDR`/`ALERTING_GRPC_ADDR` point at a port nothing listens on.
+    let backend = GuardedZonesBackend::new(
+        crud,
+        None,
+        Arc::from(private_pem),
+        "http://127.0.0.1:1".to_string(),
+        "http://127.0.0.1:1".to_string(),
+    );
+
+    let apex = format!("delete-guard-test-{}.com", Uuid::new_v4().simple());
+    let mut data = JsonObject::new();
+    data.insert(
+        "hostname".to_string(),
+        serde_json::json!(format!("shop.{apex}")),
+    );
+    data.insert("originAddress".to_string(), serde_json::json!("10.0.0.1"));
+    data.insert("protectionMode".to_string(), serde_json::json!("monitor"));
+    let created = backend
+        .create("waf.zones", &data, &ctx, None)
+        .await
+        .unwrap();
+    let ServiceResult::Ok { data: zone, .. } = created else {
+        panic!("expected Ok, got {created:?}");
+    };
+
+    let delete_result = backend
+        .delete("waf.zones", zone.id, zone.version, &ctx, None)
+        .await
+        .unwrap();
+    let ServiceResult::Err { status, error, .. } = delete_result else {
+        panic!("expected Err, got {delete_result:?}");
+    };
+    assert_eq!(status, 503);
+    assert_eq!(error, "reference_check_unavailable");
+
+    // The delete must never have actually gone through — the whole point of failing closed.
+    let still_there: (i64,) =
+        sqlx::query_as("SELECT count(*) FROM waf.waf_zones WHERE id = $1 AND deleted = false")
+            .bind(zone.id)
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+    assert_eq!(still_there.0, 1, "zone must not have been deleted");
+
+    sqlx::query("DELETE FROM waf.waf_zones WHERE tenant_id = $1")
+        .bind(tenant_id)
+        .execute(&pool)
+        .await
+        .ok();
+    sqlx::query("DELETE FROM waf.waf_domains WHERE tenant_id = $1")
+        .bind(tenant_id)
+        .execute(&pool)
+        .await
+        .ok();
+    std::fs::remove_dir_all(&keydir).ok();
 }

@@ -339,13 +339,18 @@ required` this whole time. Fixed by widening `metap-grpc`'s `GrpcRecordService`/
 `OptionalServeConfig` to take `Arc<dyn RecordBackend>` instead of a hardcoded `Arc<CrudService>`
 (a `metap` core change, `RecordBackend` being the same decoration seam `metap-graphql` already
 used) and wrapping `zones-service`'s own backend in a new `GuardedZonesBackend` that ports 3 of the
-4 guards' logic into `create`/`update`. **`zone_delete_guard`'s cross-service reference check is a
-deliberately unclosed gap** — porting it means `zones-service` dialing `scanning-service`'s/
-`alerting-service`'s own gRPC ports with a service-account login, a real new boot-time dependency
-between 3 services this app's docs describe as independently deployable, which is a deployment-shape
-decision, not a one-line fix. Until decided, deleting a `Zone` that still has a live `ScanJob`/
-`Incident`/`SecurityEvent` silently orphans those rows — a real regression from the old (REST-era,
-also since-dead) behavior, flagged in `guarded_backend.rs`'s own doc comment.
+4 guards' logic into `create`/`update`. **`zone_delete_guard`'s cross-service reference check was
+closed the same day too** (`../metap-docs/docs/roadmap/100-zone-delete-cross-service-check.md`,
+project owner: "port hết sang graphql", not left as a flagged gap) — instead of a service-account
+login (which would only ever see one tenant's rows in this `Schema`-strategy shared table, wrong
+for every other tenant), `GuardedZonesBackend` mints a fresh token for the *same* tenant/user as
+the incoming request (the 3 services already share one signing key) and dials `scanning-service`'s/
+`alerting-service`'s gRPC lazily, caching only a successful connection (`CrossServiceLink`) — so
+`zones-service`'s own boot has zero dependency on either sibling being up, preserving "3
+independently-deployable services" exactly. Verified live end to end through the real gateway: an
+unreferenced zone deletes cleanly, one with a live `ScanJob` pointing at it is blocked with the
+same `409 record_referenced` shape the old REST guard used, and deleting that `ScanJob` first makes
+the zone deletable again.
 
 Notable open questions flagged in the docs (don't resolve unilaterally — surface them):
 - Whether `FirewallRule.matchCondition` reuses `metap-permission`'s `PolicyCondition` grammar or
@@ -353,9 +358,6 @@ Notable open questions flagged in the docs (don't resolve unilaterally — surfa
 - Whether `Incident` correlation is a static rule or per-tenant configurable threshold.
 - `SecurityEvent` retention/archival policy (cold storage via `metap-storage`?) — unaffected by
   the table-per-entity move above, still open.
-- How to close `zone_delete_guard`'s cross-service reference check (see the paragraph just above)
-  — a real new boot-time dependency between 3 independently-deployable services, vs. some other
-  connectivity shape not yet considered.
 
 **Separate finding from the same pass, closed the same day**: all 3 `data-plane` services' own
 `tests/http_server.rs` (`zones-service`, `scanning-service`, `alerting-service` — the canonical

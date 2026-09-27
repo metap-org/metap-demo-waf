@@ -192,16 +192,23 @@ async fn main() -> anyhow::Result<()> {
     // (`../../../metap-docs/docs/roadmap/99-zones-service-guard-reachability-fix.md`) — this gRPC
     // surface is the *only* mutation path that ever reaches this service now (REST entity CRUD is
     // gone core-wide, and this service never mounted GraphQL of its own), so it's the one place
-    // `zone_domain_guard`'s domainId auto-fill and the 2 field validators can actually still run.
-    // See `guarded_backend.rs`'s own doc comment for what this closes and what it deliberately
-    // doesn't (the cross-service delete guard).
+    // `zone_domain_guard`'s domainId auto-fill, the 2 field validators, and (same day)
+    // `zone_delete_guard`'s cross-service reference check can actually still run. See
+    // `guarded_backend.rs`'s own doc comment for the identity-forwarding mechanism the delete
+    // check uses — `token_signer`/`jwt_encoding_key_pem` here are what let it mint a
+    // same-identity token per delete call, same dispatch `state.mint_token` itself uses.
+    let guarded_crud = zones_service::guarded_backend::GuardedZonesBackend::new(
+        state.crud.clone(),
+        state.token_signer.clone(),
+        state.jwt_encoding_key_pem.clone(),
+        metap::runtime::env::env_or("SCANNING_GRPC_ADDR", "http://localhost:3011".to_string()),
+        metap::runtime::env::env_or("ALERTING_GRPC_ADDR", "http://localhost:3021".to_string()),
+    );
     let grpc_handle = metap::grpc::optional_serve(
         &config.host,
         3001,
         metap::grpc::OptionalServeConfig {
-            crud: Arc::new(zones_service::guarded_backend::GuardedZonesBackend::new(
-                state.crud.clone(),
-            )),
+            crud: Arc::new(guarded_crud),
             router: state.router.clone(),
             jwt_decoding_key: state.jwt_decoding_key.clone(),
             auth_context_entity: state.auth_context_entity.as_deref().map(str::to_string),

@@ -129,7 +129,13 @@ async fn guarded_backend_blocks_invalid_and_allows_valid_ip_values() {
         Arc::new(ArcSwap::new(registry)),
         permissions,
     ));
-    let backend = GuardedZonesBackend::new(crud);
+    let backend = GuardedZonesBackend::new(
+        crud,
+        None,
+        Arc::from("unused-in-this-test"),
+        "http://localhost:1".to_string(),
+        "http://localhost:1".to_string(),
+    );
 
     // 1. Garbage value is rejected before it ever reaches CrudService.
     let mut bad = metap::crud::JsonObject::new();

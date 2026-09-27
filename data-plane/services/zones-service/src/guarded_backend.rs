@@ -1,9 +1,9 @@
 //! `GuardedZonesBackend` — wraps this service's own `CrudService` (`state.crud`) so the
-//! create/update-time guards that used to be axum middleware (`routes::zone_domain_guard`/
-//! `firewall_rule_match_condition_guard`/`ip_access_list_value_guard`) still run for the *only*
-//! mutation path that reaches this service today: gRPC, called by `waf-graphql-gateway`'s
-//! `CompositeBackend` on behalf of the real Customer Portal (and by anything else that talks
-//! GraphQL through that gateway).
+//! create/update/delete-time guards that used to be axum middleware (`routes::zone_domain_guard`/
+//! `firewall_rule_match_condition_guard`/`ip_access_list_value_guard`/`zone_delete_guard`) still
+//! run for the *only* mutation path that reaches this service today: gRPC, called by
+//! `waf-graphql-gateway`'s `CompositeBackend` on behalf of the real Customer Portal (and by
+//! anything else that talks GraphQL through that gateway).
 //!
 //! **Found live 2026-09-27**
 //! (`../../../metap-docs/docs/roadmap/99-zones-service-guard-reachability-fix.md`): every one of
@@ -13,7 +13,7 @@
 //! `metap-graphql-http::router()` either, so gRPC has been the *only* way to create/update/delete
 //! `waf.zones`/`waf.ddos_policies`/`waf.firewall_rules`/`waf.ip_access_lists` for a while, and none
 //! of it ever reached these middlewares. The clearest live consequence: the real Onboarding page's
-//! "Create Zone" button has been hard-failing with `validation_failed: domainId required` this
+//! "Create Zone" button had been hard-failing with `validation_failed: domainId required` this
 //! whole time, since nothing else ever injects `domainId` — `web/src/pages/OnboardingPage.tsx` has
 //! relied on `zone_domain_guard` doing that automatically since Increment 3, and still does.
 //!
@@ -22,33 +22,135 @@
 //! hardcoded `Arc<CrudService>`) rather than reaching back into axum, so the fix lives at the one
 //! layer every real mutation path actually goes through.
 //!
-//! **Known gap, deliberately not closed by this file**: `routes::zone_delete_guard`'s
-//! cross-service reference check (does `scanning-service`/`alerting-service` still hold a record
-//! pointing at this zone?) is *not* ported here. Its old REST implementation called
-//! `GET {scanning,alerting}-service/api/{entity}` — also long gone — and porting it properly means
-//! this service dialing its 2 siblings' own gRPC ports with a service-account login, which is a
-//! real new boot-time dependency between 3 services this app's own docs describe as independently
-//! deployable. That's a deployment-shape decision, not a one-line fix — flagged here rather than
-//! guessed at. Until it's decided, deleting a `Zone` that still has a live `ScanJob`/`Incident`/
-//! `SecurityEvent` pointing at it silently orphans those rows (no error, no block) — a real
-//! regression from what the old REST-era middleware did, worth knowing about, not hidden.
+//! ## `zone_delete_guard`'s cross-service reference check (2026-09-27, ported same day)
+//!
+//! The old REST implementation called `GET {scanning,alerting}-service/api/{entity}` — also long
+//! gone. The new one dials each sibling's own gRPC port directly (`SCANNING_GRPC_ADDR`/
+//! `ALERTING_GRPC_ADDR`, defaulting to their standard `3011`/`3021`) via `metap_grpc::GrpcBackend`,
+//! **with no service-account credential of its own** — instead of logging in as a fixed user (which
+//! would only ever see one tenant's rows in this `Schema`-strategy shared table, wrong for every
+//! other tenant), it mints a fresh, short-lived token for the *same* `tenant_id`/`user_id` already
+//! on the incoming `RequestContext`, via the same `token_signer`/`jwt_encoding_key_pem` dispatch
+//! `AppState::mint_token` uses internally (JWKS trust root when configured, the static keypair
+//! otherwise, so this can't drift from whichever one this deployment actually verifies with) —
+//! this struct takes just those 2 fields rather than the whole `AppState`, since minting is all it
+//! needs. That token rides as `RequestContext::forwarded_bearer_token`, which `GrpcBackend`
+//! already prefers over any of its own stored credentials — functionally identical to
+//! `waf-graphql-gateway` forwarding a caller's real bearer token onward, just minted fresh instead
+//! of relayed verbatim (this process never sees the caller's original raw JWT string). The
+//! sibling's own `GrpcRecordService` then resolves that token's real roles independently, so the
+//! check runs with the real caller's own permissions, not a blanket service identity.
+//!
+//! **Lazy, cached, self-healing connection** (`CrossServiceLink`) — the first `waf.zones` delete
+//! after boot triggers a connection attempt to each sibling; a successful one is cached for reuse,
+//! a failed one is *not* cached, so the very next delete retries rather than requiring a restart
+//! once the sibling comes back up. This is why boot itself never depends on `scanning-service`/
+//! `alerting-service` being up already — the 3 services stay independently deployable exactly as
+//! this app's docs describe, at the cost of every zone delete failing closed (`503
+//! reference_check_unavailable`) while a sibling is down, matching the old REST guard's own
+//! "unreachable = block, never silently let an orphan through" philosophy exactly.
 
 use std::collections::HashMap;
 use std::sync::Arc;
 
 use metap::crud::{JsonObject, RecordBackend, RecordCapabilities, RecordDto, ServiceResult};
+use metap::grpc::{GrpcBackend, ServiceTokenSource};
+use metap::jwks::TokenSigner;
 use metap::permission::RequestContext;
 use metap::query::{AggregateSpec, ListInput};
 use serde_json::json;
+use tokio::sync::RwLock;
 use uuid::Uuid;
+
+/// One sibling service's gRPC connection, established lazily and cached only on success — see
+/// this module's own doc comment for why.
+struct CrossServiceLink {
+    addr: String,
+    cached: RwLock<Option<Arc<dyn RecordBackend>>>,
+}
+
+impl CrossServiceLink {
+    fn new(addr: String) -> Self {
+        Self {
+            addr,
+            cached: RwLock::new(None),
+        }
+    }
+
+    async fn get(&self) -> Option<Arc<dyn RecordBackend>> {
+        if let Some(backend) = self.cached.read().await.as_ref() {
+            return Some(backend.clone());
+        }
+        // The token this placeholder carries is never actually sent — every real call below
+        // always sets `RequestContext::forwarded_bearer_token`, which `GrpcBackend::signed_request`
+        // prefers unconditionally over this source. It exists only because `GrpcBackend::connect`
+        // requires a `ServiceTokenSource` to construct one at all.
+        let placeholder = ServiceTokenSource::from_static("unused-forwarded-token-always-wins");
+        match GrpcBackend::connect(self.addr.clone(), placeholder).await {
+            Ok(backend) => {
+                let backend: Arc<dyn RecordBackend> = Arc::new(backend);
+                *self.cached.write().await = Some(backend.clone());
+                Some(backend)
+            }
+            Err(err) => {
+                tracing::warn!(
+                    addr = self.addr,
+                    error = %err,
+                    "zone-delete cross-service reference check: could not connect, will retry next delete"
+                );
+                None
+            }
+        }
+    }
+}
 
 pub struct GuardedZonesBackend {
     inner: Arc<dyn RecordBackend>,
+    /// Same 2 fields `AppState::mint_token` dispatches on — see this module's doc comment for
+    /// why this struct takes just these instead of the whole `AppState`.
+    token_signer: Option<Arc<TokenSigner>>,
+    jwt_encoding_key_pem: Arc<str>,
+    scanning: CrossServiceLink,
+    alerting: CrossServiceLink,
 }
 
 impl GuardedZonesBackend {
-    pub fn new(inner: Arc<dyn RecordBackend>) -> Self {
-        Self { inner }
+    pub fn new(
+        inner: Arc<dyn RecordBackend>,
+        token_signer: Option<Arc<TokenSigner>>,
+        jwt_encoding_key_pem: Arc<str>,
+        scanning_grpc_addr: String,
+        alerting_grpc_addr: String,
+    ) -> Self {
+        Self {
+            inner,
+            token_signer,
+            jwt_encoding_key_pem,
+            scanning: CrossServiceLink::new(scanning_grpc_addr),
+            alerting: CrossServiceLink::new(alerting_grpc_addr),
+        }
+    }
+
+    /// Same dispatch as `AppState::mint_token` (`crates/metap-http/src/state.rs`) — kept in sync
+    /// by hand since this struct deliberately doesn't hold an `AppState` to call it on.
+    fn mint_token(
+        &self,
+        tenant_id: Uuid,
+        user_id: Uuid,
+        function_id: Option<String>,
+        ttl_seconds: u64,
+    ) -> anyhow::Result<String> {
+        match &self.token_signer {
+            Some(signer) => {
+                metap::jwks::mint_with_signer(signer, tenant_id, user_id, function_id, ttl_seconds)
+            }
+            None => metap::peripherals::mint_jwt(
+                &self.jwt_encoding_key_pem,
+                tenant_id,
+                user_id,
+                ttl_seconds,
+            ),
+        }
     }
 
     /// Ports `routes::zone_domain_guard`'s logic verbatim, just reading/writing a `JsonObject`
@@ -138,6 +240,82 @@ impl GuardedZonesBackend {
             }
         }
         None
+    }
+
+    /// Ports `routes::zone_delete_guard`'s cross-service check — see this module's own doc
+    /// comment for the identity-forwarding mechanism. `Ok(Some(entity))` names the blocking
+    /// entity, `Ok(None)` means clear to delete, `Err(_)` is a `ServiceResult::Err` the caller
+    /// should return as-is (either `record_referenced` or `reference_check_unavailable`).
+    async fn zone_referenced_by(
+        &self,
+        zone_id: Uuid,
+        ctx: &RequestContext,
+    ) -> anyhow::Result<Result<Option<&'static str>, ServiceResult<RecordDto>>> {
+        let tenant_id = Uuid::parse_str(&ctx.tenant_id)
+            .map_err(|e| anyhow::anyhow!("RequestContext.tenant_id is not a UUID: {e}"))?;
+        let user_id = match ctx.user_id.as_deref() {
+            Some(raw) => Uuid::parse_str(raw)
+                .map_err(|e| anyhow::anyhow!("RequestContext.user_id is not a UUID: {e}"))?,
+            None => Uuid::nil(),
+        };
+        // Short-lived on purpose — this token exists only to make the next 1-3 gRPC calls below,
+        // never stored, never returned to any caller.
+        let forwarded_token = self.mint_token(tenant_id, user_id, ctx.function_id.clone(), 30)?;
+        let mut forwarded_ctx = ctx.clone();
+        forwarded_ctx.forwarded_bearer_token = Some(forwarded_token);
+
+        let checks: [(&CrossServiceLink, &'static str); 3] = [
+            (&self.scanning, "waf.scan_jobs"),
+            (&self.alerting, "waf.incidents"),
+            (&self.alerting, "waf.security_events"),
+        ];
+        for (link, entity) in checks {
+            let Some(backend) = link.get().await else {
+                return Ok(Err(ServiceResult::err_with_message(
+                    503,
+                    "reference_check_unavailable",
+                    format!(
+                        "Could not verify cross-service references ({entity} unreachable); refusing to delete."
+                    ),
+                )));
+            };
+            let result = backend
+                .list(
+                    entity,
+                    &ListInput {
+                        limit: 1,
+                        filters: vec![("zoneId".to_string(), zone_id.to_string())],
+                        ..Default::default()
+                    },
+                    &forwarded_ctx,
+                )
+                .await?;
+            match result {
+                ServiceResult::Ok { data, .. } if !data.is_empty() => {
+                    tracing::warn!(
+                        zone_id = %zone_id,
+                        referencing_entity = entity,
+                        "zone delete rejected: still referenced by another service"
+                    );
+                    return Ok(Ok(Some(entity)));
+                }
+                ServiceResult::Ok { .. } => {}
+                ServiceResult::Err {
+                    status,
+                    error,
+                    message,
+                    field_errors,
+                } => {
+                    return Ok(Err(ServiceResult::Err {
+                        status,
+                        error,
+                        message,
+                        field_errors,
+                    }))
+                }
+            }
+        }
+        Ok(Ok(None))
     }
 }
 
@@ -261,8 +439,21 @@ impl RecordBackend for GuardedZonesBackend {
         ctx: &RequestContext,
         reason: Option<&str>,
     ) -> anyhow::Result<ServiceResult<RecordDto>> {
-        // See this module's own doc comment — the cross-service reference check that used to run
-        // here (`routes::zone_delete_guard`) is a known, deliberately unclosed gap.
+        if entity == "waf.zones" {
+            match self.zone_referenced_by(id, ctx).await? {
+                Ok(Some(blocking_entity)) => {
+                    return Ok(ServiceResult::err_with_message(
+                        409,
+                        "record_referenced",
+                        format!(
+                            "This zone is still referenced by \"{blocking_entity}\" and cannot be deleted."
+                        ),
+                    ));
+                }
+                Ok(None) => {}
+                Err(err) => return Ok(err),
+            }
+        }
         self.inner
             .delete(entity, id, expected_version, ctx, reason)
             .await
