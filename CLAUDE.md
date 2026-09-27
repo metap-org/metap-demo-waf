@@ -250,14 +250,40 @@ flagged, undecided architecture question):
    more precisely-named state) regardless of what the ledger says, so `diff()`'s existing
    `push_sync_and_backfill` re-assertion path fires on the very next reconcile — no new DDL op type
    needed, just a more honest `actual` read.
-2. **Close the general pattern**: the 6th gap, the `pg_trgm` incident, and this one are 3 separate
-   instances of "a ledger says done, `introspect()`/migration-runner never re-verifies the real
-   object" — worth a project-owner decision on whether `metap-reconciler`'s `introspect()` should
-   more broadly re-derive *every* convergence signal from `pg_catalog` directly (no trusted
-   ledger at all, more expensive per reconcile) versus keeping ledgers as a performance
-   optimization but adding a cheap periodic/best-effort cross-check (e.g. `reconciler-orchestrator`'s
-   existing poll loop spot-checking a sample of `Generated` columns' triggers). Flagging, not
-   deciding — same "don't resolve unilaterally" convention as the open questions below.
+2. **Close the general pattern — decided 2026-09-27, no new code**: the 6th gap, the `pg_trgm`
+   incident, and this one are 3 separate instances of "a ledger says done,
+   `introspect()`/migration-runner never re-verifies the real object". Re-examined rather than
+   just picking one of the 2 options this bullet used to pose:
+   - **Full re-derivation from `pg_catalog`** (no trusted ledger at all) was rejected as
+     disproportionate — the broader audit this same finding triggered (see the paragraph above)
+     already checked every other convergence signal `introspect.rs`/`diff.rs` reads (indexes/FKs/
+     unique constraints) and found all of them *already* re-derive fresh from `pg_catalog` every
+     call, no ledger trust involved. The sync-trigger case (item 1, done) was the one real
+     instance in this crate, and it's now fixed structurally — `introspect()` calls
+     `sync_trigger_exists` against `pg_trigger`/`pg_proc` on every reconcile, unconditionally, so
+     this exact drift self-heals the next time `reconcile()` runs for that entity, ledger or no
+     ledger.
+   - **A periodic spot-check in `reconciler-orchestrator`'s poll loop** (this bullet's other
+     original suggestion) turns out not to fit the actual risk: that orchestrator only ever ticks
+     over *published low-code entities* (`metap_lowcode::get_published`) pulled from
+     `reconciler_entity_deployments` — a **code-authored** entity (every one of the 3 real
+     incidents here — `waf.ddos_policies`, `waf.zones`, all 3 WAF services' entities) is never in
+     that queue at all unless an operator manually runs `dev-tools enqueue-reconcile` for it.
+     Spot-checking the orchestrator's own queue would silently check nothing for the entities that
+     have actually broken so far — building a periodic check that *would* help means a new,
+     separate always-on watchdog covering every code-authored entity across every service, which
+     is a materially bigger feature (new scheduling infrastructure, not "add a check to an
+     existing loop") than this bullet originally implied.
+   - **Net decision**: don't build that new watchdog right now. `introspect()`'s existing
+     self-healing-on-next-reconcile behavior (item 1) is judged sufficient given zero repeat
+     incidents since Phase 84 shipped it, and a code-authored entity already gets a fresh
+     `reconcile()` on every service restart (a real, if infrequent, re-verification point) —
+     `dev-tools enqueue-reconcile` remains the manual escape hatch if a drift is *suspected*
+     between restarts. The residual risk this leaves (an externally-dropped trigger/extension
+     going unnoticed between restarts) reads as an **operational monitoring gap** — alerting on an
+     unplanned `DROP TRIGGER`/`DROP EXTENSION` against this database — rather than something
+     `metap-reconciler` itself should be built to detect on its own schedule; flagged here rather
+     than silently assumed someone else owns it.
 3. **Close the 9th finding below**: `backfill::run_batched_update` needs to accept "backfill every
    tenant's rows in this table", not just one `tenant_id`, for any table reconciled with a
    sentinel/non-owning tenant id (`PLATFORM_TENANT_ID` at a `Schema`-strategy service's own boot,
