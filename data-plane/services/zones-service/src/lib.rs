@@ -7,6 +7,7 @@
 
 pub mod apex_domain;
 pub mod entities;
+pub mod guarded_backend;
 pub mod ip_format;
 pub mod match_condition;
 pub mod routes;

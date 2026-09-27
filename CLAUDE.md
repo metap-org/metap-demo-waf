@@ -327,12 +327,44 @@ now, not the old shared-`entities` default; see the phase doc and `../metap/CLAU
 `metap-control`/`metap-reconciler` bullets for the full mechanism and the `compile()` bug it
 exposed (fixed at the root, not worked around here).
 
+**`zones-service`'s create/update/delete guards were completely unreachable dead code for a while,
+found and mostly fixed 2026-09-27** (`../metap-docs/docs/roadmap/99-zones-service-guard-reachability-fix.md`):
+`zone_domain_guard`/`firewall_rule_match_condition_guard`/`ip_access_list_value_guard`/
+`zone_delete_guard` were axum middleware gated on REST paths (`/api/waf.zones`, ...) that `metap`
+core removed entirely 2026-09-21 — and this service never mounted GraphQL of its own either, so
+gRPC (called by `waf-graphql-gateway` on the real Customer Portal's behalf) has been the only
+reachable mutation path for a while, never touching any of the 4. The clearest live consequence:
+the real Onboarding page's "Create Zone" button was hard-failing with `validation_failed: domainId
+required` this whole time. Fixed by widening `metap-grpc`'s `GrpcRecordService`/
+`OptionalServeConfig` to take `Arc<dyn RecordBackend>` instead of a hardcoded `Arc<CrudService>`
+(a `metap` core change, `RecordBackend` being the same decoration seam `metap-graphql` already
+used) and wrapping `zones-service`'s own backend in a new `GuardedZonesBackend` that ports 3 of the
+4 guards' logic into `create`/`update`. **`zone_delete_guard`'s cross-service reference check is a
+deliberately unclosed gap** — porting it means `zones-service` dialing `scanning-service`'s/
+`alerting-service`'s own gRPC ports with a service-account login, a real new boot-time dependency
+between 3 services this app's docs describe as independently deployable, which is a deployment-shape
+decision, not a one-line fix. Until decided, deleting a `Zone` that still has a live `ScanJob`/
+`Incident`/`SecurityEvent` silently orphans those rows — a real regression from the old (REST-era,
+also since-dead) behavior, flagged in `guarded_backend.rs`'s own doc comment.
+
 Notable open questions flagged in the docs (don't resolve unilaterally — surface them):
 - Whether `FirewallRule.matchCondition` reuses `metap-permission`'s `PolicyCondition` grammar or
   needs its own (request fields like `uri.path`/`header.x`/`body.y` vs. entity fields).
 - Whether `Incident` correlation is a static rule or per-tenant configurable threshold.
 - `SecurityEvent` retention/archival policy (cold storage via `metap-storage`?) — unaffected by
   the table-per-entity move above, still open.
+- How to close `zone_delete_guard`'s cross-service reference check (see the paragraph just above)
+  — a real new boot-time dependency between 3 independently-deployable services, vs. some other
+  connectivity shape not yet considered.
+
+**Separate finding from the same pass, closed the same day**: all 3 `data-plane` services' own
+`tests/http_server.rs` (`zones-service`, `scanning-service`, `alerting-service` — the canonical
+smoke test each copied from `metap-http`'s own template, byte-identical across all 3) still called
+REST `/api/{entity}` directly and failed with a `404` where they expected `401`/`201` — the same
+REST-removal breakage as everything else in this section. Ported to `/graphql` (`createTestTasks`/
+`testTasks`), mirroring `metap-http`'s own already-migrated `http_server.rs` — each still stands up
+a real axum server + a real RS256 JWT, just mounts `metap-graphql-http::router()` as `extra_routes`
+instead of relying on the now-deleted REST route. All 3 pass against real Postgres.
 
 ## v1 scope
 

@@ -5,12 +5,21 @@
 //! tests only see a crate's *library* target, and this project only has a binary, so the
 //! test entity is defined here rather than imported from `src/example_entity.rs`) used by
 //! `metap-http`'s own e2e test in the metap repo.
+//!
+//! **Moved off REST 2026-09-27** (`../../../../metap-docs/docs/roadmap/99-zones-service-guard-reachability-fix.md`)
+//! — found live while porting `zones-service`'s create/update guards off REST: this file still
+//! called the removed `/api/test.tasks` (entity CRUD went GraphQL-only 2026-09-21) and had been
+//! silently failing (`404` where it expected `401`/`201`) ever since, same as `zone_domain_guard`'s
+//! own tests were. This service still never mounts `metap-graphql-http::router()` for real traffic
+//! (only gRPC does, aggregated by `waf-graphql-gateway`) — but the *test itself* mounts it directly
+//! via `build_router`'s `extra_routes`, exactly the way `metap-http`'s own already-migrated
+//! `http_server.rs` does, since that's the fastest way to drive a real HTTP request through
+//! `AuthContext`/`CrudService` end to end without standing up gRPC too.
 
 use std::process::Command;
 use std::sync::Arc;
 
 use arc_swap::ArcSwap;
-use axum::Router;
 use jsonwebtoken::{encode, EncodingKey, Header};
 use metap::prelude::*;
 use serde::Serialize;
@@ -180,7 +189,9 @@ async fn full_http_lifecycle_over_a_real_server_and_a_real_jwt() {
         private_pem.clone(),
         test_router,
     );
-    let router = build_router(state, &[], Router::new());
+    let graphql_routes =
+        metap::graphql_http::router(&state, metap::graphql::SchemaLimits::default()).unwrap();
+    let router = build_router(state, &[], graphql_routes);
 
     let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
     let addr = listener.local_addr().unwrap();
@@ -200,31 +211,57 @@ async fn full_http_lifecycle_over_a_real_server_and_a_real_jwt() {
     assert_eq!(health.status(), 200);
 
     let unauthed = client
-        .get(format!("{base}/api/test.tasks"))
+        .post(format!("{base}/graphql"))
+        .json(&json!({ "query": "{ testTasksList { records { id } } }" }))
         .send()
         .await
         .unwrap();
     assert_eq!(unauthed.status(), 401);
 
-    let create_res = client
-        .post(format!("{base}/api/test.tasks"))
+    let create_res: serde_json::Value = client
+        .post(format!("{base}/graphql"))
         .bearer_auth(&token)
-        .json(&json!({ "data": { "title": "First" } }))
+        .json(&json!({
+            "query": "mutation($data: Json!) { createTestTasks(data: $data) { id } }",
+            "variables": { "data": { "title": "First" } },
+        }))
         .send()
         .await
-        .unwrap();
-    assert_eq!(create_res.status(), 201);
-    let created: serde_json::Value = create_res.json().await.unwrap();
-    let id = created["data"]["id"].as_str().unwrap().to_string();
-
-    let get_res = client
-        .get(format!("{base}/api/test.tasks/{id}"))
-        .bearer_auth(&token)
-        .send()
+        .unwrap()
+        .json()
         .await
         .unwrap();
-    assert_eq!(get_res.status(), 200);
+    assert!(
+        create_res.get("errors").is_none(),
+        "unexpected errors: {create_res:?}"
+    );
+    let id = create_res["data"]["createTestTasks"]["id"]
+        .as_str()
+        .unwrap()
+        .to_string();
 
+    let get_res: serde_json::Value = client
+        .post(format!("{base}/graphql"))
+        .bearer_auth(&token)
+        .json(&json!({
+            "query": format!(r#"{{ testTasks(id: "{id}") {{ id }} }}"#),
+        }))
+        .send()
+        .await
+        .unwrap()
+        .json()
+        .await
+        .unwrap();
+    assert!(
+        get_res.get("errors").is_none(),
+        "unexpected errors: {get_res:?}"
+    );
+    assert_eq!(get_res["data"]["testTasks"]["id"], id);
+
+    sqlx::query("DELETE FROM outbox_events WHERE aggregate_type = 'test.tasks'")
+        .execute(&pool)
+        .await
+        .ok();
     sqlx::query(&format!("DELETE FROM {TEST_TABLE} WHERE tenant_id = $1"))
         .bind(tenant_id)
         .execute(&pool)

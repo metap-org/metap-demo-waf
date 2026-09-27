@@ -187,11 +187,21 @@ async fn main() -> anyhow::Result<()> {
     // `optional_serve`'s body just to pass this through) makes gRPC verify against the same JWKS
     // trust root as REST above when configured, falling back to `optional_serve`'s own
     // `TokenVerifier::Static` default otherwise.
+    //
+    // `crud` is wrapped in `GuardedZonesBackend`, not the raw `state.crud`, since 2026-09-27
+    // (`../../../metap-docs/docs/roadmap/99-zones-service-guard-reachability-fix.md`) — this gRPC
+    // surface is the *only* mutation path that ever reaches this service now (REST entity CRUD is
+    // gone core-wide, and this service never mounted GraphQL of its own), so it's the one place
+    // `zone_domain_guard`'s domainId auto-fill and the 2 field validators can actually still run.
+    // See `guarded_backend.rs`'s own doc comment for what this closes and what it deliberately
+    // doesn't (the cross-service delete guard).
     let grpc_handle = metap::grpc::optional_serve(
         &config.host,
         3001,
         metap::grpc::OptionalServeConfig {
-            crud: state.crud.clone(),
+            crud: Arc::new(zones_service::guarded_backend::GuardedZonesBackend::new(
+                state.crud.clone(),
+            )),
             router: state.router.clone(),
             jwt_decoding_key: state.jwt_decoding_key.clone(),
             auth_context_entity: state.auth_context_entity.as_deref().map(str::to_string),
@@ -204,12 +214,17 @@ async fn main() -> anyhow::Result<()> {
 
     // `routes::router()` goes through `extra_routes` so the custom onboarding/ops endpoints get
     // the same CORS/rate-limit/tracing/security-header layers as every generic route.
-    // `zone_delete_guard` is a middleware rather than a route override on purpose — see its own
-    // doc comment for why overriding `DELETE /api/waf.zones/{id}` would break `GET`/`PATCH` on
-    // the same path. `presenter::lowcode_router()` (`/admin/lowcode/*`) merges in the same way —
-    // see the `presenter` dependency's own `Cargo.toml` comment for why it's merged here rather
-    // than run as its own service.
-    let guard_state = state.clone();
+    // `presenter::lowcode_router()` (`/admin/lowcode/*`) merges in the same way — see the
+    // `presenter` dependency's own `Cargo.toml` comment for why it's merged here rather than run
+    // as its own service.
+    //
+    // No `zone_delete_guard`/`zone_domain_guard`/`firewall_rule_match_condition_guard`/
+    // `ip_access_list_value_guard` middleware layered onto this router anymore (removed
+    // 2026-09-27, see `guarded_backend.rs`'s doc comment) — all 4 only ever matched a REST path
+    // (`/api/waf.*`) this router hasn't served since `metap` core removed REST entity CRUD, so
+    // they were silent dead weight, not real protection. 3 of the 4 now run inside
+    // `GuardedZonesBackend` instead (wired into gRPC above, the transport that's actually
+    // reachable); the 4th (`zone_delete_guard`'s cross-service check) is a known, flagged gap.
     // `attachments` trimmed (2026-09-15) — a real cross-app usage survey found nothing in this
     // repo's web app or any of its 3 services calls it: WAF has no file-upload feature.
     // `dashboards`/`cron`/`tenant_config` are no longer `RouteGroups` toggles at all (found live
@@ -241,24 +256,6 @@ async fn main() -> anyhow::Result<()> {
     if let Some(jwks_key_store) = jwks_key_store {
         router = router.fallback_service(metap::jwks_http::router(jwks_key_store));
     }
-    let router = router
-        .layer(axum::middleware::from_fn_with_state(
-            guard_state.clone(),
-            routes::zone_delete_guard,
-        ))
-        .layer(axum::middleware::from_fn_with_state(
-            guard_state,
-            routes::zone_domain_guard,
-        ))
-        // Needs no `AppState` — pure body-content validation, same reasoning as why it doesn't
-        // read the database at all. See its own doc comment for why this is a middleware rather
-        // than a route override.
-        .layer(axum::middleware::from_fn(
-            routes::firewall_rule_match_condition_guard,
-        ))
-        .layer(axum::middleware::from_fn(
-            routes::ip_access_list_value_guard,
-        ));
 
     let addr = format!("{}:{}", config.host, config.port);
 

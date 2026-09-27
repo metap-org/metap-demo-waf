@@ -12,17 +12,20 @@
 //!   `entities/zone_entity.rs` documents `hasConfig` as a technical field "the app layer flips"
 //!   — this is that app layer. Until this existed the `activate` guard could never pass, so no
 //!   zone could leave `pending` at all.
-//! - **`zone_delete_guard`** — the cross-service reference check `CrudService`'s own
-//!   `find_referencing_record` structurally cannot do (see that function's note below).
 //!
 //! All of it is mounted by `main.rs` through `build_router`'s `extra_routes` parameter, so it
 //! gets the same CORS/rate-limit/tracing/security-header treatment as every core route.
+//!
+//! **The 4 create/update/delete guards that used to live in this file
+//! (`zone_domain_guard`/`firewall_rule_match_condition_guard`/`ip_access_list_value_guard`/
+//! `zone_delete_guard`) are gone from here as of 2026-09-27** — see `../guarded_backend.rs`'s doc
+//! comment for where 3 of them live now and why, and for the 1 (`zone_delete_guard`) that's a
+//! known, deliberately unclosed gap.
 
 use std::time::{Duration, Instant};
 
-use axum::extract::{FromRequestParts, Path, Request, State};
-use axum::http::{HeaderMap, Method, StatusCode};
-use axum::middleware::Next;
+use axum::extract::{Path, State};
+use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use axum::routing::post;
 use axum::{Json, Router};
@@ -58,29 +61,6 @@ fn edge_cname_target() -> String {
     std::env::var("EDGE_CNAME_TARGET").unwrap_or_else(|_| "edge.waf.local".to_string())
 }
 
-/// Forwards the caller's own credentials to a sibling service.
-///
-/// The three WAF services share one JWT keypair (found the hard way — see the roadmap entry for
-/// Phase 61's T6: a gateway with its own keypair couldn't decode a real login token), so the
-/// caller's token is already valid at `scanning-service`/`alerting-service`. That means no
-/// service account, no `ServiceTokenSource`, and — more importantly — the sibling call runs as
-/// the *real* caller, so it can never see records that caller couldn't have listed itself.
-///
-/// Both `authorization` and `cookie` are forwarded because either can carry the session since
-/// the cookie-session migration (`metap`'s Phase 64): a browser-driven delete authenticates by
-/// cookie, a script-driven one by bearer.
-fn forward_auth(headers: &HeaderMap) -> Vec<(String, String)> {
-    ["authorization", "cookie"]
-        .iter()
-        .filter_map(|name| {
-            headers
-                .get(*name)
-                .and_then(|v| v.to_str().ok())
-                .map(|v| ((*name).to_string(), v.to_string()))
-        })
-        .collect()
-}
-
 fn http_client() -> reqwest::Client {
     reqwest::Client::builder()
         .timeout(Duration::from_secs(10))
@@ -91,353 +71,15 @@ fn http_client() -> reqwest::Client {
         .unwrap_or_default()
 }
 
-/// Does any record of `entity` at `base_url` still point at `zone_id`?
-///
-/// One `limit=1` list call per sibling entity — existence, not a count, is all the guard needs.
-/// A transport failure returns `Err`: the guard treats "I could not check" as blocking, since
-/// letting a delete through because a sibling service was down is the exact silent orphan this
-/// whole check exists to prevent.
-async fn has_references(
-    client: &reqwest::Client,
-    base_url: &str,
-    entity: &str,
-    zone_id: Uuid,
-    auth: &[(String, String)],
-) -> Result<bool, String> {
-    let url = format!("{base_url}/api/{entity}?zoneId={zone_id}&limit=1");
-    let mut request = client.get(&url);
-    for (name, value) in auth {
-        request = request.header(name, value);
-    }
-    let response = request.send().await.map_err(|e| format!("{entity}: {e}"))?;
-    if !response.status().is_success() {
-        return Err(format!("{entity}: upstream returned {}", response.status()));
-    }
-    let body: Value = response
-        .json()
-        .await
-        .map_err(|e| format!("{entity}: malformed response ({e})"))?;
-    Ok(body
-        .get("data")
-        .and_then(Value::as_array)
-        .is_some_and(|rows| !rows.is_empty()))
-}
-
-/// Blocks `DELETE /api/waf.zones/{id}` while another *service* still holds records pointing at
-/// that zone.
-///
-/// Why a middleware rather than an overriding route: `metap-http` registers `GET`/`PATCH`/
-/// `DELETE` together on `/api/{entity}/{id}`. Registering a static `/api/waf.zones/{id}` with
-/// only `DELETE` would win the path match for all three methods and turn `GET`/`PATCH` on a zone
-/// into `405`s — axum matches path first, then method, with no fallthrough to a less specific
-/// path. A middleware adds the check without touching the routing table at all.
-///
-/// Why the check is needed: `CrudService::delete`'s own reference guard
-/// (`find_referencing_record`) walks the *running process's* `MetadataRegistry`. Since the pillar
-/// split this service registers only its own three entities, so that guard has never been able to
-/// see `waf.scan_jobs`/`waf.incidents`/`waf.security_events` — deleting a zone silently orphaned
-/// every one of them.
-///
-/// Known limitation, accepted deliberately: the check and the delete are not one transaction
-/// across two services, so a scan job created in the gap between them still orphans. Zone
-/// deletion is a rare admin action and the window is milliseconds; closing it properly needs a
-/// distributed lock or two-phase delete, which is not worth it here — see this repo's roadmap
-/// entry for the discussion.
-pub async fn zone_delete_guard(
-    State(state): State<AppState>,
-    request: Request,
-    next: Next,
-) -> Response {
-    let path = request.uri().path().to_string();
-    let is_zone_delete = request.method() == Method::DELETE
-        && path.starts_with("/api/waf.zones/")
-        && path.matches('/').count() == 3;
-    if !is_zone_delete {
-        return next.run(request).await;
-    }
-    let Some(zone_id) = path
-        .rsplit('/')
-        .next()
-        .and_then(|raw| Uuid::parse_str(raw).ok())
-    else {
-        // Not a well-formed id — let the real route produce its own 400/404 rather than
-        // inventing a different error here.
-        return next.run(request).await;
-    };
-
-    let auth = forward_auth(request.headers());
-    let client = http_client();
-    let checks = [
-        (scanning_url(), "waf.scan_jobs"),
-        (alerting_url(), "waf.incidents"),
-        (alerting_url(), "waf.security_events"),
-    ];
-    for (base_url, entity) in checks {
-        match has_references(&client, &base_url, entity, zone_id, &auth).await {
-            Ok(true) => {
-                tracing::warn!(
-                    zone_id = %zone_id,
-                    referencing_entity = entity,
-                    "zone delete rejected: still referenced by another service"
-                );
-                return service_error_response(
-                    409,
-                    "record_referenced",
-                    Some(&format!(
-                        "This zone is still referenced by \"{entity}\" and cannot be deleted."
-                    )),
-                    None,
-                );
-            }
-            Ok(false) => {}
-            Err(reason) => {
-                tracing::error!(zone_id = %zone_id, reason, "zone delete blocked: reference check failed");
-                return service_error_response(
-                    503,
-                    "reference_check_unavailable",
-                    Some(&format!(
-                        "Could not verify cross-service references ({reason}); refusing to delete."
-                    )),
-                    None,
-                );
-            }
-        }
-    }
-    let _ = state;
-    next.run(request).await
-}
-
-/// Auto-attaches a new `Zone` to its `Domain` at create time, so the customer only ever types a
-/// `hostname` — never picks or creates a `Domain` by hand (`domain_entity.rs`'s doc comment
-/// explains why `Domain` exists as a real entity at all).
-///
-/// Looks up (or lazily creates) the `Domain` row for `hostname`'s apex (`apex_domain::apex_domain`)
-/// and injects `domainId` into the request body before `CrudService::create` ever sees it — a
-/// middleware for the same reason `firewall_rule_match_condition_guard` below is one: `POST
-/// /api/waf.zones` is `metap`'s generic CRUD route, not something this crate hand-writes a handler
-/// for. Needs `AppState` (unlike the two guards below) because it calls `state.crud` directly
-/// in-process, the same way `verify_dns`/`verify_domain_dns` do, rather than validating the body in
-/// isolation.
-pub async fn zone_domain_guard(
-    State(state): State<AppState>,
-    request: Request,
-    next: Next,
-) -> Response {
-    if !(request.method() == Method::POST && request.uri().path() == "/api/waf.zones") {
-        return next.run(request).await;
-    }
-
-    let (mut parts, body) = request.into_parts();
-    // Extracted here, not as a blanket `AuthContext` middleware parameter — axum resolves every
-    // function parameter *before* the body runs, so declaring it that way would demand a valid
-    // bearer/cookie on every request this middleware wraps, including ones the path/method check
-    // above already let straight through (`/health`, `/.well-known/jwks.json`, ...). Found live:
-    // an earlier version of this guard did exactly that and made every unauthenticated route on
-    // this service 401, `/health` included, breaking the container's own Docker healthcheck.
-    let context = match AuthContext::from_request_parts(&mut parts, &state).await {
-        Ok(AuthContext(context)) => context,
-        Err(rejection) => return rejection.into_response(),
-    };
-    let bytes = match axum::body::to_bytes(body, 1024 * 1024).await {
-        Ok(bytes) => bytes,
-        Err(_) => {
-            let request = Request::from_parts(parts, axum::body::Body::empty());
-            return next.run(request).await;
-        }
-    };
-
-    let Ok(mut payload) = serde_json::from_slice::<Value>(&bytes) else {
-        // Malformed JSON — let the real handler's own extractor produce its usual error.
-        let request = Request::from_parts(parts, axum::body::Body::from(bytes));
-        return next.run(request).await;
-    };
-    let hostname = payload
-        .get("data")
-        .and_then(|d| d.get("hostname"))
-        .and_then(Value::as_str)
-        .map(str::to_string);
-    let Some(hostname) = hostname.filter(|h| !h.is_empty()) else {
-        // No hostname at all — let the real handler reject it with its own "required field"
-        // validation error rather than this guard inventing a different one.
-        let request = Request::from_parts(parts, axum::body::Body::from(bytes));
-        return next.run(request).await;
-    };
-
-    let apex = crate::apex_domain::apex_domain(&hostname);
-    let existing = state
-        .crud
-        .list(
-            "waf.domains",
-            &ListInput {
-                limit: 1,
-                filters: vec![("apexDomain".to_string(), apex.clone())],
-                ..Default::default()
-            },
-            &context,
-        )
-        .await;
-    let domain_id = match existing {
-        Ok(ServiceResult::Ok { data, .. }) if !data.is_empty() => data[0].id,
-        Ok(ServiceResult::Ok { .. }) => {
-            let mut new_domain = metap::crud::JsonObject::new();
-            new_domain.insert("apexDomain".to_string(), json!(apex));
-            new_domain.insert(
-                "verificationToken".to_string(),
-                json!(format!("waf-verify-{}", Uuid::new_v4())),
-            );
-            new_domain.insert("verificationMethod".to_string(), json!("dnsTxt"));
-            new_domain.insert("verificationStatus".to_string(), json!("unverified"));
-            match state
-                .crud
-                .create("waf.domains", &new_domain, &context, None)
-                .await
-            {
-                Ok(ServiceResult::Ok { data, .. }) => data.id,
-                Ok(ServiceResult::Err {
-                    status,
-                    error,
-                    message,
-                    field_errors,
-                }) => {
-                    return service_error_response(status, &error, message.as_deref(), field_errors)
-                }
-                Err(e) => return internal_error_response(e),
-            }
-        }
-        Ok(ServiceResult::Err {
-            status,
-            error,
-            message,
-            field_errors,
-        }) => return service_error_response(status, &error, message.as_deref(), field_errors),
-        Err(e) => return internal_error_response(e),
-    };
-
-    if let Some(data) = payload.get_mut("data").and_then(Value::as_object_mut) {
-        data.insert("domainId".to_string(), json!(domain_id));
-    }
-    let request = Request::from_parts(
-        parts,
-        axum::body::Body::from(serde_json::to_vec(&payload).unwrap_or_default()),
-    );
-    next.run(request).await
-}
-
-/// Validates `FirewallRule.matchCondition` at write time, rather than letting an unrepresentable
-/// value save successfully and only surface as "this rule doesn't seem to do anything" once
-/// `waf-config-distributor` silently drops it at compile time (see that crate's `compile.rs`,
-/// `parse_match`'s own doc comment). A middleware, not a body extractor on a custom route, for the
-/// same reason `zone_delete_guard` above is one: `create`/`update` on `waf.firewall_rules` are
-/// `metap`'s generic CRUD routes, not something this crate hand-writes a handler for.
-///
-/// Only inspects `waf.firewall_rules` create/update bodies — every other entity's writes (and any
-/// `waf.firewall_rules` write with no `matchCondition` field at all, e.g. patching just `enabled`)
-/// pass straight through unexamined.
-pub async fn firewall_rule_match_condition_guard(request: Request, next: Next) -> Response {
-    let path = request.uri().path().to_string();
-    let is_create = request.method() == Method::POST && path == "/api/waf.firewall_rules";
-    let is_update = request.method() == Method::PATCH
-        && path.starts_with("/api/waf.firewall_rules/")
-        && path.matches('/').count() == 3;
-    if !is_create && !is_update {
-        return next.run(request).await;
-    }
-
-    let (parts, body) = request.into_parts();
-    let bytes = match axum::body::to_bytes(body, 1024 * 1024).await {
-        Ok(bytes) => bytes,
-        // Not this middleware's job to explain a malformed/oversized body — let the real handler's
-        // own `Json<...>` extractor produce its usual error for it, against an empty body (the
-        // original body is already consumed and cannot be replayed once `to_bytes` fails).
-        Err(_) => {
-            let request = Request::from_parts(parts, axum::body::Body::empty());
-            return next.run(request).await;
-        }
-    };
-
-    let condition = serde_json::from_slice::<Value>(&bytes)
-        .ok()
-        .and_then(|json| {
-            json.get("data")
-                .and_then(|d| d.get("matchCondition"))
-                .cloned()
-        });
-    if let Some(condition) = &condition {
-        if !crate::match_condition::is_valid_match_condition(Some(condition)) {
-            return service_error_response(
-                422,
-                "validation_failed",
-                Some(
-                    "matchCondition is not a recognized rule expression — check the field/operator \
-                     names (and that a regex pattern actually compiles).",
-                ),
-                Some(std::collections::HashMap::from([(
-                    "matchCondition".to_string(),
-                    vec!["not a recognized rule expression".to_string()],
-                )])),
-            );
-        }
-    }
-
-    let request = Request::from_parts(parts, axum::body::Body::from(bytes));
-    next.run(request).await
-}
-
-/// Validates `IpAccessList.value` at write time — same reasoning and shape as
-/// `firewall_rule_match_condition_guard` above (a middleware, not a body extractor, since
-/// create/update on `waf.ip_access_lists` are `metap`'s generic CRUD routes). A row with an
-/// unparseable `value` would never match anything at the edge (`ip_in_cidr` treats a malformed
-/// CIDR as "never matches" rather than widening), which for an access-list entry is worse than
-/// `matchCondition`'s "silently dropped" failure mode — a *blacklist* entry that silently never
-/// matches is a false sense of being blocked.
-///
-/// Only inspects `waf.ip_access_lists` create/update bodies with a `value` field present; any
-/// other write (or a `waf.ip_access_lists` PATCH touching only `enabled`, say) passes through
-/// unexamined.
-pub async fn ip_access_list_value_guard(request: Request, next: Next) -> Response {
-    let path = request.uri().path().to_string();
-    let is_create = request.method() == Method::POST && path == "/api/waf.ip_access_lists";
-    let is_update = request.method() == Method::PATCH
-        && path.starts_with("/api/waf.ip_access_lists/")
-        && path.matches('/').count() == 3;
-    if !is_create && !is_update {
-        return next.run(request).await;
-    }
-
-    let (parts, body) = request.into_parts();
-    let bytes = match axum::body::to_bytes(body, 1024 * 1024).await {
-        Ok(bytes) => bytes,
-        Err(_) => {
-            let request = Request::from_parts(parts, axum::body::Body::empty());
-            return next.run(request).await;
-        }
-    };
-
-    let value = serde_json::from_slice::<Value>(&bytes)
-        .ok()
-        .and_then(|json| {
-            json.get("data")
-                .and_then(|d| d.get("value"))
-                .and_then(Value::as_str)
-                .map(str::to_string)
-        });
-    if let Some(value) = &value {
-        if !crate::ip_format::is_valid_ip_or_cidr(value) {
-            return service_error_response(
-                422,
-                "validation_failed",
-                Some("value is not a valid IP address or CIDR (e.g. \"10.0.0.5\" or \"10.0.0.0/24\")."),
-                Some(std::collections::HashMap::from([(
-                    "value".to_string(),
-                    vec!["not a valid IP address or CIDR".to_string()],
-                )])),
-            );
-        }
-    }
-
-    let request = Request::from_parts(parts, axum::body::Body::from(bytes));
-    next.run(request).await
-}
+// `zone_delete_guard`/`zone_domain_guard`/`firewall_rule_match_condition_guard`/
+// `ip_access_list_value_guard` used to live here as axum middleware, gated on the REST paths
+// (`/api/waf.zones`, `/api/waf.firewall_rules`, `/api/waf.ip_access_lists`) `metap` core removed
+// entirely 2026-09-21 — dead code ever since, since this service never mounted GraphQL either
+// (see `../guarded_backend.rs`'s own doc comment for the full story, found live 2026-09-27,
+// `../../../metap-docs/docs/roadmap/99-zones-service-guard-reachability-fix.md`). 3 of the 4 now
+// live in `GuardedZonesBackend` instead, wrapping the `RecordBackend` gRPC actually serves;
+// `zone_delete_guard`'s cross-service reference check is a known, deliberately unclosed gap
+// (that module's doc comment explains why porting it isn't a one-line fix).
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
