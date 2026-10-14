@@ -78,7 +78,7 @@ async fn load_job(
     state: &AppState,
     id: Uuid,
     context: &RequestContext,
-) -> Result<RecordDto, Response> {
+) -> Result<RecordDto, Box<Response>> {
     match state.crud.get("waf.scan_jobs", id, context).await {
         Ok(ServiceResult::Ok {
             data: (record, _), ..
@@ -88,13 +88,13 @@ async fn load_job(
             error,
             message,
             field_errors,
-        }) => Err(service_error_response(
+        }) => Err(Box::new(service_error_response(
             status,
             &error,
             message.as_deref(),
             field_errors,
-        )),
-        Err(e) => Err(internal_error_response(e)),
+        ))),
+        Err(e) => Err(Box::new(internal_error_response(e))),
     }
 }
 
@@ -107,7 +107,7 @@ async fn run_scan_job(
 ) -> Response {
     let job = match load_job(&state, job_id, &context).await {
         Ok(job) => job,
-        Err(response) => return response,
+        Err(response) => return *response,
     };
 
     // `run` is valid from `idle`/`completed`/`failed` — a job already `queued` or `running` has
@@ -216,7 +216,7 @@ async fn submit_findings(
 ) -> Response {
     let job = match load_job(&state, job_id, &context).await {
         Ok(job) => job,
-        Err(response) => return response,
+        Err(response) => return *response,
     };
 
     let now = chrono::Utc::now().to_rfc3339();
