@@ -5,6 +5,27 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## What this repo is
 
 `metap-demo-waf` is a demo **WAAP** (Web Application & API Protection, Cloudflare-style) product.
+
+**Rust removed from all 3 planes, Go is now the sole implementation (2026-11-01).** Each plane's
+Rust workspace (`data-plane/{services,graphql-gateway}`, `control-plane/waf-config-distributor`,
+`edge-plane/waf-edge`, plus each plane's own `Cargo.toml`/`.lock`/`.cargo/`) was deleted outright
+once its `go/` replacement (same per-plane module boundary: `data-plane/go`, `control-plane/go`,
+`edge-plane/go` — `edge-plane/go` still carries **zero** `metap-go` dependency, matching the
+Rust original's own hard rule) reached full build/test/vet-clean parity and was verified live
+against real Postgres/Redis/HTTP. `edge-plane/go`'s one disclosed behavioral divergence: Go's
+`net.IP` has no explicit V4/V6 discriminant independent of bit pattern, so an IPv4-mapped IPv6
+client address matches a plain IPv4 CIDR rule there, where the Rust original's own test pinned
+the opposite as a documented gap. `data-plane/go`'s `graphqlgateway` package is a **bespoke**
+forwarding gateway (`github.com/graphql-go/graphql`, no codegen) rather than a port of
+`metap-graphql`'s generic dynamic-schema-from-metadata engine — that engine was never built in
+`metap-go` at all (see `../metap/CLAUDE.md`), so a direct port wasn't possible; confirmed with
+the project owner before building the replacement. Every `cargo`/`Cargo.toml`/`crates/`-shaped
+reference anywhere below in this file (and in each plane's own `README.md`) is now **historical**
+— describing the Rust-era layout this file's own "don't rewrite history" convention kept rather
+than deleted, not a path/command that still works in this repo — read it as "this is what the
+Rust version used to do/be called," the same way `../metap/CLAUDE.md` treats its own
+`crates/`→`go/` references after its Rust removal.
+
 **All three planes have code now** (2026-09-04) — `data-plane/` (3 pillar services + GraphQL
 gateway config + Customer Portal frontend), `control-plane/` (`waf-config-distributor`), and
 `edge-plane/` (`waf-edge`, the mitigation engine). See the plane table below. **All 3 Rust
