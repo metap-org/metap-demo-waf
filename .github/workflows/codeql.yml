@@ -1,0 +1,56 @@
+name: CodeQL
+
+# Covers all 3 Go modules (data-plane/go, control-plane/go, edge-plane/go) in one CodeQL
+# database — CodeQL's Go extractor just needs every build command to run between `init` and
+# `analyze`, it doesn't need one module per job. data-plane/go and control-plane/go each
+# `replace github.com/metap-org/metap-go => ../../../metap/go`, so both need a sibling
+# checkout of metap-org/metap at that same relative path; edge-plane/go has zero metap-go
+# dependency.
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  schedule:
+    - cron: "23 3 * * 1"
+
+jobs:
+  analyze:
+    name: CodeQL analysis (Go)
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: metap-demo-waf
+      - uses: actions/checkout@v4
+        with:
+          repository: metap-org/metap
+          path: metap
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: metap-demo-waf/data-plane/go/go.mod
+          cache-dependency-path: metap-demo-waf/data-plane/go/go.sum
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: go
+          config-file: ./metap-demo-waf/.github/codeql/codeql-config.yml
+          # The actual git checkout isn't at github.workspace's root here (two sibling repos
+          # checked out side by side, metap-demo-waf/ and metap/, so data-plane/go's and
+          # control-plane/go's `replace` into ../../../metap/go resolves correctly) — without
+          # this, codeql-action/analyze can fall back to treating the workspace root as the git
+          # repo, find no .git there, and fail with "configuration error" (seen live on a sibling
+          # repo's identically-shaped workflow — metap-org/metap-lowcode PR #8 — even though this
+          # exact job happened to pass once before this was added).
+          checkout_path: ${{ github.workspace }}/metap-demo-waf
+      - working-directory: metap-demo-waf/data-plane/go
+        run: go build ./...
+      - working-directory: metap-demo-waf/control-plane/go
+        run: go build ./...
+      - working-directory: metap-demo-waf/edge-plane/go
+        run: go build ./...
+      - uses: github/codeql-action/analyze@v3
+        with:
+          checkout_path: ${{ github.workspace }}/metap-demo-waf

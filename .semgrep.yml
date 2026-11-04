@@ -1,0 +1,7 @@
+# Local/CI logic-vuln scanning, same convention as ../metap/.semgrep.yml and
+# ../metap-lowcode/.semgrep.yml — the complement to `go vet`/`govulncheck` (dependency CVEs
+# only) and CodeQL. This file holds only repo-local custom rules (none yet). Registry packs
+# are passed on the command line, not referenced here:
+#
+#   semgrep scan --config p/golang --config p/secrets --config .semgrep.yml
+rules: []

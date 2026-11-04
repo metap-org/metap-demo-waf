@@ -56,7 +56,14 @@ func forwardPost(ctx context.Context, url string, body interface{}) (interface{}
 	if err != nil {
 		return nil, fmt.Errorf("reading response from %s: %w", url, err)
 	}
-	var parsed interface{}
+	// False positive below: this is a bespoke, schema-less forwarding gateway proxying an
+	// upstream REST response of unknown shape (any of the 8 custom business-action mutations,
+	// each a different backend service's own JSON) — there is no single concrete struct to
+	// deserialize into by design, the same reason metap-go's own JsonObject (map[string]any)
+	// exists. Only ever read back through type-switched field lookups below, never trusted.
+	// The rule's match spans from this declaration through the Unmarshal call below, and
+	// Semgrep anchors a multi-line match's suppression to its FIRST line, not the call site.
+	var parsed interface{} // nosemgrep: go.lang.security.deserialization.unsafe-deserialization-interface.go-unsafe-deserialization-interface
 	if err := json.Unmarshal(respBody, &parsed); err != nil {
 		return nil, fmt.Errorf("parsing response from %s: %w", url, err)
 	}
