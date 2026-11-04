@@ -108,7 +108,12 @@ func jsonObjectToMap(obj crud.JsonObject) (map[string]interface{}, error) {
 	out := make(map[string]interface{}, len(obj))
 	for k, raw := range obj {
 		var v interface{}
-		if err := json.Unmarshal(raw, &v); err != nil {
+		// False positive below: jsonObjectToMap converts a crud.JsonObject (map[string]json.RawMessage)
+		// into the untyped map[string]interface{} shape this bespoke, no-codegen GraphQL gateway's
+		// resolvers need for all 11 entities across 3 upstream services — the field set is
+		// metadata-driven at runtime, never known at compile time, so there is no single concrete
+		// struct to deserialize into here either (same reasoning as custom.go's forwardCustomMutation).
+		if err := json.Unmarshal(raw, &v); err != nil { // nosemgrep: go.lang.security.deserialization.unsafe-deserialization-interface.go-unsafe-deserialization-interface
 			return nil, err
 		}
 		out[k] = v

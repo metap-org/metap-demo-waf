@@ -20,6 +20,7 @@ jobs:
     permissions:
       security-events: write
       contents: read
+      actions: read
     steps:
       - uses: actions/checkout@v4
         with:
@@ -36,6 +37,14 @@ jobs:
         with:
           languages: go
           config-file: ./metap-demo-waf/.github/codeql/codeql-config.yml
+          # The actual git checkout isn't at github.workspace's root here (two sibling repos
+          # checked out side by side, metap-demo-waf/ and metap/, so data-plane/go's and
+          # control-plane/go's `replace` into ../../../metap/go resolves correctly) — without
+          # this, codeql-action/analyze can fall back to treating the workspace root as the git
+          # repo, find no .git there, and fail with "configuration error" (seen live on a sibling
+          # repo's identically-shaped workflow — metap-org/metap-lowcode PR #8 — even though this
+          # exact job happened to pass once before this was added).
+          checkout_path: ${{ github.workspace }}/metap-demo-waf
       - working-directory: metap-demo-waf/data-plane/go
         run: go build ./...
       - working-directory: metap-demo-waf/control-plane/go
@@ -43,3 +52,5 @@ jobs:
       - working-directory: metap-demo-waf/edge-plane/go
         run: go build ./...
       - uses: github/codeql-action/analyze@v3
+        with:
+          checkout_path: ${{ github.workspace }}/metap-demo-waf
