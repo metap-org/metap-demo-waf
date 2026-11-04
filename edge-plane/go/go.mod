@@ -1,6 +1,6 @@
 module github.com/metap-org/metap-demo-waf-edgeplane-go
 
-go 1.26.0
+go 1.26.10
 
 require github.com/redis/go-redis/v9 v9.23.0
 

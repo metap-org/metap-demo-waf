@@ -1,0 +1,7 @@
+name: "CodeQL config"
+
+# Excludes test code from CodeQL's *alerting* (not from the build) — mirrors ../metap's own
+# config-file for the same reason (Go has no tests/ convention, tests are *_test.go files
+# colocated with source).
+paths-ignore:
+  - "**/*_test.go"

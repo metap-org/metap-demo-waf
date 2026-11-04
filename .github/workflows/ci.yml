@@ -1,0 +1,171 @@
+name: CI
+
+# metap-demo-waf has no CI of its own yet — this is the first workflow added, mirroring
+# ../metap's own ci.yml job shape (build/vet/test/fmt, a separate govulncheck job per Go
+# module, a separate Semgrep job) now that all 3 planes are Go-only (see root CLAUDE.md's
+# "Rust removed from all 3 planes" note). data-plane/go and control-plane/go each
+# `replace github.com/metap-org/metap-go => ../../../metap/go` — both jobs need a sibling
+# checkout of metap-org/metap at that same relative path. edge-plane/go has zero metap-go
+# dependency (the hard rule this repo enforces for that plane) so its job needs no sibling
+# checkout at all.
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  data-plane-go:
+    name: data-plane/go — build, vet, unit tests, fmt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: metap-demo-waf
+      - uses: actions/checkout@v4
+        with:
+          repository: metap-org/metap
+          path: metap
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: metap-demo-waf/data-plane/go/go.mod
+          cache-dependency-path: metap-demo-waf/data-plane/go/go.sum
+      - working-directory: metap-demo-waf/data-plane/go
+        run: go build ./...
+      - working-directory: metap-demo-waf/data-plane/go
+        run: go vet ./...
+      # Unit tests only — no DATABASE_URL set, so every e2e test that dials a real Postgres
+      # skips itself cleanly (same testPool-style helper convention ../metap/go uses).
+      - working-directory: metap-demo-waf/data-plane/go
+        run: go test ./...
+      - working-directory: metap-demo-waf/data-plane/go
+        run: |
+          files=$(gofmt -l .)
+          if [ -n "$files" ]; then
+            echo "$files"
+            exit 1
+          fi
+
+  data-plane-go-security:
+    name: data-plane/go — dependency vulnerability audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: metap-demo-waf
+      - uses: actions/checkout@v4
+        with:
+          repository: metap-org/metap
+          path: metap
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: metap-demo-waf/data-plane/go/go.mod
+          cache-dependency-path: metap-demo-waf/data-plane/go/go.sum
+      - run: go install golang.org/x/vuln/cmd/govulncheck@latest
+      - working-directory: metap-demo-waf/data-plane/go
+        run: govulncheck ./...
+
+  control-plane-go:
+    name: control-plane/go — build, vet, unit tests, fmt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: metap-demo-waf
+      - uses: actions/checkout@v4
+        with:
+          repository: metap-org/metap
+          path: metap
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: metap-demo-waf/control-plane/go/go.mod
+          cache-dependency-path: metap-demo-waf/control-plane/go/go.sum
+      - working-directory: metap-demo-waf/control-plane/go
+        run: go build ./...
+      - working-directory: metap-demo-waf/control-plane/go
+        run: go vet ./...
+      - working-directory: metap-demo-waf/control-plane/go
+        run: go test ./...
+      - working-directory: metap-demo-waf/control-plane/go
+        run: |
+          files=$(gofmt -l .)
+          if [ -n "$files" ]; then
+            echo "$files"
+            exit 1
+          fi
+
+  control-plane-go-security:
+    name: control-plane/go — dependency vulnerability audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: metap-demo-waf
+      - uses: actions/checkout@v4
+        with:
+          repository: metap-org/metap
+          path: metap
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: metap-demo-waf/control-plane/go/go.mod
+          cache-dependency-path: metap-demo-waf/control-plane/go/go.sum
+      - run: go install golang.org/x/vuln/cmd/govulncheck@latest
+      - working-directory: metap-demo-waf/control-plane/go
+        run: govulncheck ./...
+
+  edge-plane-go:
+    name: edge-plane/go — build, vet, unit tests, fmt (zero metap-go dependency)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: edge-plane/go
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: edge-plane/go/go.mod
+          cache-dependency-path: edge-plane/go/go.sum
+      - run: go build ./...
+      - run: go vet ./...
+      - run: go test ./...
+      - run: |
+          files=$(gofmt -l .)
+          if [ -n "$files" ]; then
+            echo "$files"
+            exit 1
+          fi
+
+  edge-plane-go-security:
+    name: edge-plane/go — dependency vulnerability audit
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: edge-plane/go
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: edge-plane/go/go.mod
+          cache-dependency-path: edge-plane/go/go.sum
+      - run: go install golang.org/x/vuln/cmd/govulncheck@latest
+      - run: govulncheck ./...
+
+  # data-plane/web is deliberately not covered here yet: its 3 workspace dependencies
+  # (@metap/platform-ui, @metap/theme-enterprise, @metap/ui) are `link:` deps into 3 separate
+  # sibling repos (../../../platform-ui, ../../../metap-themes/packages/enterprise,
+  # ../../../design-system), and @metap/ui specifically is consumed through its own built
+  # `dist/` (its package.json `exports` map points there, not at source) — so a CI job for this
+  # package needs to check out and build 3 other repos first, a bigger cross-repo CI wiring
+  # problem than this pass's scope. Flagged as a known follow-up rather than shipped unverified.
+
+  semgrep:
+    name: Semgrep — logic/secrets scan (SAST)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install semgrep
+      - run: semgrep scan --config p/golang --config p/secrets --config .semgrep.yml --error

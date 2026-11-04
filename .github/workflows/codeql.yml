@@ -1,0 +1,45 @@
+name: CodeQL
+
+# Covers all 3 Go modules (data-plane/go, control-plane/go, edge-plane/go) in one CodeQL
+# database — CodeQL's Go extractor just needs every build command to run between `init` and
+# `analyze`, it doesn't need one module per job. data-plane/go and control-plane/go each
+# `replace github.com/metap-org/metap-go => ../../../metap/go`, so both need a sibling
+# checkout of metap-org/metap at that same relative path; edge-plane/go has zero metap-go
+# dependency.
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  schedule:
+    - cron: "23 3 * * 1"
+
+jobs:
+  analyze:
+    name: CodeQL analysis (Go)
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: metap-demo-waf
+      - uses: actions/checkout@v4
+        with:
+          repository: metap-org/metap
+          path: metap
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: metap-demo-waf/data-plane/go/go.mod
+          cache-dependency-path: metap-demo-waf/data-plane/go/go.sum
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: go
+          config-file: ./metap-demo-waf/.github/codeql/codeql-config.yml
+      - working-directory: metap-demo-waf/data-plane/go
+        run: go build ./...
+      - working-directory: metap-demo-waf/control-plane/go
+        run: go build ./...
+      - working-directory: metap-demo-waf/edge-plane/go
+        run: go build ./...
+      - uses: github/codeql-action/analyze@v3
