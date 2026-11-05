@@ -144,7 +144,8 @@ footer { margin-top: 48px; font: 12px var(--font-display); color: var(--muted); 
       <div class="cap">
         <h3 style="color:var(--edge)">Bảo vệ runtime</h3>
         <ul>
-          <li><span>Managed WAF ruleset<small>bộ rule do vendor duy trì, kiểu OWASP CRS, có paranoia level</small></span><span class="tier t1">MVP</span></li>
+          <li><span>Managed WAF ruleset<small>OWASP CRS trên engine Coraza/ModSecurity, cộng system ruleset riêng</small></span><span class="tier t1">MVP</span></li>
+          <li><span>Under Attack mode<small>bật/tắt theo zone, challenge mọi request chưa có clearance</small></span><span class="tier t1">MVP</span></li>
           <li><span>Custom rule<small>biểu thức trên method, path, header, body, IP, geo, ASN</small></span><span class="tier t1">MVP</span></li>
           <li><span>Rate limiting<small>theo IP, API key, session, path; đếm phân tán trên toàn fleet</small></span><span class="tier t1">MVP</span></li>
           <li><span>Access list IP / geo / ASN</span><span class="tier t1">MVP</span></li>
@@ -162,7 +163,7 @@ footer { margin-top: 48px; font: 12px var(--font-display); color: var(--muted); 
       <div class="cap">
         <h3 style="color:var(--ctrl)">Vòng đời policy</h3>
         <ul>
-          <li><span>Soạn rule<small>UI builder, DSL, gợi ý field</small></span><span class="tier t1">MVP</span></li>
+          <li><span>Soạn rule<small>builder sinh biểu thức text dễ đọc, cú pháp có sẵn; sửa hai chiều</small></span><span class="tier t1">MVP</span></li>
           <li><span>Kiểm tra trước khi lưu<small>cú pháp, rule bị che, xung đột, rule không bao giờ khớp</small></span><span class="tier t1">MVP</span></li>
           <li><span>Chế độ log-only<small>theo từng rule và từng zone</small></span><span class="tier t1">MVP</span></li>
           <li><span>Exception có phạm vi<small>bỏ qua rule X cho path Y, param Z</small></span><span class="tier t1">MVP</span></li>
@@ -179,7 +180,7 @@ footer { margin-top: 48px; font: 12px var(--font-display); color: var(--muted); 
         <h3 style="color:var(--ana)">Quan sát &amp; vận hành bảo mật</h3>
         <ul>
           <li><span>Security event realtime</span><span class="tier t1">MVP</span></li>
-          <li><span>Access log đầy đủ<small>mọi request, retention theo gói</small></span><span class="tier t1">MVP</span></li>
+          <li><span>Access log đầy đủ<small>lấy mẫu và retention theo subscription</small></span><span class="tier t1">MVP</span></li>
           <li><span>Tra cứu, điều tra<small>theo request ID, IP, rule, khoảng thời gian</small></span><span class="tier t1">MVP</span></li>
           <li><span>Dashboard<small>traffic, bảo mật, hiệu quả từng rule</small></span><span class="tier t1">MVP</span></li>
           <li><span>Xử lý chặn nhầm<small>đánh dấu false positive, tỉ lệ FP theo rule</small></span><span class="tier t1">MVP</span></li>
@@ -194,7 +195,7 @@ footer { margin-top: 48px; font: 12px var(--font-display); color: var(--muted); 
       <div class="cap">
         <h3 style="color:var(--edge)">Threat intelligence</h3>
         <ul>
-          <li><span>Cập nhật managed ruleset<small>đội nghiên cứu phát hành định kỳ</small></span><span class="tier t1">MVP</span></li>
+          <li><span>Cập nhật ruleset<small>CRS upstream + system ruleset riêng, có version</small></span><span class="tier t1">MVP</span></li>
           <li><span>Đẩy rule khẩn toàn fleet<small>cho zero-day, tính bằng phút</small></span><span class="tier t1">MVP</span></li>
           <li><span>IP reputation feed</span><span class="tier t2">MỞ RỘNG</span></li>
           <li><span>Virtual patching theo CVE</span><span class="tier t2">MỞ RỘNG</span></li>
@@ -209,7 +210,7 @@ footer { margin-top: 48px; font: 12px var(--font-display); color: var(--muted); 
           <li><span>Phân cấp org / account / zone</span><span class="tier t1">MVP</span></li>
           <li><span>RBAC, SSO (SAML/OIDC)</span><span class="tier t1">MVP</span></li>
           <li><span>Audit log<small>ai đổi gì, lúc nào, từ đâu</small></span><span class="tier t1">MVP</span></li>
-          <li><span>Gói, quota, đo lường, billing<small>request, băng thông, số rule, retention</small></span><span class="tier t1">MVP</span></li>
+          <li><span>Gói, quota, đo lường, billing<small>gói quyết định retention tối đa, lấy mẫu log, số rule, tính năng</small></span><span class="tier t1">MVP</span></li>
           <li><span>Public API, API key</span><span class="tier t1">MVP</span></li>
           <li><span>SCIM, báo cáo SLA</span><span class="tier t2">MỞ RỘNG</span></li>
           <li><span>Data residency cho log</span><span class="tier t3">NÂNG CAO</span></li>
@@ -457,7 +458,7 @@ footer { margin-top: 48px; font: 12px var(--font-display); color: var(--muted); 
           <text x="416" y="54">3 Chuẩn hoá</text><text x="416" y="70" font-size="9" fill="var(--muted)">decode, chống né</text>
           <text x="606" y="54">4 Access list</text><text x="606" y="70" font-size="9" fill="var(--muted)">allow bỏ qua bước sau</text>
           <text x="796" y="54">5 DDoS L7, rate</text><text x="796" y="70" font-size="9" fill="var(--muted)">counter phân tán</text>
-          <text x="996" y="54">6 Bot</text><text x="996" y="70" font-size="9" fill="var(--muted)">điểm, challenge</text>
+          <text x="996" y="54">6 Bot · UAM</text><text x="996" y="70" font-size="9" fill="var(--muted)">điểm, challenge</text>
           <text x="996" y="174">7 Managed WAF</text><text x="996" y="190" font-size="9" fill="var(--muted)">ruleset vendor</text>
           <text x="796" y="174">8 Custom rule</text><text x="796" y="190" font-size="9" fill="var(--muted)">theo priority</text>
           <text x="606" y="174">9 API schema</text><text x="606" y="190" font-size="9" fill="var(--muted)">JWT, OpenAPI</text>
@@ -733,7 +734,26 @@ footer { margin-top: 48px; font: 12px var(--font-display); color: var(--muted); 
     </div>
   </div>
 
-  <footer>WAAP Enterprise Blueprint · bản nháp để thảo luận · công nghệ chưa chốt · 2026-11-05</footer>
+  <div class="section">
+    <div class="eyebrow">10 · Quyết định</div>
+    <h2>Quyết định đã chốt</h2>
+    <p class="sub">Trả lời cho sáu câu hỏi mở, ngày 2026-11-05, và thay đổi mỗi quyết định kéo theo trong kiến trúc.</p>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Chủ đề</th><th>Quyết định</th><th>Ảnh hưởng tới kiến trúc</th></tr></thead>
+        <tbody>
+          <tr><td>Hạ tầng edge</td><td>Hỗ trợ cả hai: PoP tự vận hành và node chạy trên hạ tầng có sẵn (cloud, đối tác).</td><td>Edge đóng gói thành một bản chạy được ở mọi nơi. Fleet registry quản lý node theo nơi chạy, không giả định anycast riêng. L3/L4 dùng của hạ tầng nơi đặt node khi có.</td></tr>
+          <tr><td>Mô hình bán</td><td>Cả SaaS và on-prem là tốt nhất; nếu phải chọn thì SaaS trước.</td><td>Không plane nào phụ thuộc dịch vụ chỉ có trên một cloud. Management, Control, Analytics phải đóng gói được thành một bản cài. Thêm chế độ lai: Management SaaS, edge đặt trong hạ tầng khách.</td></tr>
+          <tr><td>Ngôn ngữ rule</td><td>Dùng cú pháp biểu thức có sẵn trên thị trường. Builder UI sinh ra text đơn giản, dễ đọc.</td><td>Một AST chung; builder và text là hai cách hiển thị, sửa được cả hai chiều. Text là nguồn sự thật để diff, review, IaC. Compiler và validator làm việc trên AST.</td></tr>
+          <tr><td>Managed ruleset</td><td>Dựa trên Coraza hoặc ModSecurity chạy OWASP CRS, cộng thêm system ruleset riêng của nhà cung cấp.</td><td>Bước managed WAF ở edge là engine SecLang. Ruleset publisher phát hành hai nguồn có version: CRS upstream và system ruleset riêng. Khách chỉnh paranoia level, ngưỡng anomaly, tắt rule ID, thêm exclusion.</td></tr>
+          <tr><td>Log theo gói</td><td>Theo subscription: tỉ lệ lấy mẫu, retention tối đa, khoảng tra cứu, đích export.</td><td>Thêm plan entitlements ở Management, đẩy xuống Control (lấy mẫu tại log shipper) và Analytics (retention, giới hạn truy vấn). Đổi gói có hiệu lực không cần deploy.</td></tr>
+          <tr><td>Ứng phó tấn công</td><td>Có Under Attack mode bật/tắt theo zone, kiểu Cloudflare.</td><td>Bật/tắt đi đường khẩn (≤ 5 s). Edge có bước challenge với clearance token kiểm tra cục bộ. Detection cảnh báo và gợi ý bật; tự bật có hẹn giờ tắt chưa chốt, để sau.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>WAAP Enterprise Blueprint · bản nháp để thảo luận · công nghệ chưa chốt, trừ engine managed ruleset · 2026-11-05</footer>
 </div>
 
 </html>

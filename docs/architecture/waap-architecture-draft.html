@@ -118,7 +118,7 @@ footer { margin-top: 48px; font: 12px var(--font-display); color: var(--muted); 
     Bộ bản vẽ kiến trúc nháp cho blueprint đã chốt. Đọc từ tổng thể xuống chi tiết: bức tranh
     chung, rồi bên trong từng plane, rồi triển khai vật lý và một luồng thay đổi đầu cuối. Mọi khối
     là vai trò, không phải sản phẩm; "store", "bus" chỉ nói thuộc tính cần có (bền, có version,
-    dạng cột), để dành việc chọn công nghệ cho sau.
+    dạng cột), để dành việc chọn công nghệ cho sau, trừ engine managed ruleset (mục H).
   </p>
   <div class="key">
     <span><i class="sw" style="background:var(--mgmt)"></i>Management</span>
@@ -199,7 +199,7 @@ footer { margin-top: 48px; font: 12px var(--font-display); color: var(--muted); 
         <text x="92" y="642">State sync</text><text class="s" x="92" y="658">counter toàn fleet</text>
         <rect class="be" x="250" y="568" width="510" height="96" rx="6"/>
         <text x="266" y="590">Edge gateway</text>
-        <text class="s" x="266" y="610">TLS → chuẩn hoá → access list → rate/DDoS L7 → bot</text>
+        <text class="s" x="266" y="610">TLS → chuẩn hoá → access list → rate/DDoS L7 → bot / under attack</text>
         <text class="s" x="266" y="626">→ managed WAF → custom rule → API schema → quyết định</text>
         <text class="s" x="266" y="642">→ cache / proxy</text>
         <rect class="be" x="250" y="676" width="510" height="32" rx="6"/>
@@ -370,7 +370,7 @@ footer { margin-top: 48px; font: 12px var(--font-display); color: var(--muted); 
           <rect class="bx" x="163"  y="300" width="99" height="44" rx="5" style="stroke:var(--edge)"/><text x="173"  y="318">Chuẩn hoá</text><text class="s" x="173"  y="334">bước 3</text>
           <rect class="bx" x="270"  y="300" width="99" height="44" rx="5" style="stroke:var(--edge)"/><text x="280"  y="318">Access list</text><text class="s" x="280"  y="334">bước 4</text>
           <rect class="bx" x="377"  y="300" width="99" height="44" rx="5" style="stroke:var(--edge)"/><text x="387"  y="318">Rate/DDoS</text><text class="s" x="387"  y="334">bước 5</text>
-          <rect class="bx" x="484"  y="300" width="99" height="44" rx="5" style="stroke:var(--edge)"/><text x="494"  y="318">Bot</text><text class="s" x="494"  y="334">bước 6</text>
+          <rect class="bx" x="484"  y="300" width="99" height="44" rx="5" style="stroke:var(--edge)"/><text x="494"  y="318">Bot · UAM</text><text class="s" x="494"  y="334">bước 6</text>
           <rect class="bx" x="591"  y="300" width="99" height="44" rx="5" style="stroke:var(--edge)"/><text x="601"  y="318">Managed WAF</text><text class="s" x="601"  y="334">bước 7</text>
           <rect class="bx" x="698"  y="300" width="99" height="44" rx="5" style="stroke:var(--edge)"/><text x="708"  y="318">Custom rule</text><text class="s" x="708"  y="334">bước 8</text>
           <rect class="bx" x="805"  y="300" width="99" height="44" rx="5" style="stroke:var(--edge)"/><text x="815"  y="318">API schema</text><text class="s" x="815"  y="334">bước 9</text>
@@ -642,24 +642,24 @@ footer { margin-top: 48px; font: 12px var(--font-display); color: var(--muted); 
     thì bước 10 không phân biệt được chặn nhầm do rule mới hay do rule cũ.</p>
   </div>
 
-  <!-- ================= H. CÂU HỎI MỞ ================= -->
+  <!-- ================= H. QUYẾT ĐỊNH ================= -->
   <div class="section">
-    <div class="eyebrow">H · Câu hỏi mở</div>
-    <h2>Cần quyết trước khi chi tiết hoá</h2>
-    <ol class="open">
-      <li><b>Tự vận hành PoP hay dựa vào hạ tầng có sẵn</b> (cloud region, đối tác CDN)? Quyết định số
-        lượng PoP, anycast và L3/L4 tự làm hay mua.</li>
-      <li><b>Bán dạng SaaS, on-prem hay cả hai?</b> On-prem kéo theo Control và Analytics phải chạy
-        được trong hạ tầng khách, gói gọn hơn nhiều.</li>
-      <li><b>Ngôn ngữ rule cho khách:</b> một DSL riêng hay biểu thức kiểu có sẵn trên thị trường. Ảnh
-        hưởng compiler, validator và mọi tài liệu.</li>
-      <li><b>Managed ruleset tự viết hay dựa trên bộ mở</b> (kiểu OWASP CRS) rồi tinh chỉnh? Quyết định
-        quy mô đội nghiên cứu.</li>
-      <li><b>Mức lấy mẫu access log theo gói:</b> 100% cho mọi gói hay lấy mẫu ở gói thấp. Đây là
-        khoản chi phí hạ tầng lớn nhất.</li>
-      <li><b>Mức độ tự động của detection:</b> chỉ cảnh báo, hay được tự áp mitigation tạm có thời hạn
-        mà không cần người duyệt.</li>
-    </ol>
+    <div class="eyebrow">H · Quyết định</div>
+    <h2>Quyết định đã chốt</h2>
+    <p class="sub">Trả lời cho sáu câu hỏi mở, ngày 2026-11-05, và thay đổi mỗi quyết định kéo theo trong kiến trúc.</p>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Chủ đề</th><th>Quyết định</th><th>Ảnh hưởng tới kiến trúc</th></tr></thead>
+        <tbody>
+          <tr><td>Hạ tầng edge</td><td>Hỗ trợ cả hai: PoP tự vận hành và node chạy trên hạ tầng có sẵn (cloud, đối tác).</td><td>Edge đóng gói thành một bản chạy được ở mọi nơi. Fleet registry quản lý node theo nơi chạy, không giả định anycast riêng. L3/L4 dùng của hạ tầng nơi đặt node khi có.</td></tr>
+          <tr><td>Mô hình bán</td><td>Cả SaaS và on-prem là tốt nhất; nếu phải chọn thì SaaS trước.</td><td>Không plane nào phụ thuộc dịch vụ chỉ có trên một cloud. Management, Control, Analytics phải đóng gói được thành một bản cài. Thêm chế độ lai: Management SaaS, edge đặt trong hạ tầng khách.</td></tr>
+          <tr><td>Ngôn ngữ rule</td><td>Dùng cú pháp biểu thức có sẵn trên thị trường. Builder UI sinh ra text đơn giản, dễ đọc.</td><td>Một AST chung; builder và text là hai cách hiển thị, sửa được cả hai chiều. Text là nguồn sự thật để diff, review, IaC. Compiler và validator làm việc trên AST.</td></tr>
+          <tr><td>Managed ruleset</td><td>Dựa trên Coraza hoặc ModSecurity chạy OWASP CRS, cộng thêm system ruleset riêng của nhà cung cấp.</td><td>Bước managed WAF ở edge là engine SecLang. Ruleset publisher phát hành hai nguồn có version: CRS upstream và system ruleset riêng. Khách chỉnh paranoia level, ngưỡng anomaly, tắt rule ID, thêm exclusion.</td></tr>
+          <tr><td>Log theo gói</td><td>Theo subscription: tỉ lệ lấy mẫu, retention tối đa, khoảng tra cứu, đích export.</td><td>Thêm plan entitlements ở Management, đẩy xuống Control (lấy mẫu tại log shipper) và Analytics (retention, giới hạn truy vấn). Đổi gói có hiệu lực không cần deploy.</td></tr>
+          <tr><td>Ứng phó tấn công</td><td>Có Under Attack mode bật/tắt theo zone, kiểu Cloudflare.</td><td>Bật/tắt đi đường khẩn (≤ 5 s). Edge có bước challenge với clearance token kiểm tra cục bộ. Detection cảnh báo và gợi ý bật; tự bật có hẹn giờ tắt chưa chốt, để sau.</td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 
   <footer>WAAP Architecture Draft · bản nháp · công nghệ chưa chốt · 2026-11-05</footer>
