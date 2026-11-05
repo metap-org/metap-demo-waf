@@ -399,12 +399,23 @@ unreferenced zone deletes cleanly, one with a live `ScanJob` pointing at it is b
 same `409 record_referenced` shape the old REST guard used, and deleting that `ScanJob` first makes
 the zone deletable again.
 
-Notable open questions flagged in the docs (don't resolve unilaterally — surface them):
-- Whether `FirewallRule.matchCondition` reuses `metap-permission`'s `PolicyCondition` grammar or
-  needs its own (request fields like `uri.path`/`header.x`/`body.y` vs. entity fields).
-- Whether `Incident` correlation is a static rule or per-tenant configurable threshold.
-- `SecurityEvent` retention/archival policy (cold storage via `metap-storage`?) — unaffected by
-  the table-per-entity move above, still open.
+**These 3 questions are resolved (2026-11-05), each already settled in code/docs before this
+file's own "Notable open questions" list below was last touched — found while auditing it for
+staleness, not re-decided here:**
+- `FirewallRule.matchCondition` is its own JSON grammar, not `metap-permission`'s
+  `PolicyCondition` — `zonesservice/entities/firewallrule.go`'s own doc comment states why (no
+  `uri.*`/`header.*`/`body.*` namespace there, missing `Contains`/`Regex`/`CidrMatch`), and
+  `data-plane/docs/02-domain-model.md`'s 2026-08-30 "Chốt" section recorded the same decision.
+- `Incident` correlation is a static v1 rule (same `zoneId` + same `sourceIp` inside a 15-minute
+  window, threshold events or more), not per-tenant configurable — see
+  `alertingservice/routes.go`'s own doc comment and the same domain-model section.
+- `SecurityEvent` retention: 30 days flat (no Plan-tier variation yet — `Plan`/billing has no
+  entity or code anywhere in this product, so there's nothing to vary by), enforced by a new
+  scheduled sweep rather than left undone: `POST /internal/security-events/cleanup`
+  (`alertingservice/retention.go`), the one piece of the domain-model doc's retention decision
+  that was decided but never actually built (in either the Rust original or this Go port) until
+  now. Still **no real cold-storage archive** — the doc's own "xoá, không archive ở v1" call
+  stands; this just stops the table growing forever rather than adding the deferred S3 path.
 
 **Separate finding from the same pass, closed the same day**: all 3 `data-plane` services' own
 `tests/http_server.rs` (`zones-service`, `scanning-service`, `alerting-service` — the canonical

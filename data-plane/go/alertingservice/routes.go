@@ -10,9 +10,12 @@
 //   - POST /internal/alerts/evaluate — the AlertPolicy side: "N events in M minutes on the same
 //     zone" (counted per zone, never summed across zones), producing an AlertNotification per
 //     firing.
+//   - POST /internal/security-events/cleanup — the SecurityEvent retention sweep (30-day
+//     default, see retention.go), batched-deletes everyone's expired rows from the shared
+//     waf.security_events table.
 //
-// Both are written as endpoints rather than background loops so metap-cron can drive them on a
-// schedule while a portal user can also trigger one on demand.
+// All three are written as endpoints rather than background loops so metap-cron can drive them
+// on a schedule while a portal user/operator can also trigger one on demand.
 package alertingservice
 
 import (
@@ -433,5 +436,6 @@ func MountRoutes(r chi.Router, state *httpserver.AppState) {
 	}
 	r.Post("/internal/incidents/correlate", wrap(correlateIncidents))
 	r.Post("/internal/alerts/evaluate", wrap(evaluateAlerts))
+	r.Post("/internal/security-events/cleanup", wrap(cleanupSecurityEvents))
 	r.Post("/api/waf.alert_policies/{id}/test", wrap(testAlertPolicy))
 }

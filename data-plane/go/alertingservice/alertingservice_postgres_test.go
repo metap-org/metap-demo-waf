@@ -380,3 +380,48 @@ func TestTestAlertPolicySendsAndRecordsANotification(t *testing.T) {
 		t.Fatalf("expected exactly 1 notification row, got %v / %+v", err, notifications)
 	}
 }
+
+// TestCleanupSecurityEventsDeletesOnlyExpiredRows confirms the retention sweep deletes rows
+// older than the cutoff and leaves everything else alone — the one behavior that actually
+// matters for a retention job: get the boundary right in both directions.
+func TestCleanupSecurityEventsDeletesOnlyExpiredRows(t *testing.T) {
+	pool := testPool(t)
+	registry := setupRegistry(t, pool)
+	tenantID, userID := uuid.New(), uuid.New()
+	seedAdmin(t, pool, tenantID, userID)
+	cleanupEntityRows(t, pool, tenantID)
+
+	state, privPEM := newTestState(t, pool, registry)
+	rc := adminContext(tenantID, userID)
+	ctx := context.Background()
+
+	zoneID := "zone-" + uuid.New().String()
+	now := time.Now().UTC()
+	expiredID := createSecurityEvent(t, ctx, state, rc, zoneID, "203.0.113.1", now.AddDate(0, 0, -45))
+	recentID := createSecurityEvent(t, ctx, state, rc, zoneID, "203.0.113.2", now.AddDate(0, 0, -1))
+
+	baseURL := startServer(t, state)
+	token, err := peripherals.MintJWT(privPEM, tenantID, userID, 3600)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	resp := doPost(t, baseURL+"/internal/security-events/cleanup", token, nil)
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("expected 200, got %d", resp.StatusCode)
+	}
+	data := decodeJSON(t, resp)["data"].(map[string]any)
+	if deleted, _ := data["deletedCount"].(float64); deleted != 1 {
+		t.Fatalf("expected deletedCount=1, got %+v", data)
+	}
+	if days, _ := data["retentionDays"].(float64); days != alertingservice.DefaultSecurityEventRetentionDays {
+		t.Fatalf("expected retentionDays=%d, got %+v", alertingservice.DefaultSecurityEventRetentionDays, data)
+	}
+
+	if result, err := state.Crud.Get(ctx, "waf.security_events", expiredID, rc); err != nil || result.IsOk {
+		t.Fatalf("expected the expired event to be gone, got %v / %+v", err, result)
+	}
+	if result, err := state.Crud.Get(ctx, "waf.security_events", recentID, rc); err != nil || !result.IsOk {
+		t.Fatalf("expected the recent event to still exist, got %v / %+v", err, result)
+	}
+}

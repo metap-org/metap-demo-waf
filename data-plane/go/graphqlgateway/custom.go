@@ -1,9 +1,11 @@
-// The 8 custom, non-CRUD mutations — real WAF business actions (DNS verification, scan
-// dispatch, incident correlation, ...) that no generic entity field can synthesize. Every
-// resolver here is a thin proxy: forward the caller's own bearer token to the exact REST
-// endpoint that already implements the real logic (each WAF service's own src/routes.go), and
-// hand back its JSON response verbatim as the JSON scalar. No business logic is duplicated here
-// — mirrors the Rust gateway's add_custom_fields exactly, including which 8 fields exist.
+// 9 custom, non-CRUD mutations — real WAF business actions (DNS verification, scan dispatch,
+// incident correlation, ...) that no generic entity field can synthesize. Every resolver here is
+// a thin proxy: forward the caller's own bearer token to the exact REST endpoint that already
+// implements the real logic (each WAF service's own src/routes.go), and hand back its JSON
+// response verbatim as the JSON scalar. No business logic is duplicated here — mirrors the Rust
+// gateway's add_custom_fields exactly for the first 8; cleanupSecurityEvents is new (added with
+// alertingservice/retention.go, a v1 capability data-plane/docs/02-domain-model.md's 2026-08-30
+// retention decision had named but never built in either language).
 package graphqlgateway
 
 import (
@@ -186,6 +188,19 @@ func addCustomFields(mutation graphql.Fields, rest RestURLs) {
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			url := fmt.Sprintf("%s/internal/alerts/evaluate", rest.Alerting)
 			return forwardPost(p.Context, url, map[string]interface{}{})
+		},
+	}
+
+	mutation["cleanupSecurityEvents"] = &graphql.Field{
+		Type: jsonScalar,
+		Args: graphql.FieldConfigArgument{"retentionDays": &graphql.ArgumentConfig{Type: graphql.Int}},
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			url := fmt.Sprintf("%s/internal/security-events/cleanup", rest.Alerting)
+			body := map[string]interface{}{}
+			if retentionDays, ok := p.Args["retentionDays"].(int); ok && retentionDays > 0 {
+				body["retentionDays"] = retentionDays
+			}
+			return forwardPost(p.Context, url, body)
 		},
 	}
 }
