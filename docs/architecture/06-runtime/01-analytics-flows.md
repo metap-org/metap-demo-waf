@@ -154,6 +154,8 @@ Analytics để tính toán; Analytics không phải nơi gốc của nhãn.
 
 ## E. Phát hiện, cảnh báo, case
 
+Danh mục cảnh báo, ngưỡng và thuật toán: [level-3/32](../05-building-blocks/level-3/32-alerting-rules-and-algorithms.md).
+
 ```mermaid
 sequenceDiagram
     participant K as Kafka enriched

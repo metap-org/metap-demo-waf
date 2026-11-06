@@ -31,5 +31,6 @@ cân nhắc. Quyết định bị thay thế giữ lại với trạng thái "B�
 | [0024](0024-licensing-policy-for-shipped-components.md) | Không BSL/SSPL/AGPL trong thành phần phát hành | Chấp nhận |
 | [0025](0025-geo-asn-data-commercial-license.md) | Dữ liệu geo/ASN dùng giấy phép thương mại | Chấp nhận |
 | [0026](0026-replay-on-request-samples-with-shared-pipeline.md) | Replay trên mẫu request đầy đủ, dùng chung pipeline | Chấp nhận |
+| [0027](0027-explicit-alert-formulas.md) | Cảnh báo theo template có công thức tường minh, baseline median/MAD theo phút trong tuần | Chấp nhận |
 
 Quyết định đang chờ: xem [11. Risks and Technical Debt](../11-risks/00-index.md#113-quyết-định-còn-mở).

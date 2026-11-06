@@ -67,6 +67,9 @@ rule, ASN, quốc gia), hiệu quả rule theo policy version, số liệu sử 
 
 ## Detection & alerting
 
+Danh mục cảnh báo WAF/DDoS, cấu hình ngưỡng và công thức tính chi tiết ở
+[32-alerting-rules-and-algorithms.md](32-alerting-rules-and-algorithms.md).
+
 | Component | Thiết kế |
 |---|---|
 | **Streaming detector** | Consumer `telemetry.enriched.v1`; với alert policy loại "nhanh" (ví dụ > N block trong 1 phút từ một ASN), giữ counter cửa sổ trượt theo khoá trong RAM, phân mảnh theo partition |
