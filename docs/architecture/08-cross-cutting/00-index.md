@@ -53,7 +53,7 @@
   thời gian; mỗi lần kích hoạt phát event riêng để khách thấy.
 - Mặc định: fail-open (thương mại điện tử thường chọn), khách tài chính thường đổi sang fail-closed.
 - Tầng WAF không trả lời kịp, quá tải (`Overloaded`) hoặc mất cả pool trong PoP cũng áp đúng fail mode
-  này ở proxy; pre-filter, challenge và rate limit vẫn chạy vì nằm ở proxy ([ADR-0033](../09-adr/0033-two-tier-edge-proxy-and-waf.md)).
+  này ở L7; pre-filter, challenge và rate limit vẫn chạy vì nằm ở L7 ([ADR-0033](../09-adr/0033-two-tier-edge-proxy-and-waf.md)).
 - Origin lỗi: phục vụ bản cũ trong cache nếu có (`stale-if-error`).
 
 ## 8.6 Quyền riêng tư

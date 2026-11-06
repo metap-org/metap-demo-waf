@@ -12,7 +12,7 @@ lỗi chung.
 
 ## Quyết định
 
-- Proxy ghi **mốc thời gian theo chặng** cho mọi request ([8.14 §2](../08-cross-cutting/14-latency-and-error-attribution.md#2-điểm-đo-và-chỉ-số)).
+- L7 ghi **mốc thời gian theo chặng** cho mọi request ([8.14 §2](../08-cross-cutting/14-latency-and-error-attribution.md#2-điểm-đo-và-chỉ-số)).
   Các chặng gồm:
   - TLS và RTT phía client;
   - từng phase pre-filter;

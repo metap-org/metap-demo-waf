@@ -22,7 +22,7 @@ hiệu nào đủ; phải chồng nhiều lớp tín hiệu và để người d
 
 ## 2. Các lớp tín hiệu
 
-Tất cả chạy ở **tầng edge proxy** ([ADR-0034](../09-adr/0034-pre-filter-and-rule-split-across-tiers.md)):
+Tất cả chạy ở **tầng L7** ([ADR-0034](../09-adr/0034-pre-filter-and-rule-split-across-tiers.md)):
 rẻ, không cần đọc body, và phải có kết quả trước rate limit và custom rule.
 
 | # | Lớp | Tín hiệu | Chi phí | Dữ liệu cần |
@@ -31,7 +31,7 @@ rẻ, không cần đọc body, và phải có kết quả trước rate limit v
 | S2 | **Danh sách của khách** | Đối tác, công cụ giám sát theo IP, header, API key | Rất thấp | Bundle zone |
 | S3 | **Fingerprint tĩnh** | JA4 (TLS ClientHello), fingerprint HTTP/2 (SETTINGS, thứ tự pseudo-header), thứ tự và tập header; **độ nhất quán** giữa các tín hiệu với User-Agent tự khai (UA nói Chrome nhưng TLS là thư viện Python) | Thấp | Bảng reputation fingerprint trong bundle chung |
 | S4 | **Reputation mạng** | ASN datacenter/hosting, proxy dân cư đã biết, Tor, lịch sử lạm dụng gộp từ toàn fleet (ẩn danh) | Rất thấp | Danh sách reputation trong bundle chung |
-| S5 | **Hành vi ngắn hạn** | Theo IP, phiên (cookie), consumer API: tốc độ theo path, độ đều của nhịp gửi, tỉ lệ trang HTML/tài nguyên phụ, tỉ lệ lỗi 4xx, số path khác nhau | Thấp (counter cục bộ) | State trong proxy, hot key qua Valkey |
+| S5 | **Hành vi ngắn hạn** | Theo IP, phiên (cookie), consumer API: tốc độ theo path, độ đều của nhịp gửi, tỉ lệ trang HTML/tài nguyên phụ, tỉ lệ lỗi 4xx, số path khác nhau | Thấp (counter cục bộ) | State trong L7, hot key qua Valkey |
 | S6 | **Tín hiệu từ trình duyệt** | Kết quả JS challenge: proof-of-work, kiểm môi trường (dấu hiệu headless, automation, API trình duyệt mâu thuẫn); tuỳ chọn đoạn JS thu tín hiệu chạy ngầm trên trang | Chỉ khi challenge hoặc khi zone bật JS ngầm | Clearance token mang kết quả |
 | S7 | **Mô hình** | Mô hình cây quyết định (gradient boosted trees) nhận đặc trưng từ S3–S6, trả điểm | Thấp (µs) | Mô hình trong bundle chung, huấn luyện ở Analytics |
 
@@ -71,7 +71,7 @@ Mô hình học máy chỉ thay thế khi đo được tốt hơn trên tập đ
 | Hành động theo `bot.class` và nhóm path | Nhóm "login, checkout": `likely_automated` → challenge tương tác, `automated` → block. Nhóm "static": không làm gì |
 | Hành động theo `bot.category` | Crawler AI: allow / block / chỉ cho phép trang theo `robots.txt` |
 | Bot đã xác minh bỏ qua những gì | Mặc định bỏ qua Under Attack mode và challenge, vẫn chịu rate limit |
-| Dùng trong custom rule | `bot.score < 30 && http.request.uri.path.startsWith("/api/search")` (phần pre, chạy ở proxy) |
+| Dùng trong custom rule | `bot.score < 30 && http.request.uri.path.startsWith("/api/search")` (phần pre, chạy ở L7) |
 | Chế độ chỉ quan sát | Bật bot management ở log-only trước để xem phân bố trước khi enforce |
 
 Các hành động: allow, log, challenge JS (không tương tác), challenge tương tác, rate limit chặt hơn, block.
@@ -93,7 +93,7 @@ Các hành động: allow, log, challenge JS (không tương tác), challenge t�
 
 ```mermaid
 flowchart LR
-    edge["Edge proxy<br/>bot.score, signals, JA4, h2fp"]
+    edge["L7<br/>bot.score, signals, JA4, h2fp"]
     k[("Kafka enriched")]
     subgraph AN["Analytics"]
         agg["Gộp reputation<br/>fingerprint, ASN, IP"]
@@ -132,7 +132,7 @@ song trên traffic thật, so sánh tỉ lệ challenge và tỉ lệ người d
 | Tỉ lệ bot đã xác minh bị chặn | Mục tiêu 0; khác 0 là lỗi |
 | Phân bố `bot.class` theo zone, path | Dashboard bot cho khách |
 | Tỉ lệ request mang `impersonation` | Bot giả làm Googlebot |
-| Độ trễ tính điểm | ≤ 50 µs p99 ở proxy |
+| Độ trễ tính điểm | ≤ 50 µs p99 ở L7 |
 
 ## 8. Quyền riêng tư
 

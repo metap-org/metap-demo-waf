@@ -31,7 +31,7 @@ flowchart TB
     end
     subgraph E["Edge plane · PoP × N"]
         e1["Policy agent · State sync"]
-        e2["Edge proxy<br/>pre-filter · challenge · cache"]
+        e2["L7<br/>pre-filter · challenge · cache"]
         e4["WAF inspection<br/>CRS · rule inspect"]
         e5["DNS điều hướng"]
         e3["Log shipper"]
@@ -58,7 +58,7 @@ flowchart TB
 |---|---|---|---|
 | **Management** | Mọi thứ người dùng tạo ra và quản lý: tenant, zone, policy, exception, case, quyền, audit, gói cước | Không giữ log thô; không biết edge node nào tồn tại | Đúng nghiệp vụ, đầy đủ quyền và audit; 99.9% |
 | **Control** | Biến bản policy đã duyệt thành snapshot chạy được, đưa an toàn tới từng node, biết node nào chạy gì | Không có UI cho khách; không xử lý traffic | Lan truyền nhanh, không bao giờ đẩy config hỏng ra toàn fleet |
-| **Edge** | Xử lý từng request qua hai tầng: edge proxy (kết nối, pre-filter, challenge, cache, proxy) và WAF inspection (CRS, rule cần body); DNS điều hướng; phát log | Không gọi plane khác trên đường request; không hiểu khái niệm nghiệp vụ | Độ trễ thêm thấp, 99.99%, tự chạy khi mất kết nối; hai tầng scale độc lập ([ADR-0033](../09-adr/0033-two-tier-edge-proxy-and-waf.md)) |
+| **Edge** | Xử lý từng request qua hai tầng: L7 (kết nối, pre-filter, challenge, cache, L7) và WAF inspection (CRS, rule cần body); DNS điều hướng; phát log | Không gọi plane khác trên đường request; không hiểu khái niệm nghiệp vụ | Độ trễ thêm thấp, 99.99%, tự chạy khi mất kết nối; hai tầng scale độc lập ([ADR-0033](../09-adr/0033-two-tier-edge-proxy-and-waf.md)) |
 | **Analytics** | Nhận, làm giàu, lưu, truy vấn log; phát hiện và cảnh báo; xuất sang SIEM | Không sửa policy trực tiếp (chỉ gợi ý qua Management) | Không mất log, độ trễ tra cứu thấp, chi phí theo gói |
 
 Quy tắc ranh giới:

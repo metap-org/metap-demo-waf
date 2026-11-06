@@ -27,7 +27,7 @@ Năng lực một node (phải đo lại trong spike):
 
 | Loại node | Cấu hình | Năng lực giả định |
 |---|---|---|
-| Edge proxy | 64 core, 256 GB RAM, 2×100 GbE, NVMe | 80.000 rps có TLS (phần lớn resume session) |
+| L7 | 64 core, 256 GB RAM, 2×100 GbE, NVMe | 80.000 rps có TLS (phần lớn resume session) |
 | WAF inspection | 64 core, 128 GB RAM | 1.500 request kiểm tra/s mỗi core ở CRS PL1 → khoảng 90.000 rps mỗi node ở 100% |
 
 ## 2. Ước lượng tải
@@ -45,15 +45,15 @@ Năng lực một node (phải đo lại trong spike):
 
 | Tầng | Tính | Kết quả |
 |---|---|---|
-| Edge proxy | 10M rps ÷ (80k × 60% mức sử dụng mục tiêu) ≈ 210; cộng dư cho tấn công (pre-filter loại rẻ, ước 1/3 chi phí request thường: 30M ÷ 3 ÷ 48k ≈ 210); cộng N+1 mỗi PoP | **≈ 450 node** |
+| L7 | 10M rps ÷ (80k × 60% mức sử dụng mục tiêu) ≈ 210; cộng dư cho tấn công (pre-filter loại rẻ, ước 1/3 chi phí request thường: 30M ÷ 3 ÷ 48k ≈ 210); cộng N+1 mỗi PoP | **≈ 450 node** |
 | WAF inspection | 8,9M đơn vị PL1 ÷ (90k × 60%) ≈ 165; cộng N+1 mỗi PoP | **≈ 210 node** (nếu mọi zone chạy PL1 thì chỉ ≈ 150; phần tăng do Business, Enterprise dùng profile nặng, Free gần như không tốn) |
-| Trung bình mỗi PoP | | 15 proxy + 7 WAF; PoP lớn gấp 3–5 lần |
+| Trung bình mỗi PoP | | 15 L7 + 7 WAF; PoP lớn gấp 3–5 lần |
 
 ### Cấu hình
 
 | Dữ liệu | Tính | Tổng |
 |---|---|---|
-| Bundle zone (phần proxy + WAF, nén) | Free ≈ 2 KB, Pro ≈ 4 KB, Business ≈ 15 KB, Enterprise ≈ 200 KB (p99.9 tới 5 MB); trung bình khoảng 8 KB | 1M × 8 KB ≈ **8 GB nén** |
+| Bundle zone (phần L7 + WAF, nén) | Free ≈ 2 KB, Pro ≈ 4 KB, Business ≈ 15 KB, Enterprise ≈ 200 KB (p99.9 tới 5 MB); trung bình khoảng 8 KB | 1M × 8 KB ≈ **8 GB nén** |
 | Runtime trong RAM nếu nạp hết | Khoảng 10 lần bản nén (trie, chương trình rule, bảng) | ≈ **80 GB**, không đặt được lên mỗi node |
 | Cert + key (đã mã hoá) | 2M × 4 KB | ≈ **8 GB** |
 | Routing index (hostname → zone) | 3M × 64 B | ≈ **200 MB** |
@@ -161,7 +161,7 @@ sequenceDiagram
     end
 ```
 
-- **Ngân sách RAM** của node cho runtime zone (ví dụ 32 GB proxy, phần WAF tính riêng); LRU theo kích
+- **Ngân sách RAM** của node cho runtime zone (ví dụ 32 GB L7, phần WAF tính riêng); LRU theo kích
   thước thật, không theo số zone.
 - **Làm nóng trước:** Analytics tính mỗi giờ danh sách zone nóng theo PoP và cell; node nạp sẵn sau khi
   khởi động và sau khi có version mới của zone nóng.
@@ -174,7 +174,7 @@ sequenceDiagram
 
 | Câu hỏi | Thiết kế |
 |---|---|
-| Cell là gì | Một nhóm node proxy (và phần WAF tương ứng) trong mỗi PoP, có **VIP riêng**. DNS điều hướng trả VIP của cell chứa zone; L4 load balancer của PoP chuyển VIP đó tới nhóm node của cell, không cần đọc SNI |
+| Cell là gì | Một nhóm node L7 (và phần WAF tương ứng) trong mỗi PoP, có **VIP riêng**. DNS điều hướng trả VIP của cell chứa zone; L4 load balancer của PoP chuyển VIP đó tới nhóm node của cell, không cần đọc SNI |
 | Số cell | Bắt đầu 32–64 cell chuẩn + cell riêng cho zone lớn + cell cách ly |
 | Gán zone | Trước hết theo **pool của gói** (Free mật độ cao, chuẩn cho Pro/Business, Enterprise) theo [ADR-0042](../09-adr/0042-plan-tiers-drive-placement-and-isolation.md); trong pool theo hash `zone_id`; zone thuộc top traffic được cân bằng theo tải; tenant enterprise lớn có thể có cell riêng |
 | Di chuyển zone | Đổi `cell_id` trong routing index và bản ghi DNS (TTL 60 s); hai cell cùng phục vụ zone trong thời gian chuyển |

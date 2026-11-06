@@ -17,8 +17,8 @@ trong ADR.
 | Q5 | **Một edge artifact chạy mọi nơi; ba mô hình triển khai** SaaS, hybrid, on-prem dùng cùng các plane. | [0005](../09-adr/0005-edge-on-own-and-existing-infra.md), [0006](../09-adr/0006-saas-first-on-prem-capable.md) |
 | Thời gian ra thị trường | **`metap` cho Management plane**, tự xây phần còn lại. | [0009](../09-adr/0009-metap-for-management-plane-only.md) |
 | Ứng phó tấn công | **Under Attack mode** là một công tắc theo zone, đi đường khẩn. | [0008](../09-adr/0008-under-attack-mode.md) |
-| Q1, Q3 | **Edge hai tầng:** proxy (RAM, kết nối) lọc rẻ, challenge, cache; WAF inspection (CPU) chỉ nhận phần còn lại. Scale độc lập, crash của engine không kéo theo kết nối. | [0033](../09-adr/0033-two-tier-edge-proxy-and-waf.md), [0034](../09-adr/0034-pre-filter-and-rule-split-across-tiers.md) |
-| Thương mại, Q1 | **CDN là một phần của sản phẩm** (đề xuất, chờ chọn): cache trong tầng proxy từ MVP, chế độ đứng sau CDN của khách, DNS authoritative ở giai đoạn Mở rộng. | [0035](../09-adr/0035-cdn-and-dns-strategy.md) |
+| Q1, Q3 | **Edge hai tầng:** L7 (RAM, kết nối) lọc rẻ, challenge, cache; WAF inspection (CPU) chỉ nhận phần còn lại. Scale độc lập, crash của engine không kéo theo kết nối. | [0033](../09-adr/0033-two-tier-edge-proxy-and-waf.md), [0034](../09-adr/0034-pre-filter-and-rule-split-across-tiers.md) |
+| Thương mại, Q1 | **CDN là một phần của sản phẩm** (đề xuất, chờ chọn): cache trong tầng L7 từ MVP, chế độ đứng sau CDN của khách, DNS authoritative ở giai đoạn Mở rộng. | [0035](../09-adr/0035-cdn-and-dns-strategy.md) |
 | Q1 | **Rate limit toàn fleet là xấp xỉ**: đếm cục bộ, gộp định kỳ. | [0011](../09-adr/0011-approximate-fleet-rate-limiting.md) |
 
 ## Thứ tự xây dựng

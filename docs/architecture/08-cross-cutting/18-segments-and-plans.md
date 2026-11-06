@@ -60,17 +60,17 @@ Mô hình chi phí hạ tầng hằng tháng ở quy mô 1 triệu zone (đơn g
 
 | Khoản | Giả định | Tháng |
 |---|---|---|
-| Node edge proxy | 450 × 1.500 USD (khấu hao + colo + điện) | 675k |
+| Node L7 | 450 × 1.500 USD (khấu hao + colo + điện) | 675k |
 | Node WAF | 210 × 1.200 USD | 252k |
 | Băng thông | ≈ 1,2 Tbps tính theo p95 × 0,5 USD/Mbps | 600k |
 | Analytics (Kafka, ClickHouse, object storage) | Theo ≈ 1,1 triệu bản ghi/s | 150k |
 | Control, Management, DNS, Ops chung | | 50k |
 | **Tổng** | | **≈ 1,73M USD** |
 
-Phân bổ theo đơn vị gây chi phí: proxy và băng thông theo traffic; WAF theo đơn vị CPU WAF; Analytics
+Phân bổ theo đơn vị gây chi phí: L7 và băng thông theo traffic; WAF theo đơn vị CPU WAF; Analytics
 theo số bản ghi log; phần chung theo số zone.
 
-| Gói | Proxy + băng thông | WAF | Analytics | Chung | Tổng | **Chi phí / zone / tháng** | Zone p99 trong gói |
+| Gói | L7 + băng thông | WAF | Analytics | Chung | Tổng | **Chi phí / zone / tháng** | Zone p99 trong gói |
 |---|---|---|---|---|---|---|---|
 | Free | 83k | 2k | 2k | 33k | 120k | **≈ 0,18 USD** | ≈ 2,5 USD |
 | Pro | 128k | 16k | 6k | 8k | 158k | **≈ 1,05 USD** | ≈ 15 USD |
@@ -81,7 +81,7 @@ theo số bản ghi log; phần chung theo số zone.
 
 | Đơn vị | Chi phí |
 |---|---|
-| 1 rps trung bình trong tháng (≈ 2,6 triệu request) qua proxy + băng thông | ≈ 0,43 USD |
+| 1 rps trung bình trong tháng (≈ 2,6 triệu request) qua L7 + băng thông | ≈ 0,43 USD |
 | 1 rps trung bình qua WAF ở PL1 | ≈ 0,09 USD |
 | 1 bản ghi log/s lưu theo retention mặc định | ≈ 0,14 USD |
 | 1 zone nguội (cấu hình, cert, DNS, routing index) | ≈ 0,05 USD |

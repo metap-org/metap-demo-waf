@@ -13,7 +13,7 @@ và giữ trạng thái cũ, không đọc dở.
 | **SnapshotAnnouncement** | Control → Edge | "top manifest version V", danh sách bucket đổi; cờ khẩn | Push nhẹ, mất cũng không sao vì agent tự kiểm định kỳ; node ACK theo V (tăng đơn điệu) |
 | **NodeProfile** | Control → Edge | Cấu hình của node/PoP: cổng nghe, số worker, giới hạn RAM, kích thước cache đĩa, tham số HTTP toàn cục, kích thước pool WAF, địa chỉ relay | Bundle riêng có chữ ký; rollout như phần mềm; áp bằng hot restart (lớp C, [8.15](../08-cross-cutting/15-config-propagation-and-apply.md)) |
 | **NodeStatus** | Edge → Control | Node ID, phần mềm, version đang chạy theo zone, lỗi nạp, chỉ số sức khoẻ | Heartbeat định kỳ + sự kiện khi đổi version |
-| **Inspection API** | Edge proxy → WAF inspection (trong PoP) | Header, body theo chunk, ngữ cảnh zone/tenant/request ID; trả verdict | gRPC stream đồng bộ, có deadline; xem mục bên dưới |
+| **Inspection API** | L7 → WAF inspection (trong PoP) | Header, body theo chunk, ngữ cảnh zone/tenant/request ID; trả verdict | gRPC stream đồng bộ, có deadline; xem mục bên dưới |
 | **TelemetryRecord** | Edge → Analytics | Loại (security event / access log / mẫu request), request ID, thời điểm, zone, tenant, policy version, bước pipeline, rule ID, hành động, `status_source`, `edge_error`, `bot.score/class/category/signals`, JA4 và fingerprint HTTP/2 (đã băm), `api.endpoint_id`, `api.consumer` (đã băm), mã vi phạm schema, trạng thái JWT, thời gian theo chặng ([8.14](../08-cross-cutting/14-latency-and-error-attribution.md)), trường request đã che | At-least-once; Analytics bỏ trùng theo request ID + loại |
 | **Query** | Management → Analytics | Truy vấn có cấu trúc (không phải ngôn ngữ truy vấn tự do của store), danh tính người gọi, phạm vi zone | Đồng bộ, có giới hạn chi phí |
 | **AlertRaised / CaseProposed** | Analytics → Management | Điều kiện khớp, mẫu event, đề xuất mitigation | At-least-once, bỏ trùng theo khoá cảnh báo |
@@ -30,7 +30,7 @@ top manifest (version V, ký Ed25519, ≈ 128 KB)
   ├── digest bundle chung, digest routing index
   └── digest của 4.096 bucket manifest
         bucket manifest (≈ 250 zone mỗi bucket)
-          └── zone_id → digest bundle proxy, digest bundle WAF, cell_id
+          └── zone_id → digest bundle L7, digest bundle WAF, cell_id
 routing index: (hostname, cổng) → zone_id, cell_id, cert_ref, digest   (mọi node, ≈ 200 MB)
 ```
 
@@ -45,14 +45,14 @@ bundle chung (version M)
   ├── dữ liệu bot: danh sách bot đã xác minh, reputation fingerprint/ASN/IP, mô hình bot (8.16)
   └── lớp rule khẩn
 bundle zone (version N, tham chiếu bundle chung ≥ M)
-  ├── phần proxy
+  ├── phần L7
   │     ├── hostname, origin, TLS (tham chiếu cert đã mã hoá), fail mode
   │     ├── access list, rate limit, DDoS L7, Under Attack mode
   │     ├── custom rule phần pre (IR), inspect gate (miễn WAF cho tài nguyên tĩnh)
   │     ├── cache rule, cấu hình purge
   │     ├── policy bot theo nhóm path, danh sách bot của khách
   │     ├── API: route table, kiểm tham số/header, cấu hình JWT + JWKS, CA client mTLS, nguồn danh tính consumer (8.17)
-  │     └── entitlements áp ở proxy: tỉ lệ lấy mẫu, giới hạn body buffer, kết nối
+  │     └── entitlements áp ở L7: tỉ lệ lấy mẫu, giới hạn body buffer, kết nối
   └── phần WAF
         ├── cấu hình managed ruleset: paranoia, ngưỡng anomaly, rule tắt, exclusion
         ├── custom rule phần inspect
@@ -63,16 +63,16 @@ bundle zone (version N, tham chiếu bundle chung ≥ M)
 Disabled rule bị loại khi biên dịch chứ không mang theo cờ: edge không bao giờ giữ một rule mà nó
 phải nhớ là không áp.
 
-Policy agent ở tầng proxy chỉ nạp phần proxy (và bundle chung), ở tầng WAF chỉ nạp phần WAF; cùng một
+Policy agent ở tầng L7 chỉ nạp phần L7 (và bundle chung), ở tầng WAF chỉ nạp phần WAF; cùng một
 manifest nên hai tầng chạy cùng version policy, trừ khoảng lệch ngắn lúc swap: Inspect request mang
-`policy_version_id` của proxy, WAF giữ version hiện tại và version trước để trả lời đúng version
+`policy_version_id` của L7, WAF giữ version hiện tại và version trước để trả lời đúng version
 ([8.15 §6](../08-cross-cutting/15-config-propagation-and-apply.md#6-hai-tầng-swap-lệch-nhau)). Bundle chung
 có thêm **lớp rule khẩn** nhỏ, tách khỏi ruleset release để fast lane không phải build lại CRS.
 
-## Inspection API (edge proxy → WAF)
+## Inspection API (L7 → WAF)
 
 Hợp đồng chuẩn giữa hai tầng ([ADR-0031](../09-adr/0031-edge-l7-and-waf-engine-options.md) §5), độc lập
-với nền proxy được chọn.
+với nền L7 được chọn.
 
 ```protobuf
 service Inspection {
@@ -90,7 +90,7 @@ message InspectRequest {
 message InspectResponse {
   oneof m {
     Verdict    verdict    = 1;  // có thể gửi trước khi nhận hết body
-    Overloaded overloaded = 2;  // admission control từ chối, proxy áp fail mode
+    Overloaded overloaded = 2;  // admission control từ chối, L7 áp fail mode
     Error      error      = 3;
   }
 }
@@ -105,7 +105,7 @@ message Verdict {
 
 | Quy tắc | Giá trị |
 |---|---|
-| Deadline | Proxy đặt theo ngân sách của zone (mặc định 1,5 ms); quá hạn → fail mode |
-| Verdict sớm | WAF trả ngay khi điểm anomaly vượt ngưỡng; proxy ngừng gửi body |
-| Tương thích | N/N-1 như mọi hợp đồng; WAF nhận `ext_proc`/SPOE qua adapter nếu proxy là Envoy/HAProxy |
+| Deadline | L7 đặt theo ngân sách của zone (mặc định 1,5 ms); quá hạn → fail mode |
+| Verdict sớm | WAF trả ngay khi điểm anomaly vượt ngưỡng; L7 ngừng gửi body |
+| Tương thích | N/N-1 như mọi hợp đồng; WAF nhận `ext_proc`/SPOE qua adapter nếu L7 là Envoy/HAProxy |
 | Bảo mật | Unix socket khi chung host, mTLS khi khác node |

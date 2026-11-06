@@ -48,7 +48,7 @@ Gói (qua entitlements) là đầu vào của bốn quyết định kiến trúc
 
 - **Mọi zone chung pool, chỉ khác tính năng:** đơn giản hơn nhưng không cô lập được, và chi phí theo
   zone nguội rơi vào RAM của node phục vụ khách lớn.
-- **Free chỉ có proxy, không WAF:** rẻ hơn nữa nhưng Free không có giá trị bảo mật để thu hút và thiếu
+- **Free chỉ có L7, không WAF:** rẻ hơn nữa nhưng Free không có giá trị bảo mật để thu hút và thiếu
   dữ liệu tấn công cho cả fleet; profile lite chỉ tốn khoảng 1% CPU WAF.
 - **Tính tiền theo request cho mọi gói:** công bằng về chi phí nhưng khách nhỏ không dự đoán được hoá
   đơn, và hoá đơn tăng khi bị tấn công; chọn giá cố định theo zone + fair use, Enterprise theo cam kết.

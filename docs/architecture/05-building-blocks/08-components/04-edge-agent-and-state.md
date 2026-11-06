@@ -2,12 +2,12 @@
 
 Ba thành phần chạy cạnh hai tầng edge ([ADR-0033](../../09-adr/0033-two-tier-edge-proxy-and-waf.md)):
 
-- **Policy agent** là module trong binary của **cả hai tầng** (edge proxy và WAF inspection); mỗi tầng
+- **Policy agent** là module trong binary của **cả hai tầng** (L7 và WAF inspection); mỗi tầng
   chỉ nạp phần bundle của mình từ cùng một manifest, nên hai tầng luôn chạy cùng version policy.
-- **State sync** là module trong binary edge proxy (rate limit nằm ở proxy).
+- **State sync** là module trong binary L7 (rate limit nằm ở L7).
 - **Vector** là process riêng trên mỗi node, nhận bản ghi từ cả hai tầng.
 
-Diagram dưới vẽ cho tầng proxy; tầng WAF giống phần policy agent, không có state sync.
+Diagram dưới vẽ cho tầng L7; tầng WAF giống phần policy agent, không có state sync.
 
 ## Component diagram
 
@@ -34,7 +34,7 @@ flowchart LR
             hk["Hot key detector"]
             sc["Sync client"]
         end
-        gw["Edge proxy"]
+        gw["L7"]
     end
     vec["Vector<br/>buffer đĩa"]
 

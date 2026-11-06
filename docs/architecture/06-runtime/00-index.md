@@ -21,7 +21,7 @@ Các kịch bản chính, mỗi kịch bản là một luồng xuyên plane.
 sequenceDiagram
     participant U as End-user
     participant D as DNS điều hướng
-    participant P as Edge proxy
+    participant P as L7
     participant W as WAF inspection
     participant C as Cache
     participant O as Origin

@@ -1,11 +1,11 @@
-# ADR-0038: Bot management chấm điểm nhiều lớp ở tầng proxy
+# ADR-0038: Bot management chấm điểm nhiều lớp ở tầng L7
 
 - Trạng thái: Chấp nhận
 - Ngày: 2026-11-06
 
 ## Quyết định
 
-- Bot management chạy toàn bộ ở **tầng edge proxy**, trước rate limit và custom rule. Tầng WAF không
+- Bot management chạy toàn bộ ở **tầng L7**, trước rate limit và custom rule. Tầng WAF không
   tham gia ([ADR-0034](0034-pre-filter-and-rule-split-across-tiers.md)).
 - Tín hiệu theo lớp, rẻ trước đắt sau ([8.16 §2](../08-cross-cutting/16-bot-management.md#2-các-lớp-tín-hiệu)):
   - bot đã xác minh;
@@ -29,8 +29,8 @@
 
 ## Hệ quả
 
-- Proxy cần thêm bộ tính fingerprint TLS/HTTP/2 ở tầng nhận kết nối. Đây là một tiêu chí khi chọn nền
-  proxy ([ADR-0031](0031-edge-l7-and-waf-engine-options.md)): nền nào cho truy cập ClientHello và frame
+- L7 cần thêm bộ tính fingerprint TLS/HTTP/2 ở tầng nhận kết nối. Đây là một tiêu chí khi chọn nền
+  L7 ([ADR-0031](0031-edge-l7-and-waf-engine-options.md)): nền nào cho truy cập ClientHello và frame
   HTTP/2 thô.
 - Telemetry thêm `bot.*`, JA4, fingerprint HTTP/2 (đã băm).
 - Gộp reputation chéo tenant phải ẩn danh, chỉ thống kê theo fingerprint, IP, ASN.

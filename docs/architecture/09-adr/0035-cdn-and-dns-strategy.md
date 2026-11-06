@@ -36,7 +36,7 @@ zone của khách (sản phẩm bán thêm).
 | Đường đi | User → edge (cache + WAF) → origin | User → CDN khách → edge WAAP → origin | User → CDN đối tác → edge WAAP → origin | User → edge WAAP → origin |
 | Giá trị bán | Cao nhất: gói trọn | Trung bình: bán được cho khách đã có hợp đồng CDN | Trung bình: gói trọn nhưng biên lợi nhuận mỏng | Thấp: chỉ bảo mật |
 | Chi phí | Đầu tư cache, băng thông lớn | Thấp | Trả theo băng thông cho đối tác | Thấp |
-| Ra thị trường | Cache cơ bản nhanh (nằm sẵn trong proxy); CDN đầy đủ mất nhiều giai đoạn | Nhanh | Trung bình (tích hợp, hợp đồng) | Nhanh nhất |
+| Ra thị trường | Cache cơ bản nhanh (nằm sẵn trong L7); CDN đầy đủ mất nhiều giai đoạn | Nhanh | Trung bình (tích hợp, hợp đồng) | Nhanh nhất |
 | Độ trễ | Không thêm chặng | Thêm một chặng; cache nằm trước WAF nên request cache hit không qua WAF | Thêm một chặng | Thêm một chặng so với đi thẳng origin |
 | Kiểm soát | Toàn quyền | Mất IP thật nếu không cấu hình header tin cậy; DDoS do CDN khách gánh | Phụ thuộc đối tác | Toàn quyền |
 | Hybrid / on-prem | Cache chạy được trong hạ tầng khách | Phù hợp | Không | Phù hợp |
@@ -45,7 +45,7 @@ zone của khách (sản phẩm bán thêm).
 
 | Giai đoạn | CDN | DNS |
 |---|---|---|
-| **MVP** | Cache cơ bản trong tầng proxy: tôn trọng `Cache-Control`, cache rule theo path/đuôi file, purge theo URL và prefix, `stale-if-error`, cache status trong log | DNS điều hướng nội bộ (GeoDNS + health); khách onboard bằng CNAME |
+| **MVP** | Cache cơ bản trong tầng L7: tôn trọng `Cache-Control`, cache rule theo path/đuôi file, purge theo URL và prefix, `stale-if-error`, cache status trong log | DNS điều hướng nội bộ (GeoDNS + health); khách onboard bằng CNAME |
 | **MVP** | Chế độ **"đứng sau CDN của khách"** (phương án B): danh sách IP nguồn tin cậy của CDN khách, lấy IP client từ header khách chỉ định, từ chối traffic không đến từ CDN đó | |
 | **Mở rộng** | Tiered cache / origin shield, purge theo tag, cache key tuỳ biến, `stale-while-revalidate`, cache theo thiết bị | DNS authoritative cho zone của khách: bản ghi proxied, DNSSEC, load balancing và origin failover |
 | **Nâng cao** | Tối ưu ảnh, edge compute, video | DNS firewall, phân tích truy vấn |
@@ -55,7 +55,7 @@ soát được lớp cache, nhưng vẫn có thể dùng như kênh mở rộng 
 
 ## 5. Hệ quả nếu chọn đề xuất
 
-- Khả năng cache trở thành một tiêu chí khi chọn nền proxy ([ADR-0031](0031-edge-l7-and-waf-engine-options.md)).
+- Khả năng cache trở thành một tiêu chí khi chọn nền L7 ([ADR-0031](0031-edge-l7-and-waf-engine-options.md)).
 - PoP cần NVMe cho cache và băng thông lớn hơn; metering tính theo băng thông phục vụ (đã có trong
   `usage_1h`).
 - Management thêm cache rule, purge, và sau này bản ghi DNS ([5.8.12](../05-building-blocks/08-components/12-management.md)).
