@@ -67,6 +67,7 @@ Hai tiêu chí chạy xuyên suốt:
 | Thành phần | Công nghệ | License | ADR |
 |---|---|---|---|
 | Backend nghiệp vụ | `metap-go` (modular monolith), PostgreSQL | — | [0009](../09-adr/0009-metap-for-management-plane-only.md) |
+| Database Management | PostgreSQL (CloudNativePG, primary + 2 replica), PgBouncer chế độ transaction | PostgreSQL / ISC | [0046](../09-adr/0046-management-database-tenancy-and-storage.md) |
 | Frontend | React + `@metap/platform-ui` + `@metap/ui` | — | — |
 | SSO | OIDC (`metap-auth`) + SAML (`crewjam/saml`) | BSD-2 | — |
 | IaC | Terraform provider (`terraform-plugin-framework`) | MPL-2.0 | — |

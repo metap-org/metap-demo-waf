@@ -2,6 +2,8 @@
 
 ## Management (logic)
 
+Thiết kế vật lý (bảng, index, tenant, partition): [5.8.14](08-components/14-management-database.md).
+
 ```mermaid
 erDiagram
     ORG ||--o{ ACCOUNT : has

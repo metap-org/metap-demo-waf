@@ -25,7 +25,7 @@ theo chính sách tài liệu ([2.4](../02-constraints/00-index.md#24-convention
 | **Khách** | Tổ chức mua WAAP để bảo vệ website, API của mình |
 | **End-user** | Người dùng (hoặc bot, kẻ tấn công) truy cập website của khách qua edge |
 | **Org / account** | Cấp tổ chức của khách trong Management: org chứa nhiều account, account chứa nhiều zone, phân quyền theo cấp ([5.8.12](../05-building-blocks/08-components/12-management.md)) |
-| **Tenant** | Ranh giới cô lập dữ liệu và tài nguyên của một khách; mọi entity, log, quota đều mang tenant |
+| **Tenant** | Ranh giới cô lập dữ liệu và tài nguyên của một khách; mọi entity, log, quota đều mang tenant. Trong database Management, tenant của metap là **org** ([ADR-0046](../09-adr/0046-management-database-tenancy-and-storage.md)) |
 | **Zone** | Một site/domain khách bảo vệ, đơn vị cấu hình chính |
 | **Hostname** | Tên miền cụ thể trong một zone (ví dụ `shop.example.com`); một zone có nhiều hostname |
 | **Origin** | Máy chủ thật của khách đứng sau edge |
@@ -172,7 +172,9 @@ theo chính sách tài liệu ([2.4](../02-constraints/00-index.md#24-convention
 
 | Thuật ngữ | Nghĩa |
 |---|---|
-| **PolicyVersion** | Bản policy bất biến của một zone, sinh ra khi được duyệt |
+| **PolicyVersion** | Bản policy bất biến của một zone, sinh ra khi được duyệt; lưu là một tài liệu jsonb có `content_hash` |
+| **Đối tượng nháp** | Rule, list, exception… người dùng đang sửa, mỗi cái một dòng; publish thì gom thành PolicyVersion |
+| **Hostname claim** | Bản ghi trong registry toàn cục giữ quyền một hostname cho một zone, chống hai org cùng dùng |
 | **Snapshot / bundle** | Bản config đã biên dịch, có chữ ký, edge nạp nguyên khối; bundle là phần của một zone hoặc một tầng |
 | **Content-addressed / digest** | Định danh dữ liệu bằng hash SHA-256 của chính nó; cùng nội dung thì cùng digest |
 | **Bucket manifest / top manifest** | Cây digest cấu hình: 4.096 bucket theo hash zone, top manifest ký liệt kê digest các bucket ([ADR-0040](../09-adr/0040-config-distribution-at-scale.md)) |
@@ -349,8 +351,8 @@ Mỗi tiền tố chỉ có một nghĩa trong toàn bộ tài liệu.
 | Mã | Nghĩa | Ở đâu |
 |---|---|---|
 | **Q1–Q6** | Mục tiêu chất lượng | [1.3](../01-introduction/00-index.md#13-mục-tiêu-chất-lượng) |
-| **QS-1…QS-40** | Kịch bản chất lượng đo được | [10.3](../10-quality/00-index.md#103-kịch-bản) |
-| **R1…R28** | Rủi ro | [11.1](../11-risks/00-index.md) |
+| **QS-1…QS-41** | Kịch bản chất lượng đo được | [10.3](../10-quality/00-index.md#103-kịch-bản) |
+| **R1…R29** | Rủi ro | [11.1](../11-risks/00-index.md) |
 | **A1…A17 / B1…B10** | Tình huống vận hành tự xảy ra / thao tác của người vận hành, mỗi cái có runbook | [8.13](../08-cross-cutting/13-operational-behaviors.md) |
 | **S1…S12** | SLI của nền tảng | [8.12](../08-cross-cutting/12-platform-monitoring.md) |
 | **PR1…PR8** | Probe tổng hợp | [8.12 §4](../08-cross-cutting/12-platform-monitoring.md#4-probe-tổng-hợp-theo-hành-vi) |
@@ -361,6 +363,7 @@ Mỗi tiền tố chỉ có một nghĩa trong toàn bộ tài liệu.
 | **L1…L4** (sharding) | Bốn lớp sharding: routing index, PoP store, runtime node, cell | [7.5 §4](../07-deployment/05-capacity-and-sharding.md#4-sharding-bốn-lớp) |
 | **T1…T13** | Tiêu chí chọn nền L7 và engine WAF | [ADR-0031](../09-adr/0031-edge-l7-and-waf-engine-options.md) |
 | **N1…N5 / E1…E3 / I1…I3 / K1…K5** | Phương án nền L7 / engine WAF / cách L7 gọi WAF / tổ hợp cho spike | [ADR-0031](../09-adr/0031-edge-l7-and-waf-engine-options.md) |
+| **MG1…MG5 / DB1…DB4** | Thiếu sót của `metap-go` cần xử lý / câu hỏi còn mở của database Management | [5.8.14](../05-building-blocks/08-components/14-management-database.md) |
 | **IA1…IA13** | Điểm còn mở của hợp đồng Inspection API | [5.5](../05-building-blocks/05-contracts.md#inspection-api-l7--waf) |
 | **C1…C4** | Phương án cell | [ADR-0041](../09-adr/0041-cells-and-zone-placement.md) |
 | **Lớp A/B/C/D** | Lớp áp dụng cấu hình trên edge | [8.15](../08-cross-cutting/15-config-propagation-and-apply.md) |
