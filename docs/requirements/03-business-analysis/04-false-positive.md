@@ -1,6 +1,7 @@
 # 3.4 Xử lý chặn nhầm
 
-> **Trạng thái: đang mở, chưa có quyết định nào (2026-11-06).** Trang này chỉ liệt kê kịch bản và câu hỏi.
+> **Trạng thái: đang mở, đã quyết cách xử lý (2026-11-06).** Quyết định của chủ dự án ghi ở [§3](#3-đã-quyết); các
+> câu hỏi còn lại vẫn mở.
 
 ## 1. Phạm vi
 
@@ -65,17 +66,24 @@ F5.1.4 ở [§1](../01-functional-decomposition.md).
 | KB4-F1 | Nhãn chặn nhầm của khách dùng để cải thiện ruleset chung | Dữ liệu một tenant dùng cho tenant khác: quyền riêng tư, hợp đồng |
 | KB4-F2 | Gợi ý exception từ nhãn của khách khác cùng ứng dụng (cùng CMS) | Như trên |
 
-## 3. Câu hỏi cần chủ dự án quyết
+## 3. Đã quyết
+
+| Ngày | Chủ đề | Quyết định | Hệ quả cần phân tích tiếp |
+|---|---|---|---|
+| 2026-11-06 | Cách xử lý (trục D) | Chặn nhầm được xử lý bằng **tuning rule** hoặc **whitelist**. Tuning rule gồm: tắt một rule, đổi ngưỡng anomaly hoặc paranoia, chuyển rule sang log-only, sửa custom rule của chính khách. Whitelist **chọn theo tình huống**: theo IP hoặc dải IP, theo path, theo tham số / header / cookie, theo client đã xác định (API key, JWT, mTLS, đối tác) | Portal gợi ý cách nào cho tình huống nào (ví dụ webhook đối tác → whitelist theo client hoặc IP; trình soạn bài viết → whitelist theo tham số); whitelist IP thuộc dải NAT dùng chung vẫn là OQ-53; phạm vi tắt rule (cả zone hay theo path) |
+| 2026-11-06 | OQ-49, duyệt | Tuning rule và whitelist **đi qua change request như mọi thay đổi policy** (3.2), không có kênh khẩn riêng cho chặn nhầm | Khi đang mất tiền (KB4-D5) thời gian xử lý phụ thuộc tốc độ duyệt: cần người duyệt sẵn sàng, thông báo duyệt nhanh; account không bật 4-eyes thì phát hành ngay sau khi gửi |
+
+## 4. Câu hỏi cần chủ dự án quyết
 
 | ID | Câu hỏi | Kịch bản | Ghi chú ban đầu |
 |---|---|---|---|
 | OQ-48 | End-user bị chặn liên hệ ai? Có nút "báo chặn nhầm" gửi chủ website không? | KB4-A1, KB4-B3 | |
-| OQ-49 | Exception khẩn khi đang mất tiền: có đi kênh khẩn không cần duyệt không, giới hạn thế nào? | KB4-D5 | |
+| ~~OQ-49~~ | Exception khẩn khi đang mất tiền: có đi kênh khẩn không cần duyệt không, giới hạn thế nào? | KB4-D5 | **Đã quyết**: không, đi qua change request như mọi thay đổi (§3) |
 | OQ-50 | Ai được xem phần request đã khớp (có thể chứa dữ liệu cá nhân)? Che những gì mặc định? | KB4-C1 | Có thể cần quyền riêng |
 | OQ-51 | Có dùng nhãn chặn nhầm chéo tenant không, với điều kiện gì? | KB4-F1, KB4-F2 | |
 | OQ-52 | NCC cam kết gì khi chặn nhầm do ruleset của NCC (thời gian rollback, thông báo, credit)? | KB4-E1, KB4-E2 | |
 | OQ-53 | Allowlist IP có cảnh báo khi IP thuộc dải NAT dùng chung của nhà mạng không? | KB4-D3 | |
 
-## 4. Phụ thuộc
+## 5. Phụ thuộc
 
 FR-7-03, FR-7-07, FR-5-04, BR-21 ở [§2](../02-requirements.md).

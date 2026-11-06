@@ -1,7 +1,7 @@
 # 3.2 Viết, duyệt, phát hành một thay đổi policy
 
-> **Trạng thái: đang mở, chưa có quyết định nào (2026-11-06).** Trang này chỉ liệt kê kịch bản và câu hỏi.
-> Cột "ghi chú ban đầu" là ý kiến lúc ghi, không phải quyết định.
+> **Trạng thái: đang mở, đã quyết 1/8 câu (2026-11-06).** Trang này liệt kê kịch bản và câu hỏi; quyết định của
+> chủ dự án ghi ở [§3](#3-đã-quyết). Cột "ghi chú ban đầu" là ý kiến lúc ghi, không phải quyết định.
 
 ## 1. Phạm vi
 
@@ -101,20 +101,26 @@ Liên quan: F5 ở [§1](../01-functional-decomposition.md#f5-vòng-đời-polic
 | KB2-I2 | Khách Enterprise muốn ghim version ruleset | Ghim được bao lâu; bản vá bảo mật có bắt buộc không |
 | KB2-I3 | Rule khẩn của NCC cho CVE mới | Có hiện trong lịch sử thay đổi của zone không |
 
-## 3. Câu hỏi cần chủ dự án quyết
+## 3. Đã quyết
+
+| Ngày | Câu hỏi | Quyết định | Hệ quả cần phân tích tiếp |
+|---|---|---|---|
+| 2026-11-06 | OQ-35 | **UI là nguồn sự thật.** Public API, Terraform, GitOps vẫn có; khi xung đột, bản trên UI thắng. Terraform và GitOps chỉ báo drift, không ghi đè thay đổi đã làm trên UI | Drift được phát hiện lúc nào (lúc `plan`, lúc đồng bộ định kỳ) và báo cho ai; GitOps thành công cụ đề xuất thay đổi (tạo change request) thay vì áp thẳng; Terraform `apply` gặp bản UI mới hơn thì lỗi hay bỏ qua (KB2-A2, KB2-A3, KB2-G2) |
+
+## 4. Câu hỏi cần chủ dự án quyết
 
 | ID | Câu hỏi | Kịch bản | Ghi chú ban đầu |
 |---|---|---|---|
 | OQ-33 | Mọi thay đổi đều đi qua change request, hay chỉ thay đổi ảnh hưởng traffic? Cài đặt zone (origin, TLS) có đi cùng đường với rule không? | KB2-B4, KB2-B6 | |
 | OQ-34 | Org một người: 4-eyes tắt hẳn, hay thay bằng bước tự xác nhận và thời gian chờ? | KB2-A6 | |
-| OQ-35 | Khi dùng GitOps hoặc Terraform: UI bị khoá chỉ đọc, hay cho sửa và báo drift? | KB2-A2, KB2-A3, KB2-G2 | |
+| ~~OQ-35~~ | Khi dùng GitOps hoặc Terraform: UI bị khoá chỉ đọc, hay cho sửa và báo drift? | KB2-A2, KB2-A3, KB2-G2 | **Đã quyết**, xem §3 |
 | OQ-36 | Cập nhật ruleset của NCC: tự áp cho mọi zone, hay khách chọn thời điểm; rule mới có chạy log-only trước không? | KB2-I1, KB2-I2 | |
 | OQ-37 | Có duyệt theo mức rủi ro (thay đổi nhỏ tự duyệt) không? | KB2-E2 | |
 | OQ-38 | Thay đổi template ảnh hưởng nhiều zone: duyệt một lần, phát hành theo đợt? | KB2-C2, KB2-C3 | |
 | OQ-39 | Khách có thấy và điều khiển được tốc độ phát hành (canary, phần trăm traffic) không? | KB2-F1, KB2-F5 | |
 | OQ-40 | Support của NCC có được sửa policy thay khách không, có cần khách duyệt không? | KB2-A4 | |
 
-## 4. Phụ thuộc
+## 5. Phụ thuộc
 
 FR-5-01…FR-5-19, BR-4, BR-5, BR-6, BR-18, BR-21 ở [§2](../02-requirements.md) viết trước phân tích này;
 sẽ đối chiếu lại khi các câu hỏi trên có trả lời.

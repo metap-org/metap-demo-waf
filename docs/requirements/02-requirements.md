@@ -148,7 +148,7 @@ Phần lớn là hành vi của edge; requirement đo được đã có ở 10.3
 | FR-5-14 | Người dùng phải xem lịch sử version, so sánh hai version bất kỳ, và rollback một bấm | F5.4.1–F5.4.3 | MVP | QS-7 |
 | FR-5-15 | SOC phải bật Under Attack mode và rule tạm có hạn mà không cần duyệt; rule tạm tự hết hạn ([BR-6](#4-quy-tắc-nghiệp-vụ)) | F5.5.1, F5.5.2 | MVP | QS-5 |
 | FR-5-16 | Mọi thao tác F5.1–F5.4 phải làm được qua public API với cùng quyền như UI | F5.6.1 | MVP | UI chỉ dùng public API |
-| FR-5-17 | Hệ thống nên có Terraform provider và đồng bộ policy từ Git | F5.6.2, F5.6.3 | MR | `terraform plan` lần hai sau `apply` không có thay đổi |
+| FR-5-17 | Hệ thống nên có Terraform provider và đồng bộ policy từ Git; **UI là nguồn sự thật**: khi xung đột, bản trên UI thắng, Terraform và GitOps báo drift chứ không ghi đè ([3.2](03-business-analysis/02-policy-change.md#3-đã-quyết)) | F5.6.2, F5.6.3 | MR | `terraform plan` lần hai sau `apply` không có thay đổi; sửa trên UI sau đó làm `plan` báo drift |
 | FR-5-18 | Hệ thống nên kế thừa policy org → nhóm zone → zone; zone thấy được rule nào đến từ cấp nào | F5.1.7 | MR | |
 | FR-5-19 | Người dùng nên duyệt endpoint API từ discovery và tải OpenAPI làm schema | F5.1.8 | MR | |
 
@@ -260,6 +260,7 @@ Phần lớn là hành vi của edge; requirement đo được đã có ở 10.3
 | BR-22 | Claim domain chưa xác minh hết hạn sau 14 ngày; domain được giải phóng | F2.1.8 |
 | BR-23 | Không cấp cert cho hostname chưa xác minh sở hữu | F2.3.1 |
 | BR-24 | DDoS L7 và lọc sớm chặn từ request đầu tiên, không theo log-only của onboarding. Bật chặn phần còn lại lần đầu cần ≥ 7 ngày và ≥ 10.000 request log-only ([OQ-17](03-business-analysis/01-onboarding.md#a9-câu-hỏi-mở)), trừ khi khách chọn "đang bị tấn công" (có audit) | F2.6.1, F2.7.4 |
+| BR-25 | Chặn nhầm được xử lý bằng tuning rule (tắt rule, đổi ngưỡng hoặc paranoia, log-only, sửa custom rule) hoặc whitelist chọn theo tình huống (IP, path, tham số / header / cookie, client đã xác định); cả hai đi qua change request như mọi thay đổi policy ([3.4](03-business-analysis/04-false-positive.md#3-đã-quyết)) | F5.1, F7.5 |
 
 ## 5. Yêu cầu dữ liệu
 

@@ -3630,10 +3630,10 @@ onboarding chưa duyệt; sẽ viết lại sau khi phân tích ở <a href="#f-
 </tr>
 <tr>
 <td>FR-5-17</td>
-<td>Hệ thống nên có Terraform provider và đồng bộ policy từ Git</td>
+<td>Hệ thống nên có Terraform provider và đồng bộ policy từ Git; <strong>UI là nguồn sự thật</strong>: khi xung đột, bản trên UI thắng, Terraform và GitOps báo drift chứ không ghi đè (<a href="#f-03-business-analysis-02-policy-change--3-đã-quyết">3.2</a>)</td>
 <td>F5.6.2, F5.6.3</td>
 <td>MR</td>
-<td><code>terraform plan</code> lần hai sau <code>apply</code> không có thay đổi</td>
+<td><code>terraform plan</code> lần hai sau <code>apply</code> không có thay đổi; sửa trên UI sau đó làm <code>plan</code> báo drift</td>
 </tr>
 <tr>
 <td>FR-5-18</td>
@@ -4215,6 +4215,11 @@ onboarding chưa duyệt; sẽ viết lại sau khi phân tích ở <a href="#f-
 <td>DDoS L7 và lọc sớm chặn từ request đầu tiên, không theo log-only của onboarding. Bật chặn phần còn lại lần đầu cần ≥ 7 ngày và ≥ 10.000 request log-only (<a href="#f-03-business-analysis-01-onboarding--a9-câu-hỏi-mở">OQ-17</a>), trừ khi khách chọn &quot;đang bị tấn công&quot; (có audit)</td>
 <td>F2.6.1, F2.7.4</td>
 </tr>
+<tr>
+<td>BR-25</td>
+<td>Chặn nhầm được xử lý bằng tuning rule (tắt rule, đổi ngưỡng hoặc paranoia, log-only, sửa custom rule) hoặc whitelist chọn theo tình huống (IP, path, tham số / header / cookie, client đã xác định); cả hai đi qua change request như mọi thay đổi policy (<a href="#f-03-business-analysis-04-false-positive--3-đã-quyết">3.4</a>)</td>
+<td>F5.1, F7.5</td>
+</tr>
 </tbody>
 </table>
 <h2 id="f-02-requirements--5-yêu-cầu-dữ-liệu">5. Yêu cầu dữ liệu</h2>
@@ -4723,7 +4728,7 @@ thật và cũng là lúc dễ gây sự cố nhất.</p>
 <td><a href="#f-03-business-analysis-02-policy-change">3.2</a></td>
 <td>Viết, duyệt, phát hành một thay đổi policy</td>
 <td>OQ-33…OQ-40</td>
-<td>Bước 1, chờ chủ dự án</td>
+<td>Bước 1, đã quyết OQ-35 (UI là nguồn sự thật)</td>
 </tr>
 <tr>
 <td><a href="#f-03-business-analysis-03-attack-response">3.3</a></td>
@@ -4735,7 +4740,7 @@ thật và cũng là lúc dễ gây sự cố nhất.</p>
 <td><a href="#f-03-business-analysis-04-false-positive">3.4</a></td>
 <td>Xử lý chặn nhầm</td>
 <td>OQ-48…OQ-53</td>
-<td>Bước 1, chờ chủ dự án</td>
+<td>Bước 1, đã quyết cách xử lý (tuning rule, whitelist) và OQ-49 (đi qua change request)</td>
 </tr>
 <tr>
 <td><a href="#f-03-business-analysis-05-plans-billing">3.5</a></td>
@@ -6290,8 +6295,8 @@ token ở đó và cấp, gia hạn cert <strong>trước khi</strong> traffic t
 </section>
 <section class="doc" id="f-03-business-analysis-02-policy-change"><div class="path">03-business-analysis/02-policy-change.md</div><h1 id="f-03-business-analysis-02-policy-change--32-viết-duyệt-phát-hành-một-thay-đổi-policy">3.2 Viết, duyệt, phát hành một thay đổi policy</h1>
 <blockquote>
-<p><strong>Trạng thái: đang mở, chưa có quyết định nào (2026-11-06).</strong> Trang này chỉ liệt kê kịch bản và câu hỏi.
-Cột &quot;ghi chú ban đầu&quot; là ý kiến lúc ghi, không phải quyết định.</p>
+<p><strong>Trạng thái: đang mở, đã quyết 1/8 câu (2026-11-06).</strong> Trang này liệt kê kịch bản và câu hỏi; quyết định của
+chủ dự án ghi ở <a href="#f-03-business-analysis-02-policy-change--3-đã-quyết">§3</a>. Cột &quot;ghi chú ban đầu&quot; là ý kiến lúc ghi, không phải quyết định.</p>
 </blockquote>
 <h2 id="f-03-business-analysis-02-policy-change--1-phạm-vi">1. Phạm vi</h2>
 <p>Bắt đầu khi ai đó muốn đổi cách edge xử lý traffic của một hoặc nhiều zone. Kết thúc khi thay đổi đã chạy
@@ -6614,7 +6619,26 @@ trục I).</p>
 </tr>
 </tbody>
 </table>
-<h2 id="f-03-business-analysis-02-policy-change--3-câu-hỏi-cần-chủ-dự-án-quyết">3. Câu hỏi cần chủ dự án quyết</h2>
+<h2 id="f-03-business-analysis-02-policy-change--3-đã-quyết">3. Đã quyết</h2>
+<table>
+<thead>
+<tr>
+<th>Ngày</th>
+<th>Câu hỏi</th>
+<th>Quyết định</th>
+<th>Hệ quả cần phân tích tiếp</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2026-11-06</td>
+<td>OQ-35</td>
+<td><strong>UI là nguồn sự thật.</strong> Public API, Terraform, GitOps vẫn có; khi xung đột, bản trên UI thắng. Terraform và GitOps chỉ báo drift, không ghi đè thay đổi đã làm trên UI</td>
+<td>Drift được phát hiện lúc nào (lúc <code>plan</code>, lúc đồng bộ định kỳ) và báo cho ai; GitOps thành công cụ đề xuất thay đổi (tạo change request) thay vì áp thẳng; Terraform <code>apply</code> gặp bản UI mới hơn thì lỗi hay bỏ qua (KB2-A2, KB2-A3, KB2-G2)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-03-business-analysis-02-policy-change--4-câu-hỏi-cần-chủ-dự-án-quyết">4. Câu hỏi cần chủ dự án quyết</h2>
 <table>
 <thead>
 <tr>
@@ -6638,10 +6662,10 @@ trục I).</p>
 <td></td>
 </tr>
 <tr>
-<td>OQ-35</td>
+<td><s>OQ-35</s></td>
 <td>Khi dùng GitOps hoặc Terraform: UI bị khoá chỉ đọc, hay cho sửa và báo drift?</td>
 <td>KB2-A2, KB2-A3, KB2-G2</td>
-<td></td>
+<td><strong>Đã quyết</strong>, xem §3</td>
 </tr>
 <tr>
 <td>OQ-36</td>
@@ -6675,7 +6699,7 @@ trục I).</p>
 </tr>
 </tbody>
 </table>
-<h2 id="f-03-business-analysis-02-policy-change--4-phụ-thuộc">4. Phụ thuộc</h2>
+<h2 id="f-03-business-analysis-02-policy-change--5-phụ-thuộc">5. Phụ thuộc</h2>
 <p>FR-5-01…FR-5-19, BR-4, BR-5, BR-6, BR-18, BR-21 ở <a href="#f-02-requirements">§2</a> viết trước phân tích này;
 sẽ đối chiếu lại khi các câu hỏi trên có trả lời.</p>
 </section>
@@ -6976,7 +7000,8 @@ cell cách ly ở kiến trúc 8.18, ADR-0041.</p>
 </section>
 <section class="doc" id="f-03-business-analysis-04-false-positive"><div class="path">03-business-analysis/04-false-positive.md</div><h1 id="f-03-business-analysis-04-false-positive--34-xử-lý-chặn-nhầm">3.4 Xử lý chặn nhầm</h1>
 <blockquote>
-<p><strong>Trạng thái: đang mở, chưa có quyết định nào (2026-11-06).</strong> Trang này chỉ liệt kê kịch bản và câu hỏi.</p>
+<p><strong>Trạng thái: đang mở, đã quyết cách xử lý (2026-11-06).</strong> Quyết định của chủ dự án ghi ở <a href="#f-03-business-analysis-04-false-positive--3-đã-quyết">§3</a>; các
+câu hỏi còn lại vẫn mở.</p>
 </blockquote>
 <h2 id="f-03-business-analysis-04-false-positive--1-phạm-vi">1. Phạm vi</h2>
 <p>Từ lúc một người dùng thật hoặc client hợp lệ bị chặn hoặc bị challenge, cho tới khi nguyên nhân được sửa
@@ -7180,7 +7205,32 @@ F5.1.4 ở <a href="#f-01-functional-decomposition">§1</a>.</p>
 </tr>
 </tbody>
 </table>
-<h2 id="f-03-business-analysis-04-false-positive--3-câu-hỏi-cần-chủ-dự-án-quyết">3. Câu hỏi cần chủ dự án quyết</h2>
+<h2 id="f-03-business-analysis-04-false-positive--3-đã-quyết">3. Đã quyết</h2>
+<table>
+<thead>
+<tr>
+<th>Ngày</th>
+<th>Chủ đề</th>
+<th>Quyết định</th>
+<th>Hệ quả cần phân tích tiếp</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2026-11-06</td>
+<td>Cách xử lý (trục D)</td>
+<td>Chặn nhầm được xử lý bằng <strong>tuning rule</strong> hoặc <strong>whitelist</strong>. Tuning rule gồm: tắt một rule, đổi ngưỡng anomaly hoặc paranoia, chuyển rule sang log-only, sửa custom rule của chính khách. Whitelist <strong>chọn theo tình huống</strong>: theo IP hoặc dải IP, theo path, theo tham số / header / cookie, theo client đã xác định (API key, JWT, mTLS, đối tác)</td>
+<td>Portal gợi ý cách nào cho tình huống nào (ví dụ webhook đối tác → whitelist theo client hoặc IP; trình soạn bài viết → whitelist theo tham số); whitelist IP thuộc dải NAT dùng chung vẫn là OQ-53; phạm vi tắt rule (cả zone hay theo path)</td>
+</tr>
+<tr>
+<td>2026-11-06</td>
+<td>OQ-49, duyệt</td>
+<td>Tuning rule và whitelist <strong>đi qua change request như mọi thay đổi policy</strong> (3.2), không có kênh khẩn riêng cho chặn nhầm</td>
+<td>Khi đang mất tiền (KB4-D5) thời gian xử lý phụ thuộc tốc độ duyệt: cần người duyệt sẵn sàng, thông báo duyệt nhanh; account không bật 4-eyes thì phát hành ngay sau khi gửi</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-03-business-analysis-04-false-positive--4-câu-hỏi-cần-chủ-dự-án-quyết">4. Câu hỏi cần chủ dự án quyết</h2>
 <table>
 <thead>
 <tr>
@@ -7198,10 +7248,10 @@ F5.1.4 ở <a href="#f-01-functional-decomposition">§1</a>.</p>
 <td></td>
 </tr>
 <tr>
-<td>OQ-49</td>
+<td><s>OQ-49</s></td>
 <td>Exception khẩn khi đang mất tiền: có đi kênh khẩn không cần duyệt không, giới hạn thế nào?</td>
 <td>KB4-D5</td>
-<td></td>
+<td><strong>Đã quyết</strong>: không, đi qua change request như mọi thay đổi (§3)</td>
 </tr>
 <tr>
 <td>OQ-50</td>
@@ -7229,7 +7279,7 @@ F5.1.4 ở <a href="#f-01-functional-decomposition">§1</a>.</p>
 </tr>
 </tbody>
 </table>
-<h2 id="f-03-business-analysis-04-false-positive--4-phụ-thuộc">4. Phụ thuộc</h2>
+<h2 id="f-03-business-analysis-04-false-positive--5-phụ-thuộc">5. Phụ thuộc</h2>
 <p>FR-7-03, FR-7-07, FR-5-04, BR-21 ở <a href="#f-02-requirements">§2</a>.</p>
 </section>
 <section class="doc" id="f-03-business-analysis-05-plans-billing"><div class="path">03-business-analysis/05-plans-billing.md</div><h1 id="f-03-business-analysis-05-plans-billing--35-mua-đổi-gói-vượt-hạn-mức-thanh-toán">3.5 Mua, đổi gói, vượt hạn mức, thanh toán</h1>

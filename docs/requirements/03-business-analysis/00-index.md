@@ -25,9 +25,9 @@ Mỗi nghiệp vụ đi qua hai bước, và **không viết bước 2 khi chủ
 | Mục | Nghiệp vụ | Câu hỏi | Trạng thái |
 |---|---|---|---|
 | [3.1](01-onboarding.md) | Onboarding một website | OQ-21…OQ-32 | Bước 1, chờ chủ dự án (có bản nháp luồng cũ chưa duyệt ở phụ lục) |
-| [3.2](02-policy-change.md) | Viết, duyệt, phát hành một thay đổi policy | OQ-33…OQ-40 | Bước 1, chờ chủ dự án |
+| [3.2](02-policy-change.md) | Viết, duyệt, phát hành một thay đổi policy | OQ-33…OQ-40 | Bước 1, đã quyết OQ-35 (UI là nguồn sự thật) |
 | [3.3](03-attack-response.md) | Phản ứng khi bị tấn công | OQ-41…OQ-47 | Bước 1, chờ chủ dự án |
-| [3.4](04-false-positive.md) | Xử lý chặn nhầm | OQ-48…OQ-53 | Bước 1, chờ chủ dự án |
+| [3.4](04-false-positive.md) | Xử lý chặn nhầm | OQ-48…OQ-53 | Bước 1, đã quyết cách xử lý (tuning rule, whitelist) và OQ-49 (đi qua change request) |
 | [3.5](05-plans-billing.md) | Mua, đổi gói, vượt hạn mức, thanh toán | OQ-54…OQ-61 | Bước 1, chờ chủ dự án |
 | [3.6](06-members-access.md) | Quản lý thành viên, SSO, API key | OQ-62…OQ-68 | Bước 1, chờ chủ dự án |
 | [3.7](07-offboarding.md) | Rời dịch vụ: gỡ zone, xoá org, xoá dữ liệu | OQ-69…OQ-74 | Bước 1, chờ chủ dự án |
