@@ -118,6 +118,7 @@ blockquote { margin: 0 0 14px; padding: 8px 16px; border-left: 3px solid var(--l
 <a class="sub2" href="#f-05-building-blocks-08-components-11-notification-fanout">5.8.11 Notification: fan-out nhiều kênh, khách tự tích hợp, mở kênh theo gói</a>
 <a class="sub2" href="#f-05-building-blocks-08-components-12-management">5.8.12 Management plane</a>
 <a class="sub2" href="#f-05-building-blocks-08-components-13-realtime-gateway">5.8.13 Realtime gateway (Analytics plane)</a>
+<a class="sub2" href="#f-05-building-blocks-08-components-14-management-database">5.8.14 Database của Management plane</a>
 <a class="top" href="#f-06-runtime-00-index">6. Runtime View</a>
 <a class="sub" href="#f-06-runtime-10-analytics-flows">6.10 Luồng Analytics</a>
 <a class="top" href="#f-07-deployment-00-index">7. Deployment View</a>
@@ -177,6 +178,7 @@ blockquote { margin: 0 0 14px; padding: 8px 16px; border-left: 3px solid var(--l
 <a class="sub" href="#f-09-adr-0043-usage-based-pricing-and-metering">ADR-0043: Giá theo phí nền + hạn mức + phí vượt, đo usage không lấy mẫu, trần cứng ở edge</a>
 <a class="sub" href="#f-09-adr-0044-realtime-gateway-and-notifier-runtime">ADR-0044: Realtime gateway cho portal và runtime của notifier</a>
 <a class="sub" href="#f-09-adr-0045-short-lived-node-certs-and-reenroll">ADR-0045: Cert node ngắn hạn tự gia hạn, re-enroll credential, thu hồi không dùng CRL</a>
+<a class="sub" href="#f-09-adr-0046-management-database-tenancy-and-storage">ADR-0046: Database của Management: tenant là org, bảng chung, PolicyVersion là tài liệu bất biến</a>
 <a class="top" href="#f-10-quality-00-index">10. Quality Requirements</a>
 <a class="top" href="#f-11-risks-00-index">11. Risks and Technical Debt</a>
 <a class="top" href="#f-12-glossary-00-index">12. Glossary</a>
@@ -211,6 +213,7 @@ blockquote { margin: 0 0 14px; padding: 8px 16px; border-left: 3px solid var(--l
 <a class="sub2" href="#f-05-building-blocks-08-components-11-notification-fanout">5.8.11 Notification: fan-out nhiều kênh, khách tự tích hợp, mở kênh theo gói</a>
 <a class="sub2" href="#f-05-building-blocks-08-components-12-management">5.8.12 Management plane</a>
 <a class="sub2" href="#f-05-building-blocks-08-components-13-realtime-gateway">5.8.13 Realtime gateway (Analytics plane)</a>
+<a class="sub2" href="#f-05-building-blocks-08-components-14-management-database">5.8.14 Database của Management plane</a>
 <a class="top" href="#f-06-runtime-00-index">6. Runtime View</a>
 <a class="sub" href="#f-06-runtime-10-analytics-flows">6.10 Luồng Analytics</a>
 <a class="top" href="#f-07-deployment-00-index">7. Deployment View</a>
@@ -270,6 +273,7 @@ blockquote { margin: 0 0 14px; padding: 8px 16px; border-left: 3px solid var(--l
 <a class="sub" href="#f-09-adr-0043-usage-based-pricing-and-metering">ADR-0043: Giá theo phí nền + hạn mức + phí vượt, đo usage không lấy mẫu, trần cứng ở edge</a>
 <a class="sub" href="#f-09-adr-0044-realtime-gateway-and-notifier-runtime">ADR-0044: Realtime gateway cho portal và runtime của notifier</a>
 <a class="sub" href="#f-09-adr-0045-short-lived-node-certs-and-reenroll">ADR-0045: Cert node ngắn hạn tự gia hạn, re-enroll credential, thu hồi không dùng CRL</a>
+<a class="sub" href="#f-09-adr-0046-management-database-tenancy-and-storage">ADR-0046: Database của Management: tenant là org, bảng chung, PolicyVersion là tài liệu bất biến</a>
 <a class="top" href="#f-10-quality-00-index">10. Quality Requirements</a>
 <a class="top" href="#f-11-risks-00-index">11. Risks and Technical Debt</a>
 <a class="top" href="#f-12-glossary-00-index">12. Glossary</a>
@@ -1905,6 +1909,7 @@ message Verdict {
 </section>
 <section class="doc" id="f-05-building-blocks-06-data-model"><div class="path">05-building-blocks/06-data-model.md</div><h1 id="f-05-building-blocks-06-data-model--56-mô-hình-dữ-liệu">5.6 Mô hình dữ liệu</h1>
 <h2 id="f-05-building-blocks-06-data-model--management-logic">Management (logic)</h2>
+<p>Thiết kế vật lý (bảng, index, tenant, partition): <a href="#f-05-building-blocks-08-components-14-management-database">5.8.14</a>.</p>
 <div class="diagram"><pre class="mermaid">erDiagram
     ORG ||--o{ ACCOUNT : has
     ACCOUNT ||--o{ ZONE : owns
@@ -2303,6 +2308,12 @@ trong phần phát hành cho khách; không dịch vụ managed độc quyền m
 <td><a href="#f-09-adr-0009-metap-for-management-plane-only">0009</a></td>
 </tr>
 <tr>
+<td>Database Management</td>
+<td>PostgreSQL (CloudNativePG, primary + 2 replica), PgBouncer chế độ transaction</td>
+<td>PostgreSQL / ISC</td>
+<td><a href="#f-09-adr-0046-management-database-tenancy-and-storage">0046</a></td>
+</tr>
+<tr>
 <td>Frontend</td>
 <td>React + <code>@metap/platform-ui</code> + <code>@metap/ui</code></td>
 <td>—</td>
@@ -2451,6 +2462,12 @@ thiết kế, hợp đồng hoặc schema chính, hành vi khi lỗi. Công ngh�
 <td><a href="#f-05-building-blocks-08-components-13-realtime-gateway">13-realtime-gateway.md</a></td>
 <td>Realtime gateway: số liệu và event live tới portal, hàng chục nghìn phiên</td>
 <td>Analytics</td>
+</tr>
+<tr>
+<td>5.8.14</td>
+<td><a href="#f-05-building-blocks-08-components-14-management-database">14-management-database.md</a></td>
+<td>Database của Management: tenant, schema, entity theo module, bảng partition, registry toàn cục</td>
+<td>Management</td>
 </tr>
 </tbody>
 </table>
@@ -5371,7 +5388,7 @@ dùng chung tenant, quyền, audit; tách service khi có lý do scale cụ th�
 </tr>
 </tbody>
 </table>
-<p>Audit dùng <code>metap-audit</code> cho mọi entity; FP label (đánh dấu chặn nhầm) ghi ở Management rồi phát
+<p>Thiết kế database: <a href="#f-05-building-blocks-08-components-14-management-database">5.8.14</a>. Audit dùng <code>metap-audit</code> cho mọi entity; FP label (đánh dấu chặn nhầm) ghi ở Management rồi phát
 sang Analytics để join vào hiệu quả rule.</p>
 <h2 id="f-05-building-blocks-08-components-12-management--tích-hợp">Tích hợp</h2>
 <table>
@@ -5674,6 +5691,797 @@ lúc ClickHouse đang chịu tải ghi cao nhất vì tấn công. Vì vậy lu�
 <tr>
 <td>Management không cấp được token mới</td>
 <td>Phiên đang mở giữ tới khi token hết hạn; portal báo không thể nối lại; dashboard vẫn dùng được qua Query API</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section class="doc" id="f-05-building-blocks-08-components-14-management-database"><div class="path">05-building-blocks/08-components/14-management-database.md</div><h1 id="f-05-building-blocks-08-components-14-management-database--5814-database-của-management-plane">5.8.14 Database của Management plane</h1>
+<blockquote>
+<p><strong>Trạng thái: thiết kế v1, đã chốt (2026-11-06).</strong> Quyết định nền:
+<a href="#f-09-adr-0046-management-database-tenancy-and-storage">ADR-0046</a>. Mô hình logic ở
+<a href="#f-05-building-blocks-06-data-model">5.6</a>; module và workflow ở <a href="#f-05-building-blocks-08-components-12-management">5.8.12</a>.</p>
+</blockquote>
+<p>Management dùng PostgreSQL qua <code>metap-go</code>: phần lớn bảng là <strong>entity do metadata khai báo</strong>, reconciler
+của metap tự tạo và giữ schema. Một số bảng lớn, chỉ ghi thêm, hoặc dùng chung toàn nền tảng thì viết
+bằng migration SQL như bảng nền tảng của metap.</p>
+<h2 id="f-05-building-blocks-08-components-14-management-database--1-ràng-buộc-từ-metap-go">1. Ràng buộc từ metap-go</h2>
+<p>Mỗi bảng entity có sẵn các cột:</p>
+<table>
+<thead>
+<tr>
+<th>Cột</th>
+<th>Ý nghĩa</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code> uuid, <code>tenant_id</code> uuid</td>
+<td>Khoá chính; tenant của bản ghi</td>
+</tr>
+<tr>
+<td><code>code</code>, <code>status</code></td>
+<td>Mã hiển thị; trạng thái workflow (nếu entity có workflow)</td>
+</tr>
+<tr>
+<td><code>data</code> jsonb</td>
+<td>Mọi field khai báo trong metadata, mặc định nằm ở đây</td>
+</tr>
+<tr>
+<td><code>version</code> integer</td>
+<td>Optimistic locking: update và delete kiểm <code>WHERE version = $n</code></td>
+</tr>
+<tr>
+<td><code>deleted</code> boolean</td>
+<td>Xoá mềm</td>
+</tr>
+<tr>
+<td><code>created_at</code>, <code>updated_at</code>, <code>created_by</code>, <code>updated_by</code></td>
+<td>Dấu vết</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Quy tắc</th>
+<th>Hệ quả cho thiết kế</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Field <code>indexed</code>/<code>sortable</code>/<code>unique</code>/<code>searchable</code> được nâng thành cột sinh ra từ <code>data</code> có index; field <code>reference</code> có <code>refEntity</code> thành cột thật có FK <code>ON DELETE RESTRICT</code></td>
+<td>Chỉ nâng field thật sự dùng để lọc, sắp xếp, nối; còn lại để trong <code>data</code></td>
+</tr>
+<tr>
+<td><code>unique</code> là partial unique index <code>WHERE deleted = false</code>; composite unique theo nhiều field</td>
+<td>Xoá mềm rồi tạo lại cùng giá trị được</td>
+</tr>
+<tr>
+<td>Ghi entity và ghi outbox trong cùng transaction; audit ghi sau commit (<code>metap-audit</code>)</td>
+<td>Sự kiện sang Control/Analytics không bao giờ mất</td>
+</tr>
+<tr>
+<td>Reference chỉ trỏ được tới entity cùng schema</td>
+<td>Tham chiếu sang <code>metadata.users</code> (user của metap) là uuid thường, không FK</td>
+</tr>
+<tr>
+<td>Mỗi transaction đặt <code>SET LOCAL search_path</code> theo tenant (<code>Router::begin</code>)</td>
+<td>Dùng được với PgBouncer chế độ transaction</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-05-building-blocks-08-components-14-management-database--thiếu-sót-của-metap-go-đã-sửa-ở-metap-go-phase-103">Thiếu sót của metap-go đã sửa ở metap-go (Phase 103)</h3>
+<p>WAAP là sản phẩm dẫn đường cho <code>metap-go</code>, nên các thiếu sót tìm được khi thiết kế được sửa thẳng ở nền
+tảng thay vì vá trong Management (<code>metap-docs</code>, roadmap Phase 103):</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Thiếu sót</th>
+<th>Trạng thái ở <code>metap-go</code></th>
+<th>Management dùng thế nào</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MG1</td>
+<td>Không có index nào bắt đầu bằng <code>tenant_id</code></td>
+<td><strong>Đã sửa:</strong> mọi bảng entity có index <code>tenant_id</code>; index của field <code>indexed</code>/<code>sortable</code> là <code>(tenant_id, field)</code></td>
+<td>Không cần index tay</td>
+</tr>
+<tr>
+<td>MG2</td>
+<td><code>unique</code> có hiệu lực trên toàn bảng</td>
+<td><strong>Đã sửa:</strong> <code>uniqueScope</code> = <code>tenant</code> (mặc định) hoặc <code>global</code></td>
+<td>Mặc định cho mọi unique; <code>global</code> chỉ cho giá trị định danh ngoài tenant (cũng chỉ trong một database, nên vẫn cần <code>waap_global</code> ở mục 6)</td>
+</tr>
+<tr>
+<td>MG3</td>
+<td>Reconciler không tạo được bảng partition</td>
+<td>Chưa làm, có chủ đích</td>
+<td>Bảng lớn chỉ ghi thêm ở migration SQL (mục 5)</td>
+</tr>
+<tr>
+<td>MG4</td>
+<td><code>metadata.audit_trail_entries</code> không partition</td>
+<td><strong>Đã sửa:</strong> partition theo tháng (migration 0038), <code>cron-scheduler</code> tạo trước partition; không xoá dòng nào</td>
+<td>Archive theo tháng (mục 5)</td>
+</tr>
+<tr>
+<td>MG5</td>
+<td>Field hệ thống đi qua CRUD làm tăng <code>version</code> và ghi audit</td>
+<td><strong>Đã sửa:</strong> field <code>system</code> + <code>CrudService.SetSystemFields</code></td>
+<td><code>api_keys.lastUsedAt</code>, <code>zones.lastSeenAt</code>, bộ đếm</td>
+</tr>
+</tbody>
+</table>
+<p>Khi làm còn tìm thấy và sửa một lỗi thật của reconciler: <code>DROP INDEX</code> không ghi schema nên không bao giờ
+xoá được index của bảng ở schema sản phẩm, làm reconcile không hội tụ khi một index đổi hình dạng mà giữ
+tên (gốc của lỗi &quot;partial unique index không hội tụ&quot; ghi trong <code>CLAUDE.md</code> của repo này).</p>
+<h2 id="f-05-building-blocks-08-components-14-management-database--2-tenant-và-nơi-đặt-dữ-liệu">2. Tenant và nơi đặt dữ liệu</h2>
+<table>
+<thead>
+<tr>
+<th>Khái niệm WAAP</th>
+<th>Ánh xạ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Org</strong> (công ty khách)</td>
+<td><strong>Tenant của metap</strong> (<code>control.tenants</code>): ranh giới cô lập dữ liệu, quyền, audit</td>
+</tr>
+<tr>
+<td>Account</td>
+<td>Entity trong tenant; gắn subscription, gói, region dữ liệu</td>
+</tr>
+<tr>
+<td>Zone và mọi thứ của zone</td>
+<td>Entity trong tenant, có <code>account_id</code></td>
+</tr>
+<tr>
+<td>NCC (vận hành)</td>
+<td><code>PLATFORM_TENANT_ID</code> của metap; giữ danh mục gói, ruleset release, dữ liệu dùng chung</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Chiến lược</th>
+<th>Dùng cho</th>
+<th>Lý do</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Bảng chung, schema <code>waap</code>, phân biệt bằng <code>tenant_id</code></strong></td>
+<td>Mọi org mặc định (Free có trần, Pro, Business, phần lớn Enterprise)</td>
+<td>Hàng trăm nghìn org; schema riêng cho mỗi org (<code>t_&lt;uuid&gt;</code>) sẽ làm catalog PostgreSQL phình ra hàng chục triệu object</td>
+</tr>
+<tr>
+<td><strong>Database riêng (<code>DedicatedDb</code>)</strong></td>
+<td>Enterprise cần cô lập vật lý, residency của cấu hình, hoặc khối lượng rất lớn</td>
+<td>Đã có trong <code>metap-control</code>; theo hợp đồng</td>
+</tr>
+<tr>
+<td>Schema riêng cho mỗi tenant</td>
+<td>Không dùng ở SaaS</td>
+<td>Chỉ hợp khi số tenant nhỏ (on-prem một khách)</td>
+</tr>
+</tbody>
+</table>
+<p>Schema trong database dùng chung:</p>
+<table>
+<thead>
+<tr>
+<th>Schema</th>
+<th>Chứa</th>
+<th>Quản lý bởi</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>waap</code></td>
+<td>Entity của các module (mục 4)</td>
+<td>Reconciler của metap</td>
+</tr>
+<tr>
+<td><code>waap_ops</code></td>
+<td>Bảng lớn, chỉ ghi thêm, partition (mục 5)</td>
+<td>Migration SQL</td>
+</tr>
+<tr>
+<td><code>waap_global</code></td>
+<td>Registry dùng chung mọi tenant, kể cả tenant ở database riêng (mục 6)</td>
+<td>Migration SQL</td>
+</tr>
+<tr>
+<td><code>metadata</code>, <code>control</code></td>
+<td>Bảng nền tảng của metap: user, role, policy quyền, outbox, audit, cron, tenant</td>
+<td>Migration của metap</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-05-building-blocks-08-components-14-management-database--3-quy-mô-ước-lượng-thiết-kế-cho-1-triệu-zone">3. Quy mô ước lượng (thiết kế cho 1 triệu zone)</h2>
+<table>
+<thead>
+<tr>
+<th>Bảng</th>
+<th>Số dòng</th>
+<th>Kích thước</th>
+<th>Ghi</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Org / account</td>
+<td>≈ 400k / 500k</td>
+<td>&lt; 1 GB</td>
+<td>Thấp</td>
+</tr>
+<tr>
+<td>Member (user × account)</td>
+<td>≈ 1,5 triệu</td>
+<td>&lt; 1 GB</td>
+<td>Thấp</td>
+</tr>
+<tr>
+<td>Zone / hostname / origin</td>
+<td>1M / 3M / 1,2M</td>
+<td>≈ 5 GB</td>
+<td>≈ 1,7 thay đổi/s, đỉnh 30/s</td>
+</tr>
+<tr>
+<td>Metadata cert</td>
+<td>≈ 2 triệu</td>
+<td>≈ 2 GB</td>
+<td>Gia hạn ≈ 0,4/s</td>
+</tr>
+<tr>
+<td>Đối tượng policy nháp (rule, list, exception…)</td>
+<td>≈ 15 triệu</td>
+<td>≈ 10 GB</td>
+<td>Theo thay đổi</td>
+</tr>
+<tr>
+<td>PolicyVersion</td>
+<td>≈ 50 triệu/năm</td>
+<td>≈ 150 GB/năm sau nén</td>
+<td>1 dòng mỗi lần publish</td>
+</tr>
+<tr>
+<td>ChangeRequest, Approval</td>
+<td>≈ 50 triệu/năm</td>
+<td>≈ 30 GB/năm</td>
+<td></td>
+</tr>
+<tr>
+<td>Audit</td>
+<td>≈ 300 triệu/năm</td>
+<td>≈ 300 GB/năm</td>
+<td>Partition tháng, archive</td>
+</tr>
+<tr>
+<td>Usage theo zone và ngày</td>
+<td>≈ 365 triệu/năm</td>
+<td>≈ 70 GB/năm</td>
+<td>1 triệu dòng/ngày, ghi theo lô</td>
+</tr>
+<tr>
+<td>Outbox</td>
+<td>Tạm thời</td>
+<td>Nhỏ nếu drain kịp</td>
+<td>Partition ngày, drop partition đã phát</td>
+</tr>
+</tbody>
+</table>
+<p>Kết luận: tổng dữ liệu nóng năm đầu khoảng 200–400 GB, ghi vài chục tới vài trăm dòng mỗi giây. <strong>Một
+primary PostgreSQL với replica đọc là đủ, không cần shard</strong>; tải chính là đọc từ portal, API, Terraform,
+đi vào replica. Tách thêm database chỉ cho tenant Enterprise dùng database riêng.</p>
+<h2 id="f-05-building-blocks-08-components-14-management-database--4-entity-theo-module-schema-waap">4. Entity theo module (schema <code>waap</code>)</h2>
+<div class="diagram"><pre class="mermaid">erDiagram
+    ORG_PROFILES ||--o{ ACCOUNTS : &quot;tenant có&quot;
+    ACCOUNTS ||--o{ MEMBERS : có
+    MEMBERS ||--o{ ROLE_BINDINGS : được_gán
+    ACCOUNTS ||--|| SUBSCRIPTIONS : có
+    SUBSCRIPTIONS }o--|| PLANS : theo
+    ACCOUNTS ||--o{ ZONES : sở_hữu
+    ZONES ||--o{ HOSTNAMES : phục_vụ
+    ZONES ||--o{ ORIGINS : tới
+    ZONES ||--o{ CERTIFICATES : dùng
+    ZONES ||--|| ZONE_POLICY_STATE : trỏ_tới
+    ZONES ||--o{ CUSTOM_RULES : &quot;nháp&quot;
+    ZONES ||--o{ ACCESS_LISTS : &quot;nháp&quot;
+    ZONES ||--o{ POLICY_VERSIONS : &quot;bất biến&quot;
+    ZONES ||--o{ CHANGE_REQUESTS : đề_xuất
+    CHANGE_REQUESTS ||--o{ APPROVALS : cần
+    CHANGE_REQUESTS ||--o| POLICY_VERSIONS : tạo_ra
+    ZONES {
+        uuid id PK
+        uuid tenant_id
+        uuid account_id FK
+        text name
+        text plan_tier
+        int bucket
+        text cell_id
+    }
+    POLICY_VERSIONS {
+        uuid id PK
+        uuid zone_id FK
+        int number
+        text content_hash
+        jsonb content
+    }
+    HOSTNAMES {
+        uuid id PK
+        uuid zone_id FK
+        text fqdn
+    }
+</pre></div>
+<p>Cột nêu dưới đây là field được nâng thành cột (lọc, sắp xếp, nối, unique). Field khác nằm trong <code>data</code>.
+&quot;Unique&quot; ghi phạm vi: <strong>tenant</strong> (mặc định của <code>uniqueScope</code>), <strong>zone</strong> (composite với <code>zone_id</code>, cũng
+theo tenant) hay <strong>toàn cục</strong> (qua <code>waap_global</code>).</p>
+<h3 id="f-05-building-blocks-08-components-14-management-database--tenant">tenant</h3>
+<table>
+<thead>
+<tr>
+<th>Bảng</th>
+<th>Cột chính</th>
+<th>Ràng buộc, index</th>
+<th>Ghi chú</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>org_profiles</code></td>
+<td><code>display_name</code>, <code>country</code>, <code>data_region</code>, <code>tier</code></td>
+<td>1 dòng mỗi tenant</td>
+<td>Hồ sơ org; tenant chính là org</td>
+</tr>
+<tr>
+<td><code>accounts</code></td>
+<td><code>slug</code>, <code>name</code>, <code>data_region</code></td>
+<td>Unique tenant: <code>slug</code></td>
+<td>Đơn vị gói và thanh toán</td>
+</tr>
+<tr>
+<td><code>members</code></td>
+<td><code>user_id</code> (uuid → <code>metadata.users</code>), <code>account_id</code> ref, <code>email</code></td>
+<td>Unique: <code>(account_id, user_id)</code></td>
+<td>Workflow <code>invited → active → suspended</code></td>
+</tr>
+<tr>
+<td><code>role_bindings</code></td>
+<td><code>member_id</code> ref, <code>role</code>, <code>scope_type</code> (<code>account</code> / <code>zone_tag</code> / <code>zone</code>), <code>scope_value</code></td>
+<td>Index <code>(member_id)</code></td>
+<td>Biên dịch thành policy quyền của metap (RBAC + ABAC theo zone, tag)</td>
+</tr>
+<tr>
+<td><code>api_keys</code></td>
+<td><code>account_id</code> ref, <code>prefix</code>, <code>secret_hash</code> (argon2id), <code>scopes</code>, <code>expires_at</code></td>
+<td>Unique toàn cục: <code>prefix</code> (qua <code>waap_global</code>)</td>
+<td>Chỉ giữ hash; <code>lastUsedAt</code> là field <code>system</code>, ghi bằng <code>SetSystemFields</code> (MG5)</td>
+</tr>
+<tr>
+<td><code>sso_connections</code></td>
+<td><code>account_id</code> ref, <code>kind</code> (<code>saml</code> / <code>oidc</code>), <code>domains</code></td>
+<td>Domain email unique toàn cục (qua <code>waap_global</code>)</td>
+<td>Bí mật (client secret, cert ký) ở <code>SecretStore</code>, chỉ lưu tham chiếu</td>
+</tr>
+<tr>
+<td><code>scim_tokens</code></td>
+<td><code>sso_connection_id</code> ref, <code>token_hash</code></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-05-building-blocks-08-components-14-management-database--zone">zone</h3>
+<table>
+<thead>
+<tr>
+<th>Bảng</th>
+<th>Cột chính</th>
+<th>Ràng buộc, index</th>
+<th>Ghi chú</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>zones</code></td>
+<td><code>account_id</code> ref, <code>name</code> (apex domain), <code>plan_tier</code>, <code>cell_id</code>, <code>bucket</code> (= hash <code>zone_id</code> mod 4.096), <code>tags</code> (GIN)</td>
+<td>Index <code>(account_id)</code>, <code>name</code> searchable (trigram), <code>bucket</code></td>
+<td>Workflow <code>pending → verifying → active ↔ paused → removed</code>. <code>plan_tier</code> sao chép từ subscription để Control xếp pool cell (<a href="#f-08-cross-cutting-18-segments-and-plans">8.18</a>)</td>
+</tr>
+<tr>
+<td><code>hostnames</code></td>
+<td><code>zone_id</code> ref, <code>fqdn</code> (chữ thường, đã chuẩn hoá IDN), <code>ports</code>, <code>verification</code></td>
+<td>Unique toàn cục khi active: qua <code>waap_global.hostname_claims</code></td>
+<td>Khoá của routing index (<a href="#f-09-adr-0040-config-distribution-at-scale">ADR-0040</a>)</td>
+</tr>
+<tr>
+<td><code>origins</code></td>
+<td><code>zone_id</code> ref, <code>address</code>, <code>port</code>, <code>tls_mode</code>, <code>pool</code> (Mở rộng)</td>
+<td>Index <code>(zone_id)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>certificates</code></td>
+<td><code>zone_id</code> ref, <code>kind</code> (<code>universal</code> / <code>uploaded</code> / <code>custom</code>), <code>not_after</code>, <code>sans</code></td>
+<td>Index <code>not_after</code> (cho renewal scheduler)</td>
+<td><strong>Không có private key</strong>: key do Cert &amp; key manager ở Control giữ, mã hoá bằng OpenBao; ở đây chỉ metadata và tham chiếu</td>
+</tr>
+<tr>
+<td><code>zone_policy_state</code></td>
+<td><code>zone_id</code> ref, <code>enforced_version_id</code>, <code>canary_version_id</code>, <code>coverage</code></td>
+<td>Unique: <code>zone_id</code></td>
+<td>Con trỏ do sự kiện từ Control cập nhật; tách khỏi <code>zones</code> để không đụng optimistic lock của người sửa zone</td>
+</tr>
+<tr>
+<td><code>dns_records</code> (Mở rộng)</td>
+<td><code>zone_id</code> ref, <code>type</code>, <code>name</code>, <code>proxied</code></td>
+<td>Unique zone: <code>(zone_id, type, name, value)</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-05-building-blocks-08-components-14-management-database--policy-nháp-và-policyversion-bất-biến">policy (nháp) và PolicyVersion (bất biến)</h3>
+<p>Người dùng sửa các <strong>đối tượng nháp</strong> (mỗi rule, list, exception là một dòng). Khi publish, toàn bộ nháp
+của zone được chuẩn hoá thành <strong>một tài liệu</strong> và ghi vào <code>policy_versions</code>, không sửa được nữa.</p>
+<table>
+<thead>
+<tr>
+<th>Bảng</th>
+<th>Cột chính</th>
+<th>Ràng buộc, index</th>
+<th>Ghi chú</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>custom_rules</code></td>
+<td><code>zone_id</code> ref, <code>name</code>, <code>priority</code>, <code>enabled</code>, <code>mode</code> (<code>enforce</code> / <code>log_only</code>), <code>expires_at</code></td>
+<td>Unique zone: <code>(zone_id, name)</code>; index <code>(zone_id, priority)</code></td>
+<td>Text CEL là nguồn sự thật, AST trong <code>data</code></td>
+</tr>
+<tr>
+<td><code>rate_limit_rules</code></td>
+<td><code>zone_id</code> ref, <code>name</code>, <code>priority</code></td>
+<td>Như trên</td>
+<td></td>
+</tr>
+<tr>
+<td><code>access_lists</code></td>
+<td><code>zone_id</code> ref, <code>name</code>, <code>kind</code> (IP / CIDR / ASN / quốc gia), <code>item_count</code></td>
+<td>Unique zone: <code>(zone_id, name)</code></td>
+<td>Item ≤ 10.000 trong <code>data</code>; lớn hơn thì nội dung là file nén trên object storage, lưu tham chiếu và hash</td>
+</tr>
+<tr>
+<td><code>waf_exceptions</code></td>
+<td><code>zone_id</code> ref, <code>rule_ids</code>, <code>scope</code></td>
+<td>Index <code>(zone_id)</code></td>
+<td>Bắt buộc có phạm vi</td>
+</tr>
+<tr>
+<td><code>managed_ruleset_configs</code></td>
+<td><code>zone_id</code> ref, <code>release_channel</code>, <code>paranoia</code></td>
+<td>Unique: <code>zone_id</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>zone_settings</code></td>
+<td><code>zone_id</code> ref</td>
+<td>Unique: <code>zone_id</code></td>
+<td>Fail mode, TLS, body, Under Attack</td>
+</tr>
+<tr>
+<td><code>cache_rules</code></td>
+<td><code>zone_id</code> ref, <code>priority</code></td>
+<td>Index <code>(zone_id, priority)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>bot_policies</code></td>
+<td><code>zone_id</code> ref</td>
+<td>Unique: <code>zone_id</code></td>
+<td><a href="#f-08-cross-cutting-16-bot-management">8.16</a></td>
+</tr>
+<tr>
+<td><code>api_endpoints</code></td>
+<td><code>zone_id</code> ref, <code>host</code>, <code>method</code>, <code>path_template</code>, <code>state</code></td>
+<td>Unique zone: <code>(zone_id, host, method, path_template)</code></td>
+<td>Workflow <code>discovered → confirmed</code> / <code>shadow</code> / <code>zombie</code> / <code>unused</code></td>
+</tr>
+<tr>
+<td><code>api_schemas</code></td>
+<td><code>zone_id</code> ref, <code>version</code>, <code>content_hash</code></td>
+<td>Unique zone: <code>(zone_id, version)</code></td>
+<td>OpenAPI lớn lưu trên object storage</td>
+</tr>
+<tr>
+<td><code>api_auth_configs</code></td>
+<td><code>zone_id</code> ref</td>
+<td>Unique: <code>zone_id</code></td>
+<td>JWKS URL, CA client (cert công khai)</td>
+</tr>
+<tr>
+<td><strong><code>policy_versions</code></strong></td>
+<td><code>zone_id</code> ref, <code>number</code>, <code>content_hash</code> (SHA-256), <code>parent_version_id</code>, <code>change_request_id</code> ref, <code>schema_version</code></td>
+<td>Unique zone: <code>(zone_id, number)</code>; index <code>content_hash</code></td>
+<td><code>content</code> (jsonb) là toàn bộ policy đã chuẩn hoá; không bao giờ update. Rollback = version mới có nội dung của bản cũ</td>
+</tr>
+</tbody>
+</table>
+<p>Vì sao tài liệu bất biến thay vì sao chép từng dòng sang bảng &quot;version&quot;:</p>
+<ul>
+<li>Một lần đọc đủ cho compiler ở Control; diff giữa hai version là diff hai tài liệu.</li>
+<li><code>content_hash</code> trùng với digest bundle ở Control, nên truy được version nào đang chạy ở edge.</li>
+<li>Truy vấn bên trong lịch sử rất hiếm; khi cần thì đọc tài liệu.</li>
+<li>Kích thước: zone điển hình vài KB, Enterprise tới khoảng 1 MB (TOAST nén). Version không còn enforce sau
+180 ngày chuyển <code>content</code> sang object storage, giữ <code>content_hash</code> và metadata trong bảng.</li>
+</ul>
+<h3 id="f-05-building-blocks-08-components-14-management-database--change-case-bot-alerting-reporting">change, case, bot, alerting, reporting</h3>
+<table>
+<thead>
+<tr>
+<th>Bảng</th>
+<th>Cột chính</th>
+<th>Ràng buộc, index</th>
+<th>Ghi chú</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>change_requests</code></td>
+<td><code>zone_id</code> ref (hoặc null cho thay đổi nhiều zone), <code>batch_id</code>, <code>base_version_id</code>, <code>kind</code> (<code>normal</code> / <code>emergency</code>), <code>author_member_id</code>, <code>expires_at</code></td>
+<td>Index <code>(zone_id, status)</code>, <code>(batch_id)</code></td>
+<td>Workflow ở 5.8.12; nội dung đề xuất là tài liệu trong <code>data</code></td>
+</tr>
+<tr>
+<td><code>change_batches</code></td>
+<td><code>account_id</code> ref, <code>zone_count</code>, <code>source</code> (<code>ui</code> / <code>api</code> / <code>terraform</code>)</td>
+<td></td>
+<td>Thay đổi hàng loạt (QS-27)</td>
+</tr>
+<tr>
+<td><code>approvals</code></td>
+<td><code>change_request_id</code> ref, <code>approver_member_id</code>, <code>decision</code></td>
+<td>Unique: <code>(change_request_id, approver_member_id)</code></td>
+<td>Người duyệt khác người tạo: kiểm ở service</td>
+</tr>
+<tr>
+<td><code>cases</code>, <code>case_links</code>, <code>mitigations</code></td>
+<td><code>account_id</code> ref, <code>severity</code>, <code>zone_ids</code></td>
+<td>Index <code>(account_id, status)</code></td>
+<td>Link tới event là <code>request_id</code> hoặc id ngoài, không FK</td>
+</tr>
+<tr>
+<td><code>custom_bot_lists</code>, <code>bot_feedback</code></td>
+<td><code>zone_id</code> ref</td>
+<td></td>
+<td>Phản hồi phân loại gửi Analytics</td>
+</tr>
+<tr>
+<td><code>alert_policies</code>, <code>notification_channels</code>, <code>export_destinations</code></td>
+<td><code>account_id</code> ref, <code>kind</code></td>
+<td></td>
+<td>Credential của kênh, đích export ở <code>SecretStore</code></td>
+</tr>
+<tr>
+<td><code>fp_labels</code></td>
+<td><code>zone_id</code> ref, <code>request_id</code>, <code>rule_id</code>, <code>label</code></td>
+<td>Unique zone: <code>(zone_id, request_id, rule_id)</code></td>
+<td>Phát sang Analytics</td>
+</tr>
+<tr>
+<td><code>saved_searches</code>, <code>report_definitions</code>, <code>report_runs</code></td>
+<td><code>account_id</code> ref</td>
+<td></td>
+<td>File báo cáo trên object storage</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-05-building-blocks-08-components-14-management-database--billing">billing</h3>
+<table>
+<thead>
+<tr>
+<th>Bảng</th>
+<th>Cột chính</th>
+<th>Ràng buộc, index</th>
+<th>Ghi chú</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>plans</code></td>
+<td><code>code</code>, <code>currency</code>, <code>version</code></td>
+<td>Thuộc <code>PLATFORM_TENANT_ID</code>; unique <code>(code, version)</code></td>
+<td>Danh mục gói có version; đổi giá là version mới</td>
+</tr>
+<tr>
+<td><code>subscriptions</code></td>
+<td><code>account_id</code> ref, <code>plan_id</code>, <code>period_start</code>, <code>period_end</code></td>
+<td>Unique: <code>account_id</code></td>
+<td>Workflow <code>trial → active → past_due → suspended</code></td>
+</tr>
+<tr>
+<td><code>entitlement_overrides</code></td>
+<td><code>account_id</code> ref</td>
+<td></td>
+<td>Ngoại lệ theo hợp đồng Enterprise; entitlements hiệu lực = gói + override</td>
+</tr>
+<tr>
+<td><code>invoices</code>, <code>invoice_lines</code></td>
+<td><code>account_id</code> ref, <code>period</code>, <code>total</code>, <code>currency</code></td>
+<td>Unique: <code>(account_id, period)</code></td>
+<td>Phí nền + phí vượt (<a href="#f-09-adr-0043-usage-based-pricing-and-metering">ADR-0043</a>)</td>
+</tr>
+<tr>
+<td><code>payment_methods</code></td>
+<td><code>account_id</code> ref, <code>gateway</code>, <code>token</code>, <code>last4</code></td>
+<td></td>
+<td>Chỉ token của cổng thanh toán; <strong>không lưu số thẻ</strong> (ngoài phạm vi PCI DSS)</td>
+</tr>
+<tr>
+<td><code>quota_states</code></td>
+<td><code>zone_id</code> ref, <code>period</code>, <code>metric</code>, <code>level</code> (80% / 100% / trần)</td>
+<td>Unique: <code>(zone_id, period, metric)</code></td>
+<td>Cập nhật từ <code>QuotaStateChanged</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-05-building-blocks-08-components-14-management-database--5-bảng-ngoài-reconciler-schema-waap_ops-migration-sql">5. Bảng ngoài reconciler (schema <code>waap_ops</code>, migration SQL)</h2>
+<table>
+<thead>
+<tr>
+<th>Bảng</th>
+<th>Partition</th>
+<th>Giữ</th>
+<th>Ghi chú</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>usage_daily</code></td>
+<td>Theo tháng</td>
+<td>13 tháng nóng, sau đó Parquet</td>
+<td>Khoá <code>(tenant_id, zone_id, day)</code>; ghi theo lô từ <code>UsageReport</code>, chi tiết theo giờ ở ClickHouse</td>
+</tr>
+<tr>
+<td><code>purge_requests</code></td>
+<td>Theo ngày</td>
+<td>7 ngày</td>
+<td>Có thể tới 500 lệnh/s; một dòng mỗi lệnh (gồm danh sách URL), trạng thái hoàn tất theo % node</td>
+</tr>
+<tr>
+<td><code>audit_archive_index</code></td>
+<td>Theo tháng</td>
+<td>Vĩnh viễn</td>
+<td>Chỉ mục tới file Parquet của tháng audit đã archive</td>
+</tr>
+<tr>
+<td><code>metadata.audit_trail_entries</code> (của metap)</td>
+<td>Theo tháng (đã có, MG4)</td>
+<td>13 tháng trong PostgreSQL, sau đó detach và archive Parquet, <strong>không xoá</strong></td>
+<td>Partition dùng chung mọi tenant nên không giữ theo gói về vật lý; giới hạn theo gói (7 ngày / 30 ngày / 1 năm) áp ở Query API khi đọc</td>
+</tr>
+<tr>
+<td><code>metadata.outbox_events</code> (của metap)</td>
+<td>Chưa partition</td>
+<td>Tới khi đã phát</td>
+<td>Theo dõi kích thước; partition theo ngày là việc của metap khi số liệu thật cần</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-05-building-blocks-08-components-14-management-database--6-registry-toàn-cục-schema-waap_global">6. Registry toàn cục (schema <code>waap_global</code>)</h2>
+<p>Một số giá trị phải duy nhất <strong>trên toàn nền tảng</strong>, kể cả với tenant ở database riêng:</p>
+<table>
+<thead>
+<tr>
+<th>Bảng</th>
+<th>Khoá</th>
+<th>Dùng cho</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>hostname_claims</code></td>
+<td><code>fqdn</code> (unique) → <code>tenant_id</code>, <code>zone_id</code>, <code>state</code> (<code>pending</code> / <code>active</code>)</td>
+<td>Một hostname chỉ thuộc một zone đang active. Nhiều org cùng thêm một domain chưa xác minh được, ai xác minh trước thì claim chuyển <code>active</code></td>
+</tr>
+<tr>
+<td><code>api_key_prefixes</code></td>
+<td><code>prefix</code> → <code>tenant_id</code></td>
+<td>Tra tenant từ API key trước khi biết tenant</td>
+</tr>
+<tr>
+<td><code>sso_domains</code></td>
+<td><code>domain</code> → <code>tenant_id</code>, <code>sso_connection_id</code></td>
+<td>Đăng nhập SSO theo domain email</td>
+</tr>
+<tr>
+<td><code>tenant_directory</code></td>
+<td><code>tenant_id</code> → nơi đặt (shared / database nào), <code>data_region</code></td>
+<td>Router của metap tra trước khi mở transaction</td>
+</tr>
+</tbody>
+</table>
+<p>Ghi claim dùng thứ tự <strong>claim trước, entity sau</strong>: ghi <code>pending</code> vào <code>waap_global</code>, rồi tạo entity trong
+database của tenant, rồi chuyển <code>active</code> khi xác minh xong. Lỗi giữa chừng để lại claim <code>pending</code> có hạn,
+được dọn định kỳ.</p>
+<h2 id="f-05-building-blocks-08-components-14-management-database--7-truy-cập-vận-hành">7. Truy cập, vận hành</h2>
+<table>
+<thead>
+<tr>
+<th>Chủ đề</th>
+<th>Thiết kế</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cụm</td>
+<td>CloudNativePG: primary + 2 replica qua hai AZ của core region (<a href="#f-07-deployment-00-index--72-topology-saas">7.2</a>)</td>
+</tr>
+<tr>
+<td>Pool kết nối</td>
+<td>PgBouncer chế độ transaction (an toàn vì search_path đặt bằng <code>SET LOCAL</code>)</td>
+</tr>
+<tr>
+<td>Đọc</td>
+<td>Portal, API danh sách, Terraform <code>plan</code> đọc replica; đọc ngay sau ghi của cùng người dùng đi primary</td>
+</tr>
+<tr>
+<td>Ghi</td>
+<td>Mọi ghi đi primary qua <code>CrudService</code> (permission, validate, outbox, audit)</td>
+</tr>
+<tr>
+<td>Sao lưu</td>
+<td>WAL archive liên tục lên object storage, PITR; RPO ≤ 5 phút, RTO ≤ 1 giờ</td>
+</tr>
+<tr>
+<td>Migration</td>
+<td>Entity: reconciler khi khởi động, xem trước bằng <code>reconcile-plan</code>; bảng <code>waap_ops</code>, <code>waap_global</code>: migration SQL đánh số</td>
+</tr>
+<tr>
+<td>Bí mật</td>
+<td>Không có trong database: private key cert (Control + OpenBao), credential kênh và đích export, secret SSO (<code>SecretStore</code>), API key chỉ lưu hash</td>
+</tr>
+<tr>
+<td>Xoá dữ liệu tenant</td>
+<td>Xoá mềm entity, rồi job xoá cứng theo tenant sau thời gian giữ; database riêng thì drop database (<a href="#f-08-cross-cutting-13-operational-behaviors--b9-xoá-dữ-liệu-tenant">8.13 B9</a>)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-05-building-blocks-08-components-14-management-database--8-các-quyết-định-đã-chốt">8. Các quyết định đã chốt</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Câu hỏi</th>
+<th>Quyết định</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DB1</td>
+<td>Tenant = org hay = account</td>
+<td><strong>Org.</strong> User, SSO, SCIM thuộc org; account là ranh giới gói và quyền bên trong. Org có account ở nhiều region dữ liệu thì cả org đặt theo region chặt nhất (DB4)</td>
+</tr>
+<tr>
+<td>DB2</td>
+<td>MG1–MG5 làm ở <code>metap-go</code> hay vá riêng</td>
+<td><strong>Làm ở <code>metap-go</code></strong> (Phase 103): MG1, MG2, MG4, MG5 xong; MG3 không cần cho WAAP</td>
+</tr>
+<tr>
+<td>DB3</td>
+<td>Giữ nội dung PolicyVersion bao lâu trong PostgreSQL</td>
+<td><strong>180 ngày</strong> cho version không còn enforce; sau đó nội dung sang object storage, giữ <code>content_hash</code> và metadata</td>
+</tr>
+<tr>
+<td>DB4</td>
+<td>Residency của cấu hình</td>
+<td>Org yêu cầu residency dùng <strong>database riêng đặt trong region</strong> (<code>DedicatedDb</code>, ghi ở <code>tenant_directory</code>); Management ở core region kết nối tới. Giới hạn ghi rõ trong hợp đồng: residency áp cho dữ liệu <strong>lưu trữ</strong>; snapshot đã biên dịch vẫn phải tới edge ở mọi PoP phục vụ zone</td>
 </tr>
 </tbody>
 </table>
@@ -11366,6 +12174,11 @@ cân nhắc. Quyết định bị thay thế giữ lại với trạng thái &qu
 <td>Cert node 24 h tự gia hạn qua node identity service, re-enroll credential cho node offline, thu hồi bằng thời hạn ngắn + danh sách chặn, cert-manager cho dịch vụ, Origin CA cho edge → origin</td>
 <td>Chấp nhận</td>
 </tr>
+<tr>
+<td><a href="#f-09-adr-0046-management-database-tenancy-and-storage">0046</a></td>
+<td>Database Management: tenant = org, bảng chung + database riêng cho Enterprise, PolicyVersion là tài liệu bất biến, registry toàn cục, bảng partition</td>
+<td>Chấp nhận</td>
+</tr>
 </tbody>
 </table>
 <p>Quyết định đang chờ: xem <a href="#f-11-risks-00-index--113-quyết-định-còn-mở">11. Risks and Technical Debt</a>.</p>
@@ -13614,6 +14427,54 @@ của đối tác và khách; giữ làm hướng tương thích (định dạng
 làm hàng trăm node offline quá 24 h cùng lúc.</li>
 </ul>
 </section>
+<section class="doc" id="f-09-adr-0046-management-database-tenancy-and-storage"><div class="path">09-adr/0046-management-database-tenancy-and-storage.md</div><h1 id="f-09-adr-0046-management-database-tenancy-and-storage--adr-0046-database-của-management-tenant-là-org-bảng-chung-policyversion-là-tài-liệu-bất-biến">ADR-0046: Database của Management: tenant là org, bảng chung, PolicyVersion là tài liệu bất biến</h1>
+<ul>
+<li>Trạng thái: Chấp nhận (2026-11-06)</li>
+<li>Ngày: 2026-11-06</li>
+<li>Liên quan: <a href="#f-09-adr-0009-metap-for-management-plane-only">ADR-0009</a>, <a href="#f-05-building-blocks-08-components-14-management-database">5.8.14</a></li>
+</ul>
+<h2 id="f-09-adr-0046-management-database-tenancy-and-storage--bối-cảnh">Bối cảnh</h2>
+<p>Management chạy trên <code>metap-go</code>: entity khai báo bằng metadata, mỗi entity một bảng, tenant qua
+<code>control.tenants</code> với hai chiến lược (schema riêng hoặc database riêng). Ở quy mô thiết kế có khoảng
+400.000 org, 1 triệu zone, 50 triệu PolicyVersion mỗi năm. Khi rà <code>metap-go</code> thấy bảng entity chưa có
+index theo <code>tenant_id</code>, <code>unique</code> đang có hiệu lực toàn bảng, và reconciler chưa hỗ trợ partition.</p>
+<h2 id="f-09-adr-0046-management-database-tenancy-and-storage--quyết-định">Quyết định</h2>
+<ol>
+<li><strong>Tenant của metap là org.</strong> Account, zone và mọi thứ khác là entity trong tenant.</li>
+<li><strong>Bảng chung trong schema <code>waap</code>, phân biệt bằng <code>tenant_id</code></strong> cho mọi org; <strong>database riêng</strong> cho
+Enterprise cần cô lập vật lý hoặc residency. Không dùng schema riêng cho mỗi tenant ở SaaS.</li>
+<li><strong>Đối tượng policy nháp là entity từng dòng; PolicyVersion là một tài liệu jsonb bất biến</strong> kèm
+<code>content_hash</code> trùng digest bundle ở Control.</li>
+<li><strong>Registry toàn cục</strong> (<code>waap_global</code>) cho giá trị phải duy nhất trên toàn nền tảng (hostname, tiền tố
+API key, domain SSO, nơi đặt tenant), ghi theo thứ tự claim trước, entity sau.</li>
+<li><strong>Bảng lớn chỉ ghi thêm</strong> của WAAP (usage theo ngày, purge) quản lý bằng migration SQL, partition
+theo thời gian; audit dùng bảng partition theo tháng của <code>metap-go</code>, archive Parquet sau 13 tháng,
+không xoá.</li>
+<li><strong>Không lưu bí mật trong database</strong>: private key cert, credential, secret SSO nằm ở OpenBao/<code>SecretStore</code>.</li>
+<li><strong>Một primary + replica đọc, PgBouncer chế độ transaction</strong>; không shard.</li>
+<li>Sửa thiếu sót ở <code>metap-go</code> thay vì vá trong sản phẩm: index theo tenant, <code>uniqueScope</code>, field <code>system</code>,
+partition audit đã làm (Phase 103 của <code>metap-docs</code>).</li>
+<li>Residency của cấu hình: database riêng đặt trong region của org.</li>
+</ol>
+<h2 id="f-09-adr-0046-management-database-tenancy-and-storage--hệ-quả">Hệ quả</h2>
+<ul>
+<li>Catalog PostgreSQL không phình theo số org; thêm org không cần DDL.</li>
+<li>Truy vấn theo tenant dùng index <code>(tenant_id, …)</code> do reconciler của <code>metap-go</code> tự tạo.</li>
+<li>Tenant ở database riêng vẫn phải ghi <code>waap_global</code> trong database dùng chung: chỉ các registry nhỏ đó,
+không phải dữ liệu nghiệp vụ.</li>
+<li>Lịch sử policy rẻ để lưu và so sánh; truy vấn &quot;rule X có trong những version nào&quot; phải đọc tài liệu.</li>
+</ul>
+<h2 id="f-09-adr-0046-management-database-tenancy-and-storage--phương-án-đã-cân-nhắc">Phương án đã cân nhắc</h2>
+<ul>
+<li><strong>Tenant = account:</strong> cô lập theo đơn vị gói, nhưng user và SSO thuộc org sẽ phải lặp ở nhiều tenant.</li>
+<li><strong>Schema riêng cho mỗi tenant:</strong> cô lập tốt hơn, nhưng hàng trăm nghìn schema × vài chục bảng làm
+catalog, autovacuum và migration không chịu nổi.</li>
+<li><strong>PolicyVersion sao chép từng dòng sang bảng version:</strong> truy vấn lịch sử bằng SQL dễ hơn, nhưng gấp
+hàng chục lần số dòng và compiler phải ghép lại thành tài liệu.</li>
+<li><strong>Shard PostgreSQL (Citus) theo tenant:</strong> chưa cần ở 200–400 GB dữ liệu nóng và vài trăm ghi mỗi giây;
+giữ làm hướng khi số liệu thật vượt.</li>
+</ul>
+</section>
 <section class="doc" id="f-10-quality-00-index"><div class="path">10-quality/00-index.md</div><h1 id="f-10-quality-00-index--10-quality-requirements">10. Quality Requirements</h1>
 <p>Các con số là <strong>mục tiêu đề xuất</strong>, cần chốt cùng product trước khi thiết kế chi tiết. Mỗi kịch
 bản phải đo được bằng chỉ số nền tảng ở <a href="#f-08-cross-cutting-00-index--811-quan-sát-chính-nền-tảng">08 §8.11</a>.</p>
@@ -13988,6 +14849,12 @@ kịch bản đo được (§10.3) và cơ chế kiến trúc đáp ứng nó.</
 <td>Thu hồi một node nghi bị chiếm</td>
 <td>Mọi bên nhận từ chối kết nối mới của node trong ≤ 5 phút, kết nối đang mở bị cắt trong ≤ 1 h; node không gia hạn hay re-enroll được nữa</td>
 </tr>
+<tr>
+<td>QS-41</td>
+<td>Hiệu năng</td>
+<td>Org có 100.000 zone, database chung chứa 1 triệu zone; mở danh sách zone có lọc và sắp xếp</td>
+<td>p95 ≤ 300 ms; truy vấn dùng index <code>(tenant_id, …)</code>, không quét tuần tự</td>
+</tr>
 </tbody>
 </table>
 <h2 id="f-10-quality-00-index--104-quy-mô-thiết-kế">10.4 Quy mô thiết kế</h2>
@@ -14278,6 +15145,14 @@ kịch bản đo được (§10.3) và cơ chế kiến trúc đáp ứng nó.</
 <td>Payload bị chặn ở WAF test nhưng lọt qua edge thật</td>
 </tr>
 <tr>
+<td>R29</td>
+<td>Thay đổi nền tảng ở <code>metap-go</code> (unique mặc định theo tenant, index mới) làm sản phẩm đang chạy dựng lại index hoặc đổi nghĩa unique khi nâng</td>
+<td>Trung bình</td>
+<td>Trung bình</td>
+<td>Đã sửa ở <code>metap-go</code> (Phase 103) kèm e2e đường nâng cấp; field cần duy nhất toàn bảng khai báo <code>uniqueScope: global</code> (<a href="#f-05-building-blocks-08-components-14-management-database">5.8.14</a>)</td>
+<td>Lần reconcile đầu sau khi nâng chạy lâu; lỗi trùng unique mới</td>
+</tr>
+<tr>
 <td>R9</td>
 <td>Đội nhỏ dàn trải 4 plane</td>
 <td>Cao</td>
@@ -14350,6 +15225,7 @@ Edge theo hợp đồng ở <a href="#f-05-building-blocks-05-contracts">05-cont
 <h2 id="f-11-risks-00-index--113-quyết-định-còn-mở">11.3 Quyết định còn mở</h2>
 <p>Đã chốt ngày 2026-11-06: biến thể cú pháp rule (<a href="#f-09-adr-0014-cel-as-rule-language">ADR-0014</a>,
 CEL), công nghệ của Control, Analytics, Management (<a href="#f-05-building-blocks-07-technology-map">05 · bản đồ công nghệ</a>),
+database của Management (<a href="#f-09-adr-0046-management-database-tenancy-and-storage">ADR-0046</a>),
 Elixir + Phoenix cho realtime gateway và notifier (<a href="#f-09-adr-0044-realtime-gateway-and-notifier-runtime">ADR-0044</a>).</p>
 <table>
 <thead>
@@ -14468,7 +15344,7 @@ theo chính sách tài liệu (<a href="#f-02-constraints-00-index--24-conventio
 </tr>
 <tr>
 <td><strong>Tenant</strong></td>
-<td>Ranh giới cô lập dữ liệu và tài nguyên của một khách; mọi entity, log, quota đều mang tenant</td>
+<td>Ranh giới cô lập dữ liệu và tài nguyên của một khách; mọi entity, log, quota đều mang tenant. Trong database Management, tenant của metap là <strong>org</strong> (<a href="#f-09-adr-0046-management-database-tenancy-and-storage">ADR-0046</a>)</td>
 </tr>
 <tr>
 <td><strong>Zone</strong></td>
@@ -15002,7 +15878,23 @@ theo chính sách tài liệu (<a href="#f-02-constraints-00-index--24-conventio
 <tbody>
 <tr>
 <td><strong>PolicyVersion</strong></td>
-<td>Bản policy bất biến của một zone, sinh ra khi được duyệt</td>
+<td>Bản policy bất biến của một zone, sinh ra khi được duyệt; lưu là một tài liệu jsonb có <code>content_hash</code></td>
+</tr>
+<tr>
+<td><strong>Đối tượng nháp</strong></td>
+<td>Rule, list, exception… người dùng đang sửa, mỗi cái một dòng; publish thì gom thành PolicyVersion</td>
+</tr>
+<tr>
+<td><strong>Unique scope</strong></td>
+<td>Phạm vi của ràng buộc unique trong <code>metap-go</code>: <code>tenant</code> (mặc định, duy nhất trong tenant) hoặc <code>global</code> (duy nhất trong cả bảng)</td>
+</tr>
+<tr>
+<td><strong>System field</strong></td>
+<td>Field do nền tảng ghi (<code>lastUsedAt</code>, bộ đếm), người dùng không ghi được; cập nhật không tăng version, không audit</td>
+</tr>
+<tr>
+<td><strong>Hostname claim</strong></td>
+<td>Bản ghi trong registry toàn cục giữ quyền một hostname cho một zone, chống hai org cùng dùng</td>
 </tr>
 <tr>
 <td><strong>Snapshot / bundle</strong></td>
@@ -15643,12 +16535,12 @@ theo chính sách tài liệu (<a href="#f-02-constraints-00-index--24-conventio
 <td><a href="#f-01-introduction-00-index--13-mục-tiêu-chất-lượng">1.3</a></td>
 </tr>
 <tr>
-<td><strong>QS-1…QS-40</strong></td>
+<td><strong>QS-1…QS-41</strong></td>
 <td>Kịch bản chất lượng đo được</td>
 <td><a href="#f-10-quality-00-index--103-kịch-bản">10.3</a></td>
 </tr>
 <tr>
-<td><strong>R1…R28</strong></td>
+<td><strong>R1…R29</strong></td>
 <td>Rủi ro</td>
 <td><a href="#f-11-risks-00-index">11.1</a></td>
 </tr>
@@ -15701,6 +16593,11 @@ theo chính sách tài liệu (<a href="#f-02-constraints-00-index--24-conventio
 <td><strong>N1…N5 / E1…E3 / I1…I3 / K1…K5</strong></td>
 <td>Phương án nền L7 / engine WAF / cách L7 gọi WAF / tổ hợp cho spike</td>
 <td><a href="#f-09-adr-0031-edge-l7-and-waf-engine-options">ADR-0031</a></td>
+</tr>
+<tr>
+<td><strong>MG1…MG5 / DB1…DB4</strong></td>
+<td>Thiếu sót của <code>metap-go</code> tìm thấy khi thiết kế (đã sửa trừ MG3) / quyết định của database Management</td>
+<td><a href="#f-05-building-blocks-08-components-14-management-database">5.8.14</a></td>
 </tr>
 <tr>
 <td><strong>IA1…IA13</strong></td>

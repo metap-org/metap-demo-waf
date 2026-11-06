@@ -12,6 +12,9 @@ import (
 func DomainEntity() metadata.EntityDefinition {
 	apexDomain := field("apexDomain", "Apex Domain", metadata.KindString, true, true)
 	apexDomain.Unique = boolPtr(true)
+	// A domain belongs to one tenant platform-wide, not once per tenant.
+	globalScope := metadata.UniqueScopeGlobal
+	apexDomain.UniqueScope = &globalScope
 	apexDomain.Searchable = boolPtr(true)
 
 	return metadata.EntityDefinition{

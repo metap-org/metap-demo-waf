@@ -64,7 +64,7 @@ flowchart TB
 | **reporting** | SavedSearch, ReportDefinition, ReportRun | — | Chạy báo cáo theo lịch (`metap-cron`), xuất PDF/CSV |
 | **billing** | Plan, Subscription, Entitlements, Invoice, UsageRecord | `trial → active → past_due → suspended` | Phát `EntitlementsChanged`, nhận `UsageReport`, gọi cổng thanh toán |
 
-Audit dùng `metap-audit` cho mọi entity; FP label (đánh dấu chặn nhầm) ghi ở Management rồi phát
+Thiết kế database: [5.8.14](14-management-database.md). Audit dùng `metap-audit` cho mọi entity; FP label (đánh dấu chặn nhầm) ghi ở Management rồi phát
 sang Analytics để join vào hiệu quả rule.
 
 ## Tích hợp

@@ -31,6 +31,7 @@
 | R26 | Sai số đo usage gây tranh chấp hoá đơn | Trung bình | Cao | `UsageCounter` không lấy mẫu, số thứ tự, đối soát 24 giờ, bộ đếm cục bộ 7 ngày (QS-35); khách xem usage theo zone trong kỳ | Khiếu nại hoá đơn; chênh lệch đối soát > 0,1% |
 | R27 | Thêm runtime thứ ba (Elixir) làm khó tuyển người và vận hành | Trung bình | Trung bình | Giới hạn Elixir ở hai thành phần có hợp đồng rõ (realtime gateway, notifier); nếu không đủ người thì dự phòng Centrifugo + Go ([ADR-0044](../09-adr/0044-realtime-gateway-and-notifier-runtime.md)) | Thiếu người đọc được Elixir; sự cố gateway kéo dài |
 | R28 | L7 và WAF hiểu cùng một request khác nhau (chuẩn hoá lệch), kẻ tấn công lách qua WAF | Trung bình | Cao | Một bên chuẩn hoá, gửi cả bản gốc và bản đã chuẩn hoá; bộ test evasion trong CI (IA2) | Payload bị chặn ở WAF test nhưng lọt qua edge thật |
+| R29 | Thay đổi nền tảng ở `metap-go` (unique mặc định theo tenant, index mới) làm sản phẩm đang chạy dựng lại index hoặc đổi nghĩa unique khi nâng | Trung bình | Trung bình | Đã sửa ở `metap-go` (Phase 103) kèm e2e đường nâng cấp; field cần duy nhất toàn bảng khai báo `uniqueScope: global` ([5.8.14](../05-building-blocks/08-components/14-management-database.md)) | Lần reconcile đầu sau khi nâng chạy lâu; lỗi trùng unique mới |
 | R9 | Đội nhỏ dàn trải 4 plane | Cao | Cao | Mua/dùng mã nguồn mở cho phần không khác biệt; làm đúng thứ tự giai đoạn | Trễ MVP |
 
 ## 11.2 Chênh lệch với code demo hiện tại
@@ -56,6 +57,7 @@ Edge theo hợp đồng ở [05-contracts](../05-building-blocks/05-contracts.md
 
 Đã chốt ngày 2026-11-06: biến thể cú pháp rule ([ADR-0014](../09-adr/0014-cel-as-rule-language.md),
 CEL), công nghệ của Control, Analytics, Management ([05 · bản đồ công nghệ](../05-building-blocks/07-technology-map.md)),
+database của Management ([ADR-0046](../09-adr/0046-management-database-tenancy-and-storage.md)),
 Elixir + Phoenix cho realtime gateway và notifier ([ADR-0044](../09-adr/0044-realtime-gateway-and-notifier-runtime.md)).
 
 | Chủ đề | Cần quyết | Ảnh hưởng |

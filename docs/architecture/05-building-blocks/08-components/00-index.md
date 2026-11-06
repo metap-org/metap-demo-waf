@@ -19,6 +19,7 @@ thiết kế, hợp đồng hoặc schema chính, hành vi khi lỗi. Công ngh�
 | 5.8.11 | [11-notification-fanout.md](11-notification-fanout.md) | Notifier: fan-out nhiều kênh, khách tự tích hợp, kênh theo gói | Analytics |
 | 5.8.12 | [12-management.md](12-management.md) | waap-management (metap-go), portal | Management |
 | 5.8.13 | [13-realtime-gateway.md](13-realtime-gateway.md) | Realtime gateway: số liệu và event live tới portal, hàng chục nghìn phiên | Analytics |
+| 5.8.14 | [14-management-database.md](14-management-database.md) | Database của Management: tenant, schema, entity theo module, bảng partition, registry toàn cục | Management |
 
 ## Danh sách deployable
 

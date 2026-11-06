@@ -96,6 +96,7 @@ flowchart LR
 | QS-38 | Realtime | 100.000 phiên đồng thời, trong đó 30.000 phiên mới mở trong 5 phút khi có tấn công lớn | QS-37 giữ được; không node gateway nào hết RAM; luồng ghi log và Query API không bị ảnh hưởng |
 | QS-39 | Bảo mật vận hành | Node offline 3 ngày rồi nối lại | Tự có cert mới và nhận config trong ≤ 5 phút, không cần người làm; traffic không bị gián đoạn trong suốt thời gian offline |
 | QS-40 | Bảo mật vận hành | Thu hồi một node nghi bị chiếm | Mọi bên nhận từ chối kết nối mới của node trong ≤ 5 phút, kết nối đang mở bị cắt trong ≤ 1 h; node không gia hạn hay re-enroll được nữa |
+| QS-41 | Hiệu năng | Org có 100.000 zone, database chung chứa 1 triệu zone; mở danh sách zone có lọc và sắp xếp | p95 ≤ 300 ms; truy vấn dùng index `(tenant_id, …)`, không quét tuần tự |
 
 ## 10.4 Quy mô thiết kế
 
