@@ -14,7 +14,8 @@ nghiệp vụ, khối lượng vừa phải; ở đó tốc độ phát triển 
 
 | Plane / thành phần | Ngôn ngữ | Lý do |
 |---|---|---|
-| **Edge** (gateway, policy agent, state sync) | **Chờ chọn** ([ADR-0031](0031-edge-l7-and-waf-engine-options.md)); shortlist: Rust (A1) hoặc Go (D2) | Quyết định bằng spike đo độ trễ, độ trung thành CRS, công sức; Envoy (B2) là ứng viên thứ ba |
+| **Edge proxy** | **Chờ chọn** ([ADR-0031](0031-edge-l7-and-waf-engine-options.md)); shortlist Rust (Pingora), Go, Envoy (C++ + wasm) | Quyết định bằng spike |
+| **WAF inspection** | Go mặc định (Coraza), so sánh libmodsecurity (C++) | Process riêng nên GC và rủi ro bộ nhớ của engine không lan sang proxy ([ADR-0033](0033-two-tier-edge-proxy-and-waf.md)) |
 | **Replay worker** | Cùng ngôn ngữ với edge | Dùng chung code pipeline với edge để mô phỏng chạy đúng code đang chặn traffic ([ADR-0026](0026-replay-on-request-samples-with-shared-pipeline.md)) |
 | **Công cụ `edge-verify`** | Cùng ngôn ngữ với edge | Compiler và pipeline phát hành ruleset nạp thử snapshot bằng đúng loader của edge |
 | Log shipper, ingest gateway | Vector (Rust, có sẵn) | [ADR-0019](0019-vector-as-node-log-shipper.md) |
@@ -31,7 +32,7 @@ Nếu edge không viết bằng Go, ranh giới ngôn ngữ trùng ranh giới p
   Edge vốn đã là codebase và chu kỳ deploy riêng, không phụ thuộc `metap`, nên ranh giới rõ.
 - Nếu chọn Rust cho edge: org vừa bỏ Rust khỏi các repo khác (2026-11-01), cần người viết Rust thành
   thạo ([11 R12](../11-risks/00-index.md#111-rủi-ro)).
-- Nếu edge không phải Go: kiểm tra rule bằng `cel-go` nhưng thực thi bằng ngôn ngữ khác, cần bộ test
+- Nếu edge proxy không phải Go: kiểm tra rule bằng `cel-go` nhưng phần pre thực thi bằng ngôn ngữ khác, cần bộ test
   đối chiếu ngữ nghĩa ([ADR-0032](0032-cel-checked-at-control-ir-at-edge.md)).
 
 ## Phương án đã cân nhắc
@@ -41,7 +42,7 @@ Nếu edge không viết bằng Go, ranh giới ngôn ngữ trùng ranh giới p
   chứng nhiều năm (NGINX, Envoy, HAProxy), vẫn nằm trong các phương án của ADR-0031.
 - **Elixir cho notifier:** BEAM rất hợp cho fan-out (mỗi kênh một process, supervisor tự khởi động
   lại, retry). Không chọn vì khối lượng thông báo nhỏ (hàng nghìn tin, không phải hàng triệu), Go xử
-  lý thừa sức với thiết kế ở [5.8.9](../05-building-blocks/08-components/09-notification-fanout.md),
+  lý thừa sức với thiết kế ở [5.8.11](../05-building-blocks/08-components/11-notification-fanout.md),
   còn thêm runtime thứ ba thì tốn vận hành và tuyển người. Xem lại khi: (a) cần đẩy event realtime tới
   hàng chục nghìn phiên portal cùng lúc (Phoenix Channels là lựa chọn mạnh), hoặc (b) số tin thông báo
   vượt mức một cụm Go nhỏ xử lý được.

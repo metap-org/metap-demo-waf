@@ -20,26 +20,42 @@ Các kịch bản chính, mỗi kịch bản là một luồng xuyên plane.
 ```mermaid
 sequenceDiagram
     participant U as End-user
-    participant G as Edge gateway
-    participant S as Snapshot (RAM)
-    participant L as Log shipper
+    participant D as DNS điều hướng
+    participant P as Edge proxy
+    participant W as WAF inspection
+    participant C as Cache
     participant O as Origin
-    U->>G: HTTPS request (SNI = shop.example.com)
-    G->>S: tra zone theo hostname
-    G->>G: TLS, chuẩn hoá, access list, UAM, rate limit
-    G->>G: managed ruleset (anomaly score), custom rule
-    alt bị chặn
-        G-->>U: 403, trang chặn có request ID
-        G->>L: security event (rule ID, policy version)
-    else cho qua
-        G->>O: request đã lọc
-        O-->>G: response
-        G-->>U: response
+    participant L as Vector
+    U->>D: shop.example.com (CNAME tới hostname edge)
+    D-->>U: IP của PoP gần, đang khoẻ
+    U->>P: HTTPS request
+    P->>P: TLS, giới hạn giao thức, access list, UAM, rate limit, custom rule phần pre
+    alt bị chặn hoặc challenge ở pre-filter
+        P-->>U: 403 hoặc challenge (có request ID)
+        P->>L: security event (bước, rule ID, policy version)
+    else cần kiểm tra
+        P->>W: Inspect(header, body tới giới hạn)
+        W-->>P: Verdict (rule ID, anomaly score)
+        alt verdict block / challenge
+            P-->>U: 403 hoặc challenge
+            P->>L: security event
+        else cho qua
+            P->>C: tra cache
+            alt hit
+                C-->>U: response từ cache
+            else miss
+                P->>O: request đã lọc
+                O-->>P: response
+                P->>C: lưu nếu cache được
+                P-->>U: response
+            end
+        end
     end
-    G->>L: access log (theo tỉ lệ lấy mẫu của gói)
+    P->>L: access log (cache_status, inspected, theo tỉ lệ lấy mẫu)
 ```
 
-Không bước nào gọi mạng ra ngoài node, ngoài kết nối tới origin.
+Không bước nào gọi mạng ra ngoài PoP, ngoài kết nối tới origin. Request bị chặn ở pre-filter không
+tốn CPU của tầng WAF.
 
 ## 6.2 Thay đổi policy theo đường thường
 

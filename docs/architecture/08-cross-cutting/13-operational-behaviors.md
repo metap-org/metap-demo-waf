@@ -114,7 +114,7 @@ ticket trong giờ làm việc.
 | | |
 |---|---|
 | Mục tiêu | Khách tự xử lý được bằng công cụ có sẵn; nền tảng không bị kéo sập; khách khác không bị ảnh hưởng |
-| Tín hiệu | Cảnh báo D1–D5 của khách ([32](../05-building-blocks/08-components/08-alerting-rules-and-algorithms.md)); rps theo PoP so với năng lực; tỉ lệ request bị DDoS L7 giảm thiểu |
+| Tín hiệu | Cảnh báo D1–D5 của khách ([32](../05-building-blocks/08-components/10-alerting-rules-and-algorithms.md)); rps theo PoP so với năng lực; tỉ lệ request bị DDoS L7 giảm thiểu |
 | Cảnh báo | NOC P2: một zone chiếm > 20% rps của một PoP. P1: PoP vượt 80% năng lực |
 | Tự phản ứng | DDoS L7 và rate limit của zone; Under Attack mode nếu khách đã bật tự động (chưa chốt); L3/L4 của hạ tầng/đối tác |
 | Runbook | Liên hệ khách (gói Business+), đề xuất Under Attack mode, rule chặn theo top nguồn; nếu PoP quá tải → bật scrubbing của đối tác cho dải IP bị tấn công, phân tán qua nhiều PoP; ghi sự cố, báo cáo sau tấn công cho khách |
@@ -128,6 +128,26 @@ ticket trong giờ làm việc.
 | Cảnh báo | Burn rate S8. P2: lỗi một provider > 10% trong 10 phút |
 | Tự phản ứng | Chuyển provider dự phòng (SMTP, SMS); cảnh báo critical rơi về email |
 | Runbook | Kiểm trạng thái provider, quota, khoá API; thông báo khách nếu một loại kênh ngừng > 30 phút |
+
+### A13. Tầng WAF của một PoP quá tải
+
+| | |
+|---|---|
+| Mục tiêu | S11; kết nối client không bị ảnh hưởng (QS-18) |
+| Tín hiệu | `waap_waf_queue_depth`, `waap_waf_overloaded_total{tenant}`, CPU của pool WAF, `waap_edge_failmode_triggered_total{reason="waf_overloaded"}` |
+| Cảnh báo | Burn rate S11. P2: `Overloaded` > 0,1% request đi qua WAF trong 5 phút ở một PoP. P1: circuit breaker ở proxy mở cho cả PoP |
+| Tự phản ứng | Admission control giữ phần CPU của từng tenant; proxy áp fail mode theo zone; autoscale pool WAF nếu PoP chạy trên hạ tầng co giãn được |
+| Runbook | Xem tenant nào chiếm CPU (`waap_waf_cpu_seconds_total{tenant}`): tấn công tầng ứng dụng nhắm một zone → đề xuất Under Attack mode hoặc rule pre để loại ở proxy; ruleset mới tốn CPU hơn → so sánh theo version, rollback; thiếu năng lực thật → thêm node WAF, điều hướng bớt traffic sang PoP khác qua DNS |
+
+### A14. Cache hiệu quả thấp hoặc purge chậm
+
+| | |
+|---|---|
+| Mục tiêu | S12; hit ratio theo zone không giảm đột ngột |
+| Tín hiệu | `waap_edge_cache_requests_total{status}` theo zone, `waap_edge_purge_duration_seconds`, dung lượng cache theo PoP |
+| Cảnh báo | P3: hit ratio của một zone giảm > 30% so với baseline sau một thay đổi cache rule. P2: burn rate S12 |
+| Tự phản ứng | Không |
+| Runbook | Hit ratio giảm sau thay đổi → so sánh cache rule theo version, đề xuất rollback cho khách; purge chậm → kiểm fast lane và node chưa ack |
 
 ## B. Thao tác của người vận hành
 
@@ -146,7 +166,7 @@ ticket trong giờ làm việc.
 | | |
 |---|---|
 | Mục tiêu | Không tăng chặn nhầm; không giảm khả năng phát hiện; không tăng độ trễ quá ngưỡng |
-| Cách làm | Pipeline release ([22](../05-building-blocks/08-components/05-cert-ruleset-release.md)) → log-only song song toàn fleet ≥ 24 h → chuyển mặc định cho zone "tự nhận bản mới" |
+| Cách làm | Pipeline release ([22](../05-building-blocks/08-components/07-cert-ruleset-release.md)) → log-only song song toàn fleet ≥ 24 h → chuyển mặc định cho zone "tự nhận bản mới" |
 | Gate | Chênh lệch tỉ lệ chặn bản mới vs bản cũ trên traffic thật theo rule; W5 (nghi chặn nhầm) trên dữ liệu log-only |
 | Tự phản ứng | Dừng chuyển mặc định nếu gate hỏng |
 | Runbook | Rule mới gây chênh lệch lớn → tắt rule đó trong release, phát hành lại; thông báo thay đổi cho khách cố định version |

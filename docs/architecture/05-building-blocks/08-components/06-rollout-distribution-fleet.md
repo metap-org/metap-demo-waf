@@ -1,4 +1,4 @@
-# 5.8.4 Rollout orchestrator, distribution, fleet registry (Control plane)
+# 5.8.6 Rollout orchestrator, distribution, fleet registry (Control plane)
 
 Quyết định node nào chạy manifest nào, đưa manifest tới node, và theo dõi kết quả.
 

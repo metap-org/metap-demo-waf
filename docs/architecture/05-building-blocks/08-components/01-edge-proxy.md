@@ -1,0 +1,109 @@
+# 5.8.1 Edge proxy (tầng 1)
+
+Tầng đầu của edge ([ADR-0033](../../09-adr/0033-two-tier-edge-proxy-and-waf.md)): nhận mọi kết nối,
+lọc rẻ những gì lọc được, phục vụ cache, và chỉ chuyển sang tầng WAF ([5.8.2](02-waf-inspection.md))
+những request cần kiểm tra sâu. Tài nguyên chính là **RAM, số kết nối, băng thông**, không phải CPU
+kiểm tra nội dung.
+
+> Nền L7 của tầng này **chưa chọn** ([ADR-0031](../../09-adr/0031-edge-l7-and-waf-engine-options.md)).
+> Thiết kế component dưới đây đúng với mọi phương án; chỗ khác nhau theo phương án thì ghi rõ.
+
+## Component diagram
+
+```mermaid
+flowchart TB
+    l4["L3/L4 · anycast / GeoDNS"]
+    subgraph PX["Edge proxy"]
+        lst["Listener + TLS<br/>h1 · h2 · h3"]
+        lim["Protocol limits + normalizer"]
+        rid["Request ID · zone router"]
+        subgraph PRE["Pre-filter (rẻ, chạy trước)"]
+            acl["Access list<br/>allow · deny · reputation"]
+            uam["Challenge & clearance<br/>Under Attack mode"]
+            rl["Rate limit · DDoS L7"]
+            bot["Bot tín hiệu rẻ<br/>(Mở rộng)"]
+            crp["Custom rule phần pre"]
+        end
+        gate["Inspect gate<br/>có cần gọi WAF không"]
+        buf["Body buffer<br/>tới giới hạn của gói"]
+        ic["Inspection client<br/>gRPC, timeout, circuit breaker"]
+        dec["Decision"]
+        cache["Cache (CDN)<br/>RAM + NVMe"]
+        up["Upstream<br/>origin / origin shield"]
+        resp["Response writer<br/>trang chặn · challenge"]
+        tel["Telemetry emitter"]
+    end
+    waf["Tầng WAF inspection<br/>(5.8.2)"]
+    origin["Origin"]
+    vec["Vector"]
+
+    l4 --> lst --> lim --> rid --> acl --> uam --> rl --> bot --> crp --> gate
+    gate -->|không cần| dec
+    gate -->|cần| buf --> ic <--> waf
+    ic --> dec
+    dec -->|block / challenge| resp
+    dec -->|cho qua| cache
+    cache -->|miss| up --> origin
+    dec --> tel --> vec
+    cache --> tel
+```
+
+## Thứ tự xử lý
+
+| # | Bước | Ở tầng | Chi phí | Kết quả có thể |
+|---|---|---|---|---|
+| 1 | L3/L4 | Hạ tầng / đối tác | — | Rớt gói |
+| 2 | TLS, HTTP | Proxy | RAM, CPU TLS | Đóng kết nối |
+| 3 | Giới hạn giao thức, chuẩn hoá | Proxy | Rất thấp | 400/413/431 |
+| 4 | Access list (allow, deny, reputation) | Proxy | Rất thấp (trie) | Block; allow bỏ qua bước 5–11 theo phạm vi cấu hình |
+| 5 | Under Attack mode, challenge | Proxy | Thấp | Challenge |
+| 6 | Rate limit, DDoS L7 | Proxy | Thấp | Block / challenge |
+| 7 | Bot (tín hiệu rẻ: TLS fingerprint, header) | Proxy | Thấp | Challenge / chấm điểm |
+| 8 | Custom rule **phần pre** | Proxy | Thấp | Theo hành động của rule |
+| 9 | Inspect gate | Proxy | Rất thấp | Gọi hay không gọi WAF |
+| 10 | Managed ruleset, custom rule **phần inspect**, API schema | **WAF** | **Cao** | Verdict |
+| 11 | Quyết định | Proxy | Rất thấp | allow / log / challenge / block |
+| 12 | Cache lookup | Proxy | RAM / đĩa | Phục vụ từ cache |
+| 13 | Proxy tới origin (hoặc origin shield) | Proxy | Mạng | Response |
+
+Mục tiêu của thứ tự này: khi bị tấn công, phần lớn lưu lượng bị loại ở bước 4–8 với chi phí gần như
+không đáng kể, tầng WAF chỉ thấy phần còn lại.
+
+**WAF đứng trước cache theo mặc định**, để payload tấn công trong query của một URL đã cache vẫn bị phát
+hiện và ghi nhận. Zone có thể bật "bỏ qua WAF cho tài nguyên tĩnh" (theo path/đuôi file, chỉ GET/HEAD
+không body) để giảm tải WAF cho site nhiều static.
+
+## Thành phần
+
+| Component | Thiết kế |
+|---|---|
+| **Listener + TLS** | TCP 443/80, QUIC 443/udp; PROXY protocol v2 sau L4 đối tác; chọn cert theo SNI từ snapshot; session ticket key xoay qua bundle chung |
+| **Protocol limits + normalizer** | Giới hạn header, URL, số tham số, độ sâu JSON; từ chối request sai chuẩn (smuggling: `Content-Length` + `Transfer-Encoding` mâu thuẫn); chuẩn hoá path cho pre-filter, giữ bản gốc gửi WAF |
+| **Access list** | Trie IPv4/IPv6; geo/ASN từ MMDB; danh sách reputation của NCC trong bundle chung; `allow` có phạm vi (bỏ qua rate limit, challenge, WAF, hoặc tất cả) |
+| **Challenge & clearance** | JS proof-of-work và challenge tương tác; clearance token HMAC (zone, hạn, IP prefix, UA hash), kiểm cục bộ; WAF tier trả verdict `challenge` thì proxy thực thi tại đây |
+| **Rate limit · DDoS L7** | Sliding window, hot key đồng bộ qua Valkey region ([ADR-0021](../../09-adr/0021-valkey-for-hot-key-rate-limit-sync.md)); ngưỡng thích ứng theo baseline zone |
+| **Custom rule phần pre** | Rule chỉ dùng trường rẻ (IP, geo, ASN, method, host, path, query, header, cookie, bot score), thực thi IR ([ADR-0034](../../09-adr/0034-pre-filter-and-rule-split-across-tiers.md)) |
+| **Inspect gate** | Không gọi WAF khi: đã bị chặn/challenge, nằm trong allow có phạm vi bỏ WAF, zone tắt WAF, tài nguyên tĩnh được miễn |
+| **Body buffer** | Đọc body tới giới hạn theo gói (ví dụ 128 KB) vào RAM, gửi WAF theo chunk; phần vượt giới hạn stream thẳng tới origin, ghi cờ `body_truncated` |
+| **Inspection client** | gRPC stream tới pool WAF trong PoP ([Inspection API](../05-contracts.md#inspection-api-edge-proxy--waf)); timeout theo zone; circuit breaker khi tầng WAF lỗi hoặc quá tải → fail mode của zone |
+| **Cache** | Khoá cache mặc định `(zone, host, path, query đã sắp xếp, header Vary)`; tôn trọng `Cache-Control`; cache rule theo zone; RAM cho object nóng, NVMe cho object lớn; purge theo URL, prefix, tag; `stale-if-error` khi origin lỗi ([ADR-0035](../../09-adr/0035-cdn-and-dns-strategy.md)) |
+| **Upstream** | Pool kết nối theo origin, mTLS tới origin, retry cho request idempotent, health check thụ động; Mở rộng: đi qua origin shield (tiered cache) |
+| **Telemetry** | Ghi thêm `cache_status`, `inspected`, `waf_latency_ms`, `body_truncated` vào bản ghi |
+
+## Ngân sách độ trễ
+
+| Phần | p99 |
+|---|---|
+| Xử lý của proxy (bước 2–9, 11) | ≤ 0,5 ms |
+| Gọi WAF trong PoP (mạng + kiểm tra ở PL1) | ≤ 1,5 ms |
+| **Tổng độ trễ thêm (QS-1)** | **≤ 2 ms** |
+| Request không cần WAF (bị chặn sớm, cache hit tĩnh được miễn) | ≤ 0,5 ms |
+
+## Lỗi và hành vi
+
+| Tình huống | Hành vi |
+|---|---|
+| Tầng WAF timeout, lỗi, hoặc circuit breaker mở | Fail mode của zone (open: cho qua và ghi `waf_unavailable`; closed: 503 có request ID) |
+| Origin lỗi | Phục vụ bản cũ trong cache nếu có (`stale-if-error`), nếu không 502/504 có request ID |
+| Hết RAM cho body buffer | Từ chối request mới có body lớn của tenant vượt quota (governor), không ảnh hưởng tenant khác |
+| Snapshot chưa nạp | Không mở listener |

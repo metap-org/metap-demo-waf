@@ -6,22 +6,26 @@ thiết kế, hợp đồng hoặc schema chính, hành vi khi lỗi. Công ngh�
 
 | Mục | File | Container | Plane |
 |---|---|---|---|
-| 5.8.1 | [01-edge-gateway.md](01-edge-gateway.md) | Edge gateway, thư viện `pipeline` | Edge |
-| 5.8.2 | [02-edge-agent-and-state.md](02-edge-agent-and-state.md) | Policy agent, state sync, Vector | Edge |
-| 5.8.3 | [03-config-and-compiler.md](03-config-and-compiler.md) | config-service, compiler, định dạng snapshot | Control |
-| 5.8.4 | [04-rollout-distribution-fleet.md](04-rollout-distribution-fleet.md) | rollout-orchestrator, distribution, regional relay, fleet-registry | Control |
-| 5.8.5 | [05-cert-ruleset-release.md](05-cert-ruleset-release.md) | cert-service, pipeline phát hành ruleset | Control |
-| 5.8.6 | [06-ingestion-and-storage.md](06-ingestion-and-storage.md) | Ingest gateway, Kafka, enricher, ClickHouse, archiver | Analytics |
-| 5.8.7 | [07-query-detection-export-replay.md](07-query-detection-export-replay.md) | query-api, detection, notifier, exporter, replay | Analytics |
-| 5.8.8 | [08-alerting-rules-and-algorithms.md](08-alerting-rules-and-algorithms.md) | Cảnh báo WAF và DDoS: danh mục, cấu hình ngưỡng, thuật toán | Analytics |
-| 5.8.9 | [09-notification-fanout.md](09-notification-fanout.md) | Notifier: fan-out nhiều kênh, khách tự tích hợp, kênh theo gói | Analytics |
-| 5.8.10 | [10-management.md](10-management.md) | waap-management (metap-go), portal | Management |
+| 5.8.1 | [01-edge-proxy.md](01-edge-proxy.md) | Edge proxy: pre-filter, challenge, cache, gọi WAF | Edge |
+| 5.8.2 | [02-waf-inspection.md](02-waf-inspection.md) | WAF inspection: CRS, custom rule phần inspect | Edge |
+| 5.8.3 | [03-dns-and-traffic-steering.md](03-dns-and-traffic-steering.md) | DNS điều hướng, DNS authoritative (Mở rộng) | Edge |
+| 5.8.4 | [04-edge-agent-and-state.md](04-edge-agent-and-state.md) | Policy agent, state sync, Vector | Edge |
+| 5.8.5 | [05-config-and-compiler.md](05-config-and-compiler.md) | config-service, compiler, định dạng snapshot | Control |
+| 5.8.6 | [06-rollout-distribution-fleet.md](06-rollout-distribution-fleet.md) | rollout-orchestrator, distribution, regional relay, fleet-registry | Control |
+| 5.8.7 | [07-cert-ruleset-release.md](07-cert-ruleset-release.md) | cert-service, pipeline phát hành ruleset | Control |
+| 5.8.8 | [08-ingestion-and-storage.md](08-ingestion-and-storage.md) | Ingest gateway, Kafka, enricher, ClickHouse, archiver | Analytics |
+| 5.8.9 | [09-query-detection-export-replay.md](09-query-detection-export-replay.md) | query-api, detection, notifier, exporter, replay | Analytics |
+| 5.8.10 | [10-alerting-rules-and-algorithms.md](10-alerting-rules-and-algorithms.md) | Cảnh báo WAF và DDoS: danh mục, cấu hình ngưỡng, thuật toán | Analytics |
+| 5.8.11 | [11-notification-fanout.md](11-notification-fanout.md) | Notifier: fan-out nhiều kênh, khách tự tích hợp, kênh theo gói | Analytics |
+| 5.8.12 | [12-management.md](12-management.md) | waap-management (metap-go), portal | Management |
 
 ## Danh sách deployable
 
 | Deployable | Ngôn ngữ / sản phẩm | Chạy ở |
 |---|---|---|
-| `edge` (gateway + agent + state sync) | Chờ chọn ([ADR-0031](../../09-adr/0031-edge-l7-and-waf-engine-options.md)) | Edge node |
+| `edge-proxy` (proxy + agent + state sync) | Chờ chọn ([ADR-0031](../../09-adr/0031-edge-l7-and-waf-engine-options.md)) | Edge node (pool RAM) |
+| `waf-inspection` (engine + agent) | Go mặc định (Coraza) | Edge node (pool CPU, hoặc chung host với cgroup riêng) |
+| `edge-dns` | CoreDNS + plugin | Mỗi PoP |
 | `edge-verify` (nạp thử snapshot, lint ruleset) | Cùng ngôn ngữ và code với edge | Cạnh compiler và pipeline phát hành ruleset |
 | `vector` | Vector | Edge node |
 | `ingest-gateway` | Vector (aggregator) | Mỗi Analytics region |

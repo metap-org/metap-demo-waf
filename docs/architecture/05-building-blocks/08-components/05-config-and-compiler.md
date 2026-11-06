@@ -1,4 +1,4 @@
-# 5.8.3 Config service và compiler (Control plane)
+# 5.8.5 Config service và compiler (Control plane)
 
 Nhận ý định từ Management, lưu thành bản bất biến, biên dịch ra snapshot đã ký.
 
@@ -49,7 +49,7 @@ flowchart LR
 | **CEL checker** | Kiểm tra và hạ rule xuống IR | `cel-go`: parse lại text, check với môi trường biến/hàm cố định, ước lượng chi phí; vượt giới hạn của gói → lỗi biên dịch trả về Management; hợp lệ thì hạ checked AST xuống IR cho edge ([ADR-0032](../../09-adr/0032-cel-checked-at-control-ir-at-edge.md)) |
 | **CRS config generator** | Sinh cấu hình SecLang cho zone | `SecAction` cho paranoia level và ngưỡng anomaly; `SecRuleRemoveById` cho rule tắt; exception thành `SecRule ... "ctl:ruleRemoveTargetById=..."` có điều kiện path/method |
 | **Entitlement validator** | Áp giới hạn gói | Số rule, kích thước body kiểm tra, tính năng được bật |
-| **Bundle builder** | Đóng gói | Protobuf → zstd → SHA-256; bundle zone tham chiếu digest của bundle chung |
+| **Bundle builder** | Đóng gói | Protobuf → zstd → SHA-256; bundle zone chia **phần proxy** và **phần WAF** ([5.5](../05-contracts.md#snapshot-gồm-gì)), tham chiếu digest của bundle chung; **chia custom rule theo tầng**: xếp theo priority, rule đầu tiên cần trường đắt (body, tham số đã parse, JSON path) và mọi rule sau nó vào phần WAF, các rule trước vào phần proxy ([ADR-0034](../../09-adr/0034-pre-filter-and-rule-split-across-tiers.md)) |
 | **Self-test** | Bảo đảm bundle chạy được | Gọi `edge-verify` (build từ cùng code với edge, chạy sidecar cạnh compiler) để nạp bundle bằng chính loader của edge, chạy corpus request mẫu của zone (onboarding) và corpus chung; lỗi → không ký |
 | **Manifest signer** | Ký | Gọi OpenBao transit `sign` với khoá Ed25519; manifest gồm danh sách digest, schema version, thời điểm, ID khoá |
 

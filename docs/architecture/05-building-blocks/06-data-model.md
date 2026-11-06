@@ -20,6 +20,9 @@ erDiagram
     POLICY_VERSION ||--|| MANAGED_RULESET_CONFIG : contains
     POLICY_VERSION ||--o{ EXCEPTION : contains
     POLICY_VERSION ||--|| ZONE_SETTINGS : contains
+    POLICY_VERSION ||--o{ CACHE_RULE : contains
+    ZONE ||--o{ PURGE_REQUEST : requests
+    ZONE ||--o{ DNS_RECORD : "has (Mở rộng)"
     CHANGE_REQUEST }o--|| POLICY_VERSION : proposes
     CHANGE_REQUEST ||--o{ APPROVAL : needs
     ACCOUNT ||--o{ ALERT_POLICY : configures
@@ -35,6 +38,9 @@ erDiagram
 | **Exception** | Phạm vi bắt buộc: rule ID (hoặc nhóm) + điều kiện (path, method, tham số, header); không có "tắt toàn bộ" ẩn |
 | **ZoneSettings** | Fail mode, Under Attack mode (bật/tắt, hạn tự tắt), TLS, giới hạn body |
 | **Entitlements** | Thuộc gói, không thuộc zone; Control và Analytics thực thi ([ADR-0007](../09-adr/0007-log-by-subscription-entitlements.md)) |
+| **CacheRule** | Điều kiện (path, đuôi file, header), TTL, cache key tuỳ biến, bỏ qua cache, miễn WAF cho tài nguyên tĩnh ([ADR-0035](../09-adr/0035-cdn-and-dns-strategy.md)) |
+| **PurgeRequest** | Theo URL, prefix, tag (Mở rộng); đi fast lane; trạng thái hoàn tất theo % node |
+| **DnsRecord** | Mở rộng, khi khách chuyển DNS authoritative sang NCC: loại, tên, giá trị, TTL, proxied (trả IP edge thay vì IP origin) |
 | **AuditEntry** | Chỉ ghi thêm; gồm diff, người làm, kênh (UI/API/IaC), IP, change request liên quan |
 
 ## Mô hình rule

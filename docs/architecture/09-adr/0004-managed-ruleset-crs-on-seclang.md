@@ -23,7 +23,7 @@ NCC vẫn cần tài sản riêng (rule cho lỗ hổng mới, rule theo kinh ng
 - Có bộ rule đã được kiểm chứng rộng rãi ngay từ MVP.
 - Engine SecLang là phần nặng nhất trong ngân sách độ trễ; phải benchmark sớm với CRS ở các
   paranoia level và giới hạn kiểm tra body theo entitlements.
-- Chọn Coraza hay ModSecurity phụ thuộc ngôn ngữ của edge gateway; quyết định đi cùng lựa chọn
+- Chọn engine nào cho tầng WAF ([ADR-0033](0033-two-tier-edge-proxy-and-waf.md)) quyết định ở [ADR-0031](0031-edge-l7-and-waf-engine-options.md); quyết định đi cùng lựa chọn
   công nghệ edge.
 
 ## Phương án đã cân nhắc

@@ -1,6 +1,6 @@
 # ADR-0026: Replay chạy trên mẫu request đầy đủ, dùng chung pipeline với edge
 
-- Trạng thái: Chấp nhận; theo [ADR-0030](0030-language-per-workload.md), replay worker viết bằng ngôn ngữ của edge (chờ chọn ở [ADR-0031](0031-edge-l7-and-waf-engine-options.md)) để dùng chung code pipeline
+- Trạng thái: Chấp nhận; replay chạy đúng code của cả hai tầng edge ([ADR-0033](0033-two-tier-edge-proxy-and-waf.md)): thư viện dùng chung nếu cùng ngôn ngữ, hoặc binary của từng tầng ở chế độ offline
 - Ngày: 2026-11-06
 
 ## Bối cảnh

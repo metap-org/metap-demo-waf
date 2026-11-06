@@ -1,7 +1,13 @@
-# 5.8.2 Policy agent, state sync, log shipping trên node
+# 5.8.4 Policy agent, state sync, log shipping trên node
 
-Ba thành phần chạy cạnh gateway trên mỗi node. Policy agent và state sync là module trong cùng
-binary edge (ngôn ngữ theo [ADR-0031](../../09-adr/0031-edge-l7-and-waf-engine-options.md)); Vector là process riêng.
+Ba thành phần chạy cạnh hai tầng edge ([ADR-0033](../../09-adr/0033-two-tier-edge-proxy-and-waf.md)):
+
+- **Policy agent** là module trong binary của **cả hai tầng** (edge proxy và WAF inspection); mỗi tầng
+  chỉ nạp phần bundle của mình từ cùng một manifest, nên hai tầng luôn chạy cùng version policy.
+- **State sync** là module trong binary edge proxy (rate limit nằm ở proxy).
+- **Vector** là process riêng trên mỗi node, nhận bản ghi từ cả hai tầng.
+
+Diagram dưới vẽ cho tầng proxy; tầng WAF giống phần policy agent, không có state sync.
 
 ## Component diagram
 
@@ -28,7 +34,7 @@ flowchart LR
             hk["Hot key detector"]
             sc["Sync client"]
         end
-        gw["Gateway"]
+        gw["Edge proxy"]
     end
     vec["Vector<br/>buffer đĩa"]
 
@@ -93,4 +99,4 @@ stateDiagram-v2
 | Biến đổi | Lấy mẫu access log theo zone (security event không lấy mẫu); che trường theo cấu hình khách bằng VRL; gắn `node_id`, `region` |
 | Buffer | Disk buffer có giới hạn dung lượng; khi đầy, nguồn access log bị chặn trước, security event dùng buffer riêng |
 | Sink | Ingest gateway của Analytics region được gán, qua giao thức `vector` (gRPC) có mTLS bằng cert node, nén zstd; chỉ xoá khỏi buffer đĩa khi gateway xác nhận đã ghi Kafka (end-to-end ack). Edge không biết Kafka tồn tại |
-| Quan sát | Metrics của Vector (độ trễ, mức buffer, lỗi gửi) được gateway gom vào `/metrics` của node |
+| Quan sát | Metrics của Vector (độ trễ, mức buffer, lỗi gửi) được gom vào `/metrics` của node |

@@ -1,6 +1,6 @@
-# 5.8.8 Cảnh báo WAF và DDoS: cấu hình ngưỡng và thuật toán
+# 5.8.10 Cảnh báo WAF và DDoS: cấu hình ngưỡng và thuật toán
 
-Chi tiết hoá phần detection & alerting ở [31](07-query-detection-export-replay.md#detection--alerting)
+Chi tiết hoá phần detection & alerting ở [31](09-query-detection-export-replay.md#detection--alerting)
 và luồng [6.10 E](../../06-runtime/10-analytics-flows.md#e-phát-hiện-cảnh-báo-case). Nguyên tắc
 ([ADR-0027](../../09-adr/0027-explicit-alert-formulas.md)): mỗi cảnh báo là một **template có công thức
 tường minh**; khách chỉnh tham số, không viết truy vấn; mỗi lần cảnh báo kèm đủ số liệu đầu vào để

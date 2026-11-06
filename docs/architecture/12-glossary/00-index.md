@@ -8,6 +8,15 @@
 | **Edge plane** | Đường đi của traffic thật; theo nghĩa chuẩn ngành là *data plane* |
 | **Analytics plane** | Plane nhận, lưu, truy vấn, phân tích log |
 | **PoP** | Point of Presence: một điểm đặt edge node |
+| **Edge proxy** | Tầng 1 của edge: kết nối, TLS, pre-filter, challenge, cache, proxy tới origin |
+| **WAF inspection** | Tầng 2 của edge: dịch vụ kiểm tra nội dung (CRS, rule cần body), trả verdict |
+| **Pre-filter** | Các bước lọc rẻ ở proxy trước khi gọi WAF: access list, challenge, rate limit, custom rule phần pre |
+| **Inspection API** | Hợp đồng gRPC giữa edge proxy và WAF inspection |
+| **Origin shield / tiered cache** | Một lớp cache trung gian giữa PoP và origin, giảm số request về origin |
+| **Purge** | Xoá nội dung khỏi cache theo URL, prefix hoặc tag |
+| **DNS điều hướng** | DNS của NCC trả IP của PoP gần và khoẻ cho hostname edge |
+| **DNS authoritative** | Khi khách chuyển quản lý DNS của domain sang NCC |
+| **Chế độ đứng sau CDN** | WAAP nhận traffic đã qua CDN của khách, lấy IP client từ header tin cậy |
 | **Zone** | Một site/domain khách bảo vệ, đơn vị cấu hình chính |
 | **PolicyVersion** | Bản policy bất biến của một zone, sinh ra khi được duyệt |
 | **Snapshot / bundle** | Bản config đã biên dịch, có chữ ký, edge nạp nguyên khối |

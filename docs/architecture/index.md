@@ -27,8 +27,8 @@ Diagram viết bằng Mermaid để GitHub render trực tiếp và diff đượ
 - Thư mục `NN-…` là mục `N`; `00-index.md` là trang của chính mục đó.
 - File `MM-…` trong thư mục `NN` là mục `N.M`; ví dụ `06-runtime/10-analytics-flows.md` là mục 6.10,
   vì 6.1–6.9 nằm ngay trong `06-runtime/00-index.md`.
-- Thư mục con lặp lại quy tắc một cấp nữa: `05-building-blocks/08-components/03-config-and-compiler.md`
-  là mục 5.8.3.
+- Thư mục con lặp lại quy tắc một cấp nữa: `05-building-blocks/08-components/05-config-and-compiler.md`
+  là mục 5.8.5.
 - ADR đánh số riêng, liên tục `0001`, `0002`, … và không bao giờ đánh lại.
 
 ## Các mục

@@ -1,105 +1,122 @@
-# ADR-0031: Lựa chọn nền L7 edge và engine WAF
+# ADR-0031: Lựa chọn nền cho tầng edge proxy và engine cho tầng WAF
 
-- Trạng thái: **Đề xuất, chờ chọn** sau spike (§6). Thay thế quyết định cũ ở [ADR-0013](0013-edge-gateway-custom-go-with-coraza.md), giờ là phương án D bên dưới.
+- Trạng thái: **Đề xuất, chờ chọn** sau spike (§7). Phương án cũ ở [ADR-0013](0013-edge-gateway-custom-go-with-coraza.md) nằm trong các lựa chọn dưới đây.
 - Ngày: 2026-11-06
 
 ## 1. Bối cảnh
 
-Edge phải chạy pipeline 12 bước ([5.3](../05-building-blocks/03-edge-plane.md)) với độ trễ thêm
-p99 ≤ 2 ms (QS-1), cô lập tài nguyên theo tenant, fail mode theo zone, nạp snapshot nguyên khối, và
-chạy OWASP CRS ([ADR-0004](0004-managed-ruleset-crs-on-seclang.md)). Hai lựa chọn gắn với nhau:
+Edge có hai tầng ([ADR-0033](0033-two-tier-edge-proxy-and-waf.md)), nên có **ba lựa chọn**:
 
-- **Nền L7:** thứ nhận kết nối, TLS, HTTP và proxy tới origin; quyết định luôn ngôn ngữ của edge.
-- **Engine WAF:** thứ chạy SecLang/CRS; không phải engine nào cũng ghép được với nền nào.
+1. **Nền cho tầng proxy:** kết nối, TLS, pre-filter, challenge, cache, proxy tới origin. Tốn RAM, kết
+   nối, băng thông.
+2. **Engine cho tầng WAF:** chạy SecLang/CRS và custom rule phần inspect. Tốn CPU.
+3. **Cách proxy gọi WAF:** giao thức kiểm tra giữa hai tầng.
+
+Hai tầng là hai process riêng, nên hai lựa chọn đầu gần như độc lập: proxy viết bằng một ngôn ngữ, WAF
+có thể viết bằng ngôn ngữ khác.
 
 ## 2. Tiêu chí
 
-| # | Tiêu chí | Vì sao quan trọng | Trọng số |
+| # | Tiêu chí | Áp cho | Trọng số |
 |---|---|---|---|
-| T1 | Độ trễ p99 và CPU mỗi request khi chạy CRS | QS-1, chi phí hạ tầng | Cao |
-| T2 | Độ trung thành với CRS (tỉ lệ pass `go-ftw`) | Managed ruleset là lõi sản phẩm | Cao |
-| T3 | An toàn bộ nhớ trên đường traffic | Parse dữ liệu không tin cậy từ internet | Cao |
-| T4 | Mức kiểm soát pipeline (thứ tự phase, ngân sách thời gian, governor theo tenant, fail mode, swap snapshot) | Các yêu cầu sản phẩm ở 5.3, 8.5, QS-8 | Cao |
-| T5 | Độ chín, cộng đồng, lịch sử vận hành ở quy mô lớn | Rủi ro vận hành | Trung bình |
-| T6 | Kỹ năng đội | Org hiện chủ yếu viết Go; vừa bỏ Rust | Trung bình |
-| T7 | Dùng lại code cho replay và `edge-verify` | [ADR-0026](0026-replay-on-request-samples-with-shared-pipeline.md) | Trung bình |
-| T8 | HTTP/3 | Kỳ vọng của khách, không bắt buộc ở MVP | Thấp |
-| T9 | License phát hành on-prem | [ADR-0024](0024-licensing-policy-for-shipped-components.md) | Điều kiện loại |
+| T1 | Độ trễ p99, bộ nhớ mỗi kết nối, CPU mỗi request | Cả hai | Cao |
+| T2 | Độ trung thành với CRS (`go-ftw`) | WAF | Cao |
+| T3 | An toàn bộ nhớ trên đường traffic | Proxy (nhận traffic internet) cao hơn WAF (đã cô lập process) | Cao |
+| T4 | Mức kiểm soát pre-filter, challenge, governor theo tenant, fail mode, swap snapshot | Proxy | Cao |
+| T5 | **Khả năng cache** (RAM + đĩa, purge, cache key) | Proxy | Cao ([ADR-0035](0035-cdn-and-dns-strategy.md)) |
+| T6 | **Gọi dịch vụ kiểm tra ngoài kèm body** (stream, timeout, fail mode) | Proxy | Cao |
+| T7 | Độ chín, vận hành ở quy mô lớn | Cả hai | Trung bình |
+| T8 | Kỹ năng đội (chủ yếu Go) | Cả hai | Trung bình |
+| T9 | Dùng lại code cho replay và `edge-verify` | Cả hai | Trung bình |
+| T10 | HTTP/3 | Proxy | Thấp |
+| T11 | License phát hành on-prem | Cả hai | Điều kiện loại |
 
-## 3. Phương án nền L7
+## 3. Nền cho tầng proxy
 
-| | A. Rust + Pingora | B. Envoy (C++) | C. NGINX / OpenResty (C + LuaJIT) | D. Go tự xây | E. HAProxy (C) |
+| | P1. Rust + Pingora | P2. Envoy | P3. NGINX / OpenResty | P4. HAProxy | P5. Go tự xây |
 |---|---|---|---|---|---|
-| Cách gắn pipeline | Code Rust trong hook của Pingora | Filter: wasm, Lua, `ext_proc` (gọi service ngoài), hoặc filter C++ tự viết | Lua trong các phase của OpenResty; module C | Code Go trực tiếp | SPOE: gửi request sang agent ngoài process |
-| T1 độ trễ | Tốt, không GC | Tốt ở proxy; wasm/`ext_proc` thêm chi phí mỗi request | Rất tốt ở proxy; Lua nhanh nhưng phần nặng là WAF | Có GC, rủi ro p99 khi CRS cấp phát nhiều | Rất tốt ở proxy; SPOE thêm một chặng IPC |
-| T3 an toàn bộ nhớ | Cao (Rust) | Proxy C++ đã kiểm chứng, code mình viết trong wasm thì an toàn | Lõi C đã kiểm chứng; module C mình viết thì không | Cao (Go) | Lõi C đã kiểm chứng; agent viết bằng gì tuỳ |
-| T4 kiểm soát pipeline | Cao | Trung bình: theo mô hình filter chain, governor theo tenant khó | Trung bình: theo các phase của NGINX | Cao | Thấp: logic chính nằm ngoài process |
-| T5 độ chín | Pingora dùng ở quy mô Cloudflare, cộng đồng nhỏ hơn | Rất chín, hệ sinh thái lớn | Rất chín, phổ biến nhất | Thư viện chuẩn chín, nhưng proxy là tự viết | Rất chín |
-| T6 kỹ năng | Cần người Rust | Cần C++ hoặc wasm | Cần Lua/C | Có sẵn | Cấu hình HAProxy + Go cho agent |
-| T7 dùng lại cho replay | Có (crate) | Chỉ khi logic nằm trong wasm/`ext_proc` | Khó (Lua gắn với NGINX) | Có (package) | Có, nếu agent là service riêng |
-| T8 HTTP/3 | Chưa xác nhận, có thể dùng `quinn` | Có | Có (NGINX mới) | Có (`quic-go`) | Có |
+| T1 | Tốt, không GC | Tốt | Rất tốt | Rất tốt | Tốt; GC ít ảnh hưởng hơn trước vì CRS đã ra khỏi process |
+| T3 | Cao | Lõi C++ đã kiểm chứng; logic của mình trong wasm/Lua | Lõi C đã kiểm chứng; logic Lua | Lõi C đã kiểm chứng | Cao |
+| T4 | Cao (code của mình) | Trung bình (filter chain) | Trung bình (phase của NGINX, Lua) | Thấp–trung bình (Lua, cấu hình) | Cao |
+| T5 cache | Có (`pingora-cache`), cần tự hoàn thiện purge, tầng đĩa | Yếu (cache filter cơ bản) | **Rất mạnh** (`proxy_cache`, đĩa, purge qua module) | Yếu (cache nhỏ trong RAM) | Phải tự viết |
+| T6 gọi WAF | Tự viết client gRPC | **Có sẵn** (`ext_proc`) | Yếu (không có cơ chế gửi body sang dịch vụ ngoài sẵn) | **Có sẵn** (SPOE) | Tự viết client gRPC |
+| T7 | Dùng ở quy mô Cloudflare; cộng đồng nhỏ | Rất chín | Rất chín, phổ biến nhất | Rất chín | Proxy tự viết |
+| T8 | Cần người Rust | C++ / wasm | Lua | Cấu hình + Lua | Có sẵn |
+| T10 | Chưa xác nhận | Có | Có | Có | Có (`quic-go`) |
 
-## 4. Phương án engine WAF
+Nhận xét: không nền nào mạnh cả về cache lẫn gọi WAF sẵn. P3 mạnh nhất về cache nhưng yếu về gọi dịch
+vụ kiểm tra; P2/P4 ngược lại. P1 và P5 phải tự viết cả hai nhưng kiểm soát hoàn toàn.
 
-| | 1. libmodsecurity v3 | 2. Coraza | 3. SecLang thuần Rust | 4. Tự viết engine |
-|---|---|---|---|---|
-| Ngôn ngữ | C++ (OWASP duy trì; bản mới nhất 3.0.17, 9/2026) | Go (OWASP) | Rust (`zentinel-modsec`, `sentinel-modsec`, bản 0.x) | Theo nền |
-| T2 CRS | Engine tham chiếu của CRS | Tương thích CRS đầy đủ, được CRS test | Tự công bố tương thích; chưa kiểm chứng độc lập | Phải tự đạt |
-| T3 an toàn | Thấp: có lịch sử CVE lỗi bộ nhớ | Cao | Cao | Tuỳ |
-| T5 độ chín | Cao (dùng rộng với NGINX) | Trung bình–cao | Thấp | Không có |
-| Ghép được với | A (FFI), C (connector chính thức), E (agent) | D (nhúng), B (proxy-wasm), E (`coraza-spoa`), A (chỉ qua binding kéo runtime Go, không nên) | A | Mọi nền |
+## 4. Engine cho tầng WAF
 
-## 5. Tổ hợp khả thi
-
-| Tổ hợp | Điểm mạnh | Điểm yếu | Nhận xét |
+| | W1. Coraza (Go) | W2. libmodsecurity v3 (C++) | W3. SecLang thuần Rust |
 |---|---|---|---|
-| **A1** Pingora + libmodsecurity | Kiểm soát pipeline cao, không GC, CRS tham chiếu | Code C++ trong process; cần người Rust | Ứng viên cho hiệu năng |
-| **A3** Pingora + SecLang Rust | An toàn bộ nhớ toàn phần | Engine còn non | Hướng dài hạn của A1, không dùng cho MVP |
-| **B2** Envoy + Coraza proxy-wasm | Proxy rất chín, HTTP/3 sẵn | Chi phí wasm mỗi request; governor theo tenant khó | Ứng viên cho độ chín |
-| **C1** OpenResty + ModSecurity connector | Tổ hợp phổ biến nhất, nhiều người vận hành | Pipeline theo phase NGINX; module C; khó dùng lại cho replay | Mốc so sánh hiệu năng |
-| **D2** Go tự xây + Coraza nhúng | Đội làm được ngay; một ngôn ngữ với Control; replay dùng chung | GC và rủi ro p99 | Ứng viên cho tốc độ ra MVP |
-| **E2** HAProxy + `coraza-spoa` | Proxy rất nhanh và chín | WAF ngoài process, thêm một chặng; pipeline phân tán hai nơi | Ít hợp với yêu cầu pipeline |
+| T2 | Tương thích CRS đầy đủ, được CRS test | Engine tham chiếu của CRS | Tự công bố tương thích (`zentinel-modsec`, `sentinel-modsec`, 0.x), chưa kiểm chứng độc lập |
+| T1 | Có GC, nhưng giờ chỉ ảnh hưởng tầng WAF | Nhanh; cần wrapper (Rust/Go/C++) làm dịch vụ gRPC | Chưa có số liệu độc lập |
+| T3 | Cao | Thấp, nhưng đã cô lập trong process riêng nên crash không kéo theo proxy | Cao |
+| T7 | Trung bình–cao; có sẵn `coraza-spoa` cho HAProxy, proxy-wasm cho Envoy | Cao (dùng rộng với NGINX) | Thấp |
+| T8 | Có sẵn (Go) | Cần C++ cho wrapper hoặc FFI | Cần Rust |
+| T9 | Replay chạy cùng engine dễ | Cần wrapper chung | Như W1 nếu replay viết Rust |
 
-## 6. Đề xuất: spike so sánh trước khi chọn
+Vì tầng WAF đã tách process, nhược điểm lớn nhất của W1 (GC) và W2 (an toàn bộ nhớ) đều giảm nhiều.
+**W1 là mặc định hợp lý**; W2 đưa vào spike để so CPU mỗi request, vì CPU tầng WAF là chi phí hạ tầng lớn.
 
-**Shortlist:** **A1**, **D2**, **B2**. **C1** chạy làm mốc so sánh, vì đó là cách làm phổ biến nhất.
+## 5. Cách proxy gọi WAF
 
-Mỗi tổ hợp dựng một prototype tối thiểu, cùng điều kiện:
+| | G1. Inspection API riêng (gRPC stream) | G2. Envoy `ext_proc` | G3. HAProxy SPOE |
+|---|---|---|---|
+| Mô tả | Proto của mình ([5.5](../05-building-blocks/05-contracts.md#inspection-api-edge-proxy--waf)) | Giao thức có sẵn của Envoy | Giao thức có sẵn của HAProxy |
+| Ưu | Độc lập nền proxy; đúng thứ mình cần (verdict sớm, ngân sách thời gian) | Không phải viết client | Không phải viết client; có `coraza-spoa` |
+| Nhược | Phải viết client ở proxy | Gắn với Envoy | Gắn với HAProxy; giới hạn kích thước body |
 
-- Phase cần có: access list, rate limit, CRS, 10 custom rule, quyết định, proxy.
-- Swap snapshot nóng.
-- Governor theo tenant ở mức đơn giản.
+Đề xuất: **G1 là hợp đồng chuẩn**. Nếu chọn P2 hoặc P4, viết adapter nhỏ ở phía WAF nhận `ext_proc`
+hoặc SPOE rồi chuyển sang G1, để tầng WAF chỉ có một giao diện.
 
-| Đo | Cách đo | Ngưỡng để đạt |
-|---|---|---|
-| Độ trễ thêm | Corpus traffic tốt + tấn công, CRS PL1 và PL2, 1 node, tải 50% và 90% công suất | p99 ≤ 2 ms ở PL1, tải 50% |
-| CPU mỗi 1.000 request | Cùng tải | Dùng để ước chi phí hạ tầng, không có ngưỡng cứng |
-| CRS | `go-ftw` với bộ test chính thức của CRS v4 | ≥ 99% pass ở PL1–PL2 |
-| Cô lập tenant | Một tenant gửi body lớn + rule nặng | p99 tenant khác tăng ≤ 10% (QS-8) |
-| Swap snapshot | Đổi config dưới tải | Không lỗi, không tăng p99 quá 10% |
-| Công sức | Ước người-tuần để có đủ 12 phase + governor + fail mode | Dùng để so sánh |
-| Fuzz | 24 giờ fuzz lớp nhận request | Không crash |
+## 6. Tổ hợp và shortlist
 
-Thời hạn đề xuất: 3 tuần, 2 người. Kết quả ghi thành bản sửa của ADR này, trạng thái chuyển sang
-"Chấp nhận" với tổ hợp được chọn.
+| Tổ hợp | Proxy | WAF | Gọi | Mạnh | Yếu |
+|---|---|---|---|---|---|
+| **S1** | P2 Envoy | W1 Coraza | G2 → G1 | Proxy rất chín, tích hợp kiểm tra sẵn, HTTP/3 | Cache yếu: cần thêm tầng cache (ví dụ Varnish) hoặc chờ CDN tự xây |
+| **S2** | P1 Pingora | W1 Coraza (hoặc W2) | G1 | Kiểm soát cao, không GC ở proxy, có nền cache | Cần người Rust; tự viết client, purge, cache đĩa |
+| **S3** | P5 Go | W1 Coraza | G1 | Đội làm được ngay; replay dùng chung code cả hai tầng | Tự viết cache và proxy |
+| **S4** | P4 HAProxy | W1 Coraza | G3 (`coraza-spoa`) | Proxy rất nhanh và chín, tích hợp WAF có sẵn | Cache yếu; pre-filter phải viết bằng Lua/cấu hình |
+| **S5** | P3 NGINX | W1 Coraza | Module/njs tự viết → G1 | Cache mạnh nhất, phổ biến nhất | Gọi WAF kèm body không có sẵn; pre-filter bằng Lua |
 
-**Gợi ý nếu không làm spike:** chọn **D2** nếu ưu tiên ra MVP nhanh với đội hiện tại, chấp nhận rủi ro
-p99 và giữ trait `WafEngine` để chuyển sang A1 sau. Chọn **A1** nếu QS-1 là cam kết bán hàng ngay từ đầu.
+**Shortlist cho spike:** S2, S3, S1. S5 chạy làm mốc cho phần cache, S4 làm mốc cho phần gọi WAF.
+Tầng WAF dùng W1 trong mọi tổ hợp; spike đo thêm W2 trên cùng tầng WAF để so CPU.
 
-## 7. Phần không phụ thuộc lựa chọn
+## 7. Spike
 
-Những thứ sau đúng với mọi tổ hợp và đã được thiết kế ở [5.8.1](../05-building-blocks/08-components/01-edge-gateway.md)
-và [5.8.2](../05-building-blocks/08-components/02-edge-agent-and-state.md):
+Thời hạn 3 tuần, 2 người. Mỗi tổ hợp dựng tối thiểu:
 
-- Thứ tự 12 phase, ngân sách thời gian, fail mode, governor theo tenant.
-- Snapshot bất biến có chữ ký, swap nguyên khối ([ADR-0015](0015-snapshot-format-and-distribution.md)).
-- Engine WAF đặt sau một interface để thay được.
-- Telemetry qua Vector, request ID, trang chặn.
+- Ở proxy: access list, rate limit, challenge, custom rule phần pre, cache cơ bản.
+- Gọi WAF với CRS PL1/PL2 và custom rule phần inspect.
+- Swap snapshot nóng, governor theo tenant đơn giản.
+
+| Đo | Ngưỡng để đạt |
+|---|---|
+| Độ trễ thêm, request đi qua WAF, CRS PL1, tải 50% | p99 ≤ 2 ms |
+| Độ trễ thêm, request bị chặn ở pre-filter hoặc cache hit được miễn WAF | p99 ≤ 0,5 ms |
+| Tỉ lệ request bị loại ở proxy trong kịch bản flood từ ít nguồn | ≥ 95%, CPU tầng WAF không tăng quá 20% |
+| `go-ftw`, CRS v4 | ≥ 99% pass ở PL1–PL2 |
+| Cô lập tenant (QS-8) | p99 tenant khác tăng ≤ 10% |
+| Cache: hit ratio trên corpus static, purge theo URL tới mọi node | Đo và so sánh; purge ≤ 5 s trong PoP |
+| Bộ nhớ mỗi 10.000 kết nối giữ mở | Đo và so sánh |
+| CPU tầng WAF mỗi 1.000 request (W1 vs W2) | Đo và so sánh |
+| Fuzz proxy 24 giờ | Không crash |
+| Công sức tới đủ tính năng MVP | Ước người-tuần |
+
+Kết quả ghi thành bản sửa của ADR này, trạng thái chuyển sang "Chấp nhận".
+
+**Gợi ý nếu không làm spike:** **S3** (Go cả hai tầng) để ra MVP nhanh với đội hiện tại, giữ G1 làm
+hợp đồng để sau thay proxy bằng P1 mà không đụng tầng WAF; **S2** nếu độ trễ đuôi của proxy và hiệu quả
+RAM là cam kết bán hàng ngay từ đầu.
 
 ## 8. Ảnh hưởng tới ADR khác
 
 | ADR | Phụ thuộc |
 |---|---|
-| [0030](0030-language-per-workload.md) | Ngôn ngữ edge theo tổ hợp được chọn: A → Rust, B → C++/wasm, C → Lua/C, D → Go |
-| [0032](0032-cel-checked-at-control-ir-at-edge.md) | IR cần khi edge không phải Go. Nếu chọn D, edge có thể dùng thẳng `cel-go`; IR vẫn dùng được và giữ một nguồn ngữ nghĩa |
-| [0026](0026-replay-on-request-samples-with-shared-pipeline.md) | Replay viết bằng ngôn ngữ của edge để dùng chung code pipeline |
+| [0030](0030-language-per-workload.md) | Ngôn ngữ proxy theo P đã chọn; tầng WAF mặc định Go (W1) |
+| [0032](0032-cel-checked-at-control-ir-at-edge.md) | Custom rule phần pre chạy ở proxy: cần IR nếu proxy không phải Go; phần inspect chạy ở WAF (Go) có thể dùng `cel-go` |
+| [0026](0026-replay-on-request-samples-with-shared-pipeline.md) | Replay chạy code của cả hai tầng (thư viện, hoặc binary ở chế độ offline nếu khác ngôn ngữ) |
+| [0035](0035-cdn-and-dns-strategy.md) | T5 (cache) nặng hay nhẹ tuỳ chiến lược CDN được chọn |

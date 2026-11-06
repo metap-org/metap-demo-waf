@@ -16,7 +16,9 @@
 | R11 | Mẫu request đầy đủ lộ dữ liệu nhạy cảm | Thấp | Cao | Che trường bắt buộc tại edge, khách tắt được, retention ngắn, mã hoá at-rest ([ADR-0026](../09-adr/0026-replay-on-request-samples-with-shared-pipeline.md)) | Khách hoặc kiểm toán phản đối |
 | R12 | Nếu chọn Rust cho edge: thiếu người viết Rust (org vừa bỏ Rust ở repo khác) | Trung bình | Cao | Tuyển hoặc đào tạo sớm; edge là codebase tách biệt ([ADR-0030](../09-adr/0030-language-per-workload.md)) | Tiến độ edge chậm hơn các plane khác |
 | R13 | Nếu chọn libmodsecurity: lỗi bộ nhớ (C++) trên đường traffic | Trung bình | Cao | Pin version, vá trong 72 giờ, fuzz lớp tích hợp, bắt lỗi tại ranh giới; thay engine khi có lựa chọn an toàn hơn qua bộ test CRS | CVE mới của libmodsecurity |
-| R14 | Nếu edge không phải Go: ngữ nghĩa custom rule lệch giữa `cel-go` và evaluator IR | Thấp | Cao | Bộ vector test đối chiếu chạy ở cả hai phía trong CI ([ADR-0032](../09-adr/0032-cel-checked-at-control-ir-at-edge.md)) | Vector test lệch |
+| R14 | Nếu edge proxy không phải Go: ngữ nghĩa custom rule lệch giữa `cel-go` và evaluator IR | Thấp | Cao | Bộ vector test đối chiếu chạy ở cả hai phía trong CI ([ADR-0032](../09-adr/0032-cel-checked-at-control-ir-at-edge.md)) | Vector test lệch |
+| R15 | Chặng proxy → WAF làm vượt ngân sách độ trễ | Thấp | Trung bình | PoP nhỏ đặt chung host qua Unix socket; verdict sớm; đo trong spike ([ADR-0033](../09-adr/0033-two-tier-edge-proxy-and-waf.md)) | p99 gọi WAF > 1,5 ms |
+| R16 | Tự xây CDN tốn đầu tư băng thông và lưu trữ trước khi có doanh thu | Trung bình | Cao | Làm theo giai đoạn: cache cơ bản trong proxy ở MVP, tiered cache sau; chế độ đứng sau CDN của khách để bán sớm ([ADR-0035](../09-adr/0035-cdn-and-dns-strategy.md)) | Chi phí băng thông / doanh thu theo PoP |
 | R9 | Đội nhỏ dàn trải 4 plane | Cao | Cao | Mua/dùng mã nguồn mở cho phần không khác biệt; làm đúng thứ tự giai đoạn | Trễ MVP |
 
 ## 11.2 Chênh lệch với code demo hiện tại
@@ -50,5 +52,6 @@ CEL), công nghệ của Control, Analytics, Management ([05 · bản đồ côn
 | Cấp phép và cập nhật on-prem | Cách phát hành, cách cập nhật ruleset cho khách offline | [ADR-0006](../09-adr/0006-saas-first-on-prem-capable.md) |
 | Nhà cung cấp geo/ASN | MaxMind hay IPinfo, theo giá và điều khoản phân phối lại | [ADR-0025](../09-adr/0025-geo-asn-data-commercial-license.md) |
 | Đối tác L3/L4 và hạ tầng PoP đầu tiên | Chọn đối tác, region đầu tiên | [ADR-0005](../09-adr/0005-edge-on-own-and-existing-infra.md) |
-| **Nền L7 edge và engine WAF** | Chọn tổ hợp sau spike 3 tuần: shortlist A1 (Rust + Pingora + libmodsecurity), D2 (Go + Coraza), B2 (Envoy + Coraza wasm), mốc C1 (OpenResty + ModSecurity); kèm HTTP/3 | [ADR-0031](../09-adr/0031-edge-l7-and-waf-engine-options.md); kéo theo ngôn ngữ edge, replay, `edge-verify`, [ADR-0032](../09-adr/0032-cel-checked-at-control-ir-at-edge.md) |
-| Phân công zone cho node | MVP mọi node phục vụ mọi zone; khi nào chia shard | [5.8.4](../05-building-blocks/08-components/04-rollout-distribution-fleet.md) |
+| **Chiến lược CDN và DNS** | Tự xây theo giai đoạn + chế độ đứng sau CDN khách (đề xuất), hay đứng sau CDN, bán lại CDN đối tác, hoặc không CDN | [ADR-0035](../09-adr/0035-cdn-and-dns-strategy.md); kéo theo tiêu chí cache khi chọn nền proxy |
+| **Nền tầng proxy và engine tầng WAF** | Chọn sau spike 3 tuần: shortlist S2 (Pingora + Coraza), S3 (Go + Coraza), S1 (Envoy + Coraza); mốc S5 (NGINX, cho cache) và S4 (HAProxy + SPOE); đo thêm libmodsecurity ở tầng WAF; kèm HTTP/3 | [ADR-0031](../09-adr/0031-edge-l7-and-waf-engine-options.md); kéo theo ngôn ngữ proxy, replay, `edge-verify`, [ADR-0032](../09-adr/0032-cel-checked-at-control-ir-at-edge.md) |
+| Phân công zone cho node | MVP mọi node phục vụ mọi zone; khi nào chia shard | [5.8.6](../05-building-blocks/08-components/06-rollout-distribution-fleet.md) |

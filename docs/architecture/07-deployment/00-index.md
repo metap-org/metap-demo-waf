@@ -55,8 +55,10 @@ flowchart LR
   không ảnh hưởng traffic.
 - **Analytics theo region dữ liệu:** log của tenant ở lại region đã chọn. Thêm region khi có khách
   yêu cầu residency.
-- **Edge:** PoP riêng và node trên hạ tầng đối tác/cloud, cùng một artifact. Định tuyến traffic vào
-  PoP gần nhất (anycast hoặc DNS theo địa lý, tuỳ nơi đặt).
+- **Edge:** PoP riêng và node trên hạ tầng đối tác/cloud, cùng artifact. Mỗi PoP có pool edge proxy
+  (RAM, NIC, NVMe cho cache), pool WAF inspection (CPU), DNS điều hướng; PoP nhỏ đặt proxy và WAF chung
+  host với cgroup CPU riêng ([ADR-0033](../09-adr/0033-two-tier-edge-proxy-and-waf.md)). Định tuyến vào
+  PoP gần nhất bằng anycast hoặc DNS điều hướng ([5.8.3](../05-building-blocks/08-components/03-dns-and-traffic-steering.md)).
 
 ## 7.3 Vùng chịu lỗi
 
@@ -66,6 +68,7 @@ flowchart LR
 | Một Analytics region sập | Không ảnh hưởng | Log trễ, chờ trong buffer đĩa ở edge; cảnh báo của region đó trễ theo |
 | Một PoP sập | Định tuyến sang PoP gần nhất | Fleet registry báo node mất; không mất config |
 | Snapshot lỗi lọt qua compiler | Chỉ nhóm canary bị ảnh hưởng | Gate dừng đợt, tự rollback |
+| Pool WAF của một PoP sập hoặc quá tải | Kết nối không bị ảnh hưởng; zone áp fail mode; pre-filter, challenge, cache vẫn chạy | Event `waf_unavailable`; cảnh báo P1/P2 cho NOC |
 | Bus của Analytics đầy | Không ảnh hưởng | Edge giữ log trong buffer; bỏ access log trước security event nếu kéo dài |
 
 ## 7.4 Môi trường

@@ -1,6 +1,6 @@
 # ADR-0032: CEL được kiểm tra ở Control, edge thực thi IR đã biên dịch
 
-- Trạng thái: **Đề xuất**, áp dụng theo kết quả [ADR-0031](0031-edge-l7-and-waf-engine-options.md): bắt buộc nếu edge không viết bằng Go; nếu edge là Go, IR vẫn dùng được nhưng edge cũng có thể dùng thẳng `cel-go`. Sửa đổi [ADR-0014](0014-cel-as-rule-language.md)
+- Trạng thái: **Đề xuất**, theo kết quả [ADR-0031](0031-edge-l7-and-waf-engine-options.md): custom rule phần pre chạy ở edge proxy ([ADR-0034](0034-pre-filter-and-rule-split-across-tiers.md)) nên cần IR nếu proxy không viết bằng Go; phần inspect chạy ở tầng WAF (mặc định Go) có thể dùng thẳng `cel-go`. Sửa đổi [ADR-0014](0014-cel-as-rule-language.md)
 - Ngày: 2026-11-06
 
 ## Bối cảnh

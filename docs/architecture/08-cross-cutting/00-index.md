@@ -47,6 +47,9 @@
 - Fail-open hoặc fail-closed chọn theo zone, áp cho từng bước pipeline khi lỗi hoặc quá ngân sách
   thời gian; mỗi lần kích hoạt phát event riêng để khách thấy.
 - Mặc định: fail-open (thương mại điện tử thường chọn), khách tài chính thường đổi sang fail-closed.
+- Tầng WAF không trả lời kịp, quá tải (`Overloaded`) hoặc mất cả pool trong PoP cũng áp đúng fail mode
+  này ở proxy; pre-filter, challenge và rate limit vẫn chạy vì nằm ở proxy ([ADR-0033](../09-adr/0033-two-tier-edge-proxy-and-waf.md)).
+- Origin lỗi: phục vụ bản cũ trong cache nếu có (`stale-if-error`).
 
 ## 8.6 Quyền riêng tư
 
@@ -65,7 +68,7 @@ Gói cước là cấu hình, không phải nhánh code ([ADR-0007](../09-adr/00
 | Retention tối đa theo loại log | Analytics (stream processor, store) |
 | Khoảng thời gian truy vấn tối đa, chi phí truy vấn | Analytics (Query API) |
 | Số đích SIEM export | Management + Analytics |
-| Kênh cảnh báo, số routing rule, escalation, hạn mức SMS ([33](../05-building-blocks/08-components/09-notification-fanout.md#kênh-theo-gói)) | Management (validate) + notifier (lúc gửi) |
+| Kênh cảnh báo, số routing rule, escalation, hạn mức SMS ([33](../05-building-blocks/08-components/11-notification-fanout.md#kênh-theo-gói)) | Management (validate) + notifier (lúc gửi) |
 | Số rule, số zone, tính năng (bot, API security, replay, canary) | Management (validate) + Control (compiler) |
 | Giới hạn tài nguyên kiểm tra tại edge | Edge, qua snapshot |
 

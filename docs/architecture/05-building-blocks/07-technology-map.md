@@ -15,13 +15,16 @@ Hai tiêu chí chạy xuyên suốt:
 
 | Thành phần | Công nghệ | License | ADR |
 |---|---|---|---|
-| Edge gateway (TLS, HTTP/1.1, HTTP/2, pipeline, proxy) | **Chờ chọn.** Shortlist: Rust + Pingora (A), Go tự xây (D), Envoy (B); mốc so sánh OpenResty (C) | Apache-2.0 / BSD | [0031](../09-adr/0031-edge-l7-and-waf-engine-options.md) |
+| Edge proxy (TLS, kết nối, pre-filter, challenge, cache, proxy) | **Chờ chọn.** Shortlist: Rust + Pingora, Go tự xây, Envoy; mốc NGINX (cache) và HAProxy (gọi WAF) | Apache-2.0 / BSD | [0031](../09-adr/0031-edge-l7-and-waf-engine-options.md), [0033](../09-adr/0033-two-tier-edge-proxy-and-waf.md) |
 | HTTP/3 | Theo nền L7 được chọn (Pingora chưa xác nhận; Envoy, NGINX, `quic-go` có) | — | [0031](../09-adr/0031-edge-l7-and-waf-engine-options.md) |
-| Managed ruleset engine | **Chờ chọn**, đặt sau interface `WafEngine`: libmodsecurity v3, Coraza, hoặc SecLang thuần Rust (dài hạn); OWASP CRS v4 | Apache-2.0 | [0031](../09-adr/0031-edge-l7-and-waf-engine-options.md) |
-| Custom rule engine | CEL kiểm tra ở Control (`cel-go`); edge thực thi IR (hoặc `cel-go` nếu edge là Go) | Apache-2.0 | [0032](../09-adr/0032-cel-checked-at-control-ir-at-edge.md) |
+| WAF inspection (tầng 2) | Dịch vụ riêng; engine mặc định Coraza (Go), so sánh libmodsecurity v3 trong spike; OWASP CRS v4 | Apache-2.0 | [0031](../09-adr/0031-edge-l7-and-waf-engine-options.md) |
+| Proxy ↔ WAF | Inspection API riêng (gRPC stream); adapter `ext_proc`/SPOE nếu proxy là Envoy/HAProxy | Apache-2.0 | [0031](../09-adr/0031-edge-l7-and-waf-engine-options.md) |
+| Cache (CDN) | Trong tầng proxy: RAM + NVMe, purge qua fast lane | — | [0035](../09-adr/0035-cdn-and-dns-strategy.md) |
+| DNS điều hướng, DNS authoritative (Mở rộng) | CoreDNS + plugin riêng | Apache-2.0 | [0035](../09-adr/0035-cdn-and-dns-strategy.md) |
+| Custom rule engine | CEL kiểm tra ở Control (`cel-go`); phần pre chạy IR ở proxy, phần inspect chạy ở WAF | Apache-2.0 | [0032](../09-adr/0032-cel-checked-at-control-ir-at-edge.md), [0034](../09-adr/0034-pre-filter-and-rule-split-across-tiers.md) |
 | IP / CIDR matching | Trie IPv4/IPv6 theo ngôn ngữ edge | MIT / Apache-2.0 | — |
 | Geo / ASN | Định dạng MMDB, dữ liệu thương mại có quyền phân phối lại | Theo hợp đồng | [0025](../09-adr/0025-geo-asn-data-commercial-license.md) |
-| Policy agent, state sync | Module trong cùng binary edge; con trỏ nguyên tử tới runtime bất biến | — | [0015](../09-adr/0015-snapshot-format-and-distribution.md) |
+| Policy agent, state sync | Policy agent trong binary của cả hai tầng; state sync trong edge proxy; con trỏ nguyên tử tới runtime bất biến | — | [0015](../09-adr/0015-snapshot-format-and-distribution.md) |
 | Rate limit đồng bộ | Valkey theo region, chỉ cho hot key | BSD-3 | [0021](../09-adr/0021-valkey-for-hot-key-rate-limit-sync.md) |
 | Log shipper | Vector (process riêng trên node) | MPL-2.0 | [0019](../09-adr/0019-vector-as-node-log-shipper.md) |
 | L3/L4 | Năng lực hạ tầng / đối tác; PoP riêng: XDP (Mở rộng) | — | [0005](../09-adr/0005-edge-on-own-and-existing-infra.md) |

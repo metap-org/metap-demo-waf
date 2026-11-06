@@ -1,4 +1,4 @@
-# 5.8.6 Ingestion, xử lý luồng, lưu trữ (Analytics plane)
+# 5.8.8 Ingestion, xử lý luồng, lưu trữ (Analytics plane)
 
 ## Component diagram
 
@@ -103,6 +103,7 @@ CREATE TABLE security_events (
   client_ip IPv6, country LowCardinality(String), asn UInt32,
   method LowCardinality(String), host String, path String, status UInt16,
   user_agent String, node_id String, region LowCardinality(String),
+  cache_status LowCardinality(String), inspected UInt8, waf_latency_us UInt32, body_truncated UInt8,
   fp_label Nullable(UInt8), expire_at DateTime,
   INDEX idx_req request_id TYPE bloom_filter GRANULARITY 4
 ) ENGINE = ReplicatedMergeTree

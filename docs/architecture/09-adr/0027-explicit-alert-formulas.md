@@ -12,7 +12,7 @@ vì nhiễu, hoặc không tin cảnh báo khi có sự cố thật.
 ## Quyết định
 
 - Cảnh báo là **template trong danh mục cố định** (WAF: W1–W6, DDoS: D1–D6), mỗi template có công
-  thức tín hiệu ghi rõ trong tài liệu ([5.8.8](../05-building-blocks/08-components/08-alerting-rules-and-algorithms.md)).
+  thức tín hiệu ghi rõ trong tài liệu ([5.8.10](../05-building-blocks/08-components/10-alerting-rules-and-algorithms.md)).
 - Khách chỉnh tham số: cửa sổ, mode ngưỡng (`static`, `relative`, `statistical`), ngưỡng warning và
   critical, `floor`, `min_volume`, `for`, điều kiện tự tắt, `group_by`, kênh.
 - Baseline là **median và MAD** của cùng phút trong tuần ở 4 tuần trước, loại các phút đã có

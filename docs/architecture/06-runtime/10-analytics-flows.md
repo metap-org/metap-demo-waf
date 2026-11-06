@@ -1,8 +1,8 @@
 # 6.10 Luồng Analytics
 
 Toàn bộ đường đi của dữ liệu traffic: từ lúc gateway tạo bản ghi tới từng kiểu đọc. Thành phần chi
-tiết ở [5.8.6](../05-building-blocks/08-components/06-ingestion-and-storage.md) và
-[5.8.7](../05-building-blocks/08-components/07-query-detection-export-replay.md).
+tiết ở [5.8.8](../05-building-blocks/08-components/08-ingestion-and-storage.md) và
+[5.8.9](../05-building-blocks/08-components/09-query-detection-export-replay.md).
 
 | # | Luồng |
 |---|---|
@@ -154,7 +154,7 @@ Analytics để tính toán; Analytics không phải nơi gốc của nhãn.
 
 ## E. Phát hiện, cảnh báo, case
 
-Danh mục cảnh báo, ngưỡng và thuật toán: [5.8.8](../05-building-blocks/08-components/08-alerting-rules-and-algorithms.md).
+Danh mục cảnh báo, ngưỡng và thuật toán: [5.8.10](../05-building-blocks/08-components/10-alerting-rules-and-algorithms.md).
 
 ```mermaid
 sequenceDiagram
