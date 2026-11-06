@@ -95,6 +95,8 @@ blockquote { margin: 0 0 14px; padding: 8px 16px; border-left: 3px solid var(--l
 <a class="top" href="#f-01-introduction-00-index">1. Introduction and Goals</a>
 <a class="sub" href="#f-01-introduction-05-functional-decomposition">1.5 Bản đồ phân rã chức năng</a>
 <a class="sub" href="#f-01-introduction-06-requirements">1.6 Requirements</a>
+<a class="sub" href="#f-01-introduction-07-business-analysis-00-index">1.7 Phân tích nghiệp vụ</a>
+<a class="sub" href="#f-01-introduction-07-business-analysis-01-onboarding">1.7.1 Onboarding một website</a>
 <a class="top" href="#f-02-constraints-00-index">2. Architecture Constraints</a>
 <a class="top" href="#f-03-context-00-index">3. System Scope and Context</a>
 <a class="top" href="#f-04-strategy-00-index">4. Solution Strategy</a>
@@ -192,6 +194,8 @@ blockquote { margin: 0 0 14px; padding: 8px 16px; border-left: 3px solid var(--l
 <a class="top" href="#f-01-introduction-00-index">1. Introduction and Goals</a>
 <a class="sub" href="#f-01-introduction-05-functional-decomposition">1.5 Bản đồ phân rã chức năng</a>
 <a class="sub" href="#f-01-introduction-06-requirements">1.6 Requirements</a>
+<a class="sub" href="#f-01-introduction-07-business-analysis-00-index">1.7 Phân tích nghiệp vụ</a>
+<a class="sub" href="#f-01-introduction-07-business-analysis-01-onboarding">1.7.1 Onboarding một website</a>
 <a class="top" href="#f-02-constraints-00-index">2. Architecture Constraints</a>
 <a class="top" href="#f-03-context-00-index">3. System Scope and Context</a>
 <a class="top" href="#f-04-strategy-00-index">4. Solution Strategy</a>
@@ -312,7 +316,7 @@ là mục 5.8.5.</li>
 </ul>
 <h2 id="f-index--các-mục">Các mục</h2>
 <ol>
-<li><a href="#f-01-introduction-00-index">Introduction and Goals</a>: sản phẩm làm gì, nghiệp vụ, mục tiêu chất lượng, các bên liên quan, <a href="#f-01-introduction-05-functional-decomposition">bản đồ phân rã chức năng</a>, <a href="#f-01-introduction-06-requirements">requirements</a></li>
+<li><a href="#f-01-introduction-00-index">Introduction and Goals</a>: sản phẩm làm gì, nghiệp vụ, mục tiêu chất lượng, các bên liên quan, <a href="#f-01-introduction-05-functional-decomposition">bản đồ phân rã chức năng</a>, <a href="#f-01-introduction-06-requirements">requirements</a>, <a href="#f-01-introduction-07-business-analysis-00-index">phân tích nghiệp vụ</a></li>
 <li><a href="#f-02-constraints-00-index">Architecture Constraints</a>: ràng buộc kỹ thuật, tổ chức, pháp lý</li>
 <li><a href="#f-03-context-00-index">System Scope and Context</a>: bối cảnh nghiệp vụ và kỹ thuật, C4 System Context</li>
 <li><a href="#f-04-strategy-00-index">Solution Strategy</a>: các quyết định nền tảng và lý do</li>
@@ -401,7 +405,9 @@ mức demo. <strong>Mở rộng</strong> để ngang đối thủ trong vòng đ
 không tốn độ trễ, và băng thông tiết kiệm ở origin bù chi phí dịch vụ (<a href="#f-09-adr-0035-cdn-and-dns-strategy">ADR-0035</a>).</p>
 <p>Vulnerability scanning (DAST) không phải lõi WAAP; nếu làm, là sản phẩm riêng dùng chung tenant.</p>
 <p>Bảng trên phân rã chi tiết thành chức năng lá ở <a href="#f-01-introduction-05-functional-decomposition">1.5 Bản đồ phân rã chức năng</a>,
-và thành requirement có tiêu chí chấp nhận ở <a href="#f-01-introduction-06-requirements">1.6 Requirements</a> (cả hai đang chờ review).</p>
+và thành requirement có tiêu chí chấp nhận ở <a href="#f-01-introduction-06-requirements">1.6 Requirements</a> (cả hai đang chờ review).
+Từng nghiệp vụ được phân tích theo trình tự khách làm ở <a href="#f-01-introduction-07-business-analysis-00-index">1.7 Phân tích nghiệp vụ</a>,
+bắt đầu từ <a href="#f-01-introduction-07-business-analysis-01-onboarding">onboarding một website</a>.</p>
 <h2 id="f-01-introduction-00-index--13-mục-tiêu-chất-lượng">1.3 Mục tiêu chất lượng</h2>
 <p>Sáu mục tiêu xếp theo thứ tự ưu tiên. Khi hai mục xung đột, mục đứng trên thắng. Kịch bản đo được
 ở <a href="#f-10-quality-00-index">10. Quality Requirements</a>.</p>
@@ -566,7 +572,7 @@ dữ liệu mà không có đối tượng tương ứng là thiếu.</li>
 <div class="diagram"><pre class="mermaid">flowchart LR
     root((&quot;WAAP&quot;))
     g1[&quot;&lt;b&gt;F1 Tenant và danh tính&lt;/b&gt;&lt;br/&gt;F1.1 Tổ chức và account&lt;br/&gt;F1.2 Thành viên và phân quyền&lt;br/&gt;F1.3 Đăng nhập và SSO&lt;br/&gt;F1.4 API key&lt;br/&gt;F1.5 Audit log&quot;]
-    g2[&quot;&lt;b&gt;F2 Zone và onboarding&lt;/b&gt;&lt;br/&gt;F2.1 Thêm và xác minh domain&lt;br/&gt;F2.2 Hostname và origin&lt;br/&gt;F2.3 Chứng chỉ TLS&lt;br/&gt;F2.4 Vòng đời zone&lt;br/&gt;F2.5 Nhóm zone&quot;]
+    g2[&quot;&lt;b&gt;F2 Zone và onboarding&lt;/b&gt;&lt;br/&gt;F2.1 Thêm và xác minh domain&lt;br/&gt;F2.2 Hostname và origin&lt;br/&gt;F2.3 Chứng chỉ TLS&lt;br/&gt;F2.4 Vòng đời zone&lt;br/&gt;F2.5 Nhóm zone&lt;br/&gt;F2.6 Cấu hình ban đầu và kiểm thử&lt;br/&gt;F2.7 Chuyển traffic và hoàn tất&quot;]
     g3[&quot;&lt;b&gt;F3 Bảo vệ runtime&lt;/b&gt;&lt;br/&gt;F3.1 Kết thúc TLS và chuẩn hoá&lt;br/&gt;F3.2 Lọc sớm&lt;br/&gt;F3.3 DDoS L7&lt;br/&gt;F3.4 Rate limit&lt;br/&gt;F3.5 Managed ruleset và custom rule&lt;br/&gt;F3.6 Bot management&lt;br/&gt;F3.7 API security&lt;br/&gt;F3.8 Thực thi hành động&lt;br/&gt;F3.9 Bảo vệ origin và fail mode&quot;]
     g4[&quot;&lt;b&gt;F4 Hiệu năng và phân phối&lt;/b&gt;&lt;br/&gt;F4.1 Cache&lt;br/&gt;F4.2 Purge&lt;br/&gt;F4.3 DNS điều hướng&lt;br/&gt;F4.4 Load balancing và failover&quot;]
     g5[&quot;&lt;b&gt;F5 Vòng đời policy&lt;/b&gt;&lt;br/&gt;F5.1 Soạn policy&lt;br/&gt;F5.2 Kiểm tra và mô phỏng&lt;br/&gt;F5.3 Duyệt và phát hành&lt;br/&gt;F5.4 Version và rollback&lt;br/&gt;F5.5 Kênh khẩn&lt;br/&gt;F5.6 Policy as code&quot;]
@@ -841,24 +847,52 @@ hiện ở Analytics, F10.4 Đo usage đếm ở Edge và gộp ở Analytics. B
 </tr>
 <tr>
 <td>F2.1.2</td>
-<td>Xác minh quyền sở hữu qua TXT hoặc CNAME, kiểm lại định kỳ</td>
-<td>M</td>
+<td>Xác minh quyền sở hữu: CNAME uỷ quyền <code>_acme-challenge</code> (mặc định) hoặc TXT, kiểm từ nhiều resolver, kiểm lại định kỳ</td>
+<td>C</td>
 <td>MVP</td>
 <td><strong>DomainVerification</strong></td>
 </tr>
 <tr>
 <td>F2.1.3</td>
-<td>Hướng dẫn trỏ DNS (CNAME hoặc đổi nameserver), kiểm trạng thái trỏ</td>
+<td>Hướng dẫn trỏ DNS theo phương thức kết nối (CNAME, ALIAS, A tĩnh cho apex, nameserver, sau CDN của khách)</td>
 <td>M</td>
 <td>MVP</td>
-<td><strong>Zone</strong>.dnsStatus</td>
+<td><strong>Zone</strong>.connectionMethod</td>
 </tr>
 <tr>
 <td>F2.1.4</td>
 <td>Quét bản ghi DNS hiện có khi chuyển nameserver</td>
-<td>M</td>
+<td>C</td>
 <td>MR</td>
 <td><strong>DnsRecord</strong></td>
+</tr>
+<tr>
+<td>F2.1.5</td>
+<td>Tra DNS hiện tại khi thêm domain: NS, A/AAAA/CNAME, CAA, TTL, CDN hoặc WAF đang đứng trước, gợi ý origin</td>
+<td>C</td>
+<td>MVP</td>
+<td><strong>DnsSnapshot</strong></td>
+</tr>
+<tr>
+<td>F2.1.6</td>
+<td>Gợi ý hostname từ DNS và Certificate Transparency</td>
+<td>C</td>
+<td>MR</td>
+<td>DnsSnapshot</td>
+</tr>
+<tr>
+<td>F2.1.7</td>
+<td>Kiểm trạng thái trỏ DNS về edge từ nhiều resolver, theo hostname</td>
+<td>C</td>
+<td>MVP</td>
+<td><strong>Hostname</strong>.dnsRoutingStatus</td>
+</tr>
+<tr>
+<td>F2.1.8</td>
+<td>Huỷ claim chưa xác minh sau 14 ngày, giải phóng domain</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>DomainClaim</strong></td>
 </tr>
 <tr>
 <td><strong>F2.2</strong></td>
@@ -883,8 +917,8 @@ hiện ở Analytics, F10.4 Đo usage đếm ở Edge và gộp ở Analytics. B
 </tr>
 <tr>
 <td>F2.2.3</td>
-<td>Kiểm tra origin trước khi kích hoạt (kết nối, TLS, thời gian phản hồi)</td>
-<td>M</td>
+<td>Kiểm origin từ edge ở ≥ 2 PoP trước khi kích hoạt (kết nối, TLS, mã HTTP, thời gian)</td>
+<td>C</td>
 <td>MVP</td>
 <td><strong>OriginCheck</strong></td>
 </tr>
@@ -901,6 +935,20 @@ hiện ở Analytics, F10.4 Đo usage đếm ở Edge và gộp ở Analytics. B
 <td>M</td>
 <td>MVP</td>
 <td><strong>ZoneSettings</strong></td>
+</tr>
+<tr>
+<td>F2.2.6</td>
+<td>Kiểm origin còn lộ: thử kết nối từ điểm không thuộc edge</td>
+<td>C</td>
+<td>MR</td>
+<td><strong>OriginCheck</strong></td>
+</tr>
+<tr>
+<td>F2.2.7</td>
+<td>Nhập hàng loạt hostname, origin (CSV, API)</td>
+<td>M</td>
+<td>MR</td>
+<td><strong>BulkOperation</strong></td>
 </tr>
 <tr>
 <td><strong>F2.3</strong></td>
@@ -945,6 +993,13 @@ hiện ở Analytics, F10.4 Đo usage đếm ở Edge và gộp ở Analytics. B
 <td>—</td>
 </tr>
 <tr>
+<td>F2.3.6</td>
+<td>Kiểm CAA trước khi xin cert, báo bản ghi cần thêm</td>
+<td>C</td>
+<td>MVP</td>
+<td>DnsSnapshot</td>
+</tr>
+<tr>
 <td><strong>F2.4</strong></td>
 <td><strong>Vòng đời zone</strong></td>
 <td></td>
@@ -953,10 +1008,10 @@ hiện ở Analytics, F10.4 Đo usage đếm ở Edge và gộp ở Analytics. B
 </tr>
 <tr>
 <td>F2.4.1</td>
-<td>Kích hoạt zone; mặc định bật managed ruleset log-only 7 ngày</td>
+<td>Kích hoạt zone khi qua cổng OG1 (xác minh, cert, origin, preset), phát cấu hình xuống edge</td>
 <td>M</td>
 <td>MVP</td>
-<td><strong>Zone</strong>.status, <strong>PolicyDraft</strong> mặc định</td>
+<td><strong>Zone</strong>.status</td>
 </tr>
 <tr>
 <td>F2.4.2</td>
@@ -999,6 +1054,83 @@ hiện ở Analytics, F10.4 Đo usage đếm ở Edge và gộp ở Analytics. B
 <td>M</td>
 <td>MR</td>
 <td><strong>BulkOperation</strong></td>
+</tr>
+<tr>
+<td><strong>F2.6</strong></td>
+<td><strong>Cấu hình ban đầu và kiểm thử</strong> (<a href="#f-01-introduction-07-business-analysis-01-onboarding">1.7.1</a> OB6, OB7)</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F2.6.1</td>
+<td>Chọn preset theo loại ứng dụng: managed ruleset log-only, DDoS L7 và lọc sớm bật chặn, exception sẵn có</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>ZonePreset</strong> (NCC), <strong>PolicyDraft</strong></td>
+</tr>
+<tr>
+<td>F2.6.2</td>
+<td>Phục vụ request kiểm thử qua edge trước khi đổi DNS (<code>curl --resolve</code>, <code>hosts</code>)</td>
+<td>E</td>
+<td>MVP</td>
+<td>—</td>
+</tr>
+<tr>
+<td>F2.6.3</td>
+<td>Checklist kiểm thử (trang, đăng nhập, upload, API, WebSocket) và kết quả</td>
+<td>M</td>
+<td>MR</td>
+<td><strong>OnboardingProgress</strong></td>
+</tr>
+<tr>
+<td><strong>F2.7</strong></td>
+<td><strong>Chuyển traffic và hoàn tất</strong> (<a href="#f-01-introduction-07-business-analysis-01-onboarding">1.7.1</a> OB8–OB12)</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F2.7.1</td>
+<td>Hướng dẫn hạ TTL, đổi DNS, kế hoạch quay lui (lưu bản ghi cũ)</td>
+<td>M</td>
+<td>MVP</td>
+<td>DnsSnapshot</td>
+</tr>
+<tr>
+<td>F2.7.2</td>
+<td>Ghi nhận traffic thật đầu tiên qua edge theo hostname</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>OnboardingProgress</strong></td>
+</tr>
+<tr>
+<td>F2.7.3</td>
+<td>Báo cáo hằng ngày trong log-only: request sẽ bị chặn, rule nghi chặn nhầm, mức sẵn sàng</td>
+<td>A</td>
+<td>MVP</td>
+<td>Bảng tổng hợp</td>
+</tr>
+<tr>
+<td>F2.7.4</td>
+<td>Bật chặn theo bậc nhóm rule qua change request</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>ChangeRequest</strong></td>
+</tr>
+<tr>
+<td>F2.7.5</td>
+<td>Hướng dẫn khoá origin, ghi nhận đã khoá hoặc bỏ qua</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>OnboardingProgress</strong></td>
+</tr>
+<tr>
+<td>F2.7.6</td>
+<td>Tiến độ onboarding theo bước, nhắc khi bỏ dở ở ngày 1, 3, 7</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>OnboardingProgress</strong></td>
 </tr>
 </tbody>
 </table>
@@ -2501,7 +2633,7 @@ Không có chức năng mới: mỗi lá xuất hiện đúng một lần ở đ
 <a href="#f-01-introduction-05-functional-decomposition--liên-kết-giữa-các-plane">liên kết giữa các plane</a> bên dưới.</p>
 <div class="diagram"><pre class="mermaid">flowchart TB
     M[&quot;&lt;b&gt;Management&lt;/b&gt; · nơi người dùng tạo ra cấu hình&lt;br/&gt;PM1 Định danh và quyền&lt;br/&gt;PM2 Zone và hiệu năng&lt;br/&gt;PM3 Policy và thay đổi&lt;br/&gt;PM4 Vận hành bảo mật của khách&lt;br/&gt;PM5 Thương mại&lt;br/&gt;PM6 Dữ liệu và tuân thủ&lt;br/&gt;PM7 Quản trị NCC&quot;]
-    C[&quot;&lt;b&gt;Control&lt;/b&gt; · biến cấu hình thành snapshot an toàn&lt;br/&gt;PC1 Biên dịch&lt;br/&gt;PC2 Phân phối&lt;br/&gt;PC3 Rollout&lt;br/&gt;PC4 Fleet và danh tính node&lt;br/&gt;PC5 Đặt zone vào cell&lt;br/&gt;PC6 Cert&lt;br/&gt;PC7 Threat intel và ruleset&lt;br/&gt;PC8 Điều khiển fleet&quot;]
+    C[&quot;&lt;b&gt;Control&lt;/b&gt; · biến cấu hình thành snapshot an toàn&lt;br/&gt;PC1 Biên dịch&lt;br/&gt;PC2 Phân phối&lt;br/&gt;PC3 Rollout&lt;br/&gt;PC4 Fleet và danh tính node&lt;br/&gt;PC5 Đặt zone vào cell&lt;br/&gt;PC6 Xác minh domain và cert&lt;br/&gt;PC7 Threat intel và ruleset&lt;br/&gt;PC8 Điều khiển fleet&quot;]
     E[&quot;&lt;b&gt;Edge&lt;/b&gt; · xử lý từng request&lt;br/&gt;PE1 Tầng L7&lt;br/&gt;PE2 Tầng WAF inspection&lt;br/&gt;PE3 Edge agent&lt;br/&gt;PE4 DNS điều hướng&quot;]
     A[&quot;&lt;b&gt;Analytics&lt;/b&gt; · biến telemetry thành bằng chứng&lt;br/&gt;PA1 Thu nhận&lt;br/&gt;PA2 Lưu trữ và retention&lt;br/&gt;PA3 Query API&lt;br/&gt;PA4 Realtime gateway&lt;br/&gt;PA5 Detection&lt;br/&gt;PA6 Thông báo và export&lt;br/&gt;PA7 Replay&lt;br/&gt;PA8 Usage&quot;]
     M ==&gt;|&quot;cấu hình có version&quot;| C
@@ -2533,8 +2665,8 @@ Không có chức năng mới: mỗi lá xuất hiện đúng một lần ở đ
 </tr>
 <tr>
 <td><strong>PM2 Zone và hiệu năng</strong></td>
-<td>F2.1.1–F2.1.4, F2.2.1–F2.2.5, F2.3.3, F2.3.4, F2.4.1–F2.4.4, F2.5.1, F2.5.2, F4.1.2, F4.2.1, F4.2.2, F4.3.2, F4.4.1</td>
-<td>LK-2, LK-3, LK-24</td>
+<td>F2.1.1, F2.1.3, F2.1.8, F2.2.1, F2.2.2, F2.2.4, F2.2.5, F2.2.7, F2.3.3, F2.3.4, F2.4.1–F2.4.4, F2.5.1, F2.5.2, F2.6.1, F2.6.3, F2.7.1, F2.7.2, F2.7.4–F2.7.6, F4.1.2, F4.2.1, F4.2.2, F4.3.2, F4.4.1</td>
+<td>LK-2, LK-3, LK-18, LK-24, LK-28</td>
 </tr>
 <tr>
 <td><strong>PM3 Policy và thay đổi</strong></td>
@@ -2599,9 +2731,9 @@ Không có chức năng mới: mỗi lá xuất hiện đúng một lần ở đ
 <td>LK-5 vào; LK-25 vào</td>
 </tr>
 <tr>
-<td><strong>PC6 Cert</strong></td>
-<td>F2.3.1, F2.3.2</td>
-<td>LK-2 vào; LK-8, LK-24 ra</td>
+<td><strong>PC6 Xác minh domain và cert</strong></td>
+<td>F2.1.2, F2.1.4–F2.1.7, F2.2.3, F2.2.6, F2.3.1, F2.3.2, F2.3.6</td>
+<td>LK-2 vào; LK-8, LK-24, LK-28 ra; LK-27</td>
 </tr>
 <tr>
 <td><strong>PC7 Threat intel và ruleset</strong></td>
@@ -2627,7 +2759,7 @@ Không có chức năng mới: mỗi lá xuất hiện đúng một lần ở đ
 <tbody>
 <tr>
 <td><strong>PE1 Tầng L7</strong></td>
-<td>F2.3.5, F3.1.1–F3.1.4, F3.2.1–F3.2.3, F3.3.1–F3.3.3, F3.3.5, F3.4.1, F3.4.2, F3.6.1, F3.6.2, F3.7.1, F3.7.2, F3.8.1–F3.8.4, F3.9.1–F3.9.3, F4.1.1, F4.1.3</td>
+<td>F2.3.5, F2.6.2, F3.1.1–F3.1.4, F3.2.1–F3.2.3, F3.3.1–F3.3.3, F3.3.5, F3.4.1, F3.4.2, F3.6.1, F3.6.2, F3.7.1, F3.7.2, F3.8.1–F3.8.4, F3.9.1–F3.9.3, F4.1.1, F4.1.3</td>
 <td>LK-14 ra (tới PE2)</td>
 </tr>
 <tr>
@@ -2637,8 +2769,8 @@ Không có chức năng mới: mỗi lá xuất hiện đúng một lần ở đ
 </tr>
 <tr>
 <td><strong>PE3 Edge agent</strong></td>
-<td>F6.2.3, F10.4.1; gửi telemetry do PE1, PE2 sinh ra (F3.8.3)</td>
-<td>LK-8, LK-9, LK-10 vào; LK-12, LK-15 ra</td>
+<td>F6.2.3, F10.4.1; gửi telemetry do PE1, PE2 sinh ra (F3.8.3); chạy <code>OriginProbe</code></td>
+<td>LK-8, LK-9, LK-10, LK-27 vào; LK-12, LK-15 ra</td>
 </tr>
 <tr>
 <td><strong>PE4 DNS điều hướng</strong></td>
@@ -2673,7 +2805,7 @@ nội dung (managed ruleset, body, schema body) ở WAF. Chi tiết chia còn ph
 </tr>
 <tr>
 <td><strong>PA3 Query API</strong></td>
-<td>F7.3.1, F7.3.2, F7.4.1–F7.4.3, F7.5.2, F9.2.2, F12.3.1</td>
+<td>F2.7.3, F7.3.1, F7.3.2, F7.4.1–F7.4.3, F7.5.2, F9.2.2, F12.3.1</td>
 <td>LK-18 vào</td>
 </tr>
 <tr>
@@ -2707,8 +2839,9 @@ nội dung (managed ruleset, body, schema body) ở WAF. Chi tiết chia còn ph
 (<a href="#f-08-cross-cutting-12-platform-monitoring">8.12</a>), không đi qua liên kết giữa các plane.</p>
 <h2 id="f-01-introduction-05-functional-decomposition--liên-kết-giữa-các-plane">Liên kết giữa các plane</h2>
 <p>Mỗi liên kết là một chỗ dữ liệu hoặc lệnh đi từ chức năng của plane này sang chức năng của plane khác.
-Tên hợp đồng lấy từ <a href="#f-05-building-blocks-05-contracts">5.5</a>; dòng ghi <strong>chưa có ở 5.5</strong> là liên kết bản
-đồ phát hiện ra nhưng hợp đồng chưa định nghĩa (tổng hợp ở cuối mục).</p>
+Tên hợp đồng lấy từ <a href="#f-05-building-blocks-05-contracts">5.5</a>. Hợp đồng đánh dấu <strong>(tạm)</strong> nằm ở mục
+<a href="#f-05-building-blocks-05-contracts--hợp-đồng-bổ-sung-tạm-2026-11-06">hợp đồng bổ sung</a> của 5.5: bản đồ tìm ra
+liên kết, hợp đồng đã được thêm tạm và có thể đổi khi phân tích nghiệp vụ (<a href="#f-01-introduction-07-business-analysis-00-index">1.7</a>).</p>
 <p>Kiểu giao tiếp:</p>
 <ul>
 <li><strong>Outbox</strong>: ghi cùng transaction với dữ liệu nghiệp vụ, qua RabbitMQ, at-least-once, bên nhận bỏ trùng.</li>
@@ -2721,16 +2854,16 @@ Tên hợp đồng lấy từ <a href="#f-05-building-blocks-05-contracts">5.5</
     C[&quot;&lt;b&gt;Control&lt;/b&gt;&quot;]
     E[&quot;&lt;b&gt;Edge&lt;/b&gt;&lt;br/&gt;PE1 L7 → PE2 WAF: LK-14&quot;]
     A[&quot;&lt;b&gt;Analytics&lt;/b&gt;&quot;]
-    M --&gt;|&quot;LK-1…LK-6&lt;br/&gt;PolicyVersionPublished, ZoneChanged,&lt;br/&gt;EntitlementsChanged, biên dịch thử, purge*&quot;| C
-    C --&gt;|&quot;LK-7, LK-24&lt;br/&gt;kết quả biên dịch, rollout*, cert*&quot;| M
-    C --&gt;|&quot;LK-8…LK-11, LK-13&lt;br/&gt;Snapshot, Announcement, NodeProfile,&lt;br/&gt;deny list, PopState*&quot;| E
+    M --&gt;|&quot;LK-1…LK-6&lt;br/&gt;PolicyVersionPublished, ZoneChanged,&lt;br/&gt;EntitlementsChanged, biên dịch thử, PurgeRequested*&quot;| C
+    C --&gt;|&quot;LK-7, LK-24, LK-28&lt;br/&gt;CompileResult*, RolloutProgress*,&lt;br/&gt;CertStatusChanged*, ZoneCheckResult*&quot;| M
+    C --&gt;|&quot;LK-8…LK-11, LK-13, LK-27&lt;br/&gt;Snapshot, Announcement, NodeProfile,&lt;br/&gt;deny list, PopState*, OriginProbe*&quot;| E
     E --&gt;|&quot;LK-12&lt;br/&gt;NodeStatus&quot;| C
     E --&gt;|&quot;LK-15&lt;br/&gt;TelemetryRecord, UsageCounter&quot;| A
-    A --&gt;|&quot;LK-16, LK-25, LK-26&lt;br/&gt;RolloutSignal, cách ly*, reputation*&quot;| C
+    A --&gt;|&quot;LK-16, LK-25, LK-26&lt;br/&gt;RolloutSignal, IsolationRequested*,&lt;br/&gt;ReputationBatch*&quot;| C
     A --&gt;|&quot;LK-17, LK-21&lt;br/&gt;UsageReport, AlertRaised, CaseProposed&quot;| M
-    M --&gt;|&quot;LK-4, LK-18…LK-20, LK-22, LK-23&lt;br/&gt;EntitlementsChanged, Query, token realtime,&lt;br/&gt;cấu hình alert/export*, replay*, xoá dữ liệu*&quot;| A
+    M --&gt;|&quot;LK-4, LK-18…LK-20, LK-22, LK-23&lt;br/&gt;EntitlementsChanged, Query, PermissionsChanged*,&lt;br/&gt;AlertPolicyChanged*, ExportDestinationChanged*,&lt;br/&gt;FalsePositiveLabeled*, Replay*, DataErasure*&quot;| A
 </pre></div>
-<p><code>*</code> là liên kết chưa có hợp đồng ở 5.5. Không có cạnh Management ↔ Edge và Analytics → Edge, có chủ đích (giải thích dưới bảng).</p>
+<p><code>*</code> là hợp đồng tạm ở 5.5. Không có cạnh Management ↔ Edge và Analytics → Edge, có chủ đích (giải thích dưới bảng).</p>
 <table>
 <thead>
 <tr>
@@ -2771,7 +2904,7 @@ Tên hợp đồng lấy từ <a href="#f-05-building-blocks-05-contracts">5.5</
 <td>LK-3</td>
 <td>PM2 → PC1, PC2</td>
 <td>F4.1.2 cache rule → F6.1.1; F4.2.1, F4.2.2 purge → F6.2.2 đường nhanh</td>
-<td>Cache rule nằm trong <code>ZoneChanged</code>; <strong>purge chưa có ở 5.5</strong></td>
+<td>Cache rule nằm trong <code>ZoneChanged</code>; purge là <code>PurgeRequested</code> (tạm)</td>
 <td>Outbox</td>
 <td>Purge trễ; bản cũ vẫn được phục vụ tới khi purge tới (QS-15 vỡ)</td>
 </tr>
@@ -2811,17 +2944,25 @@ Tên hợp đồng lấy từ <a href="#f-05-building-blocks-05-contracts">5.5</
 <td>LK-7</td>
 <td>PC1, PC3 → PM3</td>
 <td>F6.1.2 kết quả biên dịch, F6.3.1 trạng thái rollout → F5.3.5</td>
-<td>Đọc qua Control internal API; <strong>sự kiện đẩy chưa có ở 5.5</strong></td>
-<td>Sync (đọc)</td>
+<td><code>CompileResult</code>, <code>RolloutProgress</code> (tạm); đọc lại qua Control internal API</td>
+<td>Outbox + sync (đọc)</td>
 <td>Portal không hiện tiến độ; phát hành vẫn chạy</td>
 </tr>
 <tr>
 <td>LK-24</td>
 <td>PC6 → PM2</td>
 <td>F2.3.1, F2.3.2 trạng thái cert, gia hạn lỗi → FR-2-08 cảnh báo</td>
-<td><strong>Chưa có ở 5.5</strong></td>
-<td>Outbox (đề xuất)</td>
+<td><code>CertStatusChanged</code> (tạm)</td>
+<td>Outbox</td>
 <td>Khách không thấy cert sắp hết hạn; Control vẫn tự thử lại</td>
+</tr>
+<tr>
+<td>LK-28</td>
+<td>PC6 → PM2</td>
+<td>F2.1.2, F2.1.5–F2.1.7, F2.2.3, F2.2.6, F2.3.6 kết quả kiểm → tiến độ onboarding, cổng OG1 (F2.4.1, F2.7.6)</td>
+<td><code>ZoneCheckResult</code> (tạm)</td>
+<td>Outbox; kiểm theo yêu cầu thì sync</td>
+<td>Onboarding đứng ở bước kiểm; khách bấm kiểm lại (sync)</td>
 </tr>
 <tr>
 <td><strong>Control → Edge</strong></td>
@@ -2864,10 +3005,18 @@ Tên hợp đồng lấy từ <a href="#f-05-building-blocks-05-contracts">5.5</
 <td>Node bị thu hồi còn kết nối tới khi cert hết hạn; QS-40</td>
 </tr>
 <tr>
+<td>LK-27</td>
+<td>PC6 ↔ PE3</td>
+<td>F2.2.3 kiểm origin → edge ở ≥ 2 PoP thử kết nối, trả kết quả</td>
+<td><code>OriginProbe</code> (tạm)</td>
+<td>Sync qua kênh mTLS của agent</td>
+<td>Không kiểm được origin; khách xác nhận bỏ qua để qua OG1</td>
+</tr>
+<tr>
 <td>LK-13</td>
 <td>PC8 → PE4</td>
 <td>F12.2.1 trạng thái PoP → F4.3.1</td>
-<td><code>PopState</code> (<strong>chưa có ở 5.5</strong>)</td>
+<td><code>PopState</code> (tạm)</td>
 <td>Pull</td>
 <td>DNS trả theo trạng thái cũ; QS-16 vỡ</td>
 </tr>
@@ -2939,15 +3088,15 @@ Tên hợp đồng lấy từ <a href="#f-05-building-blocks-05-contracts">5.5</
 <td>LK-25</td>
 <td>PA5 → PC5</td>
 <td>Phát hiện flood lớn → F3.3.4 chuyển sang cell cách ly</td>
-<td><strong>Chưa có ở 5.5</strong></td>
-<td>Outbox (đề xuất)</td>
+<td><code>IsolationRequested</code> (tạm)</td>
+<td>RabbitMQ</td>
 <td>Không tự cách ly; NOC làm tay theo runbook (8.13)</td>
 </tr>
 <tr>
 <td>LK-26</td>
 <td>PA5 → PC7</td>
 <td>Reputation, dữ liệu bot gộp từ telemetry → F11.3.1 và dữ liệu bot (<a href="#f-05-building-blocks-08-components-07-cert-ruleset-release">5.8.7</a>)</td>
-<td><strong>Chưa có ở 5.5</strong></td>
+<td><code>ReputationBatch</code> (tạm)</td>
 <td>Theo lô</td>
 <td>Dùng bản reputation cũ</td>
 </tr>
@@ -2985,8 +3134,8 @@ Tên hợp đồng lấy từ <a href="#f-05-building-blocks-05-contracts">5.5</
 </tr>
 <tr>
 <td>LK-18</td>
-<td>PM4 → PA3</td>
-<td>F7.3, F7.4, F9.1.2, F12.3.1 → Query API</td>
+<td>PM4, PM2 → PA3</td>
+<td>F7.3, F7.4, F9.1.2, F12.3.1, F2.7.2 (traffic đầu tiên), F2.7.3 → Query API</td>
 <td><code>Query</code></td>
 <td>Sync, có giới hạn chi phí</td>
 <td>Portal không có dashboard, tìm kiếm; cấu hình vẫn sửa được</td>
@@ -2995,7 +3144,7 @@ Tên hợp đồng lấy từ <a href="#f-05-building-blocks-05-contracts">5.5</
 <td>LK-19</td>
 <td>PM1 → PA4</td>
 <td>Cấp token realtime, <code>PermissionsChanged</code> → F7.2.1</td>
-<td>Token JWT + sự kiện (<a href="#f-05-building-blocks-08-components-13-realtime-gateway">5.8.13</a>); <strong><code>PermissionsChanged</code> chưa có ở 5.5</strong></td>
+<td>Token JWT (<a href="#f-05-building-blocks-08-components-13-realtime-gateway">5.8.13</a>) + <code>PermissionsChanged</code> (tạm)</td>
 <td>Sync (token) + outbox</td>
 <td>Phiên đang mở giữ tới hết hạn token; không mở phiên mới</td>
 </tr>
@@ -3003,24 +3152,24 @@ Tên hợp đồng lấy từ <a href="#f-05-building-blocks-05-contracts">5.5</
 <td>LK-20</td>
 <td>PM4 → PA5, PA6</td>
 <td>F8.2.1–F8.2.3 alert policy, F7.6.1 đích export, F7.5.1 nhãn chặn nhầm</td>
-<td><strong>Chưa có ở 5.5</strong> (5.8.12 ghi &quot;qua RabbitMQ&quot;)</td>
-<td>Outbox (đề xuất)</td>
+<td><code>AlertPolicyChanged</code>, <code>ExportDestinationChanged</code>, <code>FalsePositiveLabeled</code> (tạm)</td>
+<td>Outbox</td>
 <td>Analytics dùng cấu hình cũ; nhãn chặn nhầm chờ trong outbox</td>
 </tr>
 <tr>
 <td>LK-22</td>
 <td>PM3 ↔ PA7</td>
 <td>F5.3.1 yêu cầu mô phỏng → F5.2.3, trả kết quả</td>
-<td><strong>Chưa có ở 5.5</strong> (5.8.12 ghi &quot;kết quả replay&quot;)</td>
-<td>Async, có job ID</td>
+<td><code>ReplayRequested</code>, <code>ReplayCompleted</code> (tạm)</td>
+<td>Outbox hai chiều, job ID</td>
 <td>Change request không có kết quả mô phỏng; duyệt vẫn làm được nếu không bắt buộc</td>
 </tr>
 <tr>
 <td>LK-23</td>
 <td>PM6 → PA2</td>
 <td>F9.3.3 xoá dữ liệu cá nhân, F1.1.4 xoá org → xoá trong log</td>
-<td><strong>Chưa có ở 5.5</strong></td>
-<td>Outbox (đề xuất)</td>
+<td><code>DataErasureRequested</code>, <code>DataErasureCompleted</code> (tạm)</td>
+<td>Outbox</td>
 <td>Yêu cầu xoá chờ; phải có hạn hoàn tất theo Nghị định 13</td>
 </tr>
 </tbody>
@@ -3032,70 +3181,12 @@ Tên hợp đồng lấy từ <a href="#f-05-building-blocks-05-contracts">5.5</
 <li><strong>Analytics → Edge</strong>: không có. Mọi phản ứng dựa trên phân tích (cách ly, rule khẩn, reputation) đi qua
 Control để vẫn có ký, canary và rollback.</li>
 </ul>
-<h3 id="f-01-introduction-05-functional-decomposition--liên-kết-chưa-có-hợp-đồng-ở-55">Liên kết chưa có hợp đồng ở 5.5</h3>
-<p>Bản đồ cho thấy 5.5 mới định nghĩa liên kết của đường cấu hình chính và telemetry. Đề xuất bổ sung sau khi
-review (theo dõi ở <a href="#f-01-introduction-06-requirements--9-câu-hỏi-mở-cho-review">OQ-15</a>):</p>
-<table>
-<thead>
-<tr>
-<th>Liên kết</th>
-<th>Tên hợp đồng đề xuất</th>
-<th>Lý do cần</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>LK-3</td>
-<td><code>PurgeRequested</code> (lớp khẩn)</td>
-<td>Purge đi đường nhanh, không đi qua biên dịch như cache rule</td>
-</tr>
-<tr>
-<td>LK-7</td>
-<td><code>CompileResult</code>, <code>RolloutProgress</code></td>
-<td>Portal hiện tiến độ mà không phải hỏi liên tục</td>
-</tr>
-<tr>
-<td>LK-13</td>
-<td><code>PopState</code></td>
-<td>DNS điều hướng cần trạng thái PoP từ Control</td>
-</tr>
-<tr>
-<td>LK-19</td>
-<td><code>PermissionsChanged</code></td>
-<td>Gateway realtime đóng channel khi quyền đổi</td>
-</tr>
-<tr>
-<td>LK-20</td>
-<td><code>AlertPolicyChanged</code>, <code>ExportDestinationChanged</code>, <code>FalsePositiveLabeled</code></td>
-<td>Analytics đánh giá cảnh báo và export theo cấu hình của khách</td>
-</tr>
-<tr>
-<td>LK-22</td>
-<td><code>ReplayRequested</code>, <code>ReplayCompleted</code></td>
-<td>Mô phỏng chạy lâu, cần job bất đồng bộ</td>
-</tr>
-<tr>
-<td>LK-23</td>
-<td><code>DataErasureRequested</code></td>
-<td>Xoá dữ liệu cá nhân phải tới cả log ở Analytics</td>
-</tr>
-<tr>
-<td>LK-24</td>
-<td><code>CertStatusChanged</code></td>
-<td>Khách thấy cert sắp hết hạn, gia hạn lỗi</td>
-</tr>
-<tr>
-<td>LK-25</td>
-<td><code>IsolationRequested</code></td>
-<td>Chuyển zone bị flood sang cell cách ly</td>
-</tr>
-<tr>
-<td>LK-26</td>
-<td><code>ReputationBatch</code></td>
-<td>Reputation và dữ liệu bot đi qua pipeline phát hành của Control</td>
-</tr>
-</tbody>
-</table>
+<h3 id="f-01-introduction-05-functional-decomposition--hợp-đồng-tạm">Hợp đồng tạm</h3>
+<p>Bản đồ cho thấy bảng chính của 5.5 mới có đường cấu hình chính và telemetry. 15 hợp đồng cho các liên kết
+còn lại đã được thêm vào 5.5 ở dạng <strong>tạm</strong>
+(<a href="#f-05-building-blocks-05-contracts--hợp-đồng-bổ-sung-tạm-2026-11-06">5.5, hợp đồng bổ sung</a>); <code>ZoneCheckResult</code>
+và <code>OriginProbe</code> đến từ phân tích onboarding (<a href="#f-01-introduction-07-business-analysis-01-onboarding">1.7.1</a>). Chúng được chốt
+dần khi phân tích từng nghiệp vụ (<a href="#f-01-introduction-06-requirements--9-câu-hỏi-mở-cho-review">OQ-15</a>).</p>
 <h2 id="f-01-introduction-05-functional-decomposition--chức-năng-ngoài-phạm-vi">Chức năng ngoài phạm vi</h2>
 <p>Không nằm trong bản đồ, nhắc lại để không bị thêm vào thiết kế dữ liệu: vulnerability scanning (DAST, sản
 phẩm riêng nếu làm), edge compute, tối ưu ảnh, video, client-side protection. Xem <a href="#f-01-introduction-00-index--12-tổng-quan-yêu-cầu">1.2</a>.</p>
@@ -3109,7 +3200,7 @@ phẩm riêng nếu làm), edge compute, tối ưu ảnh, video, client-side pro
 </thead>
 <tbody>
 <tr>
-<td>Có đối tượng dữ liệu chưa có trong <a href="#f-05-building-blocks-08-components-12-management">5.8.12</a>: Invitation, MfaFactor, SsoDomain, ServiceAccount, DomainVerification, OriginCheck, ChangeWindow, TemporaryMitigation, PolicyTemplate/PolicyBinding, GitSource, QuotaNotice, PaymentMethod, Payment, CreditNote, AddOn, TrialClaim, SupportAccessGrant, Partner, Pop</td>
+<td>Có đối tượng dữ liệu chưa có trong <a href="#f-05-building-blocks-08-components-12-management">5.8.12</a>: DnsSnapshot, OnboardingProgress, ZonePreset (từ 1.7.1), Invitation, MfaFactor, SsoDomain, ServiceAccount, DomainVerification, OriginCheck, ChangeWindow, TemporaryMitigation, PolicyTemplate/PolicyBinding, GitSource, QuotaNotice, PaymentMethod, Payment, CreditNote, AddOn, TrialClaim, SupportAccessGrant, Partner, Pop</td>
 <td>Bổ sung vào module sau khi requirements chốt</td>
 </tr>
 <tr>
@@ -3404,10 +3495,10 @@ lặp lại ở đây.</li>
 </tr>
 <tr>
 <td>FR-2-02</td>
-<td>Hệ thống phải xác minh quyền sở hữu qua bản ghi TXT hoặc CNAME, kiểm lại mỗi ngày khi zone đang hoạt động</td>
+<td>Hệ thống phải xác minh quyền sở hữu qua bản ghi CNAME uỷ quyền <code>_acme-challenge</code> (mặc định) hoặc TXT, kiểm từ ≥ 3 resolver ở các mạng khác nhau, và kiểm lại mỗi ngày khi zone đang hoạt động</td>
 <td>F2.1.2</td>
 <td>MVP</td>
-<td>Mất bản ghi 7 ngày liên tục thì cảnh báo, 14 ngày thì tạm dừng (<a href="#f-01-introduction-06-requirements--9-câu-hỏi-mở-cho-review">OQ-3</a>)</td>
+<td>Bản ghi đúng được phát hiện ≤ 2 phút sau khi resolver công cộng thấy; mất bản ghi 7 ngày liên tục thì cảnh báo, 14 ngày thì tạm dừng (<a href="#f-01-introduction-06-requirements--9-câu-hỏi-mở-cho-review">OQ-3</a>); claim chưa xác minh hết hạn ở ngày 14 (<a href="#f-01-introduction-06-requirements--4-quy-tắc-nghiệp-vụ">BR-22</a>)</td>
 </tr>
 <tr>
 <td>FR-2-03</td>
@@ -3432,10 +3523,10 @@ lặp lại ở đây.</li>
 </tr>
 <tr>
 <td>FR-2-06</td>
-<td>Hệ thống phải kiểm origin trước khi kích hoạt và cho xem kết quả (kết nối, TLS, mã trả, thời gian)</td>
+<td>Hệ thống phải kiểm origin <strong>từ edge</strong> ở ≥ 2 PoP trước khi kích hoạt và cho xem kết quả (kết nối, TLS, mã trả, thời gian theo chặng)</td>
 <td>F2.2.3</td>
 <td>MVP</td>
-<td>Kích hoạt khi kiểm lỗi cần xác nhận rõ ràng của người dùng</td>
+<td>Thông điệp phân biệt được firewall chưa mở cho edge, lỗi TLS, vòng chuyển hướng; kích hoạt khi kiểm lỗi cần xác nhận rõ ràng của người dùng</td>
 </tr>
 <tr>
 <td>FR-2-07</td>
@@ -3506,6 +3597,104 @@ lặp lại ở đây.</li>
 <td>F2.5.2</td>
 <td>MR</td>
 <td>QS-27</td>
+</tr>
+<tr>
+<td>FR-2-17</td>
+<td>Khi thêm domain, hệ thống phải tra DNS hiện tại (NS, A/AAAA/CNAME, CAA, TTL), hiện kết quả và gợi ý origin (<a href="#f-01-introduction-07-business-analysis-01-onboarding">1.7.1</a> OB2)</td>
+<td>F2.1.5</td>
+<td>MVP</td>
+<td>Kết quả ≤ 10 s; IDN lưu dạng punycode; không nhận public suffix làm domain gốc</td>
+</tr>
+<tr>
+<td>FR-2-18</td>
+<td>Hệ thống phải phát hiện CDN hoặc WAF đang đứng trước domain, và CAA chặn CA của NCC, rồi báo trước bước xác minh</td>
+<td>F2.1.5, F2.3.6</td>
+<td>MVP</td>
+<td>Thông báo CAA nêu đúng bản ghi cần thêm</td>
+</tr>
+<tr>
+<td>FR-2-19</td>
+<td>Với xác minh bằng CNAME uỷ quyền, cert đầu tiên phải được cấp trước khi khách đổi DNS</td>
+<td>F2.1.2, F2.3.1</td>
+<td>MVP</td>
+<td>Không có khoảng lỗi cert lúc đổi DNS (OG2)</td>
+</tr>
+<tr>
+<td>FR-2-20</td>
+<td>Người onboard phải gửi được hướng dẫn tạo bản ghi DNS cho người giữ DNS qua email; người nhận không cần tài khoản</td>
+<td>F2.1.2</td>
+<td>MVP</td>
+<td>Email chứa đúng bản ghi, không chứa dữ liệu khác của tenant</td>
+</tr>
+<tr>
+<td>FR-2-21</td>
+<td>Portal phải hướng dẫn theo phương thức kết nối: CNAME, ALIAS cho apex, A/AAAA tĩnh cho apex (<a href="#f-01-introduction-07-business-analysis-01-onboarding--9-câu-hỏi-mở">OQ-16</a>), đứng sau CDN của khách; đổi nameserver ở mức MR</td>
+<td>F2.1.3</td>
+<td>MVP</td>
+<td></td>
+</tr>
+<tr>
+<td>FR-2-22</td>
+<td>Khách phải chọn preset theo loại ứng dụng; preset bật chặn DDoS L7 và lọc sớm từ request đầu, phần còn lại log-only; có lựa chọn &quot;đang bị tấn công, chặn ngay&quot; (<a href="#f-01-introduction-06-requirements--4-quy-tắc-nghiệp-vụ">BR-24</a>)</td>
+<td>F2.6.1</td>
+<td>MVP</td>
+<td>Đổi preset được bất kỳ lúc nào trong giai đoạn log-only</td>
+</tr>
+<tr>
+<td>FR-2-23</td>
+<td>Portal phải sinh lệnh <code>curl --resolve</code> và dòng <code>hosts</code> để kiểm thử qua edge trước khi đổi DNS, và hiện event realtime của zone trong lúc kiểm thử</td>
+<td>F2.6.2</td>
+<td>MVP</td>
+<td>Request kiểm thử có trong tra cứu theo request ID</td>
+</tr>
+<tr>
+<td>FR-2-24</td>
+<td>Hệ thống phải hiện theo từng hostname: đã trỏ, chưa trỏ hay trỏ một phần về edge, và thời điểm edge thấy traffic thật đầu tiên</td>
+<td>F2.1.7, F2.7.2</td>
+<td>MVP</td>
+<td>Cập nhật ≤ 5 phút sau khi DNS đổi</td>
+</tr>
+<tr>
+<td>FR-2-25</td>
+<td>Hệ thống phải lưu bản ghi DNS cũ và hiện kế hoạch quay lui (bản ghi cũ, tạm dừng zone) trước khi khách đổi DNS</td>
+<td>F2.7.1</td>
+<td>MVP</td>
+<td></td>
+</tr>
+<tr>
+<td>FR-2-26</td>
+<td>Trong log-only, hệ thống phải gửi báo cáo hằng ngày: request sẽ bị chặn theo rule, rule nghi chặn nhầm, đề xuất exception, mức sẵn sàng bật chặn</td>
+<td>F2.7.3</td>
+<td>MVP</td>
+<td>Có trên portal và email; exception tạo được một bấm</td>
+</tr>
+<tr>
+<td>FR-2-27</td>
+<td>Bật chặn lần đầu phải làm được theo bậc nhóm rule, mỗi bậc một change request</td>
+<td>F2.7.4</td>
+<td>MVP</td>
+<td>Rollback một bấm từng bậc</td>
+</tr>
+<tr>
+<td>FR-2-28</td>
+<td>Hệ thống phải hướng dẫn khoá origin (dải IP của edge có version, header bí mật, mTLS) và ghi nhận đã khoá hay bỏ qua; nên kiểm origin còn lộ từ điểm không thuộc edge</td>
+<td>F2.7.5, F2.2.6</td>
+<td>MVP / MR</td>
+<td>Bỏ qua khoá origin có audit</td>
+</tr>
+<tr>
+<td>FR-2-29</td>
+<td>Danh sách zone phải hiện tiến độ onboarding theo bước; hệ thống nhắc ở ngày 1, 3, 7 tới đúng người của bước đang dừng</td>
+<td>F2.7.6</td>
+<td>MVP</td>
+<td>Zone bỏ dở lọc được</td>
+</tr>
+<tr>
+<td>FR-2-30</td>
+<td>Hệ thống nên nhập hàng loạt hostname và origin qua CSV, API</td>
+<td>F2.2.7</td>
+<td>MR</td>
+<td>1.000 hostname ≤ 5 phút, báo lỗi theo dòng</td>
 </tr>
 </tbody>
 </table>
@@ -4241,7 +4430,7 @@ lặp lại ở đây.</li>
 </tr>
 <tr>
 <td>BR-2</td>
-<td>Zone chỉ kích hoạt khi domain đã xác minh và có ít nhất một origin</td>
+<td>Zone chỉ kích hoạt khi qua cổng OG1: mọi hostname đã chọn đã xác minh, có cert, có origin đã kiểm (hoặc khách xác nhận bỏ qua), đã chọn preset (<a href="#f-01-introduction-07-business-analysis-01-onboarding">1.7.1</a>)</td>
 <td>F2.4.1</td>
 </tr>
 <tr>
@@ -4339,6 +4528,21 @@ lặp lại ở đây.</li>
 <td>Exception luôn có phạm vi zone; exception tắt toàn bộ managed ruleset cho cả zone phải đi qua duyệt kể cả khi 4-eyes tắt</td>
 <td>F5.1.4</td>
 </tr>
+<tr>
+<td>BR-22</td>
+<td>Claim domain chưa xác minh hết hạn sau 14 ngày; domain được giải phóng</td>
+<td>F2.1.8</td>
+</tr>
+<tr>
+<td>BR-23</td>
+<td>Không cấp cert cho hostname chưa xác minh sở hữu</td>
+<td>F2.3.1</td>
+</tr>
+<tr>
+<td>BR-24</td>
+<td>DDoS L7 và lọc sớm chặn từ request đầu tiên, không theo log-only của onboarding. Bật chặn phần còn lại lần đầu cần ≥ 7 ngày và ≥ 10.000 request log-only (<a href="#f-01-introduction-07-business-analysis-01-onboarding--9-câu-hỏi-mở">OQ-17</a>), trừ khi khách chọn &quot;đang bị tấn công&quot; (có audit)</td>
+<td>F2.6.1, F2.7.4</td>
+</tr>
 </tbody>
 </table>
 <h2 id="f-01-introduction-06-requirements--5-yêu-cầu-dữ-liệu">5. Yêu cầu dữ liệu</h2>
@@ -4378,7 +4582,7 @@ hoặc đọc qua API.</p>
 <tr>
 <td>DT-3</td>
 <td>Cấu hình zone</td>
-<td>Zone, Hostname, Origin, OriginPool, ZoneSettings, ZoneGroup, ZoneTag, CacheRule, DnsRecord, CustomPage, DomainVerification, OriginCheck</td>
+<td>Zone, Hostname, Origin, OriginPool, ZoneSettings, ZoneGroup, ZoneTag, CacheRule, DnsRecord, CustomPage, DomainVerification, OriginCheck, DnsSnapshot, OnboardingProgress; ZonePreset là danh mục của NCC</td>
 <td>M</td>
 <td>1 triệu zone, 3 triệu hostname</td>
 <td>Tới khi gỡ zone</td>
@@ -4791,9 +4995,929 @@ chính. Dưới đây chỉ là những điểm 10.3 chưa có, chủ yếu cho 
 </tr>
 <tr>
 <td>OQ-15</td>
-<td>Bổ sung vào 5.5 các hợp đồng cho 11 liên kết chưa có (purge, trạng thái cert, <code>PopState</code>, <code>PermissionsChanged</code>, cấu hình alert/export, nhãn chặn nhầm, replay, xoá dữ liệu, cách ly, reputation)</td>
-<td>Bổ sung theo bảng ở <a href="#f-01-introduction-05-functional-decomposition--liên-kết-chưa-có-hợp-đồng-ở-55">1.5</a></td>
+<td>Chốt các hợp đồng tạm ở <a href="#f-05-building-blocks-05-contracts--hợp-đồng-bổ-sung-tạm-2026-11-06">5.5</a> (purge, kết quả biên dịch, rollout, cert, kiểm zone, kiểm origin, <code>PopState</code>, <code>PermissionsChanged</code>, cấu hình alert/export, nhãn chặn nhầm, replay, xoá dữ liệu, cách ly, reputation)</td>
+<td>Đã thêm tạm; chốt dần theo từng nghiệp vụ ở 1.7</td>
 <td>5.5, outbox của Management</td>
+</tr>
+<tr>
+<td>OQ-16…OQ-20</td>
+<td>Câu hỏi của onboarding: IP tĩnh cho apex, điều kiện bật chặn, cert theo hostname, hostname xem trước, xác minh bằng TXT</td>
+<td>Ở <a href="#f-01-introduction-07-business-analysis-01-onboarding">1.7.1</a> §9</td>
+<td>F2</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section class="doc" id="f-01-introduction-07-business-analysis-00-index"><div class="path">01-introduction/07-business-analysis/00-index.md</div><h1 id="f-01-introduction-07-business-analysis-00-index--17-phân-tích-nghiệp-vụ">1.7 Phân tích nghiệp vụ</h1>
+<blockquote>
+<p><strong>Trạng thái: đang làm (2026-11-06).</strong> Mỗi nghiệp vụ phân tích xong sẽ cập nhật lại
+<a href="#f-01-introduction-05-functional-decomposition">bản đồ phân rã chức năng</a>, <a href="#f-01-introduction-06-requirements">requirements</a> và
+<a href="#f-05-building-blocks-05-contracts">hợp đồng giữa các plane</a>. Những chỗ thay đổi được liệt kê ở cuối
+từng trang.</p>
+</blockquote>
+<p>Bản đồ phân rã nói hệ thống <strong>có</strong> những chức năng gì. Mục này đi qua từng nghiệp vụ theo trình tự khách
+thật làm. Với mỗi nghiệp vụ, nó trả lời các câu hỏi sau:</p>
+<ul>
+<li>Bước nào phải làm trước bước nào, và vì sao.</li>
+<li>Khách phải chuẩn bị gì trước khi bắt đầu.</li>
+<li>Điều kiện nào được kiểm ở mỗi cổng.</li>
+<li>Bước nào hay hỏng, và hỏng thì xử lý thế nào.</li>
+<li>Mỗi bước sinh ra dữ liệu gì.</li>
+</ul>
+<p>Thứ tự phân tích đi theo vòng đời của khách: onboarding trước, vì đó là lần đầu sản phẩm chạm vào traffic
+thật và cũng là lúc dễ gây sự cố nhất.</p>
+<table>
+<thead>
+<tr>
+<th>Mục</th>
+<th>Nghiệp vụ</th>
+<th>Trạng thái</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="#f-01-introduction-07-business-analysis-01-onboarding">1.7.1</a></td>
+<td>Onboarding một website: từ lúc thêm domain tới khi traffic được bảo vệ ở chế độ chặn</td>
+<td>Bản nháp chờ review</td>
+</tr>
+<tr>
+<td>1.7.2</td>
+<td>Viết, duyệt, phát hành một thay đổi policy</td>
+<td>Chưa làm</td>
+</tr>
+<tr>
+<td>1.7.3</td>
+<td>Phản ứng khi bị tấn công</td>
+<td>Chưa làm</td>
+</tr>
+<tr>
+<td>1.7.4</td>
+<td>Xử lý chặn nhầm</td>
+<td>Chưa làm</td>
+</tr>
+<tr>
+<td>1.7.5</td>
+<td>Mua, đổi gói, vượt hạn mức, thanh toán</td>
+<td>Chưa làm</td>
+</tr>
+<tr>
+<td>1.7.6</td>
+<td>Quản lý thành viên, SSO, API key</td>
+<td>Chưa làm</td>
+</tr>
+<tr>
+<td>1.7.7</td>
+<td>Rời dịch vụ: gỡ zone, xoá org, xoá dữ liệu</td>
+<td>Chưa làm</td>
+</tr>
+</tbody>
+</table>
+<p>Mỗi trang dùng cùng một khung:</p>
+<ol>
+<li>Mục tiêu và định nghĩa &quot;xong&quot;.</li>
+<li>Tác nhân và biến thể theo phân khúc.</li>
+<li>Khách cần chuẩn bị gì.</li>
+<li>Các bước, thứ tự và cổng.</li>
+<li>Chi tiết từng bước: đầu vào, xử lý, kết quả, lỗi thường gặp, plane, chức năng, dữ liệu.</li>
+<li>Trường hợp đặc biệt.</li>
+<li>Mục tiêu thời gian.</li>
+<li>Thay đổi kéo theo ở 1.5, 1.6, 5.5.</li>
+<li>Câu hỏi mở.</li>
+</ol>
+</section>
+<section class="doc" id="f-01-introduction-07-business-analysis-01-onboarding"><div class="path">01-introduction/07-business-analysis/01-onboarding.md</div><h1 id="f-01-introduction-07-business-analysis-01-onboarding--171-onboarding-một-website">1.7.1 Onboarding một website</h1>
+<blockquote>
+<p><strong>Trạng thái: bản nháp chờ review (2026-11-06).</strong> Các thay đổi kéo theo đã được áp vào 1.5, 1.6, 5.5 và
+được liệt kê ở <a href="#f-01-introduction-07-business-analysis-01-onboarding--8-thay-đổi-kéo-theo">§8</a>.</p>
+</blockquote>
+<h2 id="f-01-introduction-07-business-analysis-01-onboarding--1-mục-tiêu-và-định-nghĩa-xong">1. Mục tiêu và định nghĩa &quot;xong&quot;</h2>
+<p>Onboarding bắt đầu khi khách nhập domain và kết thúc khi website <strong>được bảo vệ thật</strong>. Website được bảo
+vệ thật khi đủ cả năm điều kiện sau:</p>
+<ol>
+<li>Traffic của mọi hostname được chọn đi qua edge (DNS đã trỏ, edge đã thấy request thật).</li>
+<li>HTTPS hợp lệ trên edge, không có lúc nào người dùng gặp lỗi cert.</li>
+<li>Managed ruleset và các rule của khách ở chế độ <strong>chặn</strong>, sau một giai đoạn log-only có số liệu.</li>
+<li>Origin chỉ nhận traffic từ edge. Nếu origin vẫn mở ra Internet thì kẻ tấn công đi vòng qua WAF được.</li>
+<li>Có người nhận cảnh báo.</li>
+</ol>
+<p>Phần lớn sản phẩm WAAP dừng ở điều kiện 1 và gọi đó là &quot;đã onboard&quot;. Sản phẩm này coi 3 và 4 là một
+phần của onboarding, vì không có chúng thì khách trả tiền mà chưa được bảo vệ.</p>
+<p><strong>Rủi ro lớn nhất của onboarding là làm sập website của khách</strong>, không phải để lọt tấn công. Các rủi ro đó
+là:</p>
+<ul>
+<li>Lỗi cert lúc đổi DNS.</li>
+<li>Origin từ chối IP của edge.</li>
+<li>Chặn nhầm ngay ngày đầu.</li>
+<li>Mất IP thật của client.</li>
+<li>Upload hoặc WebSocket bị cắt.</li>
+</ul>
+<p>Thứ tự các bước dưới đây được sắp để loại từng rủi ro này <strong>trước khi</strong> traffic thật đi qua edge.</p>
+<h2 id="f-01-introduction-07-business-analysis-01-onboarding--2-tác-nhân-và-biến-thể-theo-phân-khúc">2. Tác nhân và biến thể theo phân khúc</h2>
+<table>
+<thead>
+<tr>
+<th>Tác nhân</th>
+<th>Làm gì trong onboarding</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Chủ tài khoản</td>
+<td>Tạo org, chọn gói hoặc dùng thử, mời người</td>
+</tr>
+<tr>
+<td>DevOps / người giữ DNS</td>
+<td>Tạo bản ghi xác minh, đổi DNS, mở firewall origin cho edge, khoá origin</td>
+</tr>
+<tr>
+<td>Quản trị bảo mật</td>
+<td>Chọn preset, xem báo cáo log-only, quyết định bật chặn</td>
+</tr>
+<tr>
+<td>Developer của ứng dụng</td>
+<td>Kiểm thử trước khi đổi DNS, báo chỗ bị chặn nhầm</td>
+</tr>
+<tr>
+<td>Sales, kỹ sư triển khai (NCC)</td>
+<td>Dẫn onboarding cho Enterprise</td>
+</tr>
+</tbody>
+</table>
+<p>Một người có thể giữ nhiều vai trò; ở Free và Pro thường chỉ có một người làm tất cả.</p>
+<table>
+<thead>
+<tr>
+<th>Phân khúc</th>
+<th>Cách onboard</th>
+<th>Khác biệt</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Free, Pro</td>
+<td>Tự phục vụ, wizard</td>
+<td>Preset tự chọn theo phát hiện, ít câu hỏi; mục tiêu sẵn sàng đổi DNS trong 15 phút</td>
+</tr>
+<tr>
+<td>Business</td>
+<td>Tự phục vụ, có thể có hỗ trợ</td>
+<td>Như trên, thêm nhập nhiều hostname, cert riêng, mời team, API/Terraform ngay từ đầu</td>
+</tr>
+<tr>
+<td>Enterprise</td>
+<td>Dự án có kỹ sư NCC đi kèm, 2–6 tuần</td>
+<td>Kickoff và kiểm kê hostname, zone staging trước, khung giờ đổi DNS, cell riêng nếu có, thường có hợp đồng trước dùng thử</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-01-introduction-07-business-analysis-01-onboarding--3-khách-cần-chuẩn-bị-gì">3. Khách cần chuẩn bị gì</h2>
+<p>Portal hiện danh sách này trước bước đầu tiên. Danh sách cũng có trong email chào mừng, vì người tạo org
+thường không phải người giữ DNS.</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Cần có</th>
+<th>Vì sao</th>
+<th>Nếu thiếu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CB1</td>
+<td>Quyền sửa DNS của domain (registrar hoặc nhà cung cấp DNS)</td>
+<td>Xác minh sở hữu, uỷ quyền cert, đổi DNS</td>
+<td>Dừng ở bước xác minh; gửi hướng dẫn cho người giữ DNS (OB3)</td>
+</tr>
+<tr>
+<td>CB2</td>
+<td>Địa chỉ origin, cổng, giao thức của từng hostname</td>
+<td>Edge phải biết gửi traffic về đâu</td>
+<td>Hệ thống gợi ý từ DNS hiện tại (OB2)</td>
+</tr>
+<tr>
+<td>CB3</td>
+<td>Quyền sửa firewall hoặc security group của origin</td>
+<td>Mở cho dải IP của edge, sau đó khoá origin</td>
+<td>Origin từ chối edge; website lỗi sau khi đổi DNS</td>
+</tr>
+<tr>
+<td>CB4</td>
+<td>Bản ghi CAA của domain cho phép CA của NCC (nếu domain có CAA)</td>
+<td>Không có thì CA từ chối cấp cert</td>
+<td>Phát hiện ở OB2, chặn ở OB5</td>
+</tr>
+<tr>
+<td>CB5</td>
+<td>Danh sách tính năng đặc biệt của ứng dụng: upload lớn, WebSocket, gRPC, API cho mobile, webhook từ đối tác, IP allowlist ở origin</td>
+<td>Đây là các chỗ dễ bị cắt hoặc chặn nhầm</td>
+<td>Hỏi trong preset (OB6) và trong checklist kiểm thử (OB7)</td>
+</tr>
+<tr>
+<td>CB6</td>
+<td>Ứng dụng đọc IP client từ header nào</td>
+<td>Sau khi đi qua edge, IP nguồn ở origin là IP của edge</td>
+<td>Log và rate limit ở origin sai; hướng dẫn ở OB4</td>
+</tr>
+<tr>
+<td>CB7</td>
+<td>Khả năng hạ TTL của bản ghi DNS sẽ đổi, ít nhất 24 giờ trước khi đổi</td>
+<td>Đổi nhanh và quay lui nhanh</td>
+<td>Quay lui chậm theo TTL cũ</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-01-introduction-07-business-analysis-01-onboarding--4-các-bước-thứ-tự-và-cổng">4. Các bước, thứ tự và cổng</h2>
+<div class="diagram"><pre class="mermaid">flowchart TB
+    OB1[&quot;OB1 Tạo org, chọn gói&quot;]
+    OB2[&quot;OB2 Thêm domain&lt;br/&gt;tra DNS hiện tại&quot;]
+    OB3[&quot;OB3 Xác minh sở hữu&lt;br/&gt;một bản ghi CNAME&quot;]
+    OB4[&quot;OB4 Origin&lt;br/&gt;kiểm từ edge&quot;]
+    OB5[&quot;OB5 Cert trên edge&quot;]
+    OB6[&quot;OB6 Preset bảo vệ&lt;br/&gt;log-only&quot;]
+    G1{{&quot;OG1 Kích hoạt&quot;}}
+    OB7[&quot;OB7 Kiểm thử qua edge&lt;br/&gt;trước khi đổi DNS&quot;]
+    G2{{&quot;OG2 Đổi DNS&quot;}}
+    OB8[&quot;OB8 Đổi DNS, theo dõi&quot;]
+    OB9[&quot;OB9 Log-only có số liệu&quot;]
+    G3{{&quot;OG3 Bật chặn&quot;}}
+    OB10[&quot;OB10 Bật chặn&quot;]
+    OB11[&quot;OB11 Khoá origin&quot;]
+    G4{{&quot;OG4 Hoàn tất&quot;}}
+    OB12[&quot;OB12 Cảnh báo, team, API&quot;]
+
+    OB1 --&gt; OB2 --&gt; OB3
+    OB2 --&gt; OB4
+    OB3 --&gt; OB5
+    OB2 --&gt; OB6
+    OB3 --&gt; G1
+    OB4 --&gt; G1
+    OB5 --&gt; G1
+    OB6 --&gt; G1
+    G1 --&gt; OB7 --&gt; G2 --&gt; OB8 --&gt; OB9 --&gt; G3 --&gt; OB10
+    OB8 --&gt; OB11
+    OB10 --&gt; G4
+    OB11 --&gt; G4
+    G4 --&gt; OB12
+</pre></div>
+<p>Sau OB2 có ba nhánh chạy song song: xác minh và cert (OB3, OB5), origin (OB4), preset (OB6). Khách không
+phải chờ một nhánh xong mới làm nhánh khác. Wizard vẫn hiện theo thứ tự trên, nhưng cho nhảy bước.</p>
+<h3 id="f-01-introduction-07-business-analysis-01-onboarding--vì-sao-thứ-tự-này">Vì sao thứ tự này</h3>
+<table>
+<thead>
+<tr>
+<th>Phải xong trước</th>
+<th>Rồi mới</th>
+<th>Lý do</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Xác minh sở hữu (OB3)</td>
+<td>Cấp cert (OB5), kích hoạt (OG1)</td>
+<td>Không cấp cert hay nhận traffic cho domain mà tenant chưa chứng minh sở hữu; chặn chiếm domain của người khác</td>
+</tr>
+<tr>
+<td>Cert trên edge (OB5)</td>
+<td>Đổi DNS (OG2)</td>
+<td>Nếu đổi DNS khi chưa có cert, HTTPS lỗi cho mọi người dùng tới khi cert về. Vì vậy cert phải lấy được <strong>trước</strong> khi traffic tới, tức là không dùng HTTP-01 ở lần cấp đầu (xem OB3, OB5)</td>
+</tr>
+<tr>
+<td>Kiểm origin từ edge (OB4)</td>
+<td>Đổi DNS (OG2)</td>
+<td>Origin thường có firewall; nếu chưa mở cho edge thì website sập ngay khi đổi</td>
+</tr>
+<tr>
+<td>Kiểm thử qua edge (OB7)</td>
+<td>Đổi DNS (OG2)</td>
+<td>Phát hiện chỗ hỏng (upload, WebSocket, chuyển hướng, cookie domain) khi chưa ảnh hưởng người dùng thật</td>
+</tr>
+<tr>
+<td>Đổi DNS, có traffic thật (OB8)</td>
+<td>Bật chặn (OG3)</td>
+<td>Không có traffic thật thì không biết rule nào chặn nhầm</td>
+</tr>
+<tr>
+<td>Log-only đủ lâu (OB9)</td>
+<td>Bật chặn (OG3)</td>
+<td>Rủi ro R2 (chặn nhầm làm mất niềm tin)</td>
+</tr>
+<tr>
+<td>Traffic đã đi hết qua edge (OB8)</td>
+<td>Khoá origin (OB11)</td>
+<td>Khoá sớm thì người dùng còn theo DNS cũ bị cắt</td>
+</tr>
+</tbody>
+</table>
+<p>Có hai thứ <strong>không</strong> chờ log-only. Thứ nhất là chống DDoS L7 và lọc sớm (access list, sai giao thức rõ
+ràng): chúng chạy từ request đầu tiên, vì đó là lý do nhiều khách onboard ngay lúc đang bị tấn công. Thứ
+hai là trường hợp khách đang bị tấn công: khách chọn &quot;bật chặn ngay&quot; ở OB6, có cảnh báo rõ về rủi ro chặn
+nhầm, và bỏ qua OG3.</p>
+<h3 id="f-01-introduction-07-business-analysis-01-onboarding--cổng">Cổng</h3>
+<table>
+<thead>
+<tr>
+<th>Cổng</th>
+<th>Điều kiện</th>
+<th>Ai mở</th>
+<th>Khi không đạt</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>OG1 Kích hoạt</strong> (cấu hình của zone được phát xuống edge)</td>
+<td>Mọi hostname đã chọn đã xác minh sở hữu; mỗi hostname có cert <code>issued</code> (hoặc, với xác minh bằng TXT không uỷ quyền, khách đã tải cert lên hoặc xác nhận chấp nhận khoảng lỗi cert, <a href="#f-01-introduction-07-business-analysis-01-onboarding--9-câu-hỏi-mở">OQ-20</a>); mỗi hostname có origin; origin kiểm từ edge đạt, hoặc khách xác nhận bỏ qua; preset đã chọn</td>
+<td>Tự động khi đủ điều kiện, hoặc khách bấm</td>
+<td>Nút &quot;Kích hoạt&quot; tắt, ghi rõ điều kiện còn thiếu</td>
+</tr>
+<tr>
+<td><strong>OG2 Đổi DNS</strong></td>
+<td>Zone đã kích hoạt; khuyến nghị đã kiểm thử qua edge (OB7) và đã hạ TTL</td>
+<td>Khách (đổi DNS ở bên ngoài)</td>
+<td>Không chặn được, vì DNS là của khách; portal cảnh báo nếu đổi khi OG1 chưa đạt (zone nhận traffic nhưng trả trang &quot;chưa sẵn sàng&quot; thay vì lỗi TLS, xem OB8)</td>
+</tr>
+<tr>
+<td><strong>OG3 Bật chặn</strong></td>
+<td>Ít nhất 7 ngày log-only <strong>và</strong> ít nhất 10.000 request thật (<a href="#f-01-introduction-07-business-analysis-01-onboarding--9-câu-hỏi-mở">OQ-17</a>); khách đã xem báo cáo log-only</td>
+<td>Khách, qua change request (duyệt 4-eyes nếu account bật)</td>
+<td>Nhắc mỗi tuần; không tự bật (<a href="#f-01-introduction-06-requirements--9-câu-hỏi-mở-cho-review">OQ-4</a>)</td>
+</tr>
+<tr>
+<td><strong>OG4 Hoàn tất</strong></td>
+<td>Đã bật chặn; origin đã khoá hoặc khách chủ động bỏ qua (ghi audit); có ít nhất một người nhận cảnh báo</td>
+<td>Tự động</td>
+<td>Zone vẫn chạy bình thường; trạng thái onboarding &quot;chưa hoàn tất&quot; hiện trên danh sách zone</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-01-introduction-07-business-analysis-01-onboarding--trạng-thái">Trạng thái</h3>
+<p>Có hai trục trạng thái độc lập, đừng gộp vào một workflow:</p>
+<ul>
+<li><strong><code>Zone.status</code></strong> (5.8.12): <code>pending → verifying → active ↔ paused → removed</code>. Đây là vòng đời vận hành:
+zone có đang nhận và xử lý traffic không.</li>
+<li><strong>Tiến độ onboarding</strong>: mỗi bước OB có trạng thái <code>todo / in_progress / done / skipped / failed</code>. Tiến
+độ được tính từ kết quả kiểm (<code>ZoneCheckResult</code>, <code>CertStatusChanged</code>, traffic thấy được) và hành động
+của khách. Nó không chặn thao tác nào ngoài các cổng.</li>
+</ul>
+<p><code>Zone.status = active</code> tương ứng cổng OG1, không phải &quot;đã onboard xong&quot;. Một zone <code>active</code> có thể chưa
+có traffic (chưa đổi DNS) hoặc vẫn đang log-only.</p>
+<h2 id="f-01-introduction-07-business-analysis-01-onboarding--5-chi-tiết-từng-bước">5. Chi tiết từng bước</h2>
+<h3 id="f-01-introduction-07-business-analysis-01-onboarding--ob1-tạo-org-chọn-gói">OB1 Tạo org, chọn gói</h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Đầu vào</td>
+<td>Email (đã xác minh), tên tổ chức; gói hoặc dùng thử</td>
+</tr>
+<tr>
+<td>Xử lý</td>
+<td>Tạo org, account mặc định, owner (F1.1.1); dùng thử 14 ngày nếu chưa dùng (BR-8, F10.2.1)</td>
+</tr>
+<tr>
+<td>Kết quả</td>
+<td>Org, Account, Member, Subscription</td>
+</tr>
+<tr>
+<td>Lỗi thường gặp</td>
+<td>Đã dùng thử ở org khác, cùng domain email hoặc thẻ → mua gói hoặc liên hệ sales</td>
+</tr>
+<tr>
+<td>Plane, dữ liệu</td>
+<td>PM1, PM5; Org, Account, Subscription, TrialClaim</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-01-introduction-07-business-analysis-01-onboarding--ob2-thêm-domain-tra-dns-hiện-tại">OB2 Thêm domain, tra DNS hiện tại</h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Đầu vào</td>
+<td>Domain gốc (<code>example.com</code>), có thể là IDN (<code>tênmiền.vn</code>, lưu dạng punycode)</td>
+</tr>
+<tr>
+<td>Xử lý</td>
+<td>1. Chuẩn hoá, kiểm cú pháp, kiểm domain có thuộc public suffix không (không nhận <code>com.vn</code> làm domain gốc). 2. Kiểm claim toàn cục (BR-1); nếu trống, giữ claim ở trạng thái <strong>chờ xác minh</strong>. 3. Control tra DNS hiện tại (F2.1.5): NS, A/AAAA/CNAME của apex và <code>www</code>, CAA, TTL. 4. Gợi ý hostname từ DNS và Certificate Transparency (F2.1.6, Mở rộng). 5. Nhận diện CDN hoặc WAF đang đứng trước domain (theo CNAME đích hoặc ASN của IP). 6. Khách chọn hostname cần bảo vệ và phương thức kết nối (§5, OB8).</td>
+</tr>
+<tr>
+<td>Kết quả</td>
+<td>Zone (<code>pending</code>), DomainClaim (chờ xác minh), danh sách Hostname đã chọn, DnsSnapshot</td>
+</tr>
+<tr>
+<td>Lỗi thường gặp</td>
+<td>Domain đã thuộc tenant khác → từ chối, không tiết lộ tenant giữ, chỉ đường tranh chấp (<a href="#f-01-introduction-06-requirements--9-câu-hỏi-mở-cho-review">OQ-2</a>); domain không phân giải → cảnh báo, vẫn cho tiếp (site mới); CAA chặn CA của NCC → báo ngay, hướng dẫn thêm bản ghi CAA</td>
+</tr>
+<tr>
+<td>Plane, dữ liệu</td>
+<td>PM2 (zone, claim), PC6 (tra DNS) qua <code>ZoneCheckResult</code> (<code>dns_discovery</code>, <code>caa</code>)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-01-introduction-07-business-analysis-01-onboarding--ob3-xác-minh-sở-hữu">OB3 Xác minh sở hữu</h3>
+<p>Đề xuất dùng <strong>một bản ghi CNAME cho mỗi hostname</strong>, làm hai việc một lúc:</p>
+<pre class="code"><code class="lang-text">_acme-challenge.shop.example.com.  CNAME  shop-example-com.&lt;zone_id&gt;.acme.&lt;ncc-domain&gt;.
+</code></pre>
+<ol>
+<li><strong>Chứng minh sở hữu</strong>: chỉ người sửa được DNS của domain mới tạo được bản ghi này. Đích chứa
+<code>zone_id</code>, nên nó gắn với đúng zone của đúng tenant.</li>
+<li><strong>Uỷ quyền DNS-01 lâu dài</strong>: CA tra <code>_acme-challenge</code> và đi theo CNAME sang DNS của NCC. Control đặt
+token ở đó và cấp, gia hạn cert <strong>trước khi</strong> traffic tới, không cần hỏi lại khách.</li>
+</ol>
+<p>Bản ghi TXT xác minh riêng (cách 5.8.7 đang ghi) vẫn được hỗ trợ cho khách không muốn uỷ quyền. Khi đó cert
+đầu phải đợi tới lúc đổi DNS, hoặc khách tải cert lên.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Đầu vào</td>
+<td>Bản ghi do khách tạo ở DNS của mình</td>
+</tr>
+<tr>
+<td>Xử lý</td>
+<td>Control kiểm từ ≥ 3 resolver ở các mạng khác nhau (chống cache, chống DNS nội bộ của khách). Tần suất kiểm: mỗi phút trong giờ đầu, mỗi 10 phút trong 24 giờ, mỗi giờ tới ngày 14; khách bấm &quot;Kiểm tra lại&quot; bất kỳ lúc nào. Đạt khi đa số resolver thấy đúng đích.</td>
+</tr>
+<tr>
+<td>Kết quả</td>
+<td>DomainVerification <code>verified</code>; claim chuyển sang <code>verified</code>; Control bắt đầu xin cert</td>
+</tr>
+<tr>
+<td>Lỗi thường gặp</td>
+<td>Khách dán sai (thừa domain gốc ở cuối do giao diện DNS tự thêm, sai dấu chấm cuối) → thông báo nêu đúng giá trị thấy được và giá trị cần có; DNS chưa lan truyền → hiện thời gian kiểm kế tiếp; ở 14 ngày vẫn chưa xác minh → huỷ claim, giải phóng domain (BR-22)</td>
+</tr>
+<tr>
+<td>Người giữ DNS không phải người đang onboard</td>
+<td>Nút &quot;Gửi hướng dẫn&quot;: email cho người giữ DNS chứa đúng bản ghi cần tạo, không cần đăng nhập</td>
+</tr>
+<tr>
+<td>Plane, dữ liệu</td>
+<td>PC6 kiểm, gửi <code>ZoneCheckResult</code> (<code>ownership</code>) về PM2; DomainVerification</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-01-introduction-07-business-analysis-01-onboarding--ob4-origin">OB4 Origin</h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Đầu vào</td>
+<td>Mỗi hostname: địa chỉ origin (gợi ý từ DnsSnapshot), cổng, giao thức, SNI, Host header</td>
+</tr>
+<tr>
+<td>Xử lý</td>
+<td>Control yêu cầu edge ở ≥ 2 PoP thử kết nối (<code>OriginProbe</code>): TCP, TLS (cert của origin có hợp lệ và khớp hostname không), một request <code>GET /</code> với Host thật, thời gian theo chặng. Đề xuất chế độ TLS tới origin: <code>strict</code> nếu cert của origin hợp lệ, nếu không thì <code>full</code> kèm cảnh báo. Hiện dải IP của edge để khách mở firewall. Hướng dẫn ứng dụng đọc IP client từ header của edge (CB6).</td>
+</tr>
+<tr>
+<td>Kết quả</td>
+<td>Origin, OriginCheck theo PoP</td>
+</tr>
+<tr>
+<td>Lỗi thường gặp</td>
+<td>Timeout từ edge nhưng truy cập trực tiếp được → gần như chắc firewall chưa mở cho edge, hiện đúng thông điệp đó; origin trả 301 sang hostname khác → cảnh báo vòng chuyển hướng; cert của origin tự ký → <code>full</code> thay vì <code>strict</code>; origin là IP nội bộ (RFC 1918) → từ chối, ngoài phạm vi (không có tunnel ở MVP)</td>
+</tr>
+<tr>
+<td>Plane, dữ liệu</td>
+<td>PM2 (khai báo), PC6 điều phối, PE3 thực hiện (<code>OriginProbe</code>); <code>ZoneCheckResult</code> (<code>origin</code>)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-01-introduction-07-business-analysis-01-onboarding--ob5-cert-trên-edge">OB5 Cert trên edge</h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Đầu vào</td>
+<td>Hostname đã xác minh</td>
+</tr>
+<tr>
+<td>Xử lý</td>
+<td>Kiểm CAA; xin cert qua DNS-01 (uỷ quyền ở OB3), dự phòng CA thứ hai; một cert cho mỗi hostname hoặc cert chung cho apex và <code>www</code> (<a href="#f-01-introduction-07-business-analysis-01-onboarding--9-câu-hỏi-mở">OQ-18</a>). Business trở lên có thể tải cert riêng thay thế.</td>
+</tr>
+<tr>
+<td>Kết quả</td>
+<td>Cert <code>issued</code>, có trong bundle của zone (tham chiếu cert đã mã hoá)</td>
+</tr>
+<tr>
+<td>Lỗi thường gặp</td>
+<td>CAA chặn; CA giới hạn tần suất; khách xoá bản ghi <code>_acme-challenge</code> sau khi xác minh (gia hạn sẽ hỏng, cảnh báo trước hạn ≥ 14 ngày, FR-2-08)</td>
+</tr>
+<tr>
+<td>Plane, dữ liệu</td>
+<td>PC6; <code>CertStatusChanged</code> về PM2</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-01-introduction-07-business-analysis-01-onboarding--ob6-preset-bảo-vệ-ban-đầu">OB6 Preset bảo vệ ban đầu</h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Đầu vào</td>
+<td>Loại ứng dụng (gợi ý theo phát hiện ở OB2 và câu trả lời CB5): website thông thường, WordPress hoặc CMS phổ biến, cửa hàng trực tuyến, API JSON, SPA kèm API</td>
+</tr>
+<tr>
+<td>Xử lý</td>
+<td>Áp <strong>preset</strong> vào bản nháp policy: managed ruleset ở paranoia phù hợp, <strong>log-only</strong>; exception sẵn có của preset (ví dụ trang quản trị của CMS); DDoS L7 và lọc sớm <strong>bật chặn</strong>; giới hạn body theo gói; cache mặc định chỉ cho tài nguyên tĩnh; bot ở mức chặn bot xấu rõ ràng. Hỏi về upload lớn, WebSocket, gRPC, webhook của đối tác (thêm exception hoặc allowlist). Lựa chọn &quot;đang bị tấn công, bật chặn ngay&quot;.</td>
+</tr>
+<tr>
+<td>Kết quả</td>
+<td>PolicyDraft từ preset, phát hành thành PolicyVersion đầu tiên khi qua OG1</td>
+</tr>
+<tr>
+<td>Lỗi thường gặp</td>
+<td>Chọn sai loại ứng dụng → đổi preset được bất kỳ lúc nào trong giai đoạn log-only</td>
+</tr>
+<tr>
+<td>Plane, dữ liệu</td>
+<td>PM3; ZonePreset (danh mục của NCC), PolicyDraft, PolicyVersion</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-01-introduction-07-business-analysis-01-onboarding--ob7-kiểm-thử-qua-edge-trước-khi-đổi-dns">OB7 Kiểm thử qua edge trước khi đổi DNS</h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Đầu vào</td>
+<td>Zone đã kích hoạt (OG1)</td>
+</tr>
+<tr>
+<td>Xử lý</td>
+<td>Hai cách để gửi request thật qua edge mà chưa đổi DNS: (1) lệnh <code>curl --resolve</code> hoặc dòng <code>hosts</code> trỏ hostname thật về IP của edge, portal sinh sẵn; (2) hostname xem trước của NCC (<code>&lt;zone&gt;.preview.&lt;ncc-domain&gt;</code>), edge chuyển Host sang hostname thật khi gửi về origin (<a href="#f-01-introduction-07-business-analysis-01-onboarding--9-câu-hỏi-mở">OQ-19</a>). Portal hiện luồng event realtime của zone trong lúc kiểm thử. Checklist gợi ý: trang chủ, đăng nhập, upload, thanh toán, API, WebSocket.</td>
+</tr>
+<tr>
+<td>Kết quả</td>
+<td>Kết quả từng mục checklist (khách tự đánh dấu), event log-only đầu tiên</td>
+</tr>
+<tr>
+<td>Lỗi thường gặp</td>
+<td>Cookie gắn domain khác hoặc chuyển hướng tuyệt đối làm trang xem trước hỏng → hướng dẫn dùng cách (1); upload vượt giới hạn body của gói → hiện ngay giới hạn và cách nâng</td>
+</tr>
+<tr>
+<td>Plane, dữ liệu</td>
+<td>PE1 phục vụ, PA4 realtime, PM2 checklist; OnboardingProgress</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-01-introduction-07-business-analysis-01-onboarding--ob8-đổi-dns-và-theo-dõi">OB8 Đổi DNS và theo dõi</h3>
+<p>Phương thức kết nối:</p>
+<table>
+<thead>
+<tr>
+<th>Phương thức</th>
+<th>Dùng khi</th>
+<th>Khách làm</th>
+<th>Mức</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>CNAME</strong></td>
+<td>Subdomain (<code>www</code>, <code>shop</code>, <code>api</code>)</td>
+<td><code>shop.example.com CNAME z&lt;zone_id&gt;.edge.&lt;ncc&gt;</code></td>
+<td>MVP</td>
+</tr>
+<tr>
+<td><strong>Apex qua CNAME flattening / ALIAS</strong></td>
+<td>Domain gốc, nhà cung cấp DNS của khách hỗ trợ ALIAS</td>
+<td>Bản ghi ALIAS về hostname edge</td>
+<td>MVP</td>
+</tr>
+<tr>
+<td><strong>Apex qua A/AAAA tĩnh</strong></td>
+<td>Domain gốc, DNS của khách không có ALIAS</td>
+<td>Bản ghi A/AAAA về dải IP ổn định của NCC (mất điều hướng theo địa lý ở tầng DNS)</td>
+<td>MVP (<a href="#f-01-introduction-07-business-analysis-01-onboarding--9-câu-hỏi-mở">OQ-16</a>)</td>
+</tr>
+<tr>
+<td><strong>Đổi nameserver</strong></td>
+<td>Khách chuyển hẳn DNS sang NCC</td>
+<td>Đổi NS ở registrar</td>
+<td>MR</td>
+</tr>
+<tr>
+<td><strong>Đứng sau CDN của khách</strong></td>
+<td>Khách giữ CDN hiện có</td>
+<td>Đổi origin của CDN sang hostname edge; cấu hình IP tin cậy (F2.2.5)</td>
+<td>MVP</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Xử lý</td>
+<td>Nhắc hạ TTL ≥ 24 giờ trước. Sau khi khách đổi: Control kiểm trạng thái trỏ từ nhiều resolver (F2.1.7, <code>dns_routing</code>); Management hỏi Query API xem edge đã thấy request thật của zone chưa (F2.7.2). Portal hiện &quot;đã trỏ / chưa trỏ / trỏ một phần&quot; theo từng hostname và lượng traffic qua edge. Kế hoạch quay lui hiện sẵn: bản ghi DNS cũ (lưu từ DnsSnapshot) và nút tạm dừng zone (chuyển tiếp không bảo vệ, FR-2-12).</td>
+</tr>
+<tr>
+<td>Kết quả</td>
+<td>Zone có traffic thật; mốc thời gian traffic đầu tiên</td>
+</tr>
+<tr>
+<td>Lỗi thường gặp</td>
+<td>Đổi DNS khi zone chưa kích hoạt → HTTP nhận trang &quot;website đang được thiết lập&quot;, HTTPS vẫn lỗi cert vì edge chưa có cert cho hostname (đây là lý do OB5 phải xong trước OG2); portal cảnh báo khách ngay; khách đổi DNS nhưng quên mở firewall origin → 5xx với <code>status_source = origin_connect</code>, hiện ngay trên onboarding (8.14); IP client mất ở origin → nhắc lại CB6</td>
+</tr>
+<tr>
+<td>Plane, dữ liệu</td>
+<td>PC6 (<code>dns_routing</code>), PA3 (traffic), PM2; OnboardingProgress</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-01-introduction-07-business-analysis-01-onboarding--ob9-giai-đoạn-log-only-có-số-liệu">OB9 Giai đoạn log-only có số liệu</h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Xử lý</td>
+<td>Báo cáo hằng ngày, gửi email và hiện trên portal (F2.7.3): số request <strong>sẽ bị chặn</strong> theo rule, các rule nghi chặn nhầm (khớp nhiều trên người dùng đã đăng nhập, khớp đều đặn trên cùng một đường dẫn, từ IP có điểm bot thấp), đề xuất exception một bấm (F7.5.3). Mức sẵn sàng bật chặn: số ngày, số request, số rule còn nghi chặn nhầm chưa xử lý.</td>
+</tr>
+<tr>
+<td>Kết quả</td>
+<td>Exception, nhãn chặn nhầm (<code>FalsePositiveLabeled</code>), mức sẵn sàng</td>
+</tr>
+<tr>
+<td>Plane, dữ liệu</td>
+<td>PA3 tổng hợp, PM3, PM4</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-01-introduction-07-business-analysis-01-onboarding--ob10-bật-chặn">OB10 Bật chặn</h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Xử lý</td>
+<td>Đề xuất bật chặn theo bậc: các nhóm rule có độ tin cậy cao trước (SQLi, RCE, scanner), nhóm dễ chặn nhầm sau. Mỗi bậc là một change request (F5.3.1), duyệt 4-eyes nếu account bật. Rollback một bấm (F5.4.3).</td>
+</tr>
+<tr>
+<td>Kết quả</td>
+<td>PolicyVersion ở chế độ chặn</td>
+</tr>
+<tr>
+<td>Plane, dữ liệu</td>
+<td>PM3</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-01-introduction-07-business-analysis-01-onboarding--ob11-khoá-origin">OB11 Khoá origin</h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Xử lý</td>
+<td>Hướng dẫn ba cách, khách chọn một hoặc nhiều: (1) firewall origin chỉ nhận dải IP của edge (NCC công bố danh sách có version và báo trước khi đổi); (2) edge gửi header bí mật và origin kiểm (F3.9.2); (3) mTLS edge → origin (F3.9.2). Control kiểm origin còn lộ không (F2.2.6, <code>origin_exposure</code>): thử kết nối origin từ một điểm <strong>không</strong> thuộc edge; vẫn trả lời được nghĩa là chưa khoá. Nhắc rằng IP origin cũ có thể đã lộ qua lịch sử DNS, nên cân nhắc đổi IP origin.</td>
+</tr>
+<tr>
+<td>Kết quả</td>
+<td>ZoneCheckResult <code>origin_exposure</code>; cấu hình bí mật hoặc mTLS tới origin</td>
+</tr>
+<tr>
+<td>Lỗi thường gặp</td>
+<td>Khoá firewall khi một phần người dùng còn theo DNS cũ → chỉ gợi ý khoá khi traffic trực tiếp vào origin đã về gần 0 (khách tự xác nhận; hệ thống không thấy traffic đi thẳng vào origin)</td>
+</tr>
+<tr>
+<td>Plane, dữ liệu</td>
+<td>PM2, PC6 (<code>origin_exposure</code>)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-01-introduction-07-business-analysis-01-onboarding--ob12-hoàn-tất">OB12 Hoàn tất</h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Xử lý</td>
+<td>Bật alert policy mặc định (tấn công lớn, origin lỗi, cert sắp hết hạn) gửi cho owner; gợi ý mời team, tạo API key hoặc Terraform; nhắc onboard hostname còn lại</td>
+</tr>
+<tr>
+<td>Kết quả</td>
+<td>AlertPolicy mặc định, onboarding <code>complete</code></td>
+</tr>
+<tr>
+<td>Plane, dữ liệu</td>
+<td>PM4, PM1</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-01-introduction-07-business-analysis-01-onboarding--6-trường-hợp-đặc-biệt">6. Trường hợp đặc biệt</h2>
+<table>
+<thead>
+<tr>
+<th>Trường hợp</th>
+<th>Xử lý đề xuất</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Khách onboard <strong>trong lúc đang bị tấn công</strong></td>
+<td>Đường tắt: OB2 → OB3 → OB5 → OG1 với preset &quot;bị tấn công&quot; (Under Attack mode, chặn ngay) → đổi DNS; bỏ OB7, OB9. Mục tiêu sẵn sàng ≤ 10 phút sau khi xác minh. Sau khi hết tấn công, quay lại log-only cho các rule chưa kiểm</td>
+</tr>
+<tr>
+<td>Chuyển từ WAF hoặc CDN khác</td>
+<td>Phát hiện ở OB2; nhắc rằng rule của nhà cung cấp cũ không tự chuyển sang; với zone đứng sau CDN của khách, chọn chế độ F2.2.5</td>
+</tr>
+<tr>
+<td>Domain đã ở tenant khác</td>
+<td>Từ chối; quy trình tranh chấp do support xử lý bằng bản ghi xác minh mới (<a href="#f-01-introduction-06-requirements--9-câu-hỏi-mở-cho-review">OQ-2</a>)</td>
+</tr>
+<tr>
+<td>Nhiều hostname (hàng chục tới hàng nghìn)</td>
+<td>Nhập hàng loạt qua CSV hoặc API (F2.2.7); bản ghi uỷ quyền wildcard <code>_acme-challenge</code> không có, nên mỗi hostname một bản ghi, hoặc dùng cert wildcard qua uỷ quyền ở cấp domain gốc</td>
+</tr>
+<tr>
+<td>Wildcard <code>*.example.com</code></td>
+<td>Cần cert wildcard, chỉ cấp qua DNS-01, nên bắt buộc uỷ quyền ở OB3</td>
+</tr>
+<tr>
+<td>Domain đã có HSTS preload</td>
+<td>Bắt buộc có cert trước khi đổi DNS (đã là quy tắc chung); cảnh báo không cho phép bỏ qua OB5</td>
+</tr>
+<tr>
+<td>Origin dùng client cert, IP allowlist cho đối tác</td>
+<td>Đưa vào exception hoặc access list ở OB6; nhắc rằng IP đối tác giờ được thấy qua header</td>
+</tr>
+<tr>
+<td>Ứng dụng nội bộ, origin không có IP công cộng</td>
+<td>Ngoài phạm vi MVP (cần tunnel từ origin ra edge)</td>
+</tr>
+<tr>
+<td>Zone staging trước zone thật (Enterprise)</td>
+<td>Onboard staging như zone phụ (giá zone phụ), sao chép policy sang zone chính bằng template (F5.1.7)</td>
+</tr>
+<tr>
+<td>Registrar <code>.vn</code> chậm cập nhật</td>
+<td>Chỉ ảnh hưởng phương thức đổi nameserver; CNAME không phụ thuộc registrar</td>
+</tr>
+<tr>
+<td>Khách bỏ dở</td>
+<td>Nhắc ở ngày 1, 3, 7 theo bước đang dừng, gửi người phù hợp (người giữ DNS cho OB3, OB8); claim hết hạn ở ngày 14</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-01-introduction-07-business-analysis-01-onboarding--7-mục-tiêu-thời-gian">7. Mục tiêu thời gian</h2>
+<table>
+<thead>
+<tr>
+<th>Chỉ số</th>
+<th>Mục tiêu đề xuất</th>
+<th>Đo từ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Thêm domain tới sẵn sàng đổi DNS (OG1), tự phục vụ</td>
+<td>≤ 15 phút p50, không tính thời gian khách sửa DNS và DNS lan truyền</td>
+<td>Thời điểm OB2 đến OG1</td>
+</tr>
+<tr>
+<td>Phát hiện bản ghi xác minh</td>
+<td>≤ 2 phút sau khi resolver công cộng thấy bản ghi</td>
+<td><code>ZoneCheckResult</code></td>
+</tr>
+<tr>
+<td>Cấp cert sau xác minh</td>
+<td>≤ 5 phút p95 (phụ thuộc CA)</td>
+<td><code>CertStatusChanged</code></td>
+</tr>
+<tr>
+<td>Kích hoạt tới edge sẵn sàng phục vụ</td>
+<td>≤ 30 s (QS-4)</td>
+<td>Trạng thái rollout</td>
+</tr>
+<tr>
+<td>Onboard khi đang bị tấn công</td>
+<td>≤ 10 phút từ xác minh tới chặn được</td>
+<td></td>
+</tr>
+<tr>
+<td>Tỉ lệ zone hoàn tất onboarding (OG4) trong 30 ngày</td>
+<td>Theo dõi, chưa đặt mục tiêu</td>
+<td>Chỉ số sản phẩm</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-01-introduction-07-business-analysis-01-onboarding--8-thay-đổi-kéo-theo">8. Thay đổi kéo theo</h2>
+<table>
+<thead>
+<tr>
+<th>Ở đâu</th>
+<th>Thay đổi</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="#f-01-introduction-05-functional-decomposition">1.5</a></td>
+<td>F2 bổ sung F2.1.5–F2.1.8, F2.2.6, F2.2.7, F2.3.6, nhóm mới F2.6 (cấu hình ban đầu và kiểm thử), F2.7 (chuyển traffic và hoàn tất). Các kiểm qua DNS và kiểm origin chuyển plane chủ từ M sang C: F2.1.2, F2.1.4, F2.2.3. Lý do: domain verifier của cert-service (<a href="#f-05-building-blocks-08-components-07-cert-ruleset-release">5.8.7</a>) đã làm việc này làm điều kiện xin cert, và origin phải được kiểm từ edge. PC6 đổi tên thành &quot;Xác minh domain và cert&quot;. Thêm LK-27, LK-28</td>
+</tr>
+<tr>
+<td><a href="#f-01-introduction-06-requirements">1.6</a></td>
+<td>FR-2-17…FR-2-30; BR-22…BR-25; sửa FR-2-02 (kiểm từ nhiều resolver, hết hạn 14 ngày); DT-3 thêm DnsSnapshot, OnboardingProgress, ZonePreset; OQ-16…OQ-19</td>
+</tr>
+<tr>
+<td><a href="#f-05-building-blocks-05-contracts">5.5</a></td>
+<td>Thêm <code>ZoneCheckResult</code> (LK-28), <code>OriginProbe</code> (LK-27)</td>
+</tr>
+<tr>
+<td><a href="#f-06-runtime-00-index--64-onboarding-một-zone">6.4</a></td>
+<td>Vẽ lại sequence theo các bước trên</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-01-introduction-07-business-analysis-01-onboarding--9-câu-hỏi-mở">9. Câu hỏi mở</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Câu hỏi</th>
+<th>Đề xuất</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OQ-16</td>
+<td>Apex không có ALIAS: có cấp dải IP tĩnh (A/AAAA) ngay từ MVP không, khi chưa có anycast?</td>
+<td>Có, một dải nhỏ cố định ở mỗi region, chấp nhận mất điều hướng theo địa lý cho apex; khuyến nghị khách chuyển <code>example.com</code> → <code>www</code></td>
+</tr>
+<tr>
+<td>OQ-17</td>
+<td>Điều kiện tối thiểu để bật chặn (số ngày, số request)</td>
+<td>7 ngày và 10.000 request; zone ít traffic hơn thì hiện cảnh báo &quot;chưa đủ số liệu&quot; nhưng vẫn cho bật</td>
+</tr>
+<tr>
+<td>OQ-18</td>
+<td>Cert theo từng hostname hay một cert gộp nhiều SAN cho cả zone?</td>
+<td>Theo hostname (lỗi một hostname không kéo các hostname khác), riêng apex và <code>www</code> gộp một cert</td>
+</tr>
+<tr>
+<td>OQ-19</td>
+<td>Có làm hostname xem trước (<code>*.preview.&lt;ncc&gt;</code>) ở MVP không? Nó mở thêm một đường vào origin cần bảo vệ</td>
+<td>Không ở MVP, chỉ <code>curl --resolve</code> và <code>hosts</code>; xem lại khi có phản hồi của khách</td>
+</tr>
+<tr>
+<td>OQ-20</td>
+<td>Bản ghi TXT (không uỷ quyền) có còn được hỗ trợ không, khi nó làm cert đầu phải chờ tới lúc đổi DNS?</td>
+<td>Có, cho khách không chấp nhận uỷ quyền DNS, kèm cảnh báo rõ về khoảng lỗi cert hoặc yêu cầu tải cert lên</td>
 </tr>
 </tbody>
 </table>
@@ -5919,6 +7043,132 @@ và giữ trạng thái cũ, không đọc dở.</p>
 <td>Analytics → Management</td>
 <td>Số đo sử dụng theo tenant và kỳ</td>
 <td>Định kỳ, có thể chạy lại</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-05-building-blocks-05-contracts--hợp-đồng-bổ-sung-tạm-2026-11-06">Hợp đồng bổ sung (tạm, 2026-11-06)</h3>
+<blockquote>
+<p><strong>Trạng thái: tạm, chờ phân tích nghiệp vụ.</strong> Các hợp đồng dưới đây lấp các liên kết giữa plane mà
+<a href="#f-01-introduction-05-functional-decomposition--liên-kết-giữa-các-plane">bản đồ phân rã chức năng</a> tìm
+ra nhưng bảng trên chưa có. Tên và trường có thể đổi khi phân tích từng nghiệp vụ
+(<a href="#f-01-introduction-07-business-analysis-00-index">1.7</a>); quy tắc version N-1 ở đầu mục áp như mọi
+hợp đồng khác. Cột <strong>LK</strong> trỏ về liên kết trong 1.5.</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>Hợp đồng</th>
+<th>Từ → Tới</th>
+<th>LK</th>
+<th>Nội dung</th>
+<th>Giao nhận</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>PurgeRequested</strong></td>
+<td>Management → Control</td>
+<td>LK-3</td>
+<td>Purge ID, zone, loại (toàn zone / URL / prefix / tag), danh sách giá trị trong giới hạn gói, người yêu cầu</td>
+<td>Outbox, lớp A fast lane (<a href="#f-08-cross-cutting-15-config-propagation-and-apply">8.15</a>); là lệnh, không vào bundle; bỏ trùng theo purge ID; tiến độ trả qua <code>RolloutProgress</code></td>
+</tr>
+<tr>
+<td><strong>CompileResult</strong></td>
+<td>Control → Management</td>
+<td>LK-7</td>
+<td>PolicyVersion ID hoặc change request ID, kết quả (đạt / từ chối), lỗi theo rule (vị trí, mã, thông điệp), số đo ngân sách (kích thước, độ phức tạp), digest bundle</td>
+<td>Outbox của Control, at-least-once; Management bỏ trùng theo version ID. Biên dịch thử khi soạn (LK-6) vẫn gọi đồng bộ</td>
+</tr>
+<tr>
+<td><strong>RolloutProgress</strong></td>
+<td>Control → Management, Analytics (realtime)</td>
+<td>LK-7</td>
+<td>Version hoặc purge ID, giai đoạn (canary / wave n / toàn fleet), % node đã áp, số node lỗi, lý do dừng hoặc rollback</td>
+<td>Khi đổi giai đoạn và tối đa mỗi 10 s khi đang chạy; mất không sao, Management đọc lại qua Control internal API</td>
+</tr>
+<tr>
+<td><strong>CertStatusChanged</strong></td>
+<td>Control → Management</td>
+<td>LK-24</td>
+<td>Hostname, cert ID, trạng thái (<code>pending_validation</code>, <code>issued</code>, <code>renewing</code>, <code>failed</code>, <code>expired</code>), ngày hết hạn, CA, nguyên nhân lỗi (CAA, DNS-01, rate limit của CA)</td>
+<td>Outbox; bỏ trùng theo (cert ID, trạng thái, thời điểm)</td>
+</tr>
+<tr>
+<td><strong>ZoneCheckResult</strong></td>
+<td>Control → Management</td>
+<td>LK-28</td>
+<td>Zone, hostname, loại kiểm (<code>ownership</code>, <code>dns_routing</code>, <code>origin</code>, <code>origin_exposure</code>, <code>caa</code>, <code>dns_discovery</code>), kết quả, chi tiết (bản ghi thấy được, resolver, mã lỗi, thời gian phản hồi), lần kiểm kế tiếp</td>
+<td>Outbox; Management giữ kết quả mới nhất theo (zone, hostname, loại); kiểm theo yêu cầu thì trả cả qua Control internal API (sync)</td>
+</tr>
+<tr>
+<td><strong>OriginProbe</strong></td>
+<td>Control ↔ Edge</td>
+<td>LK-27</td>
+<td>Yêu cầu: zone, origin, cổng, giao thức, SNI, Host, đường dẫn; kết quả: kết nối, TLS (chuỗi, hostname khớp, hạn), mã HTTP, thời gian theo chặng, node và PoP đã thử</td>
+<td>Đồng bộ qua kênh mTLS của edge agent, có deadline; Control chọn node ở ≥ 2 PoP</td>
+</tr>
+<tr>
+<td><strong>PopState</strong></td>
+<td>Control → Edge (DNS)</td>
+<td>LK-13</td>
+<td>PoP ID, trạng thái (<code>active</code>, <code>draining</code>, <code>down</code>), trọng số, VIP theo cell</td>
+<td>Nằm trong bundle chung; rút PoP đi kèm cờ khẩn. DNS dùng trạng thái cuối nếu không nhận</td>
+</tr>
+<tr>
+<td><strong>PermissionsChanged</strong></td>
+<td>Management → Analytics (realtime gateway)</td>
+<td>LK-19</td>
+<td>Tenant, chủ thể (user / API key / service account), loại (đổi vai trò, khoá, gỡ, thu hồi key), thời điểm</td>
+<td>Outbox; gateway đóng channel liên quan; bỏ trùng theo event ID</td>
+</tr>
+<tr>
+<td><strong>AlertPolicyChanged</strong></td>
+<td>Management → Analytics</td>
+<td>LK-20</td>
+<td>Alert policy ID, version, template, điều kiện, phạm vi zone, tham chiếu kênh (không có secret), giờ im lặng, chu kỳ lặp; xoá là tombstone</td>
+<td>Outbox; Analytics giữ version lớn nhất</td>
+</tr>
+<tr>
+<td><strong>ExportDestinationChanged</strong></td>
+<td>Management → Analytics</td>
+<td>LK-20</td>
+<td>Đích ID, version, loại, endpoint, tham chiếu secret, bộ lọc, trạng thái bật/tắt; xoá là tombstone</td>
+<td>Như trên</td>
+</tr>
+<tr>
+<td><strong>FalsePositiveLabeled</strong></td>
+<td>Management → Analytics</td>
+<td>LK-20</td>
+<td>Request ID, zone, rule ID, policy version, nhãn (chặn nhầm / không phải), người gắn, lý do</td>
+<td>Outbox; bỏ trùng theo (request ID, rule ID); nhãn sau thay nhãn trước</td>
+</tr>
+<tr>
+<td><strong>ReplayRequested / ReplayCompleted</strong></td>
+<td>Management → Analytics / Analytics → Management</td>
+<td>LK-22</td>
+<td>Yêu cầu: job ID, zone, digest bundle nháp (Control biên dịch thử), khoảng thời gian, tỉ lệ mẫu. Kết quả: số request đổi hành động theo rule, mẫu request đã che, lỗi</td>
+<td>Outbox hai chiều; job idempotent theo job ID; kết quả chi tiết giữ ở Analytics, Management nhận tóm tắt</td>
+</tr>
+<tr>
+<td><strong>DataErasureRequested / DataErasureCompleted</strong></td>
+<td>Management → Analytics, Control / Analytics, Control → Management</td>
+<td>LK-23</td>
+<td>Yêu cầu: erasure ID, tenant, phạm vi (org / user / zone), định danh cần xoá hoặc ẩn danh, hạn hoàn tất. Kết quả: plane, số bản ghi xử lý, thời điểm</td>
+<td>Outbox; mỗi plane trả <code>Completed</code> riêng; Management đóng yêu cầu khi đủ mọi plane</td>
+</tr>
+<tr>
+<td><strong>IsolationRequested</strong></td>
+<td>Analytics → Control</td>
+<td>LK-25</td>
+<td>Zone, detector, chỉ số kích hoạt, mức đề xuất (cell cách ly / nhóm PoP riêng), thời hạn</td>
+<td>RabbitMQ at-least-once; Control quyết theo chính sách, có thể từ chối; NOC thấy mọi yêu cầu</td>
+</tr>
+<tr>
+<td><strong>ReputationBatch</strong></td>
+<td>Analytics → Control</td>
+<td>LK-26</td>
+<td>Version, loại (IP / ASN / fingerprint), danh sách điểm, khoảng thời gian tính, phương pháp</td>
+<td>Theo lô: file trên object storage + thông báo; Control đưa qua pipeline phát hành (đánh giá, log-only) như ruleset (<a href="#f-05-building-blocks-08-components-07-cert-ruleset-release">5.8.7</a>)</td>
 </tr>
 </tbody>
 </table>
@@ -8069,11 +9319,11 @@ tải bundle, do relay gánh; Control chỉ phục vụ relay, không phục v�
 <tbody>
 <tr>
 <td><strong>Domain verifier</strong></td>
-<td>Kiểm bản ghi TXT xác minh và CNAME trỏ về edge; kết quả là điều kiện để xin cert</td>
+<td>Kiểm xác minh sở hữu (mặc định CNAME uỷ quyền <code>_acme-challenge</code>, hoặc TXT), trạng thái trỏ DNS, CAA, tra DNS khi thêm domain; điều phối kiểm origin từ edge (<code>OriginProbe</code>); kết quả là điều kiện để xin cert và gửi về Management qua <code>ZoneCheckResult</code> (<a href="#f-01-introduction-07-business-analysis-01-onboarding">1.7.1</a>)</td>
 </tr>
 <tr>
 <td><strong>ACME client</strong></td>
-<td><code>lego</code>; HTTP-01 (token phát xuống edge qua fast lane, edge trả lời <code>/.well-known/acme-challenge/</code>), DNS-01 khi khách uỷ quyền DNS; nhiều CA để dự phòng</td>
+<td><code>lego</code>; DNS-01 qua uỷ quyền <code>_acme-challenge</code> là mặc định, để cert đầu có trước khi khách đổi DNS; HTTP-01 (token phát xuống edge qua fast lane, edge trả lời <code>/.well-known/acme-challenge/</code>) khi khách chỉ xác minh bằng TXT; nhiều CA để dự phòng</td>
 </tr>
 <tr>
 <td><strong>Upload handler</strong></td>
@@ -10917,22 +12167,38 @@ thái về Management.</p>
 <p>Rule khẩn của NCC (zero-day) đi cùng đường, bắt đầu từ console NCC thay vì Management của khách,
 và nằm trong bundle chung.</p>
 <h2 id="f-06-runtime-00-index--64-onboarding-một-zone">6.4 Onboarding một zone</h2>
+<p>Đường chính của <a href="#f-01-introduction-07-business-analysis-01-onboarding">1.7.1</a>: xác minh và cert xong
+<strong>trước</strong> khi khách đổi DNS, bật chặn chỉ sau giai đoạn log-only có số liệu.</p>
 <div class="diagram"><pre class="mermaid">sequenceDiagram
-    actor A as Khách
+    actor K as Khách
     participant M as Management
     participant C as Control
+    participant E as Edge
     participant D as DNS / CA
-    A-&gt;&gt;M: thêm domain, origin
+    participant A as Analytics
+    K-&gt;&gt;M: thêm domain (OB2)
     M-&gt;&gt;C: ZoneChanged (chờ xác minh)
-    C-&gt;&gt;D: kiểm bản ghi xác minh
-    D--&gt;&gt;C: hợp lệ
-    C-&gt;&gt;D: ACME: xin cert
+    C-&gt;&gt;D: tra DNS hiện tại, CAA
+    C--&gt;&gt;M: ZoneCheckResult (dns_discovery, caa)
+    K-&gt;&gt;D: tạo CNAME _acme-challenge (OB3)
+    C-&gt;&gt;D: kiểm từ nhiều resolver
+    C--&gt;&gt;M: ZoneCheckResult (ownership)
+    C-&gt;&gt;D: ACME DNS-01
     D--&gt;&gt;C: cert
-    C-&gt;&gt;C: kiểm tra origin từ edge
-    C--&gt;&gt;M: zone sẵn sàng
-    Note over M: managed ruleset bật log-only 7 ngày
-    A-&gt;&gt;M: trỏ CNAME về edge
-    M--&gt;&gt;A: sau 7 ngày: báo cáo rule nào sẽ chặn, đề xuất bật enforce
+    C--&gt;&gt;M: CertStatusChanged (issued)
+    C-&gt;&gt;E: OriginProbe ở 2 PoP (OB4)
+    E--&gt;&gt;C: kết quả
+    C--&gt;&gt;M: ZoneCheckResult (origin)
+    K-&gt;&gt;M: chọn preset (OB6), kích hoạt (OG1)
+    M-&gt;&gt;C: PolicyVersionPublished, ZoneChanged (active)
+    C-&gt;&gt;E: Snapshot
+    K-&gt;&gt;E: kiểm thử qua curl --resolve (OB7)
+    K-&gt;&gt;D: đổi CNAME về edge (OB8)
+    C--&gt;&gt;M: ZoneCheckResult (dns_routing)
+    E-&gt;&gt;A: TelemetryRecord (log-only)
+    M-&gt;&gt;A: Query: traffic đầu tiên, báo cáo log-only (OB9)
+    K-&gt;&gt;M: change request bật chặn (OB10)
+    M-&gt;&gt;C: PolicyVersionPublished
 </pre></div>
 <h2 id="f-06-runtime-00-index--65-xử-lý-một-request-bị-chặn-nhầm">6.5 Xử lý một request bị chặn nhầm</h2>
 <div class="diagram"><pre class="mermaid">sequenceDiagram
@@ -19665,6 +20931,22 @@ theo chính sách tài liệu (<a href="#f-02-constraints-00-index--24-conventio
 <td>Plane giữ quyết định và dữ liệu gốc của một chức năng; plane khác chỉ gọi tới hoặc nhận kết quả</td>
 </tr>
 <tr>
+<td><strong>Cutover</strong></td>
+<td>Thời điểm khách đổi DNS để traffic thật đi qua edge (<a href="#f-01-introduction-07-business-analysis-01-onboarding--ob8-đổi-dns-và-theo-dõi">1.7.1 OB8</a>)</td>
+</tr>
+<tr>
+<td><strong>Uỷ quyền <code>_acme-challenge</code></strong></td>
+<td>Bản ghi CNAME khách tạo để vừa chứng minh sở hữu domain, vừa cho NCC xin và gia hạn cert bằng DNS-01 trước khi đổi DNS (<a href="#f-01-introduction-07-business-analysis-01-onboarding--ob3-xác-minh-sở-hữu">1.7.1 OB3</a>)</td>
+</tr>
+<tr>
+<td><strong>Khoá origin</strong></td>
+<td>Origin chỉ nhận traffic từ edge (firewall theo dải IP của edge, header bí mật hoặc mTLS) để không ai đi vòng qua WAF (<a href="#f-01-introduction-07-business-analysis-01-onboarding--ob11-khoá-origin">1.7.1 OB11</a>)</td>
+</tr>
+<tr>
+<td><strong>Preset bảo vệ</strong></td>
+<td>Bộ cấu hình ban đầu theo loại ứng dụng do NCC soạn, áp vào bản nháp policy khi onboard (<a href="#f-01-introduction-07-business-analysis-01-onboarding--ob6-preset-bảo-vệ-ban-đầu">1.7.1 OB6</a>)</td>
+</tr>
+<tr>
 <td><strong>Tiêu chí chấp nhận</strong></td>
 <td>Điều kiện kiểm được để coi một requirement đã đáp ứng (<a href="#f-01-introduction-06-requirements">1.6</a>)</td>
 </tr>
@@ -20844,6 +22126,11 @@ theo chính sách tài liệu (<a href="#f-02-constraints-00-index--24-conventio
 </thead>
 <tbody>
 <tr>
+<td><strong>OB1…OB12 / OG1…OG4 / CB1…CB7</strong></td>
+<td>Bước onboarding / cổng onboarding / việc khách cần chuẩn bị trước onboarding</td>
+<td><a href="#f-01-introduction-07-business-analysis-01-onboarding">1.7.1</a></td>
+</tr>
+<tr>
 <td><strong>Q1–Q6</strong></td>
 <td>Mục tiêu chất lượng</td>
 <td><a href="#f-01-introduction-00-index--13-mục-tiêu-chất-lượng">1.3</a></td>
@@ -20859,7 +22146,7 @@ theo chính sách tài liệu (<a href="#f-02-constraints-00-index--24-conventio
 <td><a href="#f-01-introduction-05-functional-decomposition--phân-rã-theo-plane">1.5</a></td>
 </tr>
 <tr>
-<td><strong>LK-1…LK-26</strong></td>
+<td><strong>LK-1…LK-28</strong></td>
 <td>Liên kết giữa các plane (chức năng phát → chức năng nhận, hợp đồng, kiểu, hành vi khi hỏng)</td>
 <td><a href="#f-01-introduction-05-functional-decomposition--liên-kết-giữa-các-plane">1.5</a></td>
 </tr>

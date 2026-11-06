@@ -21,6 +21,32 @@ và giữ trạng thái cũ, không đọc dở.
 | **RolloutSignal** | Analytics → Control | Chỉ số theo zone/policy version trong cửa sổ canary | Định kỳ trong lúc rollout |
 | **UsageReport** | Analytics → Management | Số đo sử dụng theo tenant và kỳ | Định kỳ, có thể chạy lại |
 
+### Hợp đồng bổ sung (tạm, 2026-11-06)
+
+> **Trạng thái: tạm, chờ phân tích nghiệp vụ.** Các hợp đồng dưới đây lấp các liên kết giữa plane mà
+> [bản đồ phân rã chức năng](../01-introduction/05-functional-decomposition.md#liên-kết-giữa-các-plane) tìm
+> ra nhưng bảng trên chưa có. Tên và trường có thể đổi khi phân tích từng nghiệp vụ
+> ([1.7](../01-introduction/07-business-analysis/00-index.md)); quy tắc version N-1 ở đầu mục áp như mọi
+> hợp đồng khác. Cột **LK** trỏ về liên kết trong 1.5.
+
+| Hợp đồng | Từ → Tới | LK | Nội dung | Giao nhận |
+|---|---|---|---|---|
+| **PurgeRequested** | Management → Control | LK-3 | Purge ID, zone, loại (toàn zone / URL / prefix / tag), danh sách giá trị trong giới hạn gói, người yêu cầu | Outbox, lớp A fast lane ([8.15](../08-cross-cutting/15-config-propagation-and-apply.md)); là lệnh, không vào bundle; bỏ trùng theo purge ID; tiến độ trả qua `RolloutProgress` |
+| **CompileResult** | Control → Management | LK-7 | PolicyVersion ID hoặc change request ID, kết quả (đạt / từ chối), lỗi theo rule (vị trí, mã, thông điệp), số đo ngân sách (kích thước, độ phức tạp), digest bundle | Outbox của Control, at-least-once; Management bỏ trùng theo version ID. Biên dịch thử khi soạn (LK-6) vẫn gọi đồng bộ |
+| **RolloutProgress** | Control → Management, Analytics (realtime) | LK-7 | Version hoặc purge ID, giai đoạn (canary / wave n / toàn fleet), % node đã áp, số node lỗi, lý do dừng hoặc rollback | Khi đổi giai đoạn và tối đa mỗi 10 s khi đang chạy; mất không sao, Management đọc lại qua Control internal API |
+| **CertStatusChanged** | Control → Management | LK-24 | Hostname, cert ID, trạng thái (`pending_validation`, `issued`, `renewing`, `failed`, `expired`), ngày hết hạn, CA, nguyên nhân lỗi (CAA, DNS-01, rate limit của CA) | Outbox; bỏ trùng theo (cert ID, trạng thái, thời điểm) |
+| **ZoneCheckResult** | Control → Management | LK-28 | Zone, hostname, loại kiểm (`ownership`, `dns_routing`, `origin`, `origin_exposure`, `caa`, `dns_discovery`), kết quả, chi tiết (bản ghi thấy được, resolver, mã lỗi, thời gian phản hồi), lần kiểm kế tiếp | Outbox; Management giữ kết quả mới nhất theo (zone, hostname, loại); kiểm theo yêu cầu thì trả cả qua Control internal API (sync) |
+| **OriginProbe** | Control ↔ Edge | LK-27 | Yêu cầu: zone, origin, cổng, giao thức, SNI, Host, đường dẫn; kết quả: kết nối, TLS (chuỗi, hostname khớp, hạn), mã HTTP, thời gian theo chặng, node và PoP đã thử | Đồng bộ qua kênh mTLS của edge agent, có deadline; Control chọn node ở ≥ 2 PoP |
+| **PopState** | Control → Edge (DNS) | LK-13 | PoP ID, trạng thái (`active`, `draining`, `down`), trọng số, VIP theo cell | Nằm trong bundle chung; rút PoP đi kèm cờ khẩn. DNS dùng trạng thái cuối nếu không nhận |
+| **PermissionsChanged** | Management → Analytics (realtime gateway) | LK-19 | Tenant, chủ thể (user / API key / service account), loại (đổi vai trò, khoá, gỡ, thu hồi key), thời điểm | Outbox; gateway đóng channel liên quan; bỏ trùng theo event ID |
+| **AlertPolicyChanged** | Management → Analytics | LK-20 | Alert policy ID, version, template, điều kiện, phạm vi zone, tham chiếu kênh (không có secret), giờ im lặng, chu kỳ lặp; xoá là tombstone | Outbox; Analytics giữ version lớn nhất |
+| **ExportDestinationChanged** | Management → Analytics | LK-20 | Đích ID, version, loại, endpoint, tham chiếu secret, bộ lọc, trạng thái bật/tắt; xoá là tombstone | Như trên |
+| **FalsePositiveLabeled** | Management → Analytics | LK-20 | Request ID, zone, rule ID, policy version, nhãn (chặn nhầm / không phải), người gắn, lý do | Outbox; bỏ trùng theo (request ID, rule ID); nhãn sau thay nhãn trước |
+| **ReplayRequested / ReplayCompleted** | Management → Analytics / Analytics → Management | LK-22 | Yêu cầu: job ID, zone, digest bundle nháp (Control biên dịch thử), khoảng thời gian, tỉ lệ mẫu. Kết quả: số request đổi hành động theo rule, mẫu request đã che, lỗi | Outbox hai chiều; job idempotent theo job ID; kết quả chi tiết giữ ở Analytics, Management nhận tóm tắt |
+| **DataErasureRequested / DataErasureCompleted** | Management → Analytics, Control / Analytics, Control → Management | LK-23 | Yêu cầu: erasure ID, tenant, phạm vi (org / user / zone), định danh cần xoá hoặc ẩn danh, hạn hoàn tất. Kết quả: plane, số bản ghi xử lý, thời điểm | Outbox; mỗi plane trả `Completed` riêng; Management đóng yêu cầu khi đủ mọi plane |
+| **IsolationRequested** | Analytics → Control | LK-25 | Zone, detector, chỉ số kích hoạt, mức đề xuất (cell cách ly / nhóm PoP riêng), thời hạn | RabbitMQ at-least-once; Control quyết theo chính sách, có thể từ chối; NOC thấy mọi yêu cầu |
+| **ReputationBatch** | Analytics → Control | LK-26 | Version, loại (IP / ASN / fingerprint), danh sách điểm, khoảng thời gian tính, phương pháp | Theo lô: file trên object storage + thông báo; Control đưa qua pipeline phát hành (đánh giá, log-only) như ruleset ([5.8.7](08-components/07-cert-ruleset-release.md)) |
+
 ## Snapshot gồm gì
 
 Ở quy mô 1 triệu zone ([7.5](../07-deployment/05-capacity-and-sharding.md)), snapshot không phải một

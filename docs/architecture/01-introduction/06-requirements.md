@@ -71,11 +71,11 @@ một hay nhiều chức năng lá `F…`. Requirement chất lượng không vi
 | ID | Yêu cầu | F | Mức | Tiêu chí chấp nhận |
 |---|---|---|---|---|
 | FR-2-01 | Người dùng phải thêm zone theo domain gốc; domain đã có ở tenant khác bị từ chối ([BR-1](#4-quy-tắc-nghiệp-vụ)) | F2.1.1 | MVP | Lỗi không tiết lộ tenant đang giữ domain |
-| FR-2-02 | Hệ thống phải xác minh quyền sở hữu qua bản ghi TXT hoặc CNAME, kiểm lại mỗi ngày khi zone đang hoạt động | F2.1.2 | MVP | Mất bản ghi 7 ngày liên tục thì cảnh báo, 14 ngày thì tạm dừng ([OQ-3](#9-câu-hỏi-mở-cho-review)) |
+| FR-2-02 | Hệ thống phải xác minh quyền sở hữu qua bản ghi CNAME uỷ quyền `_acme-challenge` (mặc định) hoặc TXT, kiểm từ ≥ 3 resolver ở các mạng khác nhau, và kiểm lại mỗi ngày khi zone đang hoạt động | F2.1.2 | MVP | Bản ghi đúng được phát hiện ≤ 2 phút sau khi resolver công cộng thấy; mất bản ghi 7 ngày liên tục thì cảnh báo, 14 ngày thì tạm dừng ([OQ-3](#9-câu-hỏi-mở-cho-review)); claim chưa xác minh hết hạn ở ngày 14 ([BR-22](#4-quy-tắc-nghiệp-vụ)) |
 | FR-2-03 | Portal phải hiện hướng dẫn trỏ DNS theo chế độ (CNAME, nameserver) và trạng thái đã trỏ hay chưa | F2.1.3 | MVP | Trạng thái cập nhật ≤ 5 phút sau khi DNS đổi |
 | FR-2-04 | Người dùng phải thêm, xoá hostname trong zone, kể cả wildcard; hostname là duy nhất toàn nền tảng ([BR-17](#4-quy-tắc-nghiệp-vụ)) | F2.2.1 | MVP | |
 | FR-2-05 | Người dùng phải khai báo origin (địa chỉ, cổng, giao thức, SNI, header Host, timeout, retry) | F2.2.2, F2.2.4 | MVP | |
-| FR-2-06 | Hệ thống phải kiểm origin trước khi kích hoạt và cho xem kết quả (kết nối, TLS, mã trả, thời gian) | F2.2.3 | MVP | Kích hoạt khi kiểm lỗi cần xác nhận rõ ràng của người dùng |
+| FR-2-06 | Hệ thống phải kiểm origin **từ edge** ở ≥ 2 PoP trước khi kích hoạt và cho xem kết quả (kết nối, TLS, mã trả, thời gian theo chặng) | F2.2.3 | MVP | Thông điệp phân biệt được firewall chưa mở cho edge, lỗi TLS, vòng chuyển hướng; kích hoạt khi kiểm lỗi cần xác nhận rõ ràng của người dùng |
 | FR-2-07 | Zone phải cấu hình được chế độ đứng sau CDN của khách: danh sách IP tin cậy, header chứa IP client | F2.2.5 | MVP | |
 | FR-2-08 | Hệ thống phải tự cấp và gia hạn cert cho hostname đã xác minh; gia hạn lỗi thì cảnh báo trước hạn ≥ 14 ngày | F2.3.1, F2.3.2 | MVP | Không hostname nào phục vụ cert hết hạn khi DNS vẫn trỏ đúng |
 | FR-2-09 | Khách nên tải được cert riêng; khoá riêng chỉ lưu ở secret store | F2.3.3 | MR | Khoá không bao giờ có trong database hay log |
@@ -86,6 +86,20 @@ một hay nhiều chức năng lá `F…`. Requirement chất lượng không vi
 | FR-2-14 | Owner nên chuyển zone giữa các account cùng org mà không gián đoạn traffic | F2.4.4 | MR | |
 | FR-2-15 | Người dùng phải gắn tag và nhóm zone; nhóm dùng được cho phân quyền và lọc | F2.5.1 | MVP | |
 | FR-2-16 | Thao tác hàng loạt trên nhóm zone nên chạy nền, có tiến độ, dừng được | F2.5.2 | MR | QS-27 |
+| FR-2-17 | Khi thêm domain, hệ thống phải tra DNS hiện tại (NS, A/AAAA/CNAME, CAA, TTL), hiện kết quả và gợi ý origin ([1.7.1](07-business-analysis/01-onboarding.md) OB2) | F2.1.5 | MVP | Kết quả ≤ 10 s; IDN lưu dạng punycode; không nhận public suffix làm domain gốc |
+| FR-2-18 | Hệ thống phải phát hiện CDN hoặc WAF đang đứng trước domain, và CAA chặn CA của NCC, rồi báo trước bước xác minh | F2.1.5, F2.3.6 | MVP | Thông báo CAA nêu đúng bản ghi cần thêm |
+| FR-2-19 | Với xác minh bằng CNAME uỷ quyền, cert đầu tiên phải được cấp trước khi khách đổi DNS | F2.1.2, F2.3.1 | MVP | Không có khoảng lỗi cert lúc đổi DNS (OG2) |
+| FR-2-20 | Người onboard phải gửi được hướng dẫn tạo bản ghi DNS cho người giữ DNS qua email; người nhận không cần tài khoản | F2.1.2 | MVP | Email chứa đúng bản ghi, không chứa dữ liệu khác của tenant |
+| FR-2-21 | Portal phải hướng dẫn theo phương thức kết nối: CNAME, ALIAS cho apex, A/AAAA tĩnh cho apex ([OQ-16](07-business-analysis/01-onboarding.md#9-câu-hỏi-mở)), đứng sau CDN của khách; đổi nameserver ở mức MR | F2.1.3 | MVP | |
+| FR-2-22 | Khách phải chọn preset theo loại ứng dụng; preset bật chặn DDoS L7 và lọc sớm từ request đầu, phần còn lại log-only; có lựa chọn "đang bị tấn công, chặn ngay" ([BR-24](#4-quy-tắc-nghiệp-vụ)) | F2.6.1 | MVP | Đổi preset được bất kỳ lúc nào trong giai đoạn log-only |
+| FR-2-23 | Portal phải sinh lệnh `curl --resolve` và dòng `hosts` để kiểm thử qua edge trước khi đổi DNS, và hiện event realtime của zone trong lúc kiểm thử | F2.6.2 | MVP | Request kiểm thử có trong tra cứu theo request ID |
+| FR-2-24 | Hệ thống phải hiện theo từng hostname: đã trỏ, chưa trỏ hay trỏ một phần về edge, và thời điểm edge thấy traffic thật đầu tiên | F2.1.7, F2.7.2 | MVP | Cập nhật ≤ 5 phút sau khi DNS đổi |
+| FR-2-25 | Hệ thống phải lưu bản ghi DNS cũ và hiện kế hoạch quay lui (bản ghi cũ, tạm dừng zone) trước khi khách đổi DNS | F2.7.1 | MVP | |
+| FR-2-26 | Trong log-only, hệ thống phải gửi báo cáo hằng ngày: request sẽ bị chặn theo rule, rule nghi chặn nhầm, đề xuất exception, mức sẵn sàng bật chặn | F2.7.3 | MVP | Có trên portal và email; exception tạo được một bấm |
+| FR-2-27 | Bật chặn lần đầu phải làm được theo bậc nhóm rule, mỗi bậc một change request | F2.7.4 | MVP | Rollback một bấm từng bậc |
+| FR-2-28 | Hệ thống phải hướng dẫn khoá origin (dải IP của edge có version, header bí mật, mTLS) và ghi nhận đã khoá hay bỏ qua; nên kiểm origin còn lộ từ điểm không thuộc edge | F2.7.5, F2.2.6 | MVP / MR | Bỏ qua khoá origin có audit |
+| FR-2-29 | Danh sách zone phải hiện tiến độ onboarding theo bước; hệ thống nhắc ở ngày 1, 3, 7 tới đúng người của bước đang dừng | F2.7.6 | MVP | Zone bỏ dở lọc được |
+| FR-2-30 | Hệ thống nên nhập hàng loạt hostname và origin qua CSV, API | F2.2.7 | MR | 1.000 hostname ≤ 5 phút, báo lỗi theo dòng |
 
 ### F3 Bảo vệ runtime và F4 Hiệu năng
 
@@ -220,7 +234,7 @@ Phần lớn là hành vi của edge; requirement đo được đã có ở 10.3
 | ID | Quy tắc | Áp cho |
 |---|---|---|
 | BR-1 | Một domain gốc thuộc tối đa một zone chưa gỡ trên toàn nền tảng. Subdomain của domain đã có zone ở tenant khác bị từ chối ([OQ-2](#9-câu-hỏi-mở-cho-review)) | F2.1.1 |
-| BR-2 | Zone chỉ kích hoạt khi domain đã xác minh và có ít nhất một origin | F2.4.1 |
+| BR-2 | Zone chỉ kích hoạt khi qua cổng OG1: mọi hostname đã chọn đã xác minh, có cert, có origin đã kiểm (hoặc khách xác nhận bỏ qua), đã chọn preset ([1.7.1](07-business-analysis/01-onboarding.md)) | F2.4.1 |
 | BR-3 | Một zone thuộc đúng một account; entitlements tính theo zone | F2, F10 |
 | BR-4 | PolicyVersion không sửa được. Rollback tạo version mới có nội dung của version cũ | F5.3.4, F5.4.3 |
 | BR-5 | Khi bật 4-eyes: người duyệt khác người tạo và khác mọi người đã sửa bản nháp đó; người duyệt phải có quyền duyệt trên mọi zone trong change request | F5.3.2 |
@@ -240,6 +254,9 @@ Phần lớn là hành vi của edge; requirement đo được đã có ở 10.3
 | BR-19 | Case chỉ đóng khi có tóm tắt và mọi mitigation tạm của case đã hết hạn hoặc được chuyển thành rule thường | F8.4 |
 | BR-20 | Support của NCC chỉ vào tenant khi khách cấp quyền, tối đa 72 giờ, khách thấy và thu hồi được | F12.3.2 |
 | BR-21 | Exception luôn có phạm vi zone; exception tắt toàn bộ managed ruleset cho cả zone phải đi qua duyệt kể cả khi 4-eyes tắt | F5.1.4 |
+| BR-22 | Claim domain chưa xác minh hết hạn sau 14 ngày; domain được giải phóng | F2.1.8 |
+| BR-23 | Không cấp cert cho hostname chưa xác minh sở hữu | F2.3.1 |
+| BR-24 | DDoS L7 và lọc sớm chặn từ request đầu tiên, không theo log-only của onboarding. Bật chặn phần còn lại lần đầu cần ≥ 7 ngày và ≥ 10.000 request log-only ([OQ-17](07-business-analysis/01-onboarding.md#9-câu-hỏi-mở)), trừ khi khách chọn "đang bị tấn công" (có audit) | F2.6.1, F2.7.4 |
 
 ## 5. Yêu cầu dữ liệu
 
@@ -250,7 +267,7 @@ hoặc đọc qua API.
 |---|---|---|---|---|---|---|
 | DT-1 | Tenant, danh tính | Org, Account, Member, Invitation, Role, RoleBinding, Group, SsoConnection, SsoDomain, ServiceAccount, ApiKey, MfaFactor, Session | M | 400k org, 1,5 triệu member | Tới khi xoá org + thời hạn giữ | Dữ liệu cá nhân (email, tên, IP đăng nhập); secret SSO ở secret store |
 | DT-2 | Registry toàn cục | DomainClaim, HostnameClaim, ApiKey prefix, SsoDomain claim, TrialClaim, nơi đặt tenant | M (dùng chung mọi tenant) | ≈ 5 triệu dòng | Theo vòng đời đối tượng gốc | Thấp |
-| DT-3 | Cấu hình zone | Zone, Hostname, Origin, OriginPool, ZoneSettings, ZoneGroup, ZoneTag, CacheRule, DnsRecord, CustomPage, DomainVerification, OriginCheck | M | 1 triệu zone, 3 triệu hostname | Tới khi gỡ zone | Thấp; secret tới origin ở secret store |
+| DT-3 | Cấu hình zone | Zone, Hostname, Origin, OriginPool, ZoneSettings, ZoneGroup, ZoneTag, CacheRule, DnsRecord, CustomPage, DomainVerification, OriginCheck, DnsSnapshot, OnboardingProgress; ZonePreset là danh mục của NCC | M | 1 triệu zone, 3 triệu hostname | Tới khi gỡ zone | Thấp; secret tới origin ở secret store |
 | DT-4 | Policy nháp | PolicyDraft, CustomRule, RateLimitRule, AccessList, ManagedRulesetConfig, Exception, DdosSettings, BotPolicy, ApiEndpoint, ApiSchema, ApiAuthConfig, PolicyTemplate, PolicyBinding | M | Tới 1.000 rule mỗi zone, trung bình ≈ 10 | Tới khi gỡ zone | Trung bình (lộ cách phòng thủ của khách) |
 | DT-5 | Policy đã phát hành | PolicyVersion (tài liệu bất biến + `content_hash`) | M | ≈ 50 triệu mỗi năm | Giữ đủ để rollback và kiểm toán ([OQ-7](#9-câu-hỏi-mở-cho-review)) | Trung bình |
 | DT-6 | Thay đổi và duyệt | ChangeRequest, Approval, ChangeWindow, TemporaryMitigation, BulkOperation, GitSource | M | ≈ thay đổi cấu hình 1,7/s | 13 tháng truy vấn được | Trung bình |
@@ -333,4 +350,5 @@ Phân rã theo plane, thành phần và các liên kết `LK-…` giữa plane �
 | OQ-12 | Cổng thanh toán cụ thể và tính phí theo kỳ trả trước hay trả sau? | Phí nền trả trước, phí vượt trả sau | IR-2, FR-10-11 |
 | OQ-13 | Developer có được tạo exception không cần duyệt trong zone được giao không? | Không, luôn qua change request | FR-1-06, F5.1.4 |
 | OQ-14 | Billing theo account hay theo org (một hoá đơn cho cả org)? | Theo account, gộp được ở cấp org | DT-8 |
-| OQ-15 | Bổ sung vào 5.5 các hợp đồng cho 11 liên kết chưa có (purge, trạng thái cert, `PopState`, `PermissionsChanged`, cấu hình alert/export, nhãn chặn nhầm, replay, xoá dữ liệu, cách ly, reputation) | Bổ sung theo bảng ở [1.5](05-functional-decomposition.md#liên-kết-chưa-có-hợp-đồng-ở-55) | 5.5, outbox của Management |
+| OQ-15 | Chốt các hợp đồng tạm ở [5.5](../05-building-blocks/05-contracts.md#hợp-đồng-bổ-sung-tạm-2026-11-06) (purge, kết quả biên dịch, rollout, cert, kiểm zone, kiểm origin, `PopState`, `PermissionsChanged`, cấu hình alert/export, nhãn chặn nhầm, replay, xoá dữ liệu, cách ly, reputation) | Đã thêm tạm; chốt dần theo từng nghiệp vụ ở 1.7 | 5.5, outbox của Management |
+| OQ-16…OQ-20 | Câu hỏi của onboarding: IP tĩnh cho apex, điều kiện bật chặn, cert theo hostname, hostname xem trước, xác minh bằng TXT | Ở [1.7.1](07-business-analysis/01-onboarding.md) §9 | F2 |
