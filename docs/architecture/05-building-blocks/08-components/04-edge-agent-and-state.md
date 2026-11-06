@@ -60,7 +60,8 @@ flowchart LR
 | **Fetcher** | Lấy bundle | Kéo manifest + bundle còn thiếu theo digest từ relay; kiểm SHA-256 từng bundle, kiểm chữ ký Ed25519 của manifest bằng khoá công khai nhúng sẵn (kèm danh sách khoá xoay vòng) |
 | **Loader** | Biến bundle thành runtime | Giải nén zstd, decode protobuf, kiểm schema version; dựng trie IP, evaluator IR của custom rule, instance engine WAF, template; chạy **self-test** (vài request mẫu đi qua pipeline) trước khi chấp nhận |
 | **Swapper** | Áp nguyên khối | Con trỏ nguyên tử tới `GlobalRuntime` và map zone bất biến (`arc-swap` ở Rust, `atomic.Pointer` ở Go); request đang chạy giữ runtime cũ tới khi xong |
-| **Last-good** | Khởi động độc lập | Ghi manifest + bundle đã nạp thành công ra đĩa; khởi động khi không gọi được Control thì nạp từ đây |
+| **Lớp áp dụng** | Đổi nóng hay build nền | Theo [8.15](../../08-cross-cutting/15-config-propagation-and-apply.md): phần lớp B (ruleset release, MMDB) build ở thread nền giới hạn CPU, kiểm RAM trước (thiếu thì NACK `insufficient_memory`), so le trong PoP theo lệnh của distribution |
+| **Last-good** | Khởi động độc lập | Giữ 3 manifest gần nhất đã nạp thành công trên đĩa (rollback chỉ cần swap); khởi động khi không gọi được Control thì nạp từ đây |
 | **Secret fetcher** | Private key cert | Gọi Cert & key service qua mTLS lấy key của zone được gán, chỉ giữ trong RAM; mất kết nối khi khởi động thì zone đó không phục vụ TLS cho tới khi lấy được |
 | **Vector config writer** | Đồng bộ cấu hình log | Sinh file cấu hình Vector (tỉ lệ lấy mẫu theo zone, luật che) từ snapshot, gọi reload |
 

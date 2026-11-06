@@ -52,7 +52,7 @@ flowchart TB
 
 | Component | Thiết kế |
 |---|---|
-| **Planner** | Với mỗi manifest mới, sinh kế hoạch đợt: canary (nhóm node canary của mỗi region, hoặc toàn fleet ở chế độ log-only cho ruleset mới) → từng region → toàn fleet. Kế hoạch theo loại thay đổi: policy của một zone, bundle chung, phần mềm edge |
+| **Planner** | Với mỗi manifest mới, sinh kế hoạch đợt: canary (nhóm node canary của mỗi region, hoặc toàn fleet ở chế độ log-only cho ruleset mới) → từng region → toàn fleet. Kế hoạch theo loại thay đổi: policy của một zone (lớp A), bundle chung có phần lớp B (so le tối đa 25% node WAF mỗi PoP), node profile (lớp C, hot restart), phần mềm edge (lớp D) ([8.15](../../08-cross-cutting/15-config-propagation-and-apply.md)) |
 | **State machine** | Lưu trong PostgreSQL, worker lấy bằng `SKIP LOCKED`; mỗi đợt có thời gian quan sát tối thiểu |
 | **Gate evaluator** | Điều kiện qua đợt: tỉ lệ ACK ≥ 99% node đích, không NACK, độ trễ p99 không tăng quá ngưỡng, tỉ lệ chặn và tỉ lệ 5xx của zone không lệch quá ngưỡng so với version trước (từ Analytics) |
 | **Fast lane** | Bỏ qua planner: một đợt duy nhất, toàn fleet, cờ `urgent`; vẫn ghi rollout và vẫn rollback được |

@@ -20,6 +20,9 @@
 | **Zone** | Một site/domain khách bảo vệ, đơn vị cấu hình chính |
 | **PolicyVersion** | Bản policy bất biến của một zone, sinh ra khi được duyệt |
 | **Snapshot / bundle** | Bản config đã biên dịch, có chữ ký, edge nạp nguyên khối |
+| **Lớp áp dụng A/B/C/D** | Đổi nóng / build nền rồi đổi nóng / reload process / nâng phần mềm ([8.15](../08-cross-cutting/15-config-propagation-and-apply.md)) |
+| **Node profile** | Cấu hình của node hoặc PoP (cổng, worker, RAM, cache đĩa), rollout như phần mềm |
+| **Lớp rule khẩn** | Bộ rule nhỏ của NCC chạy trước CRS, đi fast lane không cần build lại CRS |
 | **Fast lane** | Đường phân phối khẩn bỏ qua các đợt rollout |
 | **Canary** | Đợt rollout đầu tiên trên một nhóm node nhỏ hoặc ở chế độ log-only |
 | **Gate** | Điều kiện tự động để một đợt rollout đi tiếp |

@@ -11,6 +11,7 @@ và giữ trạng thái cũ, không đọc dở.
 | **EntitlementsChanged** | Management → Control, Analytics | Giới hạn theo gói: tỉ lệ lấy mẫu log, retention tối đa, khoảng truy vấn, số rule, đích export, tính năng bật | Như trên; có hiệu lực không cần deploy |
 | **Snapshot** | Control → Edge | Bundle theo zone + bundle chung; schema version; chữ ký; version của từng phần | Pull theo version, kiểm chữ ký trước khi nạp |
 | **SnapshotAnnouncement** | Control → Edge | "zone X có version N" hoặc "bundle chung có version M"; cờ khẩn | Push nhẹ, mất cũng không sao vì agent tự kiểm định kỳ |
+| **NodeProfile** | Control → Edge | Cấu hình của node/PoP: cổng nghe, số worker, giới hạn RAM, kích thước cache đĩa, tham số HTTP toàn cục, kích thước pool WAF, địa chỉ relay | Bundle riêng có chữ ký; rollout như phần mềm; áp bằng hot restart (lớp C, [8.15](../08-cross-cutting/15-config-propagation-and-apply.md)) |
 | **NodeStatus** | Edge → Control | Node ID, phần mềm, version đang chạy theo zone, lỗi nạp, chỉ số sức khoẻ | Heartbeat định kỳ + sự kiện khi đổi version |
 | **Inspection API** | Edge proxy → WAF inspection (trong PoP) | Header, body theo chunk, ngữ cảnh zone/tenant/request ID; trả verdict | gRPC stream đồng bộ, có deadline; xem mục bên dưới |
 | **TelemetryRecord** | Edge → Analytics | Loại (security event / access log / mẫu request), request ID, thời điểm, zone, tenant, policy version, bước pipeline, rule ID, hành động, `status_source`, `edge_error`, thời gian theo chặng ([8.14](../08-cross-cutting/14-latency-and-error-attribution.md)), trường request đã che | At-least-once; Analytics bỏ trùng theo request ID + loại |
@@ -43,7 +44,10 @@ Disabled rule bị loại khi biên dịch chứ không mang theo cờ: edge kh�
 phải nhớ là không áp.
 
 Policy agent ở tầng proxy chỉ nạp phần proxy (và bundle chung), ở tầng WAF chỉ nạp phần WAF; cùng một
-manifest nên hai tầng luôn chạy cùng version policy.
+manifest nên hai tầng chạy cùng version policy, trừ khoảng lệch ngắn lúc swap: Inspect request mang
+`policy_version_id` của proxy, WAF giữ version hiện tại và version trước để trả lời đúng version
+([8.15 §6](../08-cross-cutting/15-config-propagation-and-apply.md#6-hai-tầng-swap-lệch-nhau)). Bundle chung
+có thêm **lớp rule khẩn** nhỏ, tách khỏi ruleset release để fast lane không phải build lại CRS.
 
 ## Inspection API (edge proxy → WAF)
 
