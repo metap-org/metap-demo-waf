@@ -4,8 +4,13 @@
 > và cho thiết kế dữ liệu ([5.6](../05-building-blocks/06-data-model.md), [5.8.14](../05-building-blocks/08-components/14-management-database.md)).
 > Thiết kế database đã viết trước bản đồ này, nên phải được đối chiếu lại sau khi bản đồ và requirements chốt.
 
-Bản đồ trả lời câu hỏi **hệ thống phải làm những việc gì**, chưa nói làm bằng thành phần nào. Nó phân rã
-sản phẩm WAAP theo ba cấp:
+Bản đồ trả lời câu hỏi **hệ thống phải làm những việc gì**. Có hai cách nhìn trên cùng một tập chức năng lá:
+
+- **Theo nghiệp vụ** (mục F1–F12): chức năng gom theo mảng nghiệp vụ người dùng nhận ra.
+- **Theo plane** ([Phân rã theo plane](#phân-rã-theo-plane)): cùng các lá đó chia theo plane chủ và thành phần,
+  kèm [liên kết giữa các plane](#liên-kết-giữa-các-plane) cho biết chức năng nào của plane này cần chức năng nào của plane khác.
+
+Cách nhìn theo nghiệp vụ phân rã sản phẩm WAAP theo ba cấp:
 
 | Cấp | Mã | Ý nghĩa | Ví dụ |
 |---|---|---|---|
@@ -416,6 +421,181 @@ Persona chính: NOC/SRE, support, product. Chi tiết vận hành ở [8.12](../
 | F12.3.2 | Support truy cập tenant khi khách cho phép, có hạn, có audit | M | MVP | **SupportAccessGrant** |
 | F12.4.1 | Quản trị org: xem, tạm khoá, mở khoá tenant vi phạm | M | MVP | **Org**.status |
 | F12.4.2 | Quản lý danh mục gói, đối tác hạ tầng, PoP | M | MVP | Plan, **Partner**, **Pop** |
+
+## Phân rã theo plane
+
+Các bảng F1–F12 ở trên chia chức năng theo **nghiệp vụ**. Mục này lấy lại đúng các chức năng lá đó và chia
+theo **plane chủ**, rồi theo **thành phần** trong plane ([5.8](../05-building-blocks/08-components/00-index.md)).
+Không có chức năng mới: mỗi lá xuất hiện đúng một lần ở đây. Cột **Liên kết** trỏ tới bảng
+[liên kết giữa các plane](#liên-kết-giữa-các-plane) bên dưới.
+
+```mermaid
+flowchart TB
+    M["<b>Management</b> · nơi người dùng tạo ra cấu hình<br/>PM1 Định danh và quyền<br/>PM2 Zone và hiệu năng<br/>PM3 Policy và thay đổi<br/>PM4 Vận hành bảo mật của khách<br/>PM5 Thương mại<br/>PM6 Dữ liệu và tuân thủ<br/>PM7 Quản trị NCC"]
+    C["<b>Control</b> · biến cấu hình thành snapshot an toàn<br/>PC1 Biên dịch<br/>PC2 Phân phối<br/>PC3 Rollout<br/>PC4 Fleet và danh tính node<br/>PC5 Đặt zone vào cell<br/>PC6 Cert<br/>PC7 Threat intel và ruleset<br/>PC8 Điều khiển fleet"]
+    E["<b>Edge</b> · xử lý từng request<br/>PE1 Tầng L7<br/>PE2 Tầng WAF inspection<br/>PE3 Edge agent<br/>PE4 DNS điều hướng"]
+    A["<b>Analytics</b> · biến telemetry thành bằng chứng<br/>PA1 Thu nhận<br/>PA2 Lưu trữ và retention<br/>PA3 Query API<br/>PA4 Realtime gateway<br/>PA5 Detection<br/>PA6 Thông báo và export<br/>PA7 Replay<br/>PA8 Usage"]
+    M ==>|"cấu hình có version"| C
+    C ==>|"snapshot ký"| E
+    E ==>|"telemetry"| A
+    E -->|"trạng thái node"| C
+    A -->|"cảnh báo, usage"| M
+    A -->|"tín hiệu rollout, cách ly"| C
+    M <-->|"truy vấn, realtime"| A
+    style M text-align:left
+    style C text-align:left
+    style E text-align:left
+    style A text-align:left
+```
+
+### Management
+
+| Thành phần | Chức năng lá | Liên kết |
+|---|---|---|
+| **PM1 Định danh và quyền** | F1.1.1–F1.1.4, F1.2.1–F1.2.5, F1.3.1–F1.3.4, F1.4.1–F1.4.3, F1.5.1–F1.5.3 | LK-19 (token realtime, đổi quyền) |
+| **PM2 Zone và hiệu năng** | F2.1.1–F2.1.4, F2.2.1–F2.2.5, F2.3.3, F2.3.4, F2.4.1–F2.4.4, F2.5.1, F2.5.2, F4.1.2, F4.2.1, F4.2.2, F4.3.2, F4.4.1 | LK-2, LK-3, LK-24 |
+| **PM3 Policy và thay đổi** | F5.1.1–F5.1.8, F5.2.1, F5.3.1–F5.3.4, F5.4.1–F5.4.3, F5.5.1, F5.5.2, F5.6.1–F5.6.3 | LK-1, LK-6, LK-7, LK-22 |
+| **PM4 Vận hành bảo mật của khách** | F7.3.3, F7.5.1, F7.5.3, F7.6.1, F8.2.1–F8.2.4, F8.4.1–F8.4.4, F9.1.1, F9.1.2, F9.2.1 | LK-18, LK-20, LK-21 |
+| **PM5 Thương mại** | F10.1.1–F10.1.3, F10.2.1–F10.2.3, F10.3.1–F10.3.3, F10.4.3, F10.5.1, F10.5.2, F10.6.1–F10.6.4 | LK-4, LK-5, LK-17 |
+| **PM6 Dữ liệu và tuân thủ** | F9.3.2, F9.3.3, F9.4.2 | LK-23 |
+| **PM7 Quản trị NCC** | F12.3.2, F12.4.1, F12.4.2 | LK-5 (khoá org đổi entitlements) |
+
+### Control
+
+| Thành phần | Chức năng lá | Liên kết |
+|---|---|---|
+| **PC1 Biên dịch** | F5.2.2, F6.1.1, F6.1.2, F6.1.3 | LK-1, LK-2, LK-3, LK-5, LK-6 vào; LK-7, LK-8 ra |
+| **PC2 Phân phối** | F6.2.1, F6.2.2 | LK-3 vào; LK-8, LK-9 ra |
+| **PC3 Rollout** | F5.3.5, F6.3.1, F6.3.2, F11.1.2 | LK-7 ra; LK-12, LK-16 vào |
+| **PC4 Fleet và danh tính node** | F6.4.1, F6.4.2, F6.4.3 | LK-10, LK-11, LK-12 |
+| **PC5 Đặt zone vào cell** | F3.3.4, F6.5.1, F6.5.2, F12.1.2 | LK-5 vào; LK-25 vào |
+| **PC6 Cert** | F2.3.1, F2.3.2 | LK-2 vào; LK-8, LK-24 ra |
+| **PC7 Threat intel và ruleset** | F11.1.1, F11.2.1, F11.3.1, F11.4.1 | LK-8 ra; LK-26 vào |
+| **PC8 Điều khiển fleet** | F12.2.1, F12.2.2 | LK-13 ra |
+
+### Edge
+
+| Thành phần | Chức năng lá | Liên kết |
+|---|---|---|
+| **PE1 Tầng L7** | F2.3.5, F3.1.1–F3.1.4, F3.2.1–F3.2.3, F3.3.1–F3.3.3, F3.3.5, F3.4.1, F3.4.2, F3.6.1, F3.6.2, F3.7.1, F3.7.2, F3.8.1–F3.8.4, F3.9.1–F3.9.3, F4.1.1, F4.1.3 | LK-14 ra (tới PE2) |
+| **PE2 Tầng WAF inspection** | F3.5.1–F3.5.5, F3.6.3, F3.7.3, F3.7.4 | LK-14 vào (từ PE1) |
+| **PE3 Edge agent** | F6.2.3, F10.4.1; gửi telemetry do PE1, PE2 sinh ra (F3.8.3) | LK-8, LK-9, LK-10 vào; LK-12, LK-15 ra |
+| **PE4 DNS điều hướng** | F4.3.1 | LK-13 vào |
+
+Phân chia F3 giữa PE1 và PE2 theo [ADR-0033](../09-adr/0033-two-tier-edge-proxy-and-waf.md): việc rẻ, cần
+trạng thái kết nối hoặc trạng thái toàn fleet (rate limit, DDoS, bot score, JWT) ở L7; việc tốn CPU trên
+nội dung (managed ruleset, body, schema body) ở WAF. Chi tiết chia còn phụ thuộc kết quả spike ở
+[ADR-0031](../09-adr/0031-edge-l7-and-waf-engine-options.md).
+
+### Analytics
+
+| Thành phần | Chức năng lá | Liên kết |
+|---|---|---|
+| **PA1 Thu nhận** | F7.1.1–F7.1.4 | LK-4, LK-15 vào |
+| **PA2 Lưu trữ và retention** | F9.3.1, F9.4.1 | LK-4 vào; LK-23 vào |
+| **PA3 Query API** | F7.3.1, F7.3.2, F7.4.1–F7.4.3, F7.5.2, F9.2.2, F12.3.1 | LK-18 vào |
+| **PA4 Realtime gateway** | F7.2.1, F7.2.2 | LK-19 vào |
+| **PA5 Detection** | F8.1.1–F8.1.3, F11.4.2 | LK-20 vào; LK-21, LK-25, LK-26 ra |
+| **PA6 Thông báo và export** | F7.6.2, F8.3.1 | LK-20 vào |
+| **PA7 Replay** | F5.2.3 | LK-22 |
+| **PA8 Usage** | F10.4.2 | LK-15 vào; LK-17 ra |
+
+Chức năng F12.1.1 (giám sát SLI, probe) nằm ở **mọi plane** và gửi về hệ thống giám sát của NCC
+([8.12](../08-cross-cutting/12-platform-monitoring.md)), không đi qua liên kết giữa các plane.
+
+## Liên kết giữa các plane
+
+Mỗi liên kết là một chỗ dữ liệu hoặc lệnh đi từ chức năng của plane này sang chức năng của plane khác.
+Tên hợp đồng lấy từ [5.5](../05-building-blocks/05-contracts.md); dòng ghi **chưa có ở 5.5** là liên kết bản
+đồ phát hiện ra nhưng hợp đồng chưa định nghĩa (tổng hợp ở cuối mục).
+
+Kiểu giao tiếp:
+
+- **Outbox**: ghi cùng transaction với dữ liệu nghiệp vụ, qua RabbitMQ, at-least-once, bên nhận bỏ trùng.
+- **Sync**: gọi đồng bộ, có timeout; bên gọi phải chịu được khi bên kia không trả lời.
+- **Pull**: bên nhận tự kéo theo chu kỳ; mất thông báo đẩy cũng không sai.
+- **Stream**: luồng liên tục có buffer.
+
+```mermaid
+flowchart LR
+    M["<b>Management</b>"]
+    C["<b>Control</b>"]
+    E["<b>Edge</b><br/>PE1 L7 → PE2 WAF: LK-14"]
+    A["<b>Analytics</b>"]
+    M -->|"LK-1…LK-6<br/>PolicyVersionPublished, ZoneChanged,<br/>EntitlementsChanged, biên dịch thử, purge*"| C
+    C -->|"LK-7, LK-24<br/>kết quả biên dịch, rollout*, cert*"| M
+    C -->|"LK-8…LK-11, LK-13<br/>Snapshot, Announcement, NodeProfile,<br/>deny list, PopState*"| E
+    E -->|"LK-12<br/>NodeStatus"| C
+    E -->|"LK-15<br/>TelemetryRecord, UsageCounter"| A
+    A -->|"LK-16, LK-25, LK-26<br/>RolloutSignal, cách ly*, reputation*"| C
+    A -->|"LK-17, LK-21<br/>UsageReport, AlertRaised, CaseProposed"| M
+    M -->|"LK-4, LK-18…LK-20, LK-22, LK-23<br/>EntitlementsChanged, Query, token realtime,<br/>cấu hình alert/export*, replay*, xoá dữ liệu*"| A
+```
+
+`*` là liên kết chưa có hợp đồng ở 5.5. Không có cạnh Management ↔ Edge và Analytics → Edge, có chủ đích (giải thích dưới bảng).
+
+| ID | Từ → tới | Chức năng phát → chức năng nhận | Hợp đồng | Kiểu | Khi bên nhận hỏng |
+|---|---|---|---|---|---|
+| **Management → Control** | | | | | |
+| LK-1 | PM3 → PC1 | F5.3.4 phát hành → F6.1.1 biên dịch | `PolicyVersionPublished` | Outbox | Edge giữ snapshot cũ; portal hiện "chờ biên dịch"; outbox giữ tới khi Control nhận |
+| LK-2 | PM2 → PC1, PC6 | F2.1–F2.4 đổi zone, hostname, origin, yêu cầu cert → F6.1.1, F2.3.1 | `ZoneChanged` | Outbox | Như LK-1; zone mới chưa nhận traffic, zone cũ không đổi |
+| LK-3 | PM2 → PC1, PC2 | F4.1.2 cache rule → F6.1.1; F4.2.1, F4.2.2 purge → F6.2.2 đường nhanh | Cache rule nằm trong `ZoneChanged`; **purge chưa có ở 5.5** | Outbox | Purge trễ; bản cũ vẫn được phục vụ tới khi purge tới (QS-15 vỡ) |
+| LK-4 | PM5 → PA2, PA1 | F10.3.2 → F7.1.2 tỉ lệ lấy mẫu, F9.3.1 retention | `EntitlementsChanged` | Outbox | Analytics dùng entitlements cũ tới khi nhận |
+| LK-5 | PM5, PM7 → PC5, PC1 | F10.3.2, F12.4.1 → F6.5.1 đổi pool cell; giới hạn gói vào bundle (F3.8.4) | `EntitlementsChanged` | Outbox | Zone ở pool cũ, áp giới hạn cũ; QS-14 vỡ |
+| LK-6 | PM3 → PC1 | F5.2.1 → F5.2.2 biên dịch thử | Control internal API | Sync | Không gửi duyệt được; portal báo Control không sẵn sàng, bản nháp vẫn lưu |
+| **Control → Management** | | | | | |
+| LK-7 | PC1, PC3 → PM3 | F6.1.2 kết quả biên dịch, F6.3.1 trạng thái rollout → F5.3.5 | Đọc qua Control internal API; **sự kiện đẩy chưa có ở 5.5** | Sync (đọc) | Portal không hiện tiến độ; phát hành vẫn chạy |
+| LK-24 | PC6 → PM2 | F2.3.1, F2.3.2 trạng thái cert, gia hạn lỗi → FR-2-08 cảnh báo | **Chưa có ở 5.5** | Outbox (đề xuất) | Khách không thấy cert sắp hết hạn; Control vẫn tự thử lại |
+| **Control → Edge** | | | | | |
+| LK-8 | PC1, PC2, PC6, PC7 → PE3 | F6.1.3, F6.2.1 → F6.2.3 nạp bundle, cert, ruleset | `Snapshot` | Pull | Edge chạy tiếp bằng snapshot đang có (Q1) |
+| LK-9 | PC2 → PE3 | F6.2.1, F6.2.2 → F6.2.3 | `SnapshotAnnouncement` | Đẩy nhẹ + pull | Agent tự kiểm định kỳ; chỉ chậm hơn |
+| LK-10 | PC4 → PE3 | F6.4.1 cấp, gia hạn cert node; cấu hình node | `NodeProfile`, enroll ([8.19](../08-cross-cutting/19-node-identity-and-mtls.md)) | Sync | Node giữ cert cũ tới hạn 24 giờ; QS-39 |
+| LK-11 | PC4 → mọi bên nhận | F6.4.2 thu hồi → bên nhận từ chối kết nối của node | Deny list ([8.19](../08-cross-cutting/19-node-identity-and-mtls.md)) | Pull | Node bị thu hồi còn kết nối tới khi cert hết hạn; QS-40 |
+| LK-13 | PC8 → PE4 | F12.2.1 trạng thái PoP → F4.3.1 | `PopState` (**chưa có ở 5.5**) | Pull | DNS trả theo trạng thái cũ; QS-16 vỡ |
+| **Edge → Control** | | | | | |
+| LK-12 | PE3 → PC4, PC3 | Version đang chạy, lỗi nạp, sức khoẻ → F6.4.3, F5.3.5, F6.3.1 | `NodeStatus` | Stream (heartbeat) | Control không biết node đã áp; rollout dừng ở gate, không tiến tiếp |
+| **Trong Edge** | | | | | |
+| LK-14 | PE1 → PE2 | F3.5.x được gọi cho từng request | Inspection API (IA1–IA13 còn mở) | Sync, có deadline | Fail mode của zone (F3.9.1); QS-18 |
+| **Edge → Analytics** | | | | | |
+| LK-15 | PE3 → PA1, PA8 | F3.8.3 security event, access log, mẫu request; F10.4.1 bộ đếm usage | `TelemetryRecord`, `UsageCounter` | Stream, buffer đĩa | Buffer trên node; security event và usage không bỏ; access log bỏ khi đầy (QS-10) |
+| **Analytics → Control** | | | | | |
+| LK-16 | PA5 → PC3 | Chỉ số theo zone, version trong cửa sổ canary → F6.3.1 gate | `RolloutSignal` | Định kỳ | Rollout dừng ở gate, không tự tiến khi thiếu tín hiệu |
+| LK-25 | PA5 → PC5 | Phát hiện flood lớn → F3.3.4 chuyển sang cell cách ly | **Chưa có ở 5.5** | Outbox (đề xuất) | Không tự cách ly; NOC làm tay theo runbook (8.13) |
+| LK-26 | PA5 → PC7 | Reputation, dữ liệu bot gộp từ telemetry → F11.3.1 và dữ liệu bot ([5.8.7](../05-building-blocks/08-components/07-cert-ruleset-release.md)) | **Chưa có ở 5.5** | Theo lô | Dùng bản reputation cũ |
+| **Analytics → Management** | | | | | |
+| LK-17 | PA8 → PM5 | F10.4.2 → F10.4.3, F10.5.1, F10.5.2, F10.6.1 | `UsageReport` | Định kỳ, chạy lại được | Cảnh báo hạn mức, trần cứng, hoá đơn trễ; không mất vì chạy lại được |
+| LK-21 | PA5 → PM4 | F8.1.1, F8.1.3 → F8.4.1 case, F7.2.2 thông báo portal | `AlertRaised`, `CaseProposed` | At-least-once | Thông báo vẫn gửi qua PA6; case không tự mở |
+| **Management → Analytics** | | | | | |
+| LK-18 | PM4 → PA3 | F7.3, F7.4, F9.1.2, F12.3.1 → Query API | `Query` | Sync, có giới hạn chi phí | Portal không có dashboard, tìm kiếm; cấu hình vẫn sửa được |
+| LK-19 | PM1 → PA4 | Cấp token realtime, `PermissionsChanged` → F7.2.1 | Token JWT + sự kiện ([5.8.13](../05-building-blocks/08-components/13-realtime-gateway.md)); **`PermissionsChanged` chưa có ở 5.5** | Sync (token) + outbox | Phiên đang mở giữ tới hết hạn token; không mở phiên mới |
+| LK-20 | PM4 → PA5, PA6 | F8.2.1–F8.2.3 alert policy, F7.6.1 đích export, F7.5.1 nhãn chặn nhầm | **Chưa có ở 5.5** (5.8.12 ghi "qua RabbitMQ") | Outbox (đề xuất) | Analytics dùng cấu hình cũ; nhãn chặn nhầm chờ trong outbox |
+| LK-22 | PM3 ↔ PA7 | F5.3.1 yêu cầu mô phỏng → F5.2.3, trả kết quả | **Chưa có ở 5.5** (5.8.12 ghi "kết quả replay") | Async, có job ID | Change request không có kết quả mô phỏng; duyệt vẫn làm được nếu không bắt buộc |
+| LK-23 | PM6 → PA2 | F9.3.3 xoá dữ liệu cá nhân, F1.1.4 xoá org → xoá trong log | **Chưa có ở 5.5** | Outbox (đề xuất) | Yêu cầu xoá chờ; phải có hạn hoàn tất theo Nghị định 13 |
+
+Hai liên kết **không** tồn tại, có chủ đích:
+
+- **Edge → Management** và **Management → Edge**: không có. Edge chỉ đọc snapshot từ Control
+  ([ADR-0001](../09-adr/0001-four-planes.md)); nhờ vậy Management sập không ảnh hưởng traffic.
+- **Analytics → Edge**: không có. Mọi phản ứng dựa trên phân tích (cách ly, rule khẩn, reputation) đi qua
+  Control để vẫn có ký, canary và rollback.
+
+### Liên kết chưa có hợp đồng ở 5.5
+
+Bản đồ cho thấy 5.5 mới định nghĩa liên kết của đường cấu hình chính và telemetry. Đề xuất bổ sung sau khi
+review (theo dõi ở [OQ-15](06-requirements.md#9-câu-hỏi-mở-cho-review)):
+
+| Liên kết | Tên hợp đồng đề xuất | Lý do cần |
+|---|---|---|
+| LK-3 | `PurgeRequested` (lớp khẩn) | Purge đi đường nhanh, không đi qua biên dịch như cache rule |
+| LK-7 | `CompileResult`, `RolloutProgress` | Portal hiện tiến độ mà không phải hỏi liên tục |
+| LK-13 | `PopState` | DNS điều hướng cần trạng thái PoP từ Control |
+| LK-19 | `PermissionsChanged` | Gateway realtime đóng channel khi quyền đổi |
+| LK-20 | `AlertPolicyChanged`, `ExportDestinationChanged`, `FalsePositiveLabeled` | Analytics đánh giá cảnh báo và export theo cấu hình của khách |
+| LK-22 | `ReplayRequested`, `ReplayCompleted` | Mô phỏng chạy lâu, cần job bất đồng bộ |
+| LK-23 | `DataErasureRequested` | Xoá dữ liệu cá nhân phải tới cả log ở Analytics |
+| LK-24 | `CertStatusChanged` | Khách thấy cert sắp hết hạn, gia hạn lỗi |
+| LK-25 | `IsolationRequested` | Chuyển zone bị flood sang cell cách ly |
+| LK-26 | `ReputationBatch` | Reputation và dữ liệu bot đi qua pipeline phát hành của Control |
 
 ## Chức năng ngoài phạm vi
 

@@ -515,8 +515,13 @@ và thành requirement có tiêu chí chấp nhận ở <a href="#f-01-introduct
 và cho thiết kế dữ liệu (<a href="#f-05-building-blocks-06-data-model">5.6</a>, <a href="#f-05-building-blocks-08-components-14-management-database">5.8.14</a>).
 Thiết kế database đã viết trước bản đồ này, nên phải được đối chiếu lại sau khi bản đồ và requirements chốt.</p>
 </blockquote>
-<p>Bản đồ trả lời câu hỏi <strong>hệ thống phải làm những việc gì</strong>, chưa nói làm bằng thành phần nào. Nó phân rã
-sản phẩm WAAP theo ba cấp:</p>
+<p>Bản đồ trả lời câu hỏi <strong>hệ thống phải làm những việc gì</strong>. Có hai cách nhìn trên cùng một tập chức năng lá:</p>
+<ul>
+<li><strong>Theo nghiệp vụ</strong> (mục F1–F12): chức năng gom theo mảng nghiệp vụ người dùng nhận ra.</li>
+<li><strong>Theo plane</strong> (<a href="#f-01-introduction-05-functional-decomposition--phân-rã-theo-plane">Phân rã theo plane</a>): cùng các lá đó chia theo plane chủ và thành phần,
+kèm <a href="#f-01-introduction-05-functional-decomposition--liên-kết-giữa-các-plane">liên kết giữa các plane</a> cho biết chức năng nào của plane này cần chức năng nào của plane khác.</li>
+</ul>
+<p>Cách nhìn theo nghiệp vụ phân rã sản phẩm WAAP theo ba cấp:</p>
 <table>
 <thead>
 <tr>
@@ -2489,6 +2494,608 @@ hiện ở Analytics, F10.4 Đo usage đếm ở Edge và gộp ở Analytics. B
 </tr>
 </tbody>
 </table>
+<h2 id="f-01-introduction-05-functional-decomposition--phân-rã-theo-plane">Phân rã theo plane</h2>
+<p>Các bảng F1–F12 ở trên chia chức năng theo <strong>nghiệp vụ</strong>. Mục này lấy lại đúng các chức năng lá đó và chia
+theo <strong>plane chủ</strong>, rồi theo <strong>thành phần</strong> trong plane (<a href="#f-05-building-blocks-08-components-00-index">5.8</a>).
+Không có chức năng mới: mỗi lá xuất hiện đúng một lần ở đây. Cột <strong>Liên kết</strong> trỏ tới bảng
+<a href="#f-01-introduction-05-functional-decomposition--liên-kết-giữa-các-plane">liên kết giữa các plane</a> bên dưới.</p>
+<div class="diagram"><pre class="mermaid">flowchart TB
+    M[&quot;&lt;b&gt;Management&lt;/b&gt; · nơi người dùng tạo ra cấu hình&lt;br/&gt;PM1 Định danh và quyền&lt;br/&gt;PM2 Zone và hiệu năng&lt;br/&gt;PM3 Policy và thay đổi&lt;br/&gt;PM4 Vận hành bảo mật của khách&lt;br/&gt;PM5 Thương mại&lt;br/&gt;PM6 Dữ liệu và tuân thủ&lt;br/&gt;PM7 Quản trị NCC&quot;]
+    C[&quot;&lt;b&gt;Control&lt;/b&gt; · biến cấu hình thành snapshot an toàn&lt;br/&gt;PC1 Biên dịch&lt;br/&gt;PC2 Phân phối&lt;br/&gt;PC3 Rollout&lt;br/&gt;PC4 Fleet và danh tính node&lt;br/&gt;PC5 Đặt zone vào cell&lt;br/&gt;PC6 Cert&lt;br/&gt;PC7 Threat intel và ruleset&lt;br/&gt;PC8 Điều khiển fleet&quot;]
+    E[&quot;&lt;b&gt;Edge&lt;/b&gt; · xử lý từng request&lt;br/&gt;PE1 Tầng L7&lt;br/&gt;PE2 Tầng WAF inspection&lt;br/&gt;PE3 Edge agent&lt;br/&gt;PE4 DNS điều hướng&quot;]
+    A[&quot;&lt;b&gt;Analytics&lt;/b&gt; · biến telemetry thành bằng chứng&lt;br/&gt;PA1 Thu nhận&lt;br/&gt;PA2 Lưu trữ và retention&lt;br/&gt;PA3 Query API&lt;br/&gt;PA4 Realtime gateway&lt;br/&gt;PA5 Detection&lt;br/&gt;PA6 Thông báo và export&lt;br/&gt;PA7 Replay&lt;br/&gt;PA8 Usage&quot;]
+    M ==&gt;|&quot;cấu hình có version&quot;| C
+    C ==&gt;|&quot;snapshot ký&quot;| E
+    E ==&gt;|&quot;telemetry&quot;| A
+    E --&gt;|&quot;trạng thái node&quot;| C
+    A --&gt;|&quot;cảnh báo, usage&quot;| M
+    A --&gt;|&quot;tín hiệu rollout, cách ly&quot;| C
+    M &lt;--&gt;|&quot;truy vấn, realtime&quot;| A
+    style M text-align:left
+    style C text-align:left
+    style E text-align:left
+    style A text-align:left
+</pre></div>
+<h3 id="f-01-introduction-05-functional-decomposition--management">Management</h3>
+<table>
+<thead>
+<tr>
+<th>Thành phần</th>
+<th>Chức năng lá</th>
+<th>Liên kết</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>PM1 Định danh và quyền</strong></td>
+<td>F1.1.1–F1.1.4, F1.2.1–F1.2.5, F1.3.1–F1.3.4, F1.4.1–F1.4.3, F1.5.1–F1.5.3</td>
+<td>LK-19 (token realtime, đổi quyền)</td>
+</tr>
+<tr>
+<td><strong>PM2 Zone và hiệu năng</strong></td>
+<td>F2.1.1–F2.1.4, F2.2.1–F2.2.5, F2.3.3, F2.3.4, F2.4.1–F2.4.4, F2.5.1, F2.5.2, F4.1.2, F4.2.1, F4.2.2, F4.3.2, F4.4.1</td>
+<td>LK-2, LK-3, LK-24</td>
+</tr>
+<tr>
+<td><strong>PM3 Policy và thay đổi</strong></td>
+<td>F5.1.1–F5.1.8, F5.2.1, F5.3.1–F5.3.4, F5.4.1–F5.4.3, F5.5.1, F5.5.2, F5.6.1–F5.6.3</td>
+<td>LK-1, LK-6, LK-7, LK-22</td>
+</tr>
+<tr>
+<td><strong>PM4 Vận hành bảo mật của khách</strong></td>
+<td>F7.3.3, F7.5.1, F7.5.3, F7.6.1, F8.2.1–F8.2.4, F8.4.1–F8.4.4, F9.1.1, F9.1.2, F9.2.1</td>
+<td>LK-18, LK-20, LK-21</td>
+</tr>
+<tr>
+<td><strong>PM5 Thương mại</strong></td>
+<td>F10.1.1–F10.1.3, F10.2.1–F10.2.3, F10.3.1–F10.3.3, F10.4.3, F10.5.1, F10.5.2, F10.6.1–F10.6.4</td>
+<td>LK-4, LK-5, LK-17</td>
+</tr>
+<tr>
+<td><strong>PM6 Dữ liệu và tuân thủ</strong></td>
+<td>F9.3.2, F9.3.3, F9.4.2</td>
+<td>LK-23</td>
+</tr>
+<tr>
+<td><strong>PM7 Quản trị NCC</strong></td>
+<td>F12.3.2, F12.4.1, F12.4.2</td>
+<td>LK-5 (khoá org đổi entitlements)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-01-introduction-05-functional-decomposition--control">Control</h3>
+<table>
+<thead>
+<tr>
+<th>Thành phần</th>
+<th>Chức năng lá</th>
+<th>Liên kết</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>PC1 Biên dịch</strong></td>
+<td>F5.2.2, F6.1.1, F6.1.2, F6.1.3</td>
+<td>LK-1, LK-2, LK-3, LK-5, LK-6 vào; LK-7, LK-8 ra</td>
+</tr>
+<tr>
+<td><strong>PC2 Phân phối</strong></td>
+<td>F6.2.1, F6.2.2</td>
+<td>LK-3 vào; LK-8, LK-9 ra</td>
+</tr>
+<tr>
+<td><strong>PC3 Rollout</strong></td>
+<td>F5.3.5, F6.3.1, F6.3.2, F11.1.2</td>
+<td>LK-7 ra; LK-12, LK-16 vào</td>
+</tr>
+<tr>
+<td><strong>PC4 Fleet và danh tính node</strong></td>
+<td>F6.4.1, F6.4.2, F6.4.3</td>
+<td>LK-10, LK-11, LK-12</td>
+</tr>
+<tr>
+<td><strong>PC5 Đặt zone vào cell</strong></td>
+<td>F3.3.4, F6.5.1, F6.5.2, F12.1.2</td>
+<td>LK-5 vào; LK-25 vào</td>
+</tr>
+<tr>
+<td><strong>PC6 Cert</strong></td>
+<td>F2.3.1, F2.3.2</td>
+<td>LK-2 vào; LK-8, LK-24 ra</td>
+</tr>
+<tr>
+<td><strong>PC7 Threat intel và ruleset</strong></td>
+<td>F11.1.1, F11.2.1, F11.3.1, F11.4.1</td>
+<td>LK-8 ra; LK-26 vào</td>
+</tr>
+<tr>
+<td><strong>PC8 Điều khiển fleet</strong></td>
+<td>F12.2.1, F12.2.2</td>
+<td>LK-13 ra</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-01-introduction-05-functional-decomposition--edge">Edge</h3>
+<table>
+<thead>
+<tr>
+<th>Thành phần</th>
+<th>Chức năng lá</th>
+<th>Liên kết</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>PE1 Tầng L7</strong></td>
+<td>F2.3.5, F3.1.1–F3.1.4, F3.2.1–F3.2.3, F3.3.1–F3.3.3, F3.3.5, F3.4.1, F3.4.2, F3.6.1, F3.6.2, F3.7.1, F3.7.2, F3.8.1–F3.8.4, F3.9.1–F3.9.3, F4.1.1, F4.1.3</td>
+<td>LK-14 ra (tới PE2)</td>
+</tr>
+<tr>
+<td><strong>PE2 Tầng WAF inspection</strong></td>
+<td>F3.5.1–F3.5.5, F3.6.3, F3.7.3, F3.7.4</td>
+<td>LK-14 vào (từ PE1)</td>
+</tr>
+<tr>
+<td><strong>PE3 Edge agent</strong></td>
+<td>F6.2.3, F10.4.1; gửi telemetry do PE1, PE2 sinh ra (F3.8.3)</td>
+<td>LK-8, LK-9, LK-10 vào; LK-12, LK-15 ra</td>
+</tr>
+<tr>
+<td><strong>PE4 DNS điều hướng</strong></td>
+<td>F4.3.1</td>
+<td>LK-13 vào</td>
+</tr>
+</tbody>
+</table>
+<p>Phân chia F3 giữa PE1 và PE2 theo <a href="#f-09-adr-0033-two-tier-edge-proxy-and-waf">ADR-0033</a>: việc rẻ, cần
+trạng thái kết nối hoặc trạng thái toàn fleet (rate limit, DDoS, bot score, JWT) ở L7; việc tốn CPU trên
+nội dung (managed ruleset, body, schema body) ở WAF. Chi tiết chia còn phụ thuộc kết quả spike ở
+<a href="#f-09-adr-0031-edge-l7-and-waf-engine-options">ADR-0031</a>.</p>
+<h3 id="f-01-introduction-05-functional-decomposition--analytics">Analytics</h3>
+<table>
+<thead>
+<tr>
+<th>Thành phần</th>
+<th>Chức năng lá</th>
+<th>Liên kết</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>PA1 Thu nhận</strong></td>
+<td>F7.1.1–F7.1.4</td>
+<td>LK-4, LK-15 vào</td>
+</tr>
+<tr>
+<td><strong>PA2 Lưu trữ và retention</strong></td>
+<td>F9.3.1, F9.4.1</td>
+<td>LK-4 vào; LK-23 vào</td>
+</tr>
+<tr>
+<td><strong>PA3 Query API</strong></td>
+<td>F7.3.1, F7.3.2, F7.4.1–F7.4.3, F7.5.2, F9.2.2, F12.3.1</td>
+<td>LK-18 vào</td>
+</tr>
+<tr>
+<td><strong>PA4 Realtime gateway</strong></td>
+<td>F7.2.1, F7.2.2</td>
+<td>LK-19 vào</td>
+</tr>
+<tr>
+<td><strong>PA5 Detection</strong></td>
+<td>F8.1.1–F8.1.3, F11.4.2</td>
+<td>LK-20 vào; LK-21, LK-25, LK-26 ra</td>
+</tr>
+<tr>
+<td><strong>PA6 Thông báo và export</strong></td>
+<td>F7.6.2, F8.3.1</td>
+<td>LK-20 vào</td>
+</tr>
+<tr>
+<td><strong>PA7 Replay</strong></td>
+<td>F5.2.3</td>
+<td>LK-22</td>
+</tr>
+<tr>
+<td><strong>PA8 Usage</strong></td>
+<td>F10.4.2</td>
+<td>LK-15 vào; LK-17 ra</td>
+</tr>
+</tbody>
+</table>
+<p>Chức năng F12.1.1 (giám sát SLI, probe) nằm ở <strong>mọi plane</strong> và gửi về hệ thống giám sát của NCC
+(<a href="#f-08-cross-cutting-12-platform-monitoring">8.12</a>), không đi qua liên kết giữa các plane.</p>
+<h2 id="f-01-introduction-05-functional-decomposition--liên-kết-giữa-các-plane">Liên kết giữa các plane</h2>
+<p>Mỗi liên kết là một chỗ dữ liệu hoặc lệnh đi từ chức năng của plane này sang chức năng của plane khác.
+Tên hợp đồng lấy từ <a href="#f-05-building-blocks-05-contracts">5.5</a>; dòng ghi <strong>chưa có ở 5.5</strong> là liên kết bản
+đồ phát hiện ra nhưng hợp đồng chưa định nghĩa (tổng hợp ở cuối mục).</p>
+<p>Kiểu giao tiếp:</p>
+<ul>
+<li><strong>Outbox</strong>: ghi cùng transaction với dữ liệu nghiệp vụ, qua RabbitMQ, at-least-once, bên nhận bỏ trùng.</li>
+<li><strong>Sync</strong>: gọi đồng bộ, có timeout; bên gọi phải chịu được khi bên kia không trả lời.</li>
+<li><strong>Pull</strong>: bên nhận tự kéo theo chu kỳ; mất thông báo đẩy cũng không sai.</li>
+<li><strong>Stream</strong>: luồng liên tục có buffer.</li>
+</ul>
+<div class="diagram"><pre class="mermaid">flowchart LR
+    M[&quot;&lt;b&gt;Management&lt;/b&gt;&quot;]
+    C[&quot;&lt;b&gt;Control&lt;/b&gt;&quot;]
+    E[&quot;&lt;b&gt;Edge&lt;/b&gt;&lt;br/&gt;PE1 L7 → PE2 WAF: LK-14&quot;]
+    A[&quot;&lt;b&gt;Analytics&lt;/b&gt;&quot;]
+    M --&gt;|&quot;LK-1…LK-6&lt;br/&gt;PolicyVersionPublished, ZoneChanged,&lt;br/&gt;EntitlementsChanged, biên dịch thử, purge*&quot;| C
+    C --&gt;|&quot;LK-7, LK-24&lt;br/&gt;kết quả biên dịch, rollout*, cert*&quot;| M
+    C --&gt;|&quot;LK-8…LK-11, LK-13&lt;br/&gt;Snapshot, Announcement, NodeProfile,&lt;br/&gt;deny list, PopState*&quot;| E
+    E --&gt;|&quot;LK-12&lt;br/&gt;NodeStatus&quot;| C
+    E --&gt;|&quot;LK-15&lt;br/&gt;TelemetryRecord, UsageCounter&quot;| A
+    A --&gt;|&quot;LK-16, LK-25, LK-26&lt;br/&gt;RolloutSignal, cách ly*, reputation*&quot;| C
+    A --&gt;|&quot;LK-17, LK-21&lt;br/&gt;UsageReport, AlertRaised, CaseProposed&quot;| M
+    M --&gt;|&quot;LK-4, LK-18…LK-20, LK-22, LK-23&lt;br/&gt;EntitlementsChanged, Query, token realtime,&lt;br/&gt;cấu hình alert/export*, replay*, xoá dữ liệu*&quot;| A
+</pre></div>
+<p><code>*</code> là liên kết chưa có hợp đồng ở 5.5. Không có cạnh Management ↔ Edge và Analytics → Edge, có chủ đích (giải thích dưới bảng).</p>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Từ → tới</th>
+<th>Chức năng phát → chức năng nhận</th>
+<th>Hợp đồng</th>
+<th>Kiểu</th>
+<th>Khi bên nhận hỏng</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Management → Control</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>LK-1</td>
+<td>PM3 → PC1</td>
+<td>F5.3.4 phát hành → F6.1.1 biên dịch</td>
+<td><code>PolicyVersionPublished</code></td>
+<td>Outbox</td>
+<td>Edge giữ snapshot cũ; portal hiện &quot;chờ biên dịch&quot;; outbox giữ tới khi Control nhận</td>
+</tr>
+<tr>
+<td>LK-2</td>
+<td>PM2 → PC1, PC6</td>
+<td>F2.1–F2.4 đổi zone, hostname, origin, yêu cầu cert → F6.1.1, F2.3.1</td>
+<td><code>ZoneChanged</code></td>
+<td>Outbox</td>
+<td>Như LK-1; zone mới chưa nhận traffic, zone cũ không đổi</td>
+</tr>
+<tr>
+<td>LK-3</td>
+<td>PM2 → PC1, PC2</td>
+<td>F4.1.2 cache rule → F6.1.1; F4.2.1, F4.2.2 purge → F6.2.2 đường nhanh</td>
+<td>Cache rule nằm trong <code>ZoneChanged</code>; <strong>purge chưa có ở 5.5</strong></td>
+<td>Outbox</td>
+<td>Purge trễ; bản cũ vẫn được phục vụ tới khi purge tới (QS-15 vỡ)</td>
+</tr>
+<tr>
+<td>LK-4</td>
+<td>PM5 → PA2, PA1</td>
+<td>F10.3.2 → F7.1.2 tỉ lệ lấy mẫu, F9.3.1 retention</td>
+<td><code>EntitlementsChanged</code></td>
+<td>Outbox</td>
+<td>Analytics dùng entitlements cũ tới khi nhận</td>
+</tr>
+<tr>
+<td>LK-5</td>
+<td>PM5, PM7 → PC5, PC1</td>
+<td>F10.3.2, F12.4.1 → F6.5.1 đổi pool cell; giới hạn gói vào bundle (F3.8.4)</td>
+<td><code>EntitlementsChanged</code></td>
+<td>Outbox</td>
+<td>Zone ở pool cũ, áp giới hạn cũ; QS-14 vỡ</td>
+</tr>
+<tr>
+<td>LK-6</td>
+<td>PM3 → PC1</td>
+<td>F5.2.1 → F5.2.2 biên dịch thử</td>
+<td>Control internal API</td>
+<td>Sync</td>
+<td>Không gửi duyệt được; portal báo Control không sẵn sàng, bản nháp vẫn lưu</td>
+</tr>
+<tr>
+<td><strong>Control → Management</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>LK-7</td>
+<td>PC1, PC3 → PM3</td>
+<td>F6.1.2 kết quả biên dịch, F6.3.1 trạng thái rollout → F5.3.5</td>
+<td>Đọc qua Control internal API; <strong>sự kiện đẩy chưa có ở 5.5</strong></td>
+<td>Sync (đọc)</td>
+<td>Portal không hiện tiến độ; phát hành vẫn chạy</td>
+</tr>
+<tr>
+<td>LK-24</td>
+<td>PC6 → PM2</td>
+<td>F2.3.1, F2.3.2 trạng thái cert, gia hạn lỗi → FR-2-08 cảnh báo</td>
+<td><strong>Chưa có ở 5.5</strong></td>
+<td>Outbox (đề xuất)</td>
+<td>Khách không thấy cert sắp hết hạn; Control vẫn tự thử lại</td>
+</tr>
+<tr>
+<td><strong>Control → Edge</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>LK-8</td>
+<td>PC1, PC2, PC6, PC7 → PE3</td>
+<td>F6.1.3, F6.2.1 → F6.2.3 nạp bundle, cert, ruleset</td>
+<td><code>Snapshot</code></td>
+<td>Pull</td>
+<td>Edge chạy tiếp bằng snapshot đang có (Q1)</td>
+</tr>
+<tr>
+<td>LK-9</td>
+<td>PC2 → PE3</td>
+<td>F6.2.1, F6.2.2 → F6.2.3</td>
+<td><code>SnapshotAnnouncement</code></td>
+<td>Đẩy nhẹ + pull</td>
+<td>Agent tự kiểm định kỳ; chỉ chậm hơn</td>
+</tr>
+<tr>
+<td>LK-10</td>
+<td>PC4 → PE3</td>
+<td>F6.4.1 cấp, gia hạn cert node; cấu hình node</td>
+<td><code>NodeProfile</code>, enroll (<a href="#f-08-cross-cutting-19-node-identity-and-mtls">8.19</a>)</td>
+<td>Sync</td>
+<td>Node giữ cert cũ tới hạn 24 giờ; QS-39</td>
+</tr>
+<tr>
+<td>LK-11</td>
+<td>PC4 → mọi bên nhận</td>
+<td>F6.4.2 thu hồi → bên nhận từ chối kết nối của node</td>
+<td>Deny list (<a href="#f-08-cross-cutting-19-node-identity-and-mtls">8.19</a>)</td>
+<td>Pull</td>
+<td>Node bị thu hồi còn kết nối tới khi cert hết hạn; QS-40</td>
+</tr>
+<tr>
+<td>LK-13</td>
+<td>PC8 → PE4</td>
+<td>F12.2.1 trạng thái PoP → F4.3.1</td>
+<td><code>PopState</code> (<strong>chưa có ở 5.5</strong>)</td>
+<td>Pull</td>
+<td>DNS trả theo trạng thái cũ; QS-16 vỡ</td>
+</tr>
+<tr>
+<td><strong>Edge → Control</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>LK-12</td>
+<td>PE3 → PC4, PC3</td>
+<td>Version đang chạy, lỗi nạp, sức khoẻ → F6.4.3, F5.3.5, F6.3.1</td>
+<td><code>NodeStatus</code></td>
+<td>Stream (heartbeat)</td>
+<td>Control không biết node đã áp; rollout dừng ở gate, không tiến tiếp</td>
+</tr>
+<tr>
+<td><strong>Trong Edge</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>LK-14</td>
+<td>PE1 → PE2</td>
+<td>F3.5.x được gọi cho từng request</td>
+<td>Inspection API (IA1–IA13 còn mở)</td>
+<td>Sync, có deadline</td>
+<td>Fail mode của zone (F3.9.1); QS-18</td>
+</tr>
+<tr>
+<td><strong>Edge → Analytics</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>LK-15</td>
+<td>PE3 → PA1, PA8</td>
+<td>F3.8.3 security event, access log, mẫu request; F10.4.1 bộ đếm usage</td>
+<td><code>TelemetryRecord</code>, <code>UsageCounter</code></td>
+<td>Stream, buffer đĩa</td>
+<td>Buffer trên node; security event và usage không bỏ; access log bỏ khi đầy (QS-10)</td>
+</tr>
+<tr>
+<td><strong>Analytics → Control</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>LK-16</td>
+<td>PA5 → PC3</td>
+<td>Chỉ số theo zone, version trong cửa sổ canary → F6.3.1 gate</td>
+<td><code>RolloutSignal</code></td>
+<td>Định kỳ</td>
+<td>Rollout dừng ở gate, không tự tiến khi thiếu tín hiệu</td>
+</tr>
+<tr>
+<td>LK-25</td>
+<td>PA5 → PC5</td>
+<td>Phát hiện flood lớn → F3.3.4 chuyển sang cell cách ly</td>
+<td><strong>Chưa có ở 5.5</strong></td>
+<td>Outbox (đề xuất)</td>
+<td>Không tự cách ly; NOC làm tay theo runbook (8.13)</td>
+</tr>
+<tr>
+<td>LK-26</td>
+<td>PA5 → PC7</td>
+<td>Reputation, dữ liệu bot gộp từ telemetry → F11.3.1 và dữ liệu bot (<a href="#f-05-building-blocks-08-components-07-cert-ruleset-release">5.8.7</a>)</td>
+<td><strong>Chưa có ở 5.5</strong></td>
+<td>Theo lô</td>
+<td>Dùng bản reputation cũ</td>
+</tr>
+<tr>
+<td><strong>Analytics → Management</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>LK-17</td>
+<td>PA8 → PM5</td>
+<td>F10.4.2 → F10.4.3, F10.5.1, F10.5.2, F10.6.1</td>
+<td><code>UsageReport</code></td>
+<td>Định kỳ, chạy lại được</td>
+<td>Cảnh báo hạn mức, trần cứng, hoá đơn trễ; không mất vì chạy lại được</td>
+</tr>
+<tr>
+<td>LK-21</td>
+<td>PA5 → PM4</td>
+<td>F8.1.1, F8.1.3 → F8.4.1 case, F7.2.2 thông báo portal</td>
+<td><code>AlertRaised</code>, <code>CaseProposed</code></td>
+<td>At-least-once</td>
+<td>Thông báo vẫn gửi qua PA6; case không tự mở</td>
+</tr>
+<tr>
+<td><strong>Management → Analytics</strong></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>LK-18</td>
+<td>PM4 → PA3</td>
+<td>F7.3, F7.4, F9.1.2, F12.3.1 → Query API</td>
+<td><code>Query</code></td>
+<td>Sync, có giới hạn chi phí</td>
+<td>Portal không có dashboard, tìm kiếm; cấu hình vẫn sửa được</td>
+</tr>
+<tr>
+<td>LK-19</td>
+<td>PM1 → PA4</td>
+<td>Cấp token realtime, <code>PermissionsChanged</code> → F7.2.1</td>
+<td>Token JWT + sự kiện (<a href="#f-05-building-blocks-08-components-13-realtime-gateway">5.8.13</a>); <strong><code>PermissionsChanged</code> chưa có ở 5.5</strong></td>
+<td>Sync (token) + outbox</td>
+<td>Phiên đang mở giữ tới hết hạn token; không mở phiên mới</td>
+</tr>
+<tr>
+<td>LK-20</td>
+<td>PM4 → PA5, PA6</td>
+<td>F8.2.1–F8.2.3 alert policy, F7.6.1 đích export, F7.5.1 nhãn chặn nhầm</td>
+<td><strong>Chưa có ở 5.5</strong> (5.8.12 ghi &quot;qua RabbitMQ&quot;)</td>
+<td>Outbox (đề xuất)</td>
+<td>Analytics dùng cấu hình cũ; nhãn chặn nhầm chờ trong outbox</td>
+</tr>
+<tr>
+<td>LK-22</td>
+<td>PM3 ↔ PA7</td>
+<td>F5.3.1 yêu cầu mô phỏng → F5.2.3, trả kết quả</td>
+<td><strong>Chưa có ở 5.5</strong> (5.8.12 ghi &quot;kết quả replay&quot;)</td>
+<td>Async, có job ID</td>
+<td>Change request không có kết quả mô phỏng; duyệt vẫn làm được nếu không bắt buộc</td>
+</tr>
+<tr>
+<td>LK-23</td>
+<td>PM6 → PA2</td>
+<td>F9.3.3 xoá dữ liệu cá nhân, F1.1.4 xoá org → xoá trong log</td>
+<td><strong>Chưa có ở 5.5</strong></td>
+<td>Outbox (đề xuất)</td>
+<td>Yêu cầu xoá chờ; phải có hạn hoàn tất theo Nghị định 13</td>
+</tr>
+</tbody>
+</table>
+<p>Hai liên kết <strong>không</strong> tồn tại, có chủ đích:</p>
+<ul>
+<li><strong>Edge → Management</strong> và <strong>Management → Edge</strong>: không có. Edge chỉ đọc snapshot từ Control
+(<a href="#f-09-adr-0001-four-planes">ADR-0001</a>); nhờ vậy Management sập không ảnh hưởng traffic.</li>
+<li><strong>Analytics → Edge</strong>: không có. Mọi phản ứng dựa trên phân tích (cách ly, rule khẩn, reputation) đi qua
+Control để vẫn có ký, canary và rollback.</li>
+</ul>
+<h3 id="f-01-introduction-05-functional-decomposition--liên-kết-chưa-có-hợp-đồng-ở-55">Liên kết chưa có hợp đồng ở 5.5</h3>
+<p>Bản đồ cho thấy 5.5 mới định nghĩa liên kết của đường cấu hình chính và telemetry. Đề xuất bổ sung sau khi
+review (theo dõi ở <a href="#f-01-introduction-06-requirements--9-câu-hỏi-mở-cho-review">OQ-15</a>):</p>
+<table>
+<thead>
+<tr>
+<th>Liên kết</th>
+<th>Tên hợp đồng đề xuất</th>
+<th>Lý do cần</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>LK-3</td>
+<td><code>PurgeRequested</code> (lớp khẩn)</td>
+<td>Purge đi đường nhanh, không đi qua biên dịch như cache rule</td>
+</tr>
+<tr>
+<td>LK-7</td>
+<td><code>CompileResult</code>, <code>RolloutProgress</code></td>
+<td>Portal hiện tiến độ mà không phải hỏi liên tục</td>
+</tr>
+<tr>
+<td>LK-13</td>
+<td><code>PopState</code></td>
+<td>DNS điều hướng cần trạng thái PoP từ Control</td>
+</tr>
+<tr>
+<td>LK-19</td>
+<td><code>PermissionsChanged</code></td>
+<td>Gateway realtime đóng channel khi quyền đổi</td>
+</tr>
+<tr>
+<td>LK-20</td>
+<td><code>AlertPolicyChanged</code>, <code>ExportDestinationChanged</code>, <code>FalsePositiveLabeled</code></td>
+<td>Analytics đánh giá cảnh báo và export theo cấu hình của khách</td>
+</tr>
+<tr>
+<td>LK-22</td>
+<td><code>ReplayRequested</code>, <code>ReplayCompleted</code></td>
+<td>Mô phỏng chạy lâu, cần job bất đồng bộ</td>
+</tr>
+<tr>
+<td>LK-23</td>
+<td><code>DataErasureRequested</code></td>
+<td>Xoá dữ liệu cá nhân phải tới cả log ở Analytics</td>
+</tr>
+<tr>
+<td>LK-24</td>
+<td><code>CertStatusChanged</code></td>
+<td>Khách thấy cert sắp hết hạn, gia hạn lỗi</td>
+</tr>
+<tr>
+<td>LK-25</td>
+<td><code>IsolationRequested</code></td>
+<td>Chuyển zone bị flood sang cell cách ly</td>
+</tr>
+<tr>
+<td>LK-26</td>
+<td><code>ReputationBatch</code></td>
+<td>Reputation và dữ liệu bot đi qua pipeline phát hành của Control</td>
+</tr>
+</tbody>
+</table>
 <h2 id="f-01-introduction-05-functional-decomposition--chức-năng-ngoài-phạm-vi">Chức năng ngoài phạm vi</h2>
 <p>Không nằm trong bản đồ, nhắc lại để không bị thêm vào thiết kế dữ liệu: vulnerability scanning (DAST, sản
 phẩm riêng nếu làm), edge compute, tối ưu ảnh, video, client-side protection. Xem <a href="#f-01-introduction-00-index--12-tổng-quan-yêu-cầu">1.2</a>.</p>
@@ -4050,6 +4657,7 @@ chính. Dưới đây chỉ là những điểm 10.3 chưa có, chủ yếu cho 
 </tbody>
 </table>
 <h2 id="f-01-introduction-06-requirements--8-truy-vết">8. Truy vết</h2>
+<p>Phân rã theo plane, thành phần và các liên kết <code>LK-…</code> giữa plane ở <a href="#f-01-introduction-05-functional-decomposition--phân-rã-theo-plane">1.5</a>.</p>
 <table>
 <thead>
 <tr>
@@ -4180,6 +4788,12 @@ chính. Dưới đây chỉ là những điểm 10.3 chưa có, chủ yếu cho 
 <td>Billing theo account hay theo org (một hoá đơn cho cả org)?</td>
 <td>Theo account, gộp được ở cấp org</td>
 <td>DT-8</td>
+</tr>
+<tr>
+<td>OQ-15</td>
+<td>Bổ sung vào 5.5 các hợp đồng cho 11 liên kết chưa có (purge, trạng thái cert, <code>PopState</code>, <code>PermissionsChanged</code>, cấu hình alert/export, nhãn chặn nhầm, replay, xoá dữ liệu, cách ly, reputation)</td>
+<td>Bổ sung theo bảng ở <a href="#f-01-introduction-05-functional-decomposition--liên-kết-chưa-có-hợp-đồng-ở-55">1.5</a></td>
+<td>5.5, outbox của Management</td>
 </tr>
 </tbody>
 </table>
@@ -20238,6 +20852,16 @@ theo chính sách tài liệu (<a href="#f-02-constraints-00-index--24-conventio
 <td><strong>F1…F12, Fx.y, Fx.y.z</strong></td>
 <td>Nhóm chức năng, chức năng, chức năng lá</td>
 <td><a href="#f-01-introduction-05-functional-decomposition">1.5</a></td>
+</tr>
+<tr>
+<td><strong>PM1…PM7 / PC1…PC8 / PE1…PE4 / PA1…PA8</strong></td>
+<td>Thành phần chức năng của Management / Control / Edge / Analytics trong phân rã theo plane</td>
+<td><a href="#f-01-introduction-05-functional-decomposition--phân-rã-theo-plane">1.5</a></td>
+</tr>
+<tr>
+<td><strong>LK-1…LK-26</strong></td>
+<td>Liên kết giữa các plane (chức năng phát → chức năng nhận, hợp đồng, kiểu, hành vi khi hỏng)</td>
+<td><a href="#f-01-introduction-05-functional-decomposition--liên-kết-giữa-các-plane">1.5</a></td>
 </tr>
 <tr>
 <td><strong>FR-x-nn / BR-n / DT-n / NFR-n / IR-n / OQ-n</strong></td>

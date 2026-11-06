@@ -358,6 +358,8 @@ Mỗi tiền tố chỉ có một nghĩa trong toàn bộ tài liệu.
 |---|---|---|
 | **Q1–Q6** | Mục tiêu chất lượng | [1.3](../01-introduction/00-index.md#13-mục-tiêu-chất-lượng) |
 | **F1…F12, Fx.y, Fx.y.z** | Nhóm chức năng, chức năng, chức năng lá | [1.5](../01-introduction/05-functional-decomposition.md) |
+| **PM1…PM7 / PC1…PC8 / PE1…PE4 / PA1…PA8** | Thành phần chức năng của Management / Control / Edge / Analytics trong phân rã theo plane | [1.5](../01-introduction/05-functional-decomposition.md#phân-rã-theo-plane) |
+| **LK-1…LK-26** | Liên kết giữa các plane (chức năng phát → chức năng nhận, hợp đồng, kiểu, hành vi khi hỏng) | [1.5](../01-introduction/05-functional-decomposition.md#liên-kết-giữa-các-plane) |
 | **FR-x-nn / BR-n / DT-n / NFR-n / IR-n / OQ-n** | Yêu cầu chức năng / quy tắc nghiệp vụ / yêu cầu dữ liệu / phi chức năng / giao tiếp ngoài / câu hỏi mở của requirements | [1.6](../01-introduction/06-requirements.md) |
 | **QS-1…QS-41** | Kịch bản chất lượng đo được | [10.3](../10-quality/00-index.md#103-kịch-bản) |
 | **R1…R29** | Rủi ro | [11.1](../11-risks/00-index.md) |

@@ -306,6 +306,8 @@ chính. Dưới đây chỉ là những điểm 10.3 chưa có, chủ yếu cho 
 
 ## 8. Truy vết
 
+Phân rã theo plane, thành phần và các liên kết `LK-…` giữa plane ở [1.5](05-functional-decomposition.md#phân-rã-theo-plane).
+
 | Nhóm | Building block | Runtime | Database |
 |---|---|---|---|
 | F1, F2, F5, F8.4, F9, F10, F12 (phần M) | [5.1](../05-building-blocks/01-management-plane.md), [5.8.12](../05-building-blocks/08-components/12-management.md) | [6](../06-runtime/00-index.md) | [5.8.14](../05-building-blocks/08-components/14-management-database.md) |
@@ -331,3 +333,4 @@ chính. Dưới đây chỉ là những điểm 10.3 chưa có, chủ yếu cho 
 | OQ-12 | Cổng thanh toán cụ thể và tính phí theo kỳ trả trước hay trả sau? | Phí nền trả trước, phí vượt trả sau | IR-2, FR-10-11 |
 | OQ-13 | Developer có được tạo exception không cần duyệt trong zone được giao không? | Không, luôn qua change request | FR-1-06, F5.1.4 |
 | OQ-14 | Billing theo account hay theo org (một hoá đơn cho cả org)? | Theo account, gộp được ở cấp org | DT-8 |
+| OQ-15 | Bổ sung vào 5.5 các hợp đồng cho 11 liên kết chưa có (purge, trạng thái cert, `PopState`, `PermissionsChanged`, cấu hình alert/export, nhãn chặn nhầm, replay, xoá dữ liệu, cách ly, reputation) | Bổ sung theo bảng ở [1.5](05-functional-decomposition.md#liên-kết-chưa-có-hợp-đồng-ở-55) | 5.5, outbox của Management |
