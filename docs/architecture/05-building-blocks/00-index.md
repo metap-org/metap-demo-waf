@@ -9,6 +9,8 @@
 | [04-analytics-plane.md](04-analytics-plane.md) | Level 2: luồng log, store, truy vấn, phát hiện |
 | [05-contracts.md](05-contracts.md) | Hợp đồng giữa các plane: thông điệp, đảm bảo giao nhận, version |
 | [06-data-model.md](06-data-model.md) | Mô hình dữ liệu logic của Management và mô hình rule |
+| [07-technology-map.md](07-technology-map.md) | Công nghệ cho từng thành phần, license, ADR |
+| [level-3/](level-3/00-index.md) | Level 3: detail design (C4 Component) cho từng container |
 
 ## Level 1: bốn plane
 

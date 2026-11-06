@@ -65,9 +65,9 @@ Gói cước là cấu hình, không phải nhánh code ([ADR-0007](../09-adr/00
 ## 8.8 Challenge và clearance
 
 - Dùng chung cho Under Attack mode và bot management.
-- Edge phát challenge, tự kiểm kết quả, cấp **clearance token có chữ ký** gắn zone, thời hạn và
+- Edge phát challenge, tự kiểm kết quả, cấp **clearance token có MAC (HMAC-SHA256)** gắn zone, thời hạn và
   đặc điểm client; node nào trong fleet cũng kiểm được token mà không gọi mạng.
-- Khoá ký token xoay vòng qua bundle chung; node chấp nhận khoá hiện tại và khoá liền trước.
+- Khoá HMAC xoay vòng qua bundle chung; node chấp nhận khoá hiện tại và khoá liền trước. Dùng khoá đối xứng vì chính edge cấp token, nên mọi node đằng nào cũng phải giữ khoá cấp.
 
 ## 8.9 Giao nhận và trùng lặp
 
