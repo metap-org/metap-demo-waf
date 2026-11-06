@@ -26,8 +26,9 @@ Với 1 triệu zone và traffic đuôi dài, có ba lý do để không cho m�
 
 **C2 (cell theo VIP)**, kết hợp nạp khi cần của [ADR-0040](0040-config-distribution-at-scale.md):
 
-- Bắt đầu với 32–64 cell chuẩn, cell riêng cho khách enterprise và zone lớn, một cell cách ly cho zone
-  đang bị tấn công.
+- Ba pool cell theo gói ([ADR-0042](0042-plan-tiers-drive-placement-and-isolation.md)): pool Free mật độ cao,
+  32–64 cell chuẩn cho Pro/Business, pool enterprise (cell riêng cho tenant lớn); một cell cách ly cho
+  zone đang bị tấn công.
 - Zone được gán theo hash `zone_id`; top zone theo traffic được cân bằng theo tải.
 - Rollout canary theo cell.
 - PoP nhỏ cho nhiều cell dùng chung node nhưng vẫn giữ VIP riêng.

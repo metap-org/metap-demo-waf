@@ -46,5 +46,6 @@ cân nhắc. Quyết định bị thay thế giữ lại với trạng thái "B�
 | [0039](0039-api-security-positive-model.md) | API security: discovery, schema chia proxy/WAF, JWT/mTLS ở edge, danh tính consumer | Chấp nhận |
 | [0040](0040-config-distribution-at-scale.md) | Phân phối cấu hình ở 1 triệu zone: manifest theo bucket, routing index, PoP store, nạp khi cần, ACK theo version tổng | Chấp nhận |
 | [0041](0041-cells-and-zone-placement.md) | Cell và cách đặt zone: so sánh 4 phương án, đề xuất cell theo VIP | **Đề xuất, chờ chọn** |
+| [0042](0042-plan-tiers-drive-placement-and-isolation.md) | Gói quyết định pool cell, tài nguyên, thứ tự hy sinh khi quá tải, thứ tự rollout | Chấp nhận (giá chờ business) |
 
 Quyết định đang chờ: xem [11. Risks and Technical Debt](../11-risks/00-index.md#113-quyết-định-còn-mở).

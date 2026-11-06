@@ -15,12 +15,12 @@ kịch bản đo được (§10.3) và cơ chế kiến trúc đáp ứng nó.
 | **Khả dụng** | Phục vụ traffic khi một phần hệ thống hỏng | Q1 | QS-2, QS-3, QS-16, QS-18 | Edge độc lập runtime, fail mode, DNS điều hướng ([ADR-0001](../09-adr/0001-four-planes.md)) |
 | **Khả năng mở rộng** | Thêm zone, traffic, node mà chi phí mỗi đơn vị không tăng | Q6 | QS-24, QS-26, QS-27 | Manifest hai tầng, routing index, PoP store, cell ([ADR-0040](../09-adr/0040-config-distribution-at-scale.md), [ADR-0041](../09-adr/0041-cells-and-zone-placement.md)) |
 | **Co giãn và hấp thụ tấn công** | Chịu đột biến traffic và tấn công không làm ảnh hưởng khách khác | Q1, Q3 | QS-17, QS-29 | Pre-filter rẻ, admission control WAF, cell cách ly |
-| **Cô lập** | Tenant, cell không ảnh hưởng lẫn nhau về dữ liệu, tài nguyên, cấu hình lỗi | Q3 | QS-8, QS-9, QS-28 | Governor theo tenant, fair share WAF, cell, Query API |
+| **Cô lập** | Tenant, cell, gói không ảnh hưởng lẫn nhau về dữ liệu, tài nguyên, cấu hình lỗi | Q3 | QS-8, QS-9, QS-28, QS-32 | Governor theo tenant, fair share WAF theo trọng số gói, pool cell theo gói, Query API |
 | **An toàn thay đổi** | Không thay đổi nào gây sự cố diện rộng | Q2 | QS-4, QS-5, QS-6, QS-7, QS-15, QS-23 | Snapshot ký, canary theo cell, lớp áp dụng ([ADR-0037](../09-adr/0037-config-apply-classes.md)) |
 | **Bảo mật** | Phát hiện và chặn tấn công đúng; bảo vệ chính nền tảng | — | QS-3 (S3), QS-20, QS-21 | CRS + system ruleset, bot, API security, mTLS, chữ ký |
 | **Khả năng quan sát** | Biết chậm ở đâu, lỗi của ai, có mất dữ liệu không | Q4 | QS-10, QS-11, QS-12, QS-19 | Đo theo chặng, `status_source`, đối soát ([ADR-0036](../09-adr/0036-request-timing-and-error-attribution.md)) |
 | **Khả năng triển khai** | Chạy trên PoP riêng, hạ tầng đối tác, on-prem | Q5 | QS-13 | Một artifact, Kubernetes cho plane trung tâm |
-| **Hiệu quả chi phí** | Chi phí hạ tầng trên một đơn vị traffic | Q6 | QS-30, QS-31 | Lọc rẻ trước, dùng chung instance CRS, lấy mẫu log theo gói |
+| **Hiệu quả chi phí** | Chi phí hạ tầng trên một đơn vị traffic và trên một zone nguội | Q6 | QS-30, QS-31, QS-33 | Lọc rẻ trước, dùng chung instance CRS, lấy mẫu log theo gói, pool cell theo gói ([8.18](../08-cross-cutting/18-segments-and-plans.md)) |
 | **Khả năng vận hành** | Đổi cấu hình, nâng cấp, xử lý sự cố với ít thao tác tay | Q2, Q4 | QS-14, QS-27 | Rollout tự động có gate, runbook ([8.13](../08-cross-cutting/13-operational-behaviors.md)) |
 
 ## 10.2 Cây chất lượng
@@ -41,6 +41,7 @@ flowchart LR
     q2 --> s3["Rollback"]
     q3 --> t1["Noisy neighbor"]
     q3 --> t2["Truy cập dữ liệu chéo"]
+    q3 --> t3["Gói thấp không ảnh hưởng gói cao"]
     q4 --> e1["Không mất log"]
     q4 --> e2["Độ trễ tới tra cứu"]
     q4 --> e3["Truy vết quyết định"]
@@ -79,13 +80,16 @@ flowchart LR
 | QS-22 | API | Request tới endpoint có schema | Kiểm ở proxy ≤ 20 µs, kiểm body JSON 10 KB ở WAF ≤ 300 µs p99 |
 | QS-23 | API | Khách xoay khoá JWKS | Edge chấp nhận token ký bằng khoá mới trong ≤ 60 s |
 | QS-24 | Mở rộng | Số zone tăng từ 1 triệu lên 2 triệu, tập zone hoạt động mỗi PoP không đổi | RAM dùng cho runtime trên mỗi node tăng ≤ 10% (chỉ phần routing index); không đổi thiết kế |
-| QS-25 | Hiệu năng | Request đầu tiên của một zone chưa có trong RAM node | Độ trễ thêm ≤ 10 ms p99 cho request đó (lấy từ PoP store + dựng runtime); request sau trở lại QS-1 |
+| QS-25 | Hiệu năng | Request đầu tiên của một zone Free hoặc Pro chưa có trong RAM node (zone Business, Enterprise luôn nóng trong cell của mình) | Độ trễ thêm ≤ 10 ms p99 cho request đó (lấy từ PoP store + dựng runtime); request sau trở lại QS-1 |
 | QS-26 | Mở rộng | Một thay đổi cấu hình zone | Tới PoP store của mọi PoP ≤ 10 s; dữ liệu gửi mỗi PoP ≤ kích thước bundle + 1 KB; tối đa 1 top manifest/s |
 | QS-27 | Vận hành | Thay đổi hàng loạt 100.000 zone (đổi mặc định, Terraform) | Hoàn tất ≤ 15 phút; QS-1 không vỡ trong lúc đó |
 | QS-28 | Cô lập | Cấu hình lỗi hoặc tấn công trong một cell | p99 của cell khác thay đổi ≤ 5% |
 | QS-29 | Hấp thụ tấn công | Flood L7 30 triệu rps nhắm một zone | Zone được chuyển sang cell cách ly ≤ 2 phút; zone khác không bị ảnh hưởng |
 | QS-30 | Chi phí | 1 triệu request hợp lệ, CRS PL1 | CPU tổng (proxy + WAF) ≤ mục tiêu đặt sau spike; theo dõi theo release |
 | QS-31 | Chi phí | Toàn fleet ở đỉnh 10 triệu rps | Mức sử dụng CPU trung bình node ≤ 60%, đủ dư cho tấn công theo [7.5](../07-deployment/05-capacity-and-sharding.md) |
+| QS-32 | Cô lập theo gói | Pool Free của một PoP quá tải (nhiều zone Free bị flood cùng lúc) | p99 của zone Business, Enterprise cùng PoP thay đổi ≤ 5%; thứ tự hy sinh ở [8.18 §4](../08-cross-cutting/18-segments-and-plans.md#thứ-tự-hy-sinh-khi-pop-quá-tải) chạy đúng thứ tự, mỗi bước có event |
+| QS-33 | Chi phí | Chi phí phục vụ một zone Free trung bình | ≤ 0,25 USD/tháng theo mô hình chi phí ở 8.18; zone p99 của mỗi gói trả phí vẫn có lãi ở giá tham chiếu |
+| QS-34 | Thương mại | Khách nâng gói Free → Business | Entitlements mới ≤ 5 phút; zone sang pool cell mới không có request lỗi trong thời gian chuyển |
 
 ## 10.4 Quy mô thiết kế
 
@@ -96,9 +100,11 @@ flowchart LR
 | Zone / hostname / cert | 1.000.000 / ≈ 3.000.000 / ≈ 2.000.000 |
 | Request hợp lệ | 3 triệu rps trung bình, 10 triệu rps đỉnh; thêm tới 30 triệu rps tấn công L7 |
 | Băng thông ra client | ≈ 600 Gbps trung bình, ≈ 2 Tbps đỉnh |
-| Node | ≈ 450 edge proxy, ≈ 150 WAF inspection, 30 PoP |
+| Phân khúc | 65% Free, 15% Pro, 18% Business, 2% Enterprise ([8.18](../08-cross-cutting/18-segments-and-plans.md)) |
+| Node | ≈ 450 edge proxy, ≈ 210 WAF inspection, 30 PoP |
 | Cấu hình | ≈ 8 GB bundle nén + 8 GB cert mỗi PoP store; ≈ 200 MB routing index mỗi node |
 | Thay đổi cấu hình | ≈ 1,7/s trung bình, 30/s đỉnh |
-| Telemetry | ≈ 0,9 triệu bản ghi/s trung bình; ≈ 9,4 TB/ngày trong ClickHouse |
+| Telemetry | ≈ 1,15 triệu bản ghi/s trung bình; ≈ 12 TB/ngày trong ClickHouse |
+| Chi phí phục vụ (giả định đơn giá) | ≈ 0,18 / 1,05 / 3,3 / 43 USD mỗi zone mỗi tháng cho Free / Pro / Business / Enterprise |
 | Rule / zone (tối đa theo gói cao nhất) | 1.000 custom rule |
 | Retention tối đa | 365 ngày (archive), 30 ngày (hot) |

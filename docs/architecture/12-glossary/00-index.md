@@ -60,6 +60,10 @@
 | **PoP config store** | Bản sao đủ bundle và cert của mỗi PoP trên NVMe; node nạp từ đây khi cần |
 | **Zone nóng / nguội** | Zone đang có traffic trên node (runtime trong RAM) / chưa có |
 | **Cell** | Nhóm node trong mỗi PoP phục vụ một tập zone, có VIP riêng |
+| **Pool cell** | Nhóm cell dành cho một hoặc vài gói: Free (mật độ cao), chuẩn (Pro, Business), Enterprise |
+| **Chi phí phục vụ (cost to serve)** | Chi phí hạ tầng phân bổ cho một zone hoặc một gói mỗi tháng |
+| **Thứ tự hy sinh** | Thứ tự cố định hạ cấp tài nguyên theo gói khi PoP quá tải, từ Free lên |
+| **Profile lite** | Profile WAF của gói Free: tập con rule CVE nghiêm trọng, khoảng 1/4 chi phí CPU của CRS PL1 |
 | **Profile CRS** | Tổ hợp (ruleset release, paranoia, ngưỡng) dùng chung một instance engine cho nhiều zone |
 | **Request ID** | Định danh duy nhất của request, in trên trang chặn, khoá tra cứu và bỏ trùng |
 | **Replay** | Chạy policy nháp trên traffic lịch sử để mô phỏng tác động |

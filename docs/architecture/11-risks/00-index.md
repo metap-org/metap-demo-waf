@@ -25,6 +25,8 @@
 | R20 | Ước lượng tải ở 7.5 sai lệch lớn (phân bố traffic, năng lực node, kích thước cấu hình) | Trung bình | Cao | Đo lại sau spike và theo từng giai đoạn khách hàng; thiết kế không phụ thuộc tổng số zone nên chỉ cỡ hạ tầng phải đổi | Số đo thật lệch quá 2 lần so với giả định |
 | R21 | Request đầu tiên của zone nguội chậm, hoặc nhiều zone nguội cùng lúc làm quá tải PoP store sau sự cố | Trung bình | Trung bình | Làm nóng trước theo danh sách zone nóng; PoP store dự phòng; giới hạn tốc độ dựng runtime; node lấy được từ regional relay | QS-25 vỡ |
 | R22 | Tenant hoặc zone rất lớn dồn vào một partition Kafka, một shard ClickHouse, một cell | Trung bình | Trung bình | Khoá theo `(tenant, zone)` cho tenant lớn; cell riêng; cân bằng cell theo tải | Lag hoặc CPU lệch giữa partition/shard/cell |
+| R23 | Gói Free bị lạm dụng (phishing, phát file lớn, đăng ký hàng loạt) hoặc chi phí Free vượt mô hình | Cao | Trung bình | Giới hạn zone mỗi account, xác minh domain, fair use, pool mật độ cao, Trust and Safety ([8.18 §5](../08-cross-cutting/18-segments-and-plans.md#5-fair-use-và-lạm-dụng)) | Chi phí Free > 10% hạ tầng; khiếu nại abuse tăng |
+| R24 | Mô hình phân khúc và đơn giá ở 8.18 sai (tỉ lệ Free/Business, tải mỗi zone, giá băng thông) làm gói lỗ | Trung bình | Cao | Giá là entitlement đổi được; đo chi phí thật theo gói từ metering; xem lại hằng quý | Biên lợi nhuận một gói âm 2 tháng liền |
 | R9 | Đội nhỏ dàn trải 4 plane | Cao | Cao | Mua/dùng mã nguồn mở cho phần không khác biệt; làm đúng thứ tự giai đoạn | Trễ MVP |
 
 ## 11.2 Chênh lệch với code demo hiện tại
@@ -54,7 +56,7 @@ CEL), công nghệ của Control, Analytics, Management ([05 · bản đồ côn
 | Chủ đề | Cần quyết | Ảnh hưởng |
 |---|---|---|
 | Tự bật Under Attack mode theo detection | Có cho phép, mặc định tắt hay bật | [ADR-0008](../09-adr/0008-under-attack-mode.md) |
-| Bảng entitlements cụ thể | Giá trị từng gói (lấy mẫu, retention, tỉ lệ mẫu request, số rule) | [ADR-0007](../09-adr/0007-log-by-subscription-entitlements.md), mô hình giá |
+| Giá và bảng entitlements | Đã có bản nháp kèm chi phí phục vụ ở [8.18](../08-cross-cutting/18-segments-and-plans.md); business chốt giá, tiền tệ, giá trị từng giới hạn | [ADR-0007](../09-adr/0007-log-by-subscription-entitlements.md), [ADR-0042](../09-adr/0042-plan-tiers-drive-placement-and-isolation.md) |
 | Cấp phép và cập nhật on-prem | Cách phát hành, cách cập nhật ruleset cho khách offline | [ADR-0006](../09-adr/0006-saas-first-on-prem-capable.md) |
 | Nhà cung cấp geo/ASN | MaxMind hay IPinfo, theo giá và điều khoản phân phối lại | [ADR-0025](../09-adr/0025-geo-asn-data-commercial-license.md) |
 | Đối tác L3/L4 và hạ tầng PoP đầu tiên | Chọn đối tác, region đầu tiên | [ADR-0005](../09-adr/0005-edge-on-own-and-existing-infra.md) |

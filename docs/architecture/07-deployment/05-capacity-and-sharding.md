@@ -13,14 +13,14 @@ Quyết định nền: [ADR-0040](../09-adr/0040-config-distribution-at-scale.md
 | G1 | Số zone | 1.000.000 | Phần lớn là site nhỏ |
 | G2 | Hostname trung bình mỗi zone | 3 | → khoảng 3.000.000 hostname |
 | G3 | Số cert | khoảng 2.000.000 | Wildcard và SAN gộp nhiều hostname |
-| G4 | Phân bố traffic | Đuôi dài | 0,1% zone (1.000) chiếm 50% traffic; 1% (10.000) chiếm 75%; 90% zone chiếm dưới 10% |
-| G5 | Zone hoạt động | Khoảng 60% zone có dưới 1 request/phút tại một thời điểm | Tập zone thật sự có traffic ở một PoP trong 10 phút: 100.000–300.000 |
+| G4 | Phân bố traffic | Theo phân khúc ([8.18](../08-cross-cutting/18-segments-and-plans.md)) | 65% Free, 15% Pro, 18% Business, 2% Enterprise. Free + Pro (82% zone) ≈ 16% traffic; Enterprise (2%) ≈ 47%; trong mỗi phân khúc lệch kiểu log-normal |
+| G5 | Zone hoạt động | Zone có traffic ở một PoP trong 10 phút: Free 10%, Pro 40%, Business 80%, Enterprise 100% | ≈ 290.000 zone mỗi PoP lớn; PoP nhỏ ít hơn nhiều |
 | G6 | Request hợp lệ | Trung bình 3 triệu rps, đỉnh 10 triệu rps | Đỉnh theo giờ của từng region cộng lại |
 | G7 | Tấn công L7 | Thêm tới 30 triệu rps, dồn vào một ít zone | Phần lớn bị loại ở pre-filter |
 | G8 | Kích thước response trung bình | 25 KB | |
-| G9 | Tỉ lệ request phải qua WAF | 60% | Phần còn lại bị chặn sớm, hoặc là tài nguyên tĩnh được miễn |
+| G9 | Tỉ lệ request phải qua WAF | 60% trung bình; chi phí theo profile của gói | Free dùng profile lite (≈ 0,25 PL1), Business ≈ 1,3, Enterprise ≈ 1,8 → ≈ 2,67 triệu đơn vị PL1/s trung bình |
 | G10 | Thay đổi cấu hình | Trung bình 1 lần/zone/tuần | Đỉnh khi khách chạy Terraform hàng loạt |
-| G11 | Lấy mẫu access log | Trung bình 25% (theo gói) | Security event không lấy mẫu, chiếm khoảng 5% request |
+| G11 | Lấy mẫu access log | Theo gói: Free 1%, Pro 10%, Business 25%, Enterprise 50% (≈ 33% trung bình theo traffic) | Security event không lấy mẫu, chiếm khoảng 5% request |
 | G12 | Số PoP | 30 | Kích cỡ PoP chênh nhau nhiều |
 
 Năng lực một node (phải đo lại trong spike):
@@ -38,7 +38,7 @@ Năng lực một node (phải đo lại trong spike):
 |---|---|---|
 | Request hợp lệ | 3 triệu rps | 10 triệu rps |
 | Băng thông ra client (G8) | 3M × 25 KB ≈ 75 GB/s ≈ **600 Gbps** | **≈ 2 Tbps** |
-| Request qua WAF (G9) | 1,8 triệu rps | 6 triệu rps |
+| Request qua WAF (G9) | 1,8 triệu rps (≈ 2,67 triệu đơn vị PL1) | 6 triệu rps (≈ 8,9 triệu đơn vị PL1) |
 | Băng thông mỗi PoP (đều) | 20 Gbps | 67 Gbps; PoP lớn trên 200 Gbps |
 
 ### Số node
@@ -46,14 +46,14 @@ Năng lực một node (phải đo lại trong spike):
 | Tầng | Tính | Kết quả |
 |---|---|---|
 | Edge proxy | 10M rps ÷ (80k × 60% mức sử dụng mục tiêu) ≈ 210; cộng dư cho tấn công (pre-filter loại rẻ, ước 1/3 chi phí request thường: 30M ÷ 3 ÷ 48k ≈ 210); cộng N+1 mỗi PoP | **≈ 450 node** |
-| WAF inspection | 6M ÷ (90k × 60%) ≈ 110; cộng N+1 mỗi PoP | **≈ 150 node** |
-| Trung bình mỗi PoP | | 15 proxy + 5 WAF; PoP lớn gấp 3–5 lần |
+| WAF inspection | 8,9M đơn vị PL1 ÷ (90k × 60%) ≈ 165; cộng N+1 mỗi PoP | **≈ 210 node** (nếu mọi zone chạy PL1 thì chỉ ≈ 150; phần tăng do Business, Enterprise dùng profile nặng, Free gần như không tốn) |
+| Trung bình mỗi PoP | | 15 proxy + 7 WAF; PoP lớn gấp 3–5 lần |
 
 ### Cấu hình
 
 | Dữ liệu | Tính | Tổng |
 |---|---|---|
-| Bundle zone (phần proxy + WAF, nén) | Điển hình 4 KB, p95 30 KB, p99.9 tới 5 MB; trung bình khoảng 8 KB | 1M × 8 KB ≈ **8 GB nén** |
+| Bundle zone (phần proxy + WAF, nén) | Free ≈ 2 KB, Pro ≈ 4 KB, Business ≈ 15 KB, Enterprise ≈ 200 KB (p99.9 tới 5 MB); trung bình khoảng 8 KB | 1M × 8 KB ≈ **8 GB nén** |
 | Runtime trong RAM nếu nạp hết | Khoảng 10 lần bản nén (trie, chương trình rule, bảng) | ≈ **80 GB**, không đặt được lên mỗi node |
 | Cert + key (đã mã hoá) | 2M × 4 KB | ≈ **8 GB** |
 | Routing index (hostname → zone) | 3M × 64 B | ≈ **200 MB** |
@@ -72,17 +72,21 @@ Năng lực một node (phải đo lại trong spike):
 
 | Đại lượng | Tính | Kết quả |
 |---|---|---|
-| Access log sau lấy mẫu (G11) | 3M × 25% | 750.000 bản ghi/s trung bình, 2,5M/s đỉnh |
+| Access log sau lấy mẫu (G11) | Σ rps phân khúc × tỉ lệ mẫu của gói | ≈ 1 triệu bản ghi/s trung bình (Enterprise ≈ 70%), 3,3M/s đỉnh |
 | Security event | 3M × 5% | 150.000/s trung bình, trên 1M/s khi bị tấn công |
-| Kafka (nén, khoảng 150 B/bản ghi) | 900k/s × 150 B | ≈ 135 MB/s ≈ 11,7 TB/ngày; với 3 bản sao và 3 ngày retention ≈ 105 TB |
-| ClickHouse (khoảng 120 B/dòng sau nén) | 78 tỉ dòng/ngày | ≈ 9,4 TB/ngày; hot 3 ngày ≈ 28 TB, chia theo region |
-| Insert ClickHouse | | 0,9M dòng/s trung bình, 3,5M dòng/s đỉnh |
+| Kafka (nén, khoảng 150 B/bản ghi) | 1,15M/s × 150 B | ≈ 170 MB/s ≈ 15 TB/ngày; với 3 bản sao và 3 ngày retention ≈ 135 TB |
+| ClickHouse (khoảng 120 B/dòng sau nén) | ≈ 100 tỉ dòng/ngày | ≈ 12 TB/ngày; hot 3 ngày ≈ 36 TB, chia theo region; retention dài theo gói ở archive |
+| Insert ClickHouse | | 1,15M dòng/s trung bình, 4M dòng/s đỉnh |
 
 ### DNS điều hướng
 
 3M bản ghi; với TTL 60 s ước khoảng 300.000 truy vấn/s toàn cục, khoảng 10.000 qps mỗi PoP.
 
 ## 3. Kết luận từ ước lượng
+
+0. **Chi phí của 82% zone (Free + Pro) là chi phí theo zone, của 2% zone Enterprise là chi phí theo
+   request.** Kiến trúc tách pool cell theo gói và phân bổ tài nguyên theo gói
+   ([8.18](../08-cross-cutting/18-segments-and-plans.md), [ADR-0042](../09-adr/0042-plan-tiers-drive-placement-and-isolation.md)).
 
 1. **Không đẩy runtime của mọi zone vào RAM mọi node** được: 80 GB cấu hình + 8 GB cert, trong khi tại
    một thời điểm mỗi PoP chỉ có 10–30% zone thật sự có traffic.
@@ -172,7 +176,7 @@ sequenceDiagram
 |---|---|
 | Cell là gì | Một nhóm node proxy (và phần WAF tương ứng) trong mỗi PoP, có **VIP riêng**. DNS điều hướng trả VIP của cell chứa zone; L4 load balancer của PoP chuyển VIP đó tới nhóm node của cell, không cần đọc SNI |
 | Số cell | Bắt đầu 32–64 cell chuẩn + cell riêng cho zone lớn + cell cách ly |
-| Gán zone | Mặc định theo hash `zone_id`; zone thuộc top traffic được cân bằng thủ công hoặc tự động theo tải; khách enterprise có thể có cell riêng |
+| Gán zone | Trước hết theo **pool của gói** (Free mật độ cao, chuẩn cho Pro/Business, Enterprise) theo [ADR-0042](../09-adr/0042-plan-tiers-drive-placement-and-isolation.md); trong pool theo hash `zone_id`; zone thuộc top traffic được cân bằng theo tải; tenant enterprise lớn có thể có cell riêng |
 | Di chuyển zone | Đổi `cell_id` trong routing index và bản ghi DNS (TTL 60 s); hai cell cùng phục vụ zone trong thời gian chuyển |
 | Lợi ích | Mỗi node chỉ cần runtime của zone trong cell (RAM, cache HTTP trúng nhiều hơn); rollout canary theo cell; bad config hay tấn công chỉ ảnh hưởng một cell; zone bị tấn công được chuyển sang cell cách ly |
 | PoP nhỏ | Nhiều cell chia chung node; vẫn giữ VIP riêng để chuyển được khi cần |

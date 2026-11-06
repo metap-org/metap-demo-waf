@@ -35,7 +35,7 @@ flowchart LR
 | Component | Thiết kế |
 |---|---|
 | **Inspection server** | gRPC stream hai chiều: nhận header, rồi body theo chunk, rồi `end`; trả `Verdict` ngay khi có kết luận (có thể trước khi hết body nếu đã vượt ngưỡng anomaly) |
-| **Admission control** | Mỗi tenant có phần CPU theo gói (weighted fair queueing); hàng đợi đầy → trả `Overloaded` ngay để proxy áp fail mode, không để request chờ lâu |
+| **Admission control** | Mỗi tenant có phần CPU theo gói (weighted fair queueing, trọng số Free 1 / Pro 2 / Business 4 / Enterprise 8, [8.18](../../08-cross-cutting/18-segments-and-plans.md)); khi quá tải từ chối gói thấp trước; hàng đợi đầy → trả `Overloaded` ngay để proxy áp fail mode, không để request chờ lâu |
 | **Ruleset selector** | Map `zone → profile`; instance engine dựng sẵn theo **profile** `(ruleset release, paranoia, ngưỡng)`, dùng chung giữa mọi zone cùng profile; rule tắt của zone áp bằng lọc kết quả; chỉ zone có exclusion theo trường mới cần instance riêng (LRU); instance riêng chưa sẵn thì kiểm bằng profile chuẩn kèm lọc rule tắt, gắn cờ `waf_profile_fallback`, dựng ở nền ([ADR-0040](../../09-adr/0040-config-distribution-at-scale.md)) |
 | **WafEngine** | Interface; engine chờ chọn: Coraza (Go), libmodsecurity v3 (C++), SecLang thuần Rust (dài hạn). CRS anomaly scoring, paranoia level, rule tắt, exclusion của khách |
 | **Custom rule phần inspect** | Rule cần body, tham số đã parse, JSON path; và mọi rule đứng sau rule đầu tiên cần body theo thứ tự priority ([ADR-0034](../../09-adr/0034-pre-filter-and-rule-split-across-tiers.md)) |
