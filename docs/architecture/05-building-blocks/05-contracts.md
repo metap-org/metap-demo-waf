@@ -24,7 +24,7 @@ và giữ trạng thái cũ, không đọc dở.
 bundle chung (version M)
   ├── ruleset releases: CRS vX, system ruleset vY
   ├── cài đặt toàn cục, danh sách chặn khẩn của NCC
-  └── khoá công khai để kiểm clearance token
+  └── khoá HMAC cấp và kiểm clearance token (hiện tại + trước đó)
 bundle zone (version N, tham chiếu bundle chung ≥ M)
   ├── hostname, origin, TLS (tham chiếu cert đã mã hoá), fail mode
   ├── custom rule đã biên dịch theo priority

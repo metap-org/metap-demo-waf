@@ -16,5 +16,23 @@ cân nhắc. Quyết định bị thay thế giữ lại với trạng thái "B�
 | [0009](0009-metap-for-management-plane-only.md) | `metap` chỉ cho Management plane | Chấp nhận |
 | [0010](0010-analytics-one-write-path-many-stores.md) | Analytics: một luồng ghi, nhiều store | Chấp nhận |
 | [0011](0011-approximate-fleet-rate-limiting.md) | Rate limit toàn fleet là xấp xỉ | Chấp nhận |
+| [0012](0012-go-as-primary-language.md) | Go là ngôn ngữ chính cho mọi plane | Chấp nhận |
+| [0013](0013-edge-gateway-custom-go-with-coraza.md) | Edge gateway tự xây bằng Go, nhúng Coraza + CRS v4 | Chấp nhận |
+| [0014](0014-cel-as-rule-language.md) | CEL là ngôn ngữ custom rule | Chấp nhận |
+| [0015](0015-snapshot-format-and-distribution.md) | Snapshot protobuf + zstd ký Ed25519; gRPC desired state + HTTPS pull qua relay | Chấp nhận |
+| [0016](0016-postgres-and-s3-compatible-storage.md) | PostgreSQL cho trạng thái điều khiển, object storage chuẩn S3 (SeaweedFS khi tự host) | Chấp nhận |
+| [0017](0017-openbao-for-signing-keys-and-node-pki.md) | OpenBao cho khoá ký, mã hoá key cert, CA của node | Chấp nhận |
+| [0018](0018-kafka-as-telemetry-bus.md) | Apache Kafka làm ingestion bus | Chấp nhận |
+| [0019](0019-vector-as-node-log-shipper.md) | Vector làm log shipper trên node | Chấp nhận |
+| [0020](0020-clickhouse-and-parquet-for-analytics.md) | ClickHouse cho hot search và số liệu gộp, Parquet cho archive | Chấp nhận |
+| [0021](0021-valkey-for-hot-key-rate-limit-sync.md) | Valkey theo region cho counter hot key | Chấp nhận |
+| [0022](0022-rabbitmq-for-control-events-kafka-for-telemetry.md) | RabbitMQ cho sự kiện điều khiển, Kafka cho telemetry | Chấp nhận |
+| [0023](0023-kubernetes-for-central-planes-edge-outside.md) | Kubernetes cho plane trung tâm, edge ngoài Kubernetes | Chấp nhận |
+| [0024](0024-licensing-policy-for-shipped-components.md) | Không BSL/SSPL/AGPL trong thành phần phát hành | Chấp nhận |
+| [0025](0025-geo-asn-data-commercial-license.md) | Dữ liệu geo/ASN dùng giấy phép thương mại | Chấp nhận |
+| [0026](0026-replay-on-request-samples-with-shared-pipeline.md) | Replay trên mẫu request đầy đủ, dùng chung pipeline | Chấp nhận |
+| [0027](0027-explicit-alert-formulas.md) | Cảnh báo theo template có công thức tường minh, baseline median/MAD theo phút trong tuần | Chấp nhận |
+| [0028](0028-notification-adapters-and-plan-gated-channels.md) | Notification: adapter theo kênh, webhook CloudEvents ký HMAC, email luôn có, kênh khác theo gói | Chấp nhận |
+| [0029](0029-independent-platform-observability.md) | Giám sát nền tảng độc lập với Analytics, SLO + burn rate, probe theo hành vi | Chấp nhận |
 
 Quyết định đang chờ: xem [11. Risks and Technical Debt](../11-risks/00-index.md#113-quyết-định-còn-mở).

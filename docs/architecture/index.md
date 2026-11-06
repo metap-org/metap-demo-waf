@@ -5,9 +5,9 @@ dạng SaaS trước, giữ đường cho on-prem. Tài liệu dựng từ yêu 
 hiện có trong repo này: phần code ở `data-plane/`, `control-plane/`, `edge-plane/` là bản demo,
 chênh lệch so với kiến trúc đích được ghi ở [11. Risks and Technical Debt](11-risks/00-index.md).
 
-Trạng thái: **bản nháp có quyết định** (2026-11-05). Công nghệ cụ thể chưa chốt, trừ những gì đã
-ghi thành ADR ở [09](09-adr/00-index.md). Mọi khối trong tài liệu là *vai trò*; "store", "bus" chỉ
-nói thuộc tính cần có (bền, có version, dạng cột), không nói sản phẩm.
+Trạng thái: **bản nháp có quyết định** (2026-11-06). Mục 1–4 và level 1–2 của mục 5 mô tả *vai trò*,
+không gắn sản phẩm. Lựa chọn công nghệ nằm ở [05 · bản đồ công nghệ](05-building-blocks/07-technology-map.md)
+và ADR-0012 trở đi; detail design mức C3 ở [05 · level-3](05-building-blocks/level-3/00-index.md).
 
 ## Cách tổ chức
 
@@ -28,7 +28,7 @@ Diagram viết bằng Mermaid để GitHub render trực tiếp và diff đượ
 2. [Architecture Constraints](02-constraints/00-index.md): ràng buộc kỹ thuật, tổ chức, pháp lý
 3. [System Scope and Context](03-context/00-index.md): bối cảnh nghiệp vụ và kỹ thuật, C4 System Context
 4. [Solution Strategy](04-strategy/00-index.md): các quyết định nền tảng và lý do
-5. [Building Block View](05-building-blocks/00-index.md): 4 plane, thành phần, hợp đồng giữa các plane, mô hình dữ liệu
+5. [Building Block View](05-building-blocks/00-index.md): 4 plane, thành phần, hợp đồng giữa các plane, mô hình dữ liệu, công nghệ, detail design C3
 6. [Runtime View](06-runtime/00-index.md): các kịch bản chính dạng sequence
 7. [Deployment View](07-deployment/00-index.md): mô hình triển khai SaaS / hybrid / on-prem, vùng chịu lỗi
 8. [Cross-cutting Concepts](08-cross-cutting/00-index.md): multi-tenancy, bảo mật nền tảng, version, quyền riêng tư, entitlement
