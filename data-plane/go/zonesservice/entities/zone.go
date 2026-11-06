@@ -27,6 +27,9 @@ import (
 func ZoneEntity() metadata.EntityDefinition {
 	hostname := sortableField("hostname", "Hostname", metadata.KindString, true, true, true)
 	hostname.Unique = boolPtr(true)
+	// A hostname is served by exactly one zone across every tenant, not once per tenant.
+	globalScope := metadata.UniqueScopeGlobal
+	hostname.UniqueScope = &globalScope
 	hostname.Searchable = boolPtr(true)
 
 	activateGuard := permission.AllCondition(

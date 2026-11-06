@@ -5697,8 +5697,8 @@ lúc ClickHouse đang chịu tải ghi cao nhất vì tấn công. Vì vậy lu�
 </section>
 <section class="doc" id="f-05-building-blocks-08-components-14-management-database"><div class="path">05-building-blocks/08-components/14-management-database.md</div><h1 id="f-05-building-blocks-08-components-14-management-database--5814-database-của-management-plane">5.8.14 Database của Management plane</h1>
 <blockquote>
-<p><strong>Trạng thái: bản thiết kế đầu tiên (v0), chờ review.</strong> Quyết định nền:
-<a href="#f-09-adr-0046-management-database-tenancy-and-storage">ADR-0046</a> (đề xuất). Mô hình logic ở
+<p><strong>Trạng thái: thiết kế v1, đã chốt (2026-11-06).</strong> Quyết định nền:
+<a href="#f-09-adr-0046-management-database-tenancy-and-storage">ADR-0046</a>. Mô hình logic ở
 <a href="#f-05-building-blocks-06-data-model">5.6</a>; module và workflow ở <a href="#f-05-building-blocks-08-components-12-management">5.8.12</a>.</p>
 </blockquote>
 <p>Management dùng PostgreSQL qua <code>metap-go</code>: phần lớn bảng là <strong>entity do metadata khai báo</strong>, reconciler
@@ -5770,52 +5770,54 @@ bằng migration SQL như bảng nền tảng của metap.</p>
 </tr>
 </tbody>
 </table>
-<h3 id="f-05-building-blocks-08-components-14-management-database--thiếu-sót-của-metap-go-cần-xử-lý-trước">Thiếu sót của metap-go cần xử lý trước</h3>
-<p>Rà reconciler hiện tại thấy những điểm sau. Ở quy mô hàng trăm nghìn tenant trong một bảng chung, đây là
-lỗi hiệu năng hoặc lỗi đúng sai, không phải chi tiết. Đề xuất đưa vào roadmap của <code>metap-go</code>:</p>
+<h3 id="f-05-building-blocks-08-components-14-management-database--thiếu-sót-của-metap-go-đã-sửa-ở-metap-go-phase-103">Thiếu sót của metap-go đã sửa ở metap-go (Phase 103)</h3>
+<p>WAAP là sản phẩm dẫn đường cho <code>metap-go</code>, nên các thiếu sót tìm được khi thiết kế được sửa thẳng ở nền
+tảng thay vì vá trong Management (<code>metap-docs</code>, roadmap Phase 103):</p>
 <table>
 <thead>
 <tr>
 <th>#</th>
 <th>Thiếu sót</th>
-<th>Ảnh hưởng</th>
-<th>Đề xuất</th>
+<th>Trạng thái ở <code>metap-go</code></th>
+<th>Management dùng thế nào</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>MG1</td>
-<td>Không tạo index nào bắt đầu bằng <code>tenant_id</code></td>
-<td>Mọi truy vấn đều lọc theo tenant; bảng chung 1 triệu zone sẽ quét tuần tự</td>
-<td>Mỗi bảng entity có index <code>(tenant_id)</code>; index của field <code>indexed</code> đổi thành <code>(tenant_id, field)</code></td>
+<td>Không có index nào bắt đầu bằng <code>tenant_id</code></td>
+<td><strong>Đã sửa:</strong> mọi bảng entity có index <code>tenant_id</code>; index của field <code>indexed</code>/<code>sortable</code> là <code>(tenant_id, field)</code></td>
+<td>Không cần index tay</td>
 </tr>
 <tr>
 <td>MG2</td>
-<td><code>unique</code> có hiệu lực trên <strong>toàn bảng</strong>, không theo tenant</td>
-<td>Hai org không thể có account cùng slug, hai zone không thể có rule cùng tên</td>
-<td>Thêm phạm vi unique: <code>tenant</code> (mặc định mới) hoặc <code>global</code> (cho hostname, tiền tố API key)</td>
+<td><code>unique</code> có hiệu lực trên toàn bảng</td>
+<td><strong>Đã sửa:</strong> <code>uniqueScope</code> = <code>tenant</code> (mặc định) hoặc <code>global</code></td>
+<td>Mặc định cho mọi unique; <code>global</code> chỉ cho giá trị định danh ngoài tenant (cũng chỉ trong một database, nên vẫn cần <code>waap_global</code> ở mục 6)</td>
 </tr>
 <tr>
 <td>MG3</td>
 <td>Reconciler không tạo được bảng partition</td>
-<td>Bảng chỉ ghi thêm (audit, usage, purge) phình mãi</td>
-<td>Loại entity &quot;append-only, partition theo thời gian&quot;, hoặc để các bảng này ở migration SQL</td>
+<td>Chưa làm, có chủ đích</td>
+<td>Bảng lớn chỉ ghi thêm ở migration SQL (mục 5)</td>
 </tr>
 <tr>
 <td>MG4</td>
-<td><code>metadata.audit_trail_entries</code> một bảng, không partition, không bao giờ xoá</td>
-<td>Hàng trăm triệu dòng mỗi năm</td>
-<td>Partition theo tháng, chuyển partition cũ sang Parquet trên object storage; hot window theo gói</td>
+<td><code>metadata.audit_trail_entries</code> không partition</td>
+<td><strong>Đã sửa:</strong> partition theo tháng (migration 0038), <code>cron-scheduler</code> tạo trước partition; không xoá dòng nào</td>
+<td>Archive theo tháng (mục 5)</td>
 </tr>
 <tr>
 <td>MG5</td>
-<td>Field hệ thống cập nhật thường xuyên (ví dụ <code>last_used_at</code> của API key) đi qua CRUD sẽ tăng <code>version</code> và ghi audit</td>
-<td>Xung đột optimistic lock với người dùng đang sửa; audit đầy rác</td>
-<td>Đường cập nhật &quot;system field&quot; không tăng version, không audit</td>
+<td>Field hệ thống đi qua CRUD làm tăng <code>version</code> và ghi audit</td>
+<td><strong>Đã sửa:</strong> field <code>system</code> + <code>CrudService.SetSystemFields</code></td>
+<td><code>api_keys.lastUsedAt</code>, <code>zones.lastSeenAt</code>, bộ đếm</td>
 </tr>
 </tbody>
 </table>
-<p>Cho tới khi có MG1 và MG2, Management thêm index và unique cần thiết bằng migration SQL riêng.</p>
+<p>Khi làm còn tìm thấy và sửa một lỗi thật của reconciler: <code>DROP INDEX</code> không ghi schema nên không bao giờ
+xoá được index của bảng ở schema sản phẩm, làm reconcile không hội tụ khi một index đổi hình dạng mà giữ
+tên (gốc của lỗi &quot;partial unique index không hội tụ&quot; ghi trong <code>CLAUDE.md</code> của repo này).</p>
 <h2 id="f-05-building-blocks-08-components-14-management-database--2-tenant-và-nơi-đặt-dữ-liệu">2. Tenant và nơi đặt dữ liệu</h2>
 <table>
 <thead>
@@ -6018,7 +6020,8 @@ primary PostgreSQL với replica đọc là đủ, không cần shard</strong>; 
     }
 </pre></div>
 <p>Cột nêu dưới đây là field được nâng thành cột (lọc, sắp xếp, nối, unique). Field khác nằm trong <code>data</code>.
-&quot;Unique&quot; ghi phạm vi: <strong>tenant</strong> (cần MG2) hay <strong>zone</strong> (composite với <code>zone_id</code>).</p>
+&quot;Unique&quot; ghi phạm vi: <strong>tenant</strong> (mặc định của <code>uniqueScope</code>), <strong>zone</strong> (composite với <code>zone_id</code>, cũng
+theo tenant) hay <strong>toàn cục</strong> (qua <code>waap_global</code>).</p>
 <h3 id="f-05-building-blocks-08-components-14-management-database--tenant">tenant</h3>
 <table>
 <thead>
@@ -6058,7 +6061,7 @@ primary PostgreSQL với replica đọc là đủ, không cần shard</strong>; 
 <td><code>api_keys</code></td>
 <td><code>account_id</code> ref, <code>prefix</code>, <code>secret_hash</code> (argon2id), <code>scopes</code>, <code>expires_at</code></td>
 <td>Unique toàn cục: <code>prefix</code> (qua <code>waap_global</code>)</td>
-<td>Chỉ giữ hash; <code>last_used_at</code> cập nhật qua đường system field (MG5)</td>
+<td>Chỉ giữ hash; <code>lastUsedAt</code> là field <code>system</code>, ghi bằng <code>SetSystemFields</code> (MG5)</td>
 </tr>
 <tr>
 <td><code>sso_connections</code></td>
@@ -6354,14 +6357,20 @@ của zone được chuẩn hoá thành <strong>một tài liệu</strong> và g
 <tr>
 <td><code>audit_archive_index</code></td>
 <td>Theo tháng</td>
-<td>Theo gói</td>
-<td>Chỉ mục tới file Parquet của audit cũ (MG4)</td>
+<td>Vĩnh viễn</td>
+<td>Chỉ mục tới file Parquet của tháng audit đã archive</td>
 </tr>
 <tr>
-<td>Partition của <code>metadata.audit_trail_entries</code>, <code>metadata.outbox_events</code></td>
-<td>Tháng / ngày</td>
-<td>Hot theo gói / tới khi đã phát</td>
-<td>Cần thay đổi ở metap (MG4)</td>
+<td><code>metadata.audit_trail_entries</code> (của metap)</td>
+<td>Theo tháng (đã có, MG4)</td>
+<td>13 tháng trong PostgreSQL, sau đó detach và archive Parquet, <strong>không xoá</strong></td>
+<td>Partition dùng chung mọi tenant nên không giữ theo gói về vật lý; giới hạn theo gói (7 ngày / 30 ngày / 1 năm) áp ở Query API khi đọc</td>
+</tr>
+<tr>
+<td><code>metadata.outbox_events</code> (của metap)</td>
+<td>Chưa partition</td>
+<td>Tới khi đã phát</td>
+<td>Theo dõi kích thước; partition theo ngày là việc của metap khi số liệu thật cần</td>
 </tr>
 </tbody>
 </table>
@@ -6444,35 +6453,35 @@ database của tenant, rồi chuyển <code>active</code> khi xác minh xong. L�
 </tr>
 </tbody>
 </table>
-<h2 id="f-05-building-blocks-08-components-14-management-database--8-câu-hỏi-còn-mở">8. Câu hỏi còn mở</h2>
+<h2 id="f-05-building-blocks-08-components-14-management-database--8-các-quyết-định-đã-chốt">8. Các quyết định đã chốt</h2>
 <table>
 <thead>
 <tr>
 <th>#</th>
 <th>Câu hỏi</th>
-<th>Ghi chú</th>
+<th>Quyết định</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>DB1</td>
 <td>Tenant = org hay = account</td>
-<td>Bản này chọn org; account là ranh giới gói và quyền bên trong. Nếu một org có nhiều account ở các region dữ liệu khác nhau cần tách database thì phải xem lại</td>
+<td><strong>Org.</strong> User, SSO, SCIM thuộc org; account là ranh giới gói và quyền bên trong. Org có account ở nhiều region dữ liệu thì cả org đặt theo region chặt nhất (DB4)</td>
 </tr>
 <tr>
 <td>DB2</td>
-<td>MG1–MG5 làm ở <code>metap-go</code> hay workaround bằng migration riêng</td>
-<td>Đề xuất làm ở <code>metap-go</code>, vì mọi sản phẩm dùng bảng chung đều cần</td>
+<td>MG1–MG5 làm ở <code>metap-go</code> hay vá riêng</td>
+<td><strong>Làm ở <code>metap-go</code></strong> (Phase 103): MG1, MG2, MG4, MG5 xong; MG3 không cần cho WAAP</td>
 </tr>
 <tr>
 <td>DB3</td>
 <td>Giữ nội dung PolicyVersion bao lâu trong PostgreSQL</td>
-<td>Đề xuất 180 ngày cho version không còn enforce</td>
+<td><strong>180 ngày</strong> cho version không còn enforce; sau đó nội dung sang object storage, giữ <code>content_hash</code> và metadata</td>
 </tr>
 <tr>
 <td>DB4</td>
-<td>Residency của <strong>cấu hình</strong> (không chỉ log) cho khách EU</td>
-<td>Có thể cần database Management theo region cho các tenant này</td>
+<td>Residency của cấu hình</td>
+<td>Org yêu cầu residency dùng <strong>database riêng đặt trong region</strong> (<code>DedicatedDb</code>, ghi ở <code>tenant_directory</code>); Management ở core region kết nối tới. Giới hạn ghi rõ trong hợp đồng: residency áp cho dữ liệu <strong>lưu trữ</strong>; snapshot đã biên dịch vẫn phải tới edge ở mọi PoP phục vụ zone</td>
 </tr>
 </tbody>
 </table>
@@ -12168,7 +12177,7 @@ cân nhắc. Quyết định bị thay thế giữ lại với trạng thái &qu
 <tr>
 <td><a href="#f-09-adr-0046-management-database-tenancy-and-storage">0046</a></td>
 <td>Database Management: tenant = org, bảng chung + database riêng cho Enterprise, PolicyVersion là tài liệu bất biến, registry toàn cục, bảng partition</td>
-<td><strong>Đề xuất, chờ review</strong></td>
+<td>Chấp nhận</td>
 </tr>
 </tbody>
 </table>
@@ -14420,7 +14429,7 @@ làm hàng trăm node offline quá 24 h cùng lúc.</li>
 </section>
 <section class="doc" id="f-09-adr-0046-management-database-tenancy-and-storage"><div class="path">09-adr/0046-management-database-tenancy-and-storage.md</div><h1 id="f-09-adr-0046-management-database-tenancy-and-storage--adr-0046-database-của-management-tenant-là-org-bảng-chung-policyversion-là-tài-liệu-bất-biến">ADR-0046: Database của Management: tenant là org, bảng chung, PolicyVersion là tài liệu bất biến</h1>
 <ul>
-<li>Trạng thái: <strong>Đề xuất, chờ review</strong></li>
+<li>Trạng thái: Chấp nhận (2026-11-06)</li>
 <li>Ngày: 2026-11-06</li>
 <li>Liên quan: <a href="#f-09-adr-0009-metap-for-management-plane-only">ADR-0009</a>, <a href="#f-05-building-blocks-08-components-14-management-database">5.8.14</a></li>
 </ul>
@@ -14429,7 +14438,7 @@ làm hàng trăm node offline quá 24 h cùng lúc.</li>
 <code>control.tenants</code> với hai chiến lược (schema riêng hoặc database riêng). Ở quy mô thiết kế có khoảng
 400.000 org, 1 triệu zone, 50 triệu PolicyVersion mỗi năm. Khi rà <code>metap-go</code> thấy bảng entity chưa có
 index theo <code>tenant_id</code>, <code>unique</code> đang có hiệu lực toàn bảng, và reconciler chưa hỗ trợ partition.</p>
-<h2 id="f-09-adr-0046-management-database-tenancy-and-storage--quyết-định-đề-xuất">Quyết định đề xuất</h2>
+<h2 id="f-09-adr-0046-management-database-tenancy-and-storage--quyết-định">Quyết định</h2>
 <ol>
 <li><strong>Tenant của metap là org.</strong> Account, zone và mọi thứ khác là entity trong tenant.</li>
 <li><strong>Bảng chung trong schema <code>waap</code>, phân biệt bằng <code>tenant_id</code></strong> cho mọi org; <strong>database riêng</strong> cho
@@ -14438,17 +14447,19 @@ Enterprise cần cô lập vật lý hoặc residency. Không dùng schema riên
 <code>content_hash</code> trùng digest bundle ở Control.</li>
 <li><strong>Registry toàn cục</strong> (<code>waap_global</code>) cho giá trị phải duy nhất trên toàn nền tảng (hostname, tiền tố
 API key, domain SSO, nơi đặt tenant), ghi theo thứ tự claim trước, entity sau.</li>
-<li><strong>Bảng lớn chỉ ghi thêm</strong> (usage theo ngày, purge, partition của audit và outbox) quản lý bằng
-migration SQL, partition theo thời gian.</li>
+<li><strong>Bảng lớn chỉ ghi thêm</strong> của WAAP (usage theo ngày, purge) quản lý bằng migration SQL, partition
+theo thời gian; audit dùng bảng partition theo tháng của <code>metap-go</code>, archive Parquet sau 13 tháng,
+không xoá.</li>
 <li><strong>Không lưu bí mật trong database</strong>: private key cert, credential, secret SSO nằm ở OpenBao/<code>SecretStore</code>.</li>
 <li><strong>Một primary + replica đọc, PgBouncer chế độ transaction</strong>; không shard.</li>
-<li>Đưa các thiếu sót MG1–MG5 vào roadmap của <code>metap-go</code>; trong lúc chờ, thêm index và unique cần thiết bằng
-migration riêng.</li>
+<li>Sửa thiếu sót ở <code>metap-go</code> thay vì vá trong sản phẩm: index theo tenant, <code>uniqueScope</code>, field <code>system</code>,
+partition audit đã làm (Phase 103 của <code>metap-docs</code>).</li>
+<li>Residency của cấu hình: database riêng đặt trong region của org.</li>
 </ol>
 <h2 id="f-09-adr-0046-management-database-tenancy-and-storage--hệ-quả">Hệ quả</h2>
 <ul>
 <li>Catalog PostgreSQL không phình theo số org; thêm org không cần DDL.</li>
-<li>Truy vấn theo tenant phụ thuộc index <code>(tenant_id, …)</code>: thiếu MG1 thì hiệu năng sập ở quy mô lớn.</li>
+<li>Truy vấn theo tenant dùng index <code>(tenant_id, …)</code> do reconciler của <code>metap-go</code> tự tạo.</li>
 <li>Tenant ở database riêng vẫn phải ghi <code>waap_global</code> trong database dùng chung: chỉ các registry nhỏ đó,
 không phải dữ liệu nghiệp vụ.</li>
 <li>Lịch sử policy rẻ để lưu và so sánh; truy vấn &quot;rule X có trong những version nào&quot; phải đọc tài liệu.</li>
@@ -15135,11 +15146,11 @@ kịch bản đo được (§10.3) và cơ chế kiến trúc đáp ứng nó.</
 </tr>
 <tr>
 <td>R29</td>
-<td>Bảng entity của <code>metap-go</code> thiếu index theo tenant và unique theo tenant (MG1, MG2), làm chậm hoặc sai khi hàng trăm nghìn org dùng chung bảng</td>
-<td>Cao</td>
-<td>Cao</td>
-<td>Đưa MG1–MG5 vào roadmap <code>metap-go</code>; trong lúc chờ thêm index và unique bằng migration riêng; test tải với dữ liệu 1 triệu zone (<a href="#f-05-building-blocks-08-components-14-management-database">5.8.14</a>)</td>
-<td>Truy vấn danh sách zone chậm; lỗi trùng unique giữa hai org</td>
+<td>Thay đổi nền tảng ở <code>metap-go</code> (unique mặc định theo tenant, index mới) làm sản phẩm đang chạy dựng lại index hoặc đổi nghĩa unique khi nâng</td>
+<td>Trung bình</td>
+<td>Trung bình</td>
+<td>Đã sửa ở <code>metap-go</code> (Phase 103) kèm e2e đường nâng cấp; field cần duy nhất toàn bảng khai báo <code>uniqueScope: global</code> (<a href="#f-05-building-blocks-08-components-14-management-database">5.8.14</a>)</td>
+<td>Lần reconcile đầu sau khi nâng chạy lâu; lỗi trùng unique mới</td>
 </tr>
 <tr>
 <td>R9</td>
@@ -15214,6 +15225,7 @@ Edge theo hợp đồng ở <a href="#f-05-building-blocks-05-contracts">05-cont
 <h2 id="f-11-risks-00-index--113-quyết-định-còn-mở">11.3 Quyết định còn mở</h2>
 <p>Đã chốt ngày 2026-11-06: biến thể cú pháp rule (<a href="#f-09-adr-0014-cel-as-rule-language">ADR-0014</a>,
 CEL), công nghệ của Control, Analytics, Management (<a href="#f-05-building-blocks-07-technology-map">05 · bản đồ công nghệ</a>),
+database của Management (<a href="#f-09-adr-0046-management-database-tenancy-and-storage">ADR-0046</a>),
 Elixir + Phoenix cho realtime gateway và notifier (<a href="#f-09-adr-0044-realtime-gateway-and-notifier-runtime">ADR-0044</a>).</p>
 <table>
 <thead>
@@ -15263,11 +15275,6 @@ Elixir + Phoenix cho realtime gateway và notifier (<a href="#f-09-adr-0044-real
 <td><strong>Hợp đồng Inspection API (L7 ↔ WAF) v1</strong></td>
 <td>Mô hình stream, ai chuẩn hoá request, version lệch, chọn instance, retry, backpressure, mức tin dữ liệu (IA1–IA13)</td>
 <td><a href="#f-05-building-blocks-05-contracts--inspection-api-l7--waf">5.5</a>; nghiên cứu trong spike của <a href="#f-09-adr-0031-edge-l7-and-waf-engine-options">ADR-0031</a></td>
-</tr>
-<tr>
-<td><strong>Database của Management</strong></td>
-<td>Tenant = org hay account; MG1–MG5 làm ở <code>metap-go</code> hay workaround; thời gian giữ nội dung PolicyVersion; residency của cấu hình (DB1–DB4)</td>
-<td><a href="#f-09-adr-0046-management-database-tenancy-and-storage">ADR-0046</a>, <a href="#f-05-building-blocks-08-components-14-management-database">5.8.14</a></td>
 </tr>
 <tr>
 <td><strong>Cell và cách đặt zone</strong></td>
@@ -15876,6 +15883,14 @@ theo chính sách tài liệu (<a href="#f-02-constraints-00-index--24-conventio
 <tr>
 <td><strong>Đối tượng nháp</strong></td>
 <td>Rule, list, exception… người dùng đang sửa, mỗi cái một dòng; publish thì gom thành PolicyVersion</td>
+</tr>
+<tr>
+<td><strong>Unique scope</strong></td>
+<td>Phạm vi của ràng buộc unique trong <code>metap-go</code>: <code>tenant</code> (mặc định, duy nhất trong tenant) hoặc <code>global</code> (duy nhất trong cả bảng)</td>
+</tr>
+<tr>
+<td><strong>System field</strong></td>
+<td>Field do nền tảng ghi (<code>lastUsedAt</code>, bộ đếm), người dùng không ghi được; cập nhật không tăng version, không audit</td>
 </tr>
 <tr>
 <td><strong>Hostname claim</strong></td>
@@ -16581,7 +16596,7 @@ theo chính sách tài liệu (<a href="#f-02-constraints-00-index--24-conventio
 </tr>
 <tr>
 <td><strong>MG1…MG5 / DB1…DB4</strong></td>
-<td>Thiếu sót của <code>metap-go</code> cần xử lý / câu hỏi còn mở của database Management</td>
+<td>Thiếu sót của <code>metap-go</code> tìm thấy khi thiết kế (đã sửa trừ MG3) / quyết định của database Management</td>
 <td><a href="#f-05-building-blocks-08-components-14-management-database">5.8.14</a></td>
 </tr>
 <tr>

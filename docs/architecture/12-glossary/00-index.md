@@ -174,6 +174,8 @@ theo chính sách tài liệu ([2.4](../02-constraints/00-index.md#24-convention
 |---|---|
 | **PolicyVersion** | Bản policy bất biến của một zone, sinh ra khi được duyệt; lưu là một tài liệu jsonb có `content_hash` |
 | **Đối tượng nháp** | Rule, list, exception… người dùng đang sửa, mỗi cái một dòng; publish thì gom thành PolicyVersion |
+| **Unique scope** | Phạm vi của ràng buộc unique trong `metap-go`: `tenant` (mặc định, duy nhất trong tenant) hoặc `global` (duy nhất trong cả bảng) |
+| **System field** | Field do nền tảng ghi (`lastUsedAt`, bộ đếm), người dùng không ghi được; cập nhật không tăng version, không audit |
 | **Hostname claim** | Bản ghi trong registry toàn cục giữ quyền một hostname cho một zone, chống hai org cùng dùng |
 | **Snapshot / bundle** | Bản config đã biên dịch, có chữ ký, edge nạp nguyên khối; bundle là phần của một zone hoặc một tầng |
 | **Content-addressed / digest** | Định danh dữ liệu bằng hash SHA-256 của chính nó; cùng nội dung thì cùng digest |
@@ -363,7 +365,7 @@ Mỗi tiền tố chỉ có một nghĩa trong toàn bộ tài liệu.
 | **L1…L4** (sharding) | Bốn lớp sharding: routing index, PoP store, runtime node, cell | [7.5 §4](../07-deployment/05-capacity-and-sharding.md#4-sharding-bốn-lớp) |
 | **T1…T13** | Tiêu chí chọn nền L7 và engine WAF | [ADR-0031](../09-adr/0031-edge-l7-and-waf-engine-options.md) |
 | **N1…N5 / E1…E3 / I1…I3 / K1…K5** | Phương án nền L7 / engine WAF / cách L7 gọi WAF / tổ hợp cho spike | [ADR-0031](../09-adr/0031-edge-l7-and-waf-engine-options.md) |
-| **MG1…MG5 / DB1…DB4** | Thiếu sót của `metap-go` cần xử lý / câu hỏi còn mở của database Management | [5.8.14](../05-building-blocks/08-components/14-management-database.md) |
+| **MG1…MG5 / DB1…DB4** | Thiếu sót của `metap-go` tìm thấy khi thiết kế (đã sửa trừ MG3) / quyết định của database Management | [5.8.14](../05-building-blocks/08-components/14-management-database.md) |
 | **IA1…IA13** | Điểm còn mở của hợp đồng Inspection API | [5.5](../05-building-blocks/05-contracts.md#inspection-api-l7--waf) |
 | **C1…C4** | Phương án cell | [ADR-0041](../09-adr/0041-cells-and-zone-placement.md) |
 | **Lớp A/B/C/D** | Lớp áp dụng cấu hình trên edge | [8.15](../08-cross-cutting/15-config-propagation-and-apply.md) |

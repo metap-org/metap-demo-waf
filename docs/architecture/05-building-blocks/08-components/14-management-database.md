@@ -1,7 +1,7 @@
 # 5.8.14 Database của Management plane
 
-> **Trạng thái: bản thiết kế đầu tiên (v0), chờ review.** Quyết định nền:
-> [ADR-0046](../../09-adr/0046-management-database-tenancy-and-storage.md) (đề xuất). Mô hình logic ở
+> **Trạng thái: thiết kế v1, đã chốt (2026-11-06).** Quyết định nền:
+> [ADR-0046](../../09-adr/0046-management-database-tenancy-and-storage.md). Mô hình logic ở
 > [5.6](../06-data-model.md); module và workflow ở [5.8.12](12-management.md).
 
 Management dùng PostgreSQL qua `metap-go`: phần lớn bảng là **entity do metadata khai báo**, reconciler
@@ -29,20 +29,22 @@ Mỗi bảng entity có sẵn các cột:
 | Reference chỉ trỏ được tới entity cùng schema | Tham chiếu sang `metadata.users` (user của metap) là uuid thường, không FK |
 | Mỗi transaction đặt `SET LOCAL search_path` theo tenant (`Router::begin`) | Dùng được với PgBouncer chế độ transaction |
 
-### Thiếu sót của metap-go cần xử lý trước
+### Thiếu sót của metap-go đã sửa ở metap-go (Phase 103)
 
-Rà reconciler hiện tại thấy những điểm sau. Ở quy mô hàng trăm nghìn tenant trong một bảng chung, đây là
-lỗi hiệu năng hoặc lỗi đúng sai, không phải chi tiết. Đề xuất đưa vào roadmap của `metap-go`:
+WAAP là sản phẩm dẫn đường cho `metap-go`, nên các thiếu sót tìm được khi thiết kế được sửa thẳng ở nền
+tảng thay vì vá trong Management (`metap-docs`, roadmap Phase 103):
 
-| # | Thiếu sót | Ảnh hưởng | Đề xuất |
+| # | Thiếu sót | Trạng thái ở `metap-go` | Management dùng thế nào |
 |---|---|---|---|
-| MG1 | Không tạo index nào bắt đầu bằng `tenant_id` | Mọi truy vấn đều lọc theo tenant; bảng chung 1 triệu zone sẽ quét tuần tự | Mỗi bảng entity có index `(tenant_id)`; index của field `indexed` đổi thành `(tenant_id, field)` |
-| MG2 | `unique` có hiệu lực trên **toàn bảng**, không theo tenant | Hai org không thể có account cùng slug, hai zone không thể có rule cùng tên | Thêm phạm vi unique: `tenant` (mặc định mới) hoặc `global` (cho hostname, tiền tố API key) |
-| MG3 | Reconciler không tạo được bảng partition | Bảng chỉ ghi thêm (audit, usage, purge) phình mãi | Loại entity "append-only, partition theo thời gian", hoặc để các bảng này ở migration SQL |
-| MG4 | `metadata.audit_trail_entries` một bảng, không partition, không bao giờ xoá | Hàng trăm triệu dòng mỗi năm | Partition theo tháng, chuyển partition cũ sang Parquet trên object storage; hot window theo gói |
-| MG5 | Field hệ thống cập nhật thường xuyên (ví dụ `last_used_at` của API key) đi qua CRUD sẽ tăng `version` và ghi audit | Xung đột optimistic lock với người dùng đang sửa; audit đầy rác | Đường cập nhật "system field" không tăng version, không audit |
+| MG1 | Không có index nào bắt đầu bằng `tenant_id` | **Đã sửa:** mọi bảng entity có index `tenant_id`; index của field `indexed`/`sortable` là `(tenant_id, field)` | Không cần index tay |
+| MG2 | `unique` có hiệu lực trên toàn bảng | **Đã sửa:** `uniqueScope` = `tenant` (mặc định) hoặc `global` | Mặc định cho mọi unique; `global` chỉ cho giá trị định danh ngoài tenant (cũng chỉ trong một database, nên vẫn cần `waap_global` ở mục 6) |
+| MG3 | Reconciler không tạo được bảng partition | Chưa làm, có chủ đích | Bảng lớn chỉ ghi thêm ở migration SQL (mục 5) |
+| MG4 | `metadata.audit_trail_entries` không partition | **Đã sửa:** partition theo tháng (migration 0038), `cron-scheduler` tạo trước partition; không xoá dòng nào | Archive theo tháng (mục 5) |
+| MG5 | Field hệ thống đi qua CRUD làm tăng `version` và ghi audit | **Đã sửa:** field `system` + `CrudService.SetSystemFields` | `api_keys.lastUsedAt`, `zones.lastSeenAt`, bộ đếm |
 
-Cho tới khi có MG1 và MG2, Management thêm index và unique cần thiết bằng migration SQL riêng.
+Khi làm còn tìm thấy và sửa một lỗi thật của reconciler: `DROP INDEX` không ghi schema nên không bao giờ
+xoá được index của bảng ở schema sản phẩm, làm reconcile không hội tụ khi một index đổi hình dạng mà giữ
+tên (gốc của lỗi "partial unique index không hội tụ" ghi trong `CLAUDE.md` của repo này).
 
 ## 2. Tenant và nơi đặt dữ liệu
 
@@ -131,7 +133,8 @@ erDiagram
 ```
 
 Cột nêu dưới đây là field được nâng thành cột (lọc, sắp xếp, nối, unique). Field khác nằm trong `data`.
-"Unique" ghi phạm vi: **tenant** (cần MG2) hay **zone** (composite với `zone_id`).
+"Unique" ghi phạm vi: **tenant** (mặc định của `uniqueScope`), **zone** (composite với `zone_id`, cũng
+theo tenant) hay **toàn cục** (qua `waap_global`).
 
 ### tenant
 
@@ -141,7 +144,7 @@ Cột nêu dưới đây là field được nâng thành cột (lọc, sắp x�
 | `accounts` | `slug`, `name`, `data_region` | Unique tenant: `slug` | Đơn vị gói và thanh toán |
 | `members` | `user_id` (uuid → `metadata.users`), `account_id` ref, `email` | Unique: `(account_id, user_id)` | Workflow `invited → active → suspended` |
 | `role_bindings` | `member_id` ref, `role`, `scope_type` (`account` / `zone_tag` / `zone`), `scope_value` | Index `(member_id)` | Biên dịch thành policy quyền của metap (RBAC + ABAC theo zone, tag) |
-| `api_keys` | `account_id` ref, `prefix`, `secret_hash` (argon2id), `scopes`, `expires_at` | Unique toàn cục: `prefix` (qua `waap_global`) | Chỉ giữ hash; `last_used_at` cập nhật qua đường system field (MG5) |
+| `api_keys` | `account_id` ref, `prefix`, `secret_hash` (argon2id), `scopes`, `expires_at` | Unique toàn cục: `prefix` (qua `waap_global`) | Chỉ giữ hash; `lastUsedAt` là field `system`, ghi bằng `SetSystemFields` (MG5) |
 | `sso_connections` | `account_id` ref, `kind` (`saml` / `oidc`), `domains` | Domain email unique toàn cục (qua `waap_global`) | Bí mật (client secret, cert ký) ở `SecretStore`, chỉ lưu tham chiếu |
 | `scim_tokens` | `sso_connection_id` ref, `token_hash` | | |
 
@@ -214,8 +217,9 @@ Vì sao tài liệu bất biến thay vì sao chép từng dòng sang bảng "ve
 |---|---|---|---|
 | `usage_daily` | Theo tháng | 13 tháng nóng, sau đó Parquet | Khoá `(tenant_id, zone_id, day)`; ghi theo lô từ `UsageReport`, chi tiết theo giờ ở ClickHouse |
 | `purge_requests` | Theo ngày | 7 ngày | Có thể tới 500 lệnh/s; một dòng mỗi lệnh (gồm danh sách URL), trạng thái hoàn tất theo % node |
-| `audit_archive_index` | Theo tháng | Theo gói | Chỉ mục tới file Parquet của audit cũ (MG4) |
-| Partition của `metadata.audit_trail_entries`, `metadata.outbox_events` | Tháng / ngày | Hot theo gói / tới khi đã phát | Cần thay đổi ở metap (MG4) |
+| `audit_archive_index` | Theo tháng | Vĩnh viễn | Chỉ mục tới file Parquet của tháng audit đã archive |
+| `metadata.audit_trail_entries` (của metap) | Theo tháng (đã có, MG4) | 13 tháng trong PostgreSQL, sau đó detach và archive Parquet, **không xoá** | Partition dùng chung mọi tenant nên không giữ theo gói về vật lý; giới hạn theo gói (7 ngày / 30 ngày / 1 năm) áp ở Query API khi đọc |
+| `metadata.outbox_events` (của metap) | Chưa partition | Tới khi đã phát | Theo dõi kích thước; partition theo ngày là việc của metap khi số liệu thật cần |
 
 ## 6. Registry toàn cục (schema `waap_global`)
 
@@ -245,11 +249,11 @@ database của tenant, rồi chuyển `active` khi xác minh xong. Lỗi giữa 
 | Bí mật | Không có trong database: private key cert (Control + OpenBao), credential kênh và đích export, secret SSO (`SecretStore`), API key chỉ lưu hash |
 | Xoá dữ liệu tenant | Xoá mềm entity, rồi job xoá cứng theo tenant sau thời gian giữ; database riêng thì drop database ([8.13 B9](../../08-cross-cutting/13-operational-behaviors.md#b9-xoá-dữ-liệu-tenant)) |
 
-## 8. Câu hỏi còn mở
+## 8. Các quyết định đã chốt
 
-| # | Câu hỏi | Ghi chú |
+| # | Câu hỏi | Quyết định |
 |---|---|---|
-| DB1 | Tenant = org hay = account | Bản này chọn org; account là ranh giới gói và quyền bên trong. Nếu một org có nhiều account ở các region dữ liệu khác nhau cần tách database thì phải xem lại |
-| DB2 | MG1–MG5 làm ở `metap-go` hay workaround bằng migration riêng | Đề xuất làm ở `metap-go`, vì mọi sản phẩm dùng bảng chung đều cần |
-| DB3 | Giữ nội dung PolicyVersion bao lâu trong PostgreSQL | Đề xuất 180 ngày cho version không còn enforce |
-| DB4 | Residency của **cấu hình** (không chỉ log) cho khách EU | Có thể cần database Management theo region cho các tenant này |
+| DB1 | Tenant = org hay = account | **Org.** User, SSO, SCIM thuộc org; account là ranh giới gói và quyền bên trong. Org có account ở nhiều region dữ liệu thì cả org đặt theo region chặt nhất (DB4) |
+| DB2 | MG1–MG5 làm ở `metap-go` hay vá riêng | **Làm ở `metap-go`** (Phase 103): MG1, MG2, MG4, MG5 xong; MG3 không cần cho WAAP |
+| DB3 | Giữ nội dung PolicyVersion bao lâu trong PostgreSQL | **180 ngày** cho version không còn enforce; sau đó nội dung sang object storage, giữ `content_hash` và metadata |
+| DB4 | Residency của cấu hình | Org yêu cầu residency dùng **database riêng đặt trong region** (`DedicatedDb`, ghi ở `tenant_directory`); Management ở core region kết nối tới. Giới hạn ghi rõ trong hợp đồng: residency áp cho dữ liệu **lưu trữ**; snapshot đã biên dịch vẫn phải tới edge ở mọi PoP phục vụ zone |

@@ -170,6 +170,14 @@ EXISTS` (reconcile then converged normally on the next boot); suspected `CREATE 
 CONCURRENTLY` leaving state that lets a later `IF NOT EXISTS` silently no-op, but **not
 root-caused** — treat as a known gap in the executor-level transition logic, not proof the
 mechanism is broken for fresh entities.
+**Root-caused and fixed 2026-11-06** (`../metap-docs/docs/roadmap/103-tenant-scoped-indexes-system-fields-audit-partitions.md`,
+`metap-go` executor): `DROP INDEX CONCURRENTLY IF EXISTS` was emitted **without a schema**, so for any
+table in a product schema not on the `search_path` (`waf`, `jira`, `entities`) it silently dropped
+nothing, and the `CREATE ... IF NOT EXISTS` that follows a same-name rebuild then silently no-op'd too
+— exactly the "suspected" mechanism above. The drop is now schema-qualified, with an e2e test that
+failed on the old code. The same pass made `unique` tenant-scoped by default (`uniqueScope`), so
+`waf.zones.hostname` and `waf.domains.apexDomain` now declare `uniqueScope: global` explicitly to keep
+their platform-wide uniqueness.
 
 **Composite/multi-field unique constraints were also built this same pass** (`EntityDefinition
 .unique_constraints`, `metap-metadata`/`metap-reconciler`/`metap-crud`/`metap-lowcode`), prompted
