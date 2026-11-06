@@ -33,7 +33,7 @@ Diagram viết bằng Mermaid để GitHub render trực tiếp và diff đượ
 
 ## Các mục
 
-1. [Introduction and Goals](01-introduction/00-index.md): sản phẩm làm gì, nghiệp vụ, mục tiêu chất lượng, các bên liên quan
+1. [Introduction and Goals](01-introduction/00-index.md): sản phẩm làm gì, nghiệp vụ, mục tiêu chất lượng, các bên liên quan, [bản đồ phân rã chức năng](01-introduction/05-functional-decomposition.md), [requirements](01-introduction/06-requirements.md)
 2. [Architecture Constraints](02-constraints/00-index.md): ràng buộc kỹ thuật, tổ chức, pháp lý
 3. [System Scope and Context](03-context/00-index.md): bối cảnh nghiệp vụ và kỹ thuật, C4 System Context
 4. [Solution Strategy](04-strategy/00-index.md): các quyết định nền tảng và lý do

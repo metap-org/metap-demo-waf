@@ -28,6 +28,10 @@ theo chính sách tài liệu ([2.4](../02-constraints/00-index.md#24-convention
 | **Tenant** | Ranh giới cô lập dữ liệu và tài nguyên của một khách; mọi entity, log, quota đều mang tenant. Trong database Management, tenant của metap là **org** ([ADR-0046](../09-adr/0046-management-database-tenancy-and-storage.md)) |
 | **Zone** | Một site/domain khách bảo vệ, đơn vị cấu hình chính |
 | **Hostname** | Tên miền cụ thể trong một zone (ví dụ `shop.example.com`); một zone có nhiều hostname |
+| **Bản đồ phân rã chức năng** | Functional Decomposition Diagram (FDD): cây chức năng ba cấp nhóm → chức năng → chức năng lá, nói hệ thống làm gì trước khi nói làm bằng gì ([1.5](../01-introduction/05-functional-decomposition.md)) |
+| **Chức năng lá** | Cấp thấp nhất của bản đồ phân rã, đủ nhỏ để viết requirement và kiểm thử; mỗi lá có đúng một plane chủ |
+| **Plane chủ** | Plane giữ quyết định và dữ liệu gốc của một chức năng; plane khác chỉ gọi tới hoặc nhận kết quả |
+| **Tiêu chí chấp nhận** | Điều kiện kiểm được để coi một requirement đã đáp ứng ([1.6](../01-introduction/06-requirements.md)) |
 | **Origin** | Máy chủ thật của khách đứng sau edge |
 | **MVP / Mở rộng / Nâng cao** | Ba mức của mỗi nghiệp vụ: tối thiểu để ký hợp đồng doanh nghiệp đầu tiên / ngang đối thủ / tạo khác biệt ([1.2](../01-introduction/00-index.md#12-tổng-quan-yêu-cầu)) |
 | **arc42** | Khung tài liệu kiến trúc 12 mục mà tài liệu này theo |
@@ -353,6 +357,8 @@ Mỗi tiền tố chỉ có một nghĩa trong toàn bộ tài liệu.
 | Mã | Nghĩa | Ở đâu |
 |---|---|---|
 | **Q1–Q6** | Mục tiêu chất lượng | [1.3](../01-introduction/00-index.md#13-mục-tiêu-chất-lượng) |
+| **F1…F12, Fx.y, Fx.y.z** | Nhóm chức năng, chức năng, chức năng lá | [1.5](../01-introduction/05-functional-decomposition.md) |
+| **FR-x-nn / BR-n / DT-n / NFR-n / IR-n / OQ-n** | Yêu cầu chức năng / quy tắc nghiệp vụ / yêu cầu dữ liệu / phi chức năng / giao tiếp ngoài / câu hỏi mở của requirements | [1.6](../01-introduction/06-requirements.md) |
 | **QS-1…QS-41** | Kịch bản chất lượng đo được | [10.3](../10-quality/00-index.md#103-kịch-bản) |
 | **R1…R29** | Rủi ro | [11.1](../11-risks/00-index.md) |
 | **A1…A17 / B1…B10** | Tình huống vận hành tự xảy ra / thao tác của người vận hành, mỗi cái có runbook | [8.13](../08-cross-cutting/13-operational-behaviors.md) |

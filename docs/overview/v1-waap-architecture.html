@@ -93,6 +93,8 @@ blockquote { margin: 0 0 14px; padding: 8px 16px; border-left: 3px solid var(--l
     <div class="brand-sub">arc42 · bản xem từ docs/architecture</div>
     <a class="top" href="#f-index">Kiến trúc WAAP mục tiêu</a>
 <a class="top" href="#f-01-introduction-00-index">1. Introduction and Goals</a>
+<a class="sub" href="#f-01-introduction-05-functional-decomposition">1.5 Bản đồ phân rã chức năng</a>
+<a class="sub" href="#f-01-introduction-06-requirements">1.6 Requirements</a>
 <a class="top" href="#f-02-constraints-00-index">2. Architecture Constraints</a>
 <a class="top" href="#f-03-context-00-index">3. System Scope and Context</a>
 <a class="top" href="#f-04-strategy-00-index">4. Solution Strategy</a>
@@ -188,6 +190,8 @@ blockquote { margin: 0 0 14px; padding: 8px 16px; border-left: 3px solid var(--l
       <summary>Mục lục</summary>
       <a class="top" href="#f-index">Kiến trúc WAAP mục tiêu</a>
 <a class="top" href="#f-01-introduction-00-index">1. Introduction and Goals</a>
+<a class="sub" href="#f-01-introduction-05-functional-decomposition">1.5 Bản đồ phân rã chức năng</a>
+<a class="sub" href="#f-01-introduction-06-requirements">1.6 Requirements</a>
 <a class="top" href="#f-02-constraints-00-index">2. Architecture Constraints</a>
 <a class="top" href="#f-03-context-00-index">3. System Scope and Context</a>
 <a class="top" href="#f-04-strategy-00-index">4. Solution Strategy</a>
@@ -308,7 +312,7 @@ là mục 5.8.5.</li>
 </ul>
 <h2 id="f-index--các-mục">Các mục</h2>
 <ol>
-<li><a href="#f-01-introduction-00-index">Introduction and Goals</a>: sản phẩm làm gì, nghiệp vụ, mục tiêu chất lượng, các bên liên quan</li>
+<li><a href="#f-01-introduction-00-index">Introduction and Goals</a>: sản phẩm làm gì, nghiệp vụ, mục tiêu chất lượng, các bên liên quan, <a href="#f-01-introduction-05-functional-decomposition">bản đồ phân rã chức năng</a>, <a href="#f-01-introduction-06-requirements">requirements</a></li>
 <li><a href="#f-02-constraints-00-index">Architecture Constraints</a>: ràng buộc kỹ thuật, tổ chức, pháp lý</li>
 <li><a href="#f-03-context-00-index">System Scope and Context</a>: bối cảnh nghiệp vụ và kỹ thuật, C4 System Context</li>
 <li><a href="#f-04-strategy-00-index">Solution Strategy</a>: các quyết định nền tảng và lý do</li>
@@ -396,6 +400,8 @@ mức demo. <strong>Mở rộng</strong> để ngang đối thủ trong vòng đ
 <p>CDN không phải phần phụ: khi traffic đã đi qua edge vì hiệu năng, WAF trở thành phần cộng thêm gần như
 không tốn độ trễ, và băng thông tiết kiệm ở origin bù chi phí dịch vụ (<a href="#f-09-adr-0035-cdn-and-dns-strategy">ADR-0035</a>).</p>
 <p>Vulnerability scanning (DAST) không phải lõi WAAP; nếu làm, là sản phẩm riêng dùng chung tenant.</p>
+<p>Bảng trên phân rã chi tiết thành chức năng lá ở <a href="#f-01-introduction-05-functional-decomposition">1.5 Bản đồ phân rã chức năng</a>,
+và thành requirement có tiêu chí chấp nhận ở <a href="#f-01-introduction-06-requirements">1.6 Requirements</a> (cả hai đang chờ review).</p>
 <h2 id="f-01-introduction-00-index--13-mục-tiêu-chất-lượng">1.3 Mục tiêu chất lượng</h2>
 <p>Sáu mục tiêu xếp theo thứ tự ưu tiên. Khi hai mục xung đột, mục đứng trên thắng. Kịch bản đo được
 ở <a href="#f-10-quality-00-index">10. Quality Requirements</a>.</p>
@@ -499,6 +505,3681 @@ không tốn độ trễ, và băng thông tiết kiệm ở origin bù chi phí
 <td>Đối tác hạ tầng</td>
 <td>Ngoài</td>
 <td>Chạy edge node trên hạ tầng của họ theo hợp đồng (<a href="#f-09-adr-0005-edge-on-own-and-existing-infra">ADR-0005</a>)</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section class="doc" id="f-01-introduction-05-functional-decomposition"><div class="path">01-introduction/05-functional-decomposition.md</div><h1 id="f-01-introduction-05-functional-decomposition--15-bản-đồ-phân-rã-chức-năng">1.5 Bản đồ phân rã chức năng</h1>
+<blockquote>
+<p><strong>Trạng thái: bản nháp chờ review (2026-11-06).</strong> Đây là đầu vào cho <a href="#f-01-introduction-06-requirements">1.6 Requirements</a>
+và cho thiết kế dữ liệu (<a href="#f-05-building-blocks-06-data-model">5.6</a>, <a href="#f-05-building-blocks-08-components-14-management-database">5.8.14</a>).
+Thiết kế database đã viết trước bản đồ này, nên phải được đối chiếu lại sau khi bản đồ và requirements chốt.</p>
+</blockquote>
+<p>Bản đồ trả lời câu hỏi <strong>hệ thống phải làm những việc gì</strong>, chưa nói làm bằng thành phần nào. Nó phân rã
+sản phẩm WAAP theo ba cấp:</p>
+<table>
+<thead>
+<tr>
+<th>Cấp</th>
+<th>Mã</th>
+<th>Ý nghĩa</th>
+<th>Ví dụ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>F1</code>…<code>F12</code></td>
+<td>Nhóm chức năng, ứng với một mảng nghiệp vụ</td>
+<td>F5 Vòng đời policy</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>F5.3</code></td>
+<td>Chức năng: một việc người dùng hoặc hệ thống nhận ra được</td>
+<td>F5.3 Duyệt và phát hành</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>F5.3.2</code></td>
+<td>Chức năng lá: đủ nhỏ để viết requirement và kiểm thử</td>
+<td>F5.3.2 Duyệt 4-eyes</td>
+</tr>
+</tbody>
+</table>
+<p>Quy tắc:</p>
+<ul>
+<li><strong>Mỗi chức năng lá có đúng một plane chủ</strong> (M = Management, C = Control, E = Edge, A = Analytics). Plane
+chủ là nơi giữ quyết định và dữ liệu gốc của chức năng; plane khác chỉ gọi tới hoặc nhận kết quả.</li>
+<li><strong>Mức</strong> theo <a href="#f-01-introduction-00-index--12-tổng-quan-yêu-cầu">1.2</a>: <strong>MVP</strong>, <strong>MR</strong> (Mở rộng), <strong>NC</strong> (Nâng cao).</li>
+<li>Cột <strong>Dữ liệu</strong> ghi đối tượng dữ liệu chính mà chức năng tạo ra hoặc sửa (ghi đậm) hay chỉ đọc. Đây là
+cầu nối sang thiết kế database: một đối tượng không có chức năng nào tạo ra là thừa, một chức năng ghi
+dữ liệu mà không có đối tượng tương ứng là thiếu.</li>
+<li>Persona dùng tên ở <a href="#f-01-introduction-00-index--14-các-bên-liên-quan">1.4</a>.</li>
+</ul>
+<h2 id="f-01-introduction-05-functional-decomposition--tổng-quan-cấp-1-và-cấp-2">Tổng quan cấp 1 và cấp 2</h2>
+<div class="diagram"><pre class="mermaid">flowchart LR
+    root((&quot;WAAP&quot;))
+    g1[&quot;&lt;b&gt;F1 Tenant và danh tính&lt;/b&gt;&lt;br/&gt;F1.1 Tổ chức và account&lt;br/&gt;F1.2 Thành viên và phân quyền&lt;br/&gt;F1.3 Đăng nhập và SSO&lt;br/&gt;F1.4 API key&lt;br/&gt;F1.5 Audit log&quot;]
+    g2[&quot;&lt;b&gt;F2 Zone và onboarding&lt;/b&gt;&lt;br/&gt;F2.1 Thêm và xác minh domain&lt;br/&gt;F2.2 Hostname và origin&lt;br/&gt;F2.3 Chứng chỉ TLS&lt;br/&gt;F2.4 Vòng đời zone&lt;br/&gt;F2.5 Nhóm zone&quot;]
+    g3[&quot;&lt;b&gt;F3 Bảo vệ runtime&lt;/b&gt;&lt;br/&gt;F3.1 Kết thúc TLS và chuẩn hoá&lt;br/&gt;F3.2 Lọc sớm&lt;br/&gt;F3.3 DDoS L7&lt;br/&gt;F3.4 Rate limit&lt;br/&gt;F3.5 Managed ruleset và custom rule&lt;br/&gt;F3.6 Bot management&lt;br/&gt;F3.7 API security&lt;br/&gt;F3.8 Thực thi hành động&lt;br/&gt;F3.9 Bảo vệ origin và fail mode&quot;]
+    g4[&quot;&lt;b&gt;F4 Hiệu năng và phân phối&lt;/b&gt;&lt;br/&gt;F4.1 Cache&lt;br/&gt;F4.2 Purge&lt;br/&gt;F4.3 DNS điều hướng&lt;br/&gt;F4.4 Load balancing và failover&quot;]
+    g5[&quot;&lt;b&gt;F5 Vòng đời policy&lt;/b&gt;&lt;br/&gt;F5.1 Soạn policy&lt;br/&gt;F5.2 Kiểm tra và mô phỏng&lt;br/&gt;F5.3 Duyệt và phát hành&lt;br/&gt;F5.4 Version và rollback&lt;br/&gt;F5.5 Kênh khẩn&lt;br/&gt;F5.6 Policy as code&quot;]
+    g6[&quot;&lt;b&gt;F6 Phân phối cấu hình và fleet&lt;/b&gt;&lt;br/&gt;F6.1 Biên dịch&lt;br/&gt;F6.2 Phân phối&lt;br/&gt;F6.3 Rollout an toàn&lt;br/&gt;F6.4 Fleet và danh tính node&lt;br/&gt;F6.5 Đặt zone vào cell&quot;]
+    g7[&quot;&lt;b&gt;F7 Quan sát và điều tra&lt;/b&gt;&lt;br/&gt;F7.1 Thu nhận telemetry&lt;br/&gt;F7.2 Xem realtime&lt;br/&gt;F7.3 Tìm kiếm và tra cứu&lt;br/&gt;F7.4 Dashboard&lt;br/&gt;F7.5 Chặn nhầm và hiệu quả rule&lt;br/&gt;F7.6 Export SIEM&quot;]
+    g8[&quot;&lt;b&gt;F8 Phát hiện, cảnh báo, sự cố&lt;/b&gt;&lt;br/&gt;F8.1 Phát hiện&lt;br/&gt;F8.2 Alert policy&lt;br/&gt;F8.3 Gửi thông báo&lt;br/&gt;F8.4 Case và sự cố&quot;]
+    g9[&quot;&lt;b&gt;F9 Báo cáo và tuân thủ&lt;/b&gt;&lt;br/&gt;F9.1 Báo cáo định kỳ&lt;br/&gt;F9.2 Báo cáo tuân thủ&lt;br/&gt;F9.3 Retention và archive&lt;br/&gt;F9.4 Data residency&quot;]
+    g10[&quot;&lt;b&gt;F10 Gói và billing&lt;/b&gt;&lt;br/&gt;F10.1 Danh mục gói&lt;br/&gt;F10.2 Subscription&lt;br/&gt;F10.3 Entitlements&lt;br/&gt;F10.4 Đo usage&lt;br/&gt;F10.5 Hạn mức và trần cứng&lt;br/&gt;F10.6 Hoá đơn và thanh toán&quot;]
+    g11[&quot;&lt;b&gt;F11 Threat intelligence&lt;/b&gt;&lt;br/&gt;F11.1 Phát hành ruleset&lt;br/&gt;F11.2 Rule khẩn toàn fleet&lt;br/&gt;F11.3 IP reputation&lt;br/&gt;F11.4 Virtual patching&quot;]
+    g12[&quot;&lt;b&gt;F12 Vận hành NCC&lt;/b&gt;&lt;br/&gt;F12.1 Giám sát nền tảng&lt;br/&gt;F12.2 Xử lý sự cố nền tảng&lt;br/&gt;F12.3 Support&lt;br/&gt;F12.4 Quản trị nền tảng&quot;]
+    g1 --- root
+    g2 --- root
+    g3 --- root
+    g4 --- root
+    g5 --- root
+    g6 --- root
+    root --- g7
+    root --- g8
+    root --- g9
+    root --- g10
+    root --- g11
+    root --- g12
+    style g1 text-align:left
+    style g2 text-align:left
+    style g3 text-align:left
+    style g4 text-align:left
+    style g5 text-align:left
+    style g6 text-align:left
+    style g7 text-align:left
+    style g8 text-align:left
+    style g9 text-align:left
+    style g10 text-align:left
+    style g11 text-align:left
+    style g12 text-align:left
+</pre></div>
+<p>Phân bố theo plane chủ:</p>
+<div class="diagram"><pre class="mermaid">flowchart LR
+    subgraph M[&quot;Management&quot;]
+        F1[&quot;F1 Tenant&quot;]
+        F2[&quot;F2 Zone&quot;]
+        F5[&quot;F5 Policy&quot;]
+        F9[&quot;F9 Báo cáo&quot;]
+        F10[&quot;F10 Billing&quot;]
+    end
+    subgraph C[&quot;Control&quot;]
+        F6[&quot;F6 Phân phối&quot;]
+        F11[&quot;F11 Threat intel&quot;]
+    end
+    subgraph E[&quot;Edge&quot;]
+        F3[&quot;F3 Bảo vệ runtime&quot;]
+        F4[&quot;F4 Hiệu năng&quot;]
+    end
+    subgraph A[&quot;Analytics&quot;]
+        F7[&quot;F7 Quan sát&quot;]
+        F8[&quot;F8 Cảnh báo, sự cố&quot;]
+    end
+    F12[&quot;F12 Vận hành NCC&lt;br/&gt;(mọi plane)&quot;]
+    M --&gt;|cấu hình có version| C --&gt;|snapshot ký| E --&gt;|telemetry| A
+    A --&gt;|cảnh báo, usage, đề xuất| M
+</pre></div>
+<p>Một nhóm cấp 1 có thể có lá ở plane khác plane chủ của nhóm. Ví dụ F8.4 Case thuộc Management dù phát
+hiện ở Analytics, F10.4 Đo usage đếm ở Edge và gộp ở Analytics. Bảng dưới ghi plane cho từng lá.</p>
+<h2 id="f-01-introduction-05-functional-decomposition--f1-tenant-và-danh-tính">F1 Tenant và danh tính</h2>
+<p>Ai là khách, ai được làm gì. Persona chính: chủ tài khoản, quản trị bảo mật, DevOps.</p>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Chức năng lá</th>
+<th>Plane</th>
+<th>Mức</th>
+<th>Dữ liệu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>F1.1</strong></td>
+<td><strong>Tổ chức và account</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F1.1.1</td>
+<td>Đăng ký org mới (self-service) hoặc NCC tạo org (Enterprise)</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>Org</strong>, <strong>Account</strong></td>
+</tr>
+<tr>
+<td>F1.1.2</td>
+<td>Tạo, đổi tên, đóng account trong org</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>Account</strong></td>
+</tr>
+<tr>
+<td>F1.1.3</td>
+<td>Chọn region dữ liệu cho account</td>
+<td>M</td>
+<td>NC</td>
+<td><strong>Account</strong>.region</td>
+</tr>
+<tr>
+<td>F1.1.4</td>
+<td>Xoá org theo yêu cầu (sau thời hạn giữ dữ liệu)</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>Org</strong>, toàn bộ dữ liệu tenant</td>
+</tr>
+<tr>
+<td><strong>F1.2</strong></td>
+<td><strong>Thành viên và phân quyền</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F1.2.1</td>
+<td>Mời thành viên qua email, chấp nhận lời mời</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>Invitation</strong>, <strong>Member</strong></td>
+</tr>
+<tr>
+<td>F1.2.2</td>
+<td>Gán vai trò có sẵn ở cấp org, account, nhóm zone hoặc zone</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>RoleBinding</strong></td>
+</tr>
+<tr>
+<td>F1.2.3</td>
+<td>Tạo vai trò tuỳ chỉnh từ tập quyền</td>
+<td>M</td>
+<td>MR</td>
+<td><strong>Role</strong></td>
+</tr>
+<tr>
+<td>F1.2.4</td>
+<td>Gỡ thành viên, thu hồi mọi phiên và key của họ</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>Member</strong>, Session, <strong>ApiKey</strong></td>
+</tr>
+<tr>
+<td>F1.2.5</td>
+<td>Đồng bộ user và nhóm từ IdP qua SCIM</td>
+<td>M</td>
+<td>MR</td>
+<td><strong>Member</strong>, <strong>Group</strong></td>
+</tr>
+<tr>
+<td><strong>F1.3</strong></td>
+<td><strong>Đăng nhập và SSO</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F1.3.1</td>
+<td>Đăng nhập email + mật khẩu, MFA (TOTP, WebAuthn)</td>
+<td>M</td>
+<td>MVP</td>
+<td>User, <strong>MfaFactor</strong></td>
+</tr>
+<tr>
+<td>F1.3.2</td>
+<td>Cấu hình SSO SAML/OIDC theo domain email</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>SsoConnection</strong>, <strong>SsoDomain</strong></td>
+</tr>
+<tr>
+<td>F1.3.3</td>
+<td>Bắt buộc SSO, bắt buộc MFA theo org</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>Org</strong>.securitySettings</td>
+</tr>
+<tr>
+<td>F1.3.4</td>
+<td>Quản lý phiên: xem, đăng xuất từ xa, hết hạn</td>
+<td>M</td>
+<td>MVP</td>
+<td>Session</td>
+</tr>
+<tr>
+<td><strong>F1.4</strong></td>
+<td><strong>API key</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F1.4.1</td>
+<td>Tạo API key có phạm vi (quyền, zone) và ngày hết hạn</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>ApiKey</strong></td>
+</tr>
+<tr>
+<td>F1.4.2</td>
+<td>Xoay, thu hồi API key; xem lần dùng cuối</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>ApiKey</strong>.lastUsedAt</td>
+</tr>
+<tr>
+<td>F1.4.3</td>
+<td>Service account cho CI/CD, Terraform</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>ServiceAccount</strong></td>
+</tr>
+<tr>
+<td><strong>F1.5</strong></td>
+<td><strong>Audit log</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F1.5.1</td>
+<td>Ghi mọi thay đổi: ai, cái gì, trước/sau, lúc nào, từ IP nào, qua UI hay API</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>AuditEntry</strong></td>
+</tr>
+<tr>
+<td>F1.5.2</td>
+<td>Xem, lọc audit log theo người, đối tượng, thời gian</td>
+<td>M</td>
+<td>MVP</td>
+<td>AuditEntry</td>
+</tr>
+<tr>
+<td>F1.5.3</td>
+<td>Xuất audit log (CSV, JSON, đẩy sang SIEM)</td>
+<td>M</td>
+<td>MVP</td>
+<td>AuditEntry</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-01-introduction-05-functional-decomposition--f2-zone-và-onboarding">F2 Zone và onboarding</h2>
+<p>Đưa một site vào bảo vệ. Persona chính: DevOps, quản trị bảo mật.</p>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Chức năng lá</th>
+<th>Plane</th>
+<th>Mức</th>
+<th>Dữ liệu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>F2.1</strong></td>
+<td><strong>Thêm và xác minh domain</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F2.1.1</td>
+<td>Thêm zone theo domain gốc; chặn domain đã thuộc tenant khác</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>Zone</strong>, <strong>DomainClaim</strong> (toàn cục)</td>
+</tr>
+<tr>
+<td>F2.1.2</td>
+<td>Xác minh quyền sở hữu qua TXT hoặc CNAME, kiểm lại định kỳ</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>DomainVerification</strong></td>
+</tr>
+<tr>
+<td>F2.1.3</td>
+<td>Hướng dẫn trỏ DNS (CNAME hoặc đổi nameserver), kiểm trạng thái trỏ</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>Zone</strong>.dnsStatus</td>
+</tr>
+<tr>
+<td>F2.1.4</td>
+<td>Quét bản ghi DNS hiện có khi chuyển nameserver</td>
+<td>M</td>
+<td>MR</td>
+<td><strong>DnsRecord</strong></td>
+</tr>
+<tr>
+<td><strong>F2.2</strong></td>
+<td><strong>Hostname và origin</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F2.2.1</td>
+<td>Thêm, xoá hostname trong zone; wildcard</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>Hostname</strong>, <strong>HostnameClaim</strong> (toàn cục)</td>
+</tr>
+<tr>
+<td>F2.2.2</td>
+<td>Khai báo origin (IP, hostname, cổng, giao thức, SNI, header host)</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>Origin</strong></td>
+</tr>
+<tr>
+<td>F2.2.3</td>
+<td>Kiểm tra origin trước khi kích hoạt (kết nối, TLS, thời gian phản hồi)</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>OriginCheck</strong></td>
+</tr>
+<tr>
+<td>F2.2.4</td>
+<td>Cấu hình timeout, retry, keepalive tới origin</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>Origin</strong></td>
+</tr>
+<tr>
+<td>F2.2.5</td>
+<td>Chế độ đứng sau CDN của khách (tin IP và header client của CDN đó)</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>ZoneSettings</strong></td>
+</tr>
+<tr>
+<td><strong>F2.3</strong></td>
+<td><strong>Chứng chỉ TLS</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F2.3.1</td>
+<td>Cấp cert tự động (ACME) cho hostname đã xác minh</td>
+<td>C</td>
+<td>MVP</td>
+<td><strong>CertRequest</strong>, Cert (khoá ở secret store)</td>
+</tr>
+<tr>
+<td>F2.3.2</td>
+<td>Gia hạn tự động, cảnh báo khi gia hạn lỗi</td>
+<td>C</td>
+<td>MVP</td>
+<td>Cert</td>
+</tr>
+<tr>
+<td>F2.3.3</td>
+<td>Khách tải cert riêng lên</td>
+<td>M</td>
+<td>MR</td>
+<td><strong>CustomCert</strong> (khoá ở secret store)</td>
+</tr>
+<tr>
+<td>F2.3.4</td>
+<td>Cấu hình TLS: phiên bản tối thiểu, cipher, HSTS, chế độ TLS tới origin</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>ZoneSettings</strong></td>
+</tr>
+<tr>
+<td>F2.3.5</td>
+<td>Keyless (khoá ở hạ tầng khách)</td>
+<td>E</td>
+<td>NC</td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>F2.4</strong></td>
+<td><strong>Vòng đời zone</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F2.4.1</td>
+<td>Kích hoạt zone; mặc định bật managed ruleset log-only 7 ngày</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>Zone</strong>.status, <strong>PolicyDraft</strong> mặc định</td>
+</tr>
+<tr>
+<td>F2.4.2</td>
+<td>Tạm dừng zone (chuyển tiếp không bảo vệ), mở lại</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>Zone</strong>.status</td>
+</tr>
+<tr>
+<td>F2.4.3</td>
+<td>Gỡ zone, giải phóng domain và hostname</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>Zone</strong>, DomainClaim, HostnameClaim</td>
+</tr>
+<tr>
+<td>F2.4.4</td>
+<td>Chuyển zone giữa các account cùng org</td>
+<td>M</td>
+<td>MR</td>
+<td><strong>Zone</strong>.accountId</td>
+</tr>
+<tr>
+<td><strong>F2.5</strong></td>
+<td><strong>Nhóm zone</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F2.5.1</td>
+<td>Gắn tag, tạo nhóm zone để phân quyền và áp policy</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>ZoneGroup</strong>, <strong>ZoneTag</strong></td>
+</tr>
+<tr>
+<td>F2.5.2</td>
+<td>Thao tác hàng loạt trên nhóm zone (bật tính năng, đổi mặc định)</td>
+<td>M</td>
+<td>MR</td>
+<td><strong>BulkOperation</strong></td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-01-introduction-05-functional-decomposition--f3-bảo-vệ-runtime">F3 Bảo vệ runtime</h2>
+<p>Chạy trên từng request ở edge. Không có UI riêng: cấu hình qua F5, kết quả xem qua F7.</p>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Chức năng lá</th>
+<th>Plane</th>
+<th>Mức</th>
+<th>Dữ liệu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>F3.1</strong></td>
+<td><strong>Kết thúc TLS và chuẩn hoá</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F3.1.1</td>
+<td>Kết thúc TLS theo SNI, HTTP/1.1, HTTP/2, HTTP/3</td>
+<td>E</td>
+<td>MVP</td>
+<td>Cert (đọc)</td>
+</tr>
+<tr>
+<td>F3.1.2</td>
+<td>Xác định zone và hostname của request</td>
+<td>E</td>
+<td>MVP</td>
+<td>Routing index (đọc)</td>
+</tr>
+<tr>
+<td>F3.1.3</td>
+<td>Gán request ID, chuẩn hoá URI, header, giới hạn kích thước</td>
+<td>E</td>
+<td>MVP</td>
+<td>—</td>
+</tr>
+<tr>
+<td>F3.1.4</td>
+<td>Nhận diện IP client thật khi đứng sau CDN của khách</td>
+<td>E</td>
+<td>MVP</td>
+<td>ZoneSettings (đọc)</td>
+</tr>
+<tr>
+<td><strong>F3.2</strong></td>
+<td><strong>Lọc sớm</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F3.2.1</td>
+<td>Access list IP, CIDR, quốc gia, ASN (allow, block, challenge)</td>
+<td>E</td>
+<td>MVP</td>
+<td>AccessList (đọc)</td>
+</tr>
+<tr>
+<td>F3.2.2</td>
+<td>Chặn theo IP reputation</td>
+<td>E</td>
+<td>MR</td>
+<td>Reputation feed (đọc)</td>
+</tr>
+<tr>
+<td>F3.2.3</td>
+<td>Chặn request sai giao thức rõ ràng</td>
+<td>E</td>
+<td>MVP</td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>F3.3</strong></td>
+<td><strong>DDoS L7</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F3.3.1</td>
+<td>Đo traffic theo zone và nguồn, phát hiện đột biến theo baseline</td>
+<td>E</td>
+<td>MVP</td>
+<td>Bộ đếm (bộ nhớ)</td>
+</tr>
+<tr>
+<td>F3.3.2</td>
+<td>Giảm thiểu tự động theo độ nhạy và hành động khách chọn</td>
+<td>E</td>
+<td>MVP</td>
+<td>DdosSettings (đọc)</td>
+</tr>
+<tr>
+<td>F3.3.3</td>
+<td>Under Attack mode: challenge mọi request chưa có clearance</td>
+<td>E</td>
+<td>MVP</td>
+<td>ZoneSettings (đọc)</td>
+</tr>
+<tr>
+<td>F3.3.4</td>
+<td>Chuyển zone bị flood lớn sang cell cách ly</td>
+<td>C</td>
+<td>MR</td>
+<td><strong>ZonePlacement</strong></td>
+</tr>
+<tr>
+<td>F3.3.5</td>
+<td>DDoS L3/L4 qua hạ tầng hoặc đối tác</td>
+<td>E</td>
+<td>MR</td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>F3.4</strong></td>
+<td><strong>Rate limit</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F3.4.1</td>
+<td>Rate limit theo IP, đường dẫn, phương thức, toàn fleet</td>
+<td>E</td>
+<td>MVP</td>
+<td>RateLimitRule (đọc)</td>
+</tr>
+<tr>
+<td>F3.4.2</td>
+<td>Rate limit theo header, cookie, consumer API, method gRPC</td>
+<td>E</td>
+<td>MR</td>
+<td>RateLimitRule (đọc)</td>
+</tr>
+<tr>
+<td><strong>F3.5</strong></td>
+<td><strong>Managed ruleset và custom rule</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F3.5.1</td>
+<td>Kiểm theo CRS và system ruleset, paranoia level, ngưỡng anomaly</td>
+<td>E</td>
+<td>MVP</td>
+<td>RulesetRelease, ManagedRulesetConfig (đọc)</td>
+</tr>
+<tr>
+<td>F3.5.2</td>
+<td>Kiểm body JSON, XML, multipart, form trong giới hạn kích thước của gói</td>
+<td>E</td>
+<td>MVP</td>
+<td>Entitlements (đọc)</td>
+</tr>
+<tr>
+<td>F3.5.3</td>
+<td>Đánh giá custom rule theo thứ tự ưu tiên</td>
+<td>E</td>
+<td>MVP</td>
+<td>CustomRule (đọc)</td>
+</tr>
+<tr>
+<td>F3.5.4</td>
+<td>Áp exception có phạm vi (rule, trường, đường dẫn)</td>
+<td>E</td>
+<td>MVP</td>
+<td>Exception (đọc)</td>
+</tr>
+<tr>
+<td>F3.5.5</td>
+<td>Kiểm WebSocket (bắt tay; frame ở mức NC), gRPC theo method</td>
+<td>E</td>
+<td>MR</td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>F3.6</strong></td>
+<td><strong>Bot management</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F3.6.1</td>
+<td>Chặn bot xấu rõ ràng, nhận diện bot đã xác minh</td>
+<td>E</td>
+<td>MVP</td>
+<td>Verified bot list (đọc)</td>
+</tr>
+<tr>
+<td>F3.6.2</td>
+<td>Tính điểm bot và áp policy theo đường dẫn</td>
+<td>E</td>
+<td>MR</td>
+<td>BotPolicy (đọc)</td>
+</tr>
+<tr>
+<td>F3.6.3</td>
+<td>Chống chiếm tài khoản (credential stuffing)</td>
+<td>E</td>
+<td>NC</td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>F3.7</strong></td>
+<td><strong>API security</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F3.7.1</td>
+<td>Kiểm request theo schema OpenAPI của endpoint</td>
+<td>E</td>
+<td>MR</td>
+<td>ApiSchema (đọc)</td>
+</tr>
+<tr>
+<td>F3.7.2</td>
+<td>Xác thực JWT (JWKS của khách), mTLS client</td>
+<td>E</td>
+<td>MR</td>
+<td>ApiAuthConfig (đọc)</td>
+</tr>
+<tr>
+<td>F3.7.3</td>
+<td>Ghi nhận endpoint để discovery</td>
+<td>E</td>
+<td>MR</td>
+<td>Telemetry</td>
+</tr>
+<tr>
+<td>F3.7.4</td>
+<td>Phát hiện BOLA, dữ liệu nhạy cảm trong response</td>
+<td>E</td>
+<td>NC</td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>F3.8</strong></td>
+<td><strong>Thực thi hành động</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F3.8.1</td>
+<td>Block, challenge (JS, tương tác), log, allow, skip</td>
+<td>E</td>
+<td>MVP</td>
+<td>—</td>
+</tr>
+<tr>
+<td>F3.8.2</td>
+<td>Trang chặn và trang challenge tuỳ biến theo zone</td>
+<td>E</td>
+<td>MR</td>
+<td><strong>CustomPage</strong> (đọc)</td>
+</tr>
+<tr>
+<td>F3.8.3</td>
+<td>Phát security event cho mọi quyết định không phải allow</td>
+<td>E</td>
+<td>MVP</td>
+<td><strong>SecurityEvent</strong></td>
+</tr>
+<tr>
+<td>F3.8.4</td>
+<td>Thực thi trần cứng của gói (chuyển tiếp tối giản, hạ cấp)</td>
+<td>E</td>
+<td>MVP</td>
+<td>Entitlements (đọc)</td>
+</tr>
+<tr>
+<td><strong>F3.9</strong></td>
+<td><strong>Bảo vệ origin và fail mode</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F3.9.1</td>
+<td>Fail-open hoặc fail-closed khi tầng WAF không trả lời kịp</td>
+<td>E</td>
+<td>MVP</td>
+<td>ZoneSettings (đọc)</td>
+</tr>
+<tr>
+<td>F3.9.2</td>
+<td>Xác thực edge với origin (mTLS tới origin, header bí mật)</td>
+<td>E</td>
+<td>MVP</td>
+<td>ZoneSettings (đọc)</td>
+</tr>
+<tr>
+<td>F3.9.3</td>
+<td>Phục vụ bản cache cũ khi origin lỗi</td>
+<td>E</td>
+<td>MVP</td>
+<td>Cache</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-01-introduction-05-functional-decomposition--f4-hiệu-năng-và-phân-phối">F4 Hiệu năng và phân phối</h2>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Chức năng lá</th>
+<th>Plane</th>
+<th>Mức</th>
+<th>Dữ liệu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>F4.1</strong></td>
+<td><strong>Cache</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F4.1.1</td>
+<td>Cache theo Cache-Control, stale-if-error</td>
+<td>E</td>
+<td>MVP</td>
+<td>Cache</td>
+</tr>
+<tr>
+<td>F4.1.2</td>
+<td>Cache rule của khách: cache key, TTL, bỏ qua cache</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>CacheRule</strong></td>
+</tr>
+<tr>
+<td>F4.1.3</td>
+<td>Tiered cache, origin shield</td>
+<td>E</td>
+<td>MR</td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>F4.2</strong></td>
+<td><strong>Purge</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F4.2.1</td>
+<td>Purge toàn zone, theo URL, theo prefix</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>PurgeRequest</strong></td>
+</tr>
+<tr>
+<td>F4.2.2</td>
+<td>Purge theo tag</td>
+<td>M</td>
+<td>MR</td>
+<td><strong>PurgeRequest</strong></td>
+</tr>
+<tr>
+<td><strong>F4.3</strong></td>
+<td><strong>DNS điều hướng</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F4.3.1</td>
+<td>Trả IP PoP gần và khoẻ cho hostname của khách</td>
+<td>E</td>
+<td>MVP</td>
+<td>PoP health (đọc)</td>
+</tr>
+<tr>
+<td>F4.3.2</td>
+<td>DNS authoritative cho khách: bản ghi proxied, DNSSEC</td>
+<td>M</td>
+<td>MR</td>
+<td><strong>DnsRecord</strong></td>
+</tr>
+<tr>
+<td><strong>F4.4</strong></td>
+<td><strong>Load balancing và failover</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F4.4.1</td>
+<td>Nhóm origin, health check, chuyển origin khi lỗi</td>
+<td>M</td>
+<td>MR</td>
+<td><strong>OriginPool</strong>, <strong>HealthCheck</strong></td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-01-introduction-05-functional-decomposition--f5-vòng-đời-policy">F5 Vòng đời policy</h2>
+<p>Mọi thay đổi ảnh hưởng tới traffic đi qua nhóm này. Persona chính: quản trị bảo mật, SOC analyst, DevOps.</p>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Chức năng lá</th>
+<th>Plane</th>
+<th>Mức</th>
+<th>Dữ liệu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>F5.1</strong></td>
+<td><strong>Soạn policy</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F5.1.1</td>
+<td>Soạn custom rule bằng builder hoặc biểu thức text</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>CustomRule</strong> (trong <strong>PolicyDraft</strong>)</td>
+</tr>
+<tr>
+<td>F5.1.2</td>
+<td>Cấu hình managed ruleset: profile, paranoia, ngưỡng, rule tắt</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>ManagedRulesetConfig</strong></td>
+</tr>
+<tr>
+<td>F5.1.3</td>
+<td>Soạn rate limit rule, access list</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>RateLimitRule</strong>, <strong>AccessList</strong></td>
+</tr>
+<tr>
+<td>F5.1.4</td>
+<td>Tạo exception có phạm vi, có hạn</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>Exception</strong></td>
+</tr>
+<tr>
+<td>F5.1.5</td>
+<td>Cấu hình DDoS L7, Under Attack mode, bot, API security của zone</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>DdosSettings</strong>, <strong>BotPolicy</strong>, <strong>ApiSchema</strong></td>
+</tr>
+<tr>
+<td>F5.1.6</td>
+<td>Bật log-only theo rule hoặc theo zone</td>
+<td>M</td>
+<td>MVP</td>
+<td>thuộc tính của rule, <strong>ZoneSettings</strong></td>
+</tr>
+<tr>
+<td>F5.1.7</td>
+<td>Kế thừa policy org → nhóm zone → zone</td>
+<td>M</td>
+<td>MR</td>
+<td><strong>PolicyTemplate</strong>, <strong>PolicyBinding</strong></td>
+</tr>
+<tr>
+<td>F5.1.8</td>
+<td>Duyệt và xác nhận endpoint API từ discovery, tải OpenAPI</td>
+<td>M</td>
+<td>MR</td>
+<td><strong>ApiEndpoint</strong>, <strong>ApiSchema</strong></td>
+</tr>
+<tr>
+<td><strong>F5.2</strong></td>
+<td><strong>Kiểm tra và mô phỏng</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F5.2.1</td>
+<td>Kiểm cú pháp, kiểu, giới hạn gói ngay khi soạn</td>
+<td>M</td>
+<td>MVP</td>
+<td>—</td>
+</tr>
+<tr>
+<td>F5.2.2</td>
+<td>Biên dịch thử trước khi gửi duyệt (cùng checker với Control)</td>
+<td>C</td>
+<td>MVP</td>
+<td><strong>CompileResult</strong></td>
+</tr>
+<tr>
+<td>F5.2.3</td>
+<td>Mô phỏng trên traffic lịch sử, báo số request bị ảnh hưởng</td>
+<td>A</td>
+<td>MR</td>
+<td><strong>ReplayJob</strong>, <strong>ReplayResult</strong></td>
+</tr>
+<tr>
+<td><strong>F5.3</strong></td>
+<td><strong>Duyệt và phát hành</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F5.3.1</td>
+<td>Gửi change request kèm diff và kết quả kiểm tra</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>ChangeRequest</strong></td>
+</tr>
+<tr>
+<td>F5.3.2</td>
+<td>Duyệt 4-eyes (người duyệt khác người tạo), bật theo account</td>
+<td>M</td>
+<td>MR</td>
+<td><strong>Approval</strong></td>
+</tr>
+<tr>
+<td>F5.3.3</td>
+<td>Khung giờ được phép thay đổi</td>
+<td>M</td>
+<td>MR</td>
+<td><strong>ChangeWindow</strong></td>
+</tr>
+<tr>
+<td>F5.3.4</td>
+<td>Phát hành: tạo PolicyVersion bất biến, gửi sang Control</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>PolicyVersion</strong>, Outbox</td>
+</tr>
+<tr>
+<td>F5.3.5</td>
+<td>Theo dõi trạng thái phát hành tới edge (đã biên dịch, % node đã áp)</td>
+<td>C</td>
+<td>MVP</td>
+<td><strong>RolloutStatus</strong></td>
+</tr>
+<tr>
+<td><strong>F5.4</strong></td>
+<td><strong>Version và rollback</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F5.4.1</td>
+<td>Xem lịch sử version của zone, ai duyệt, khi nào</td>
+<td>M</td>
+<td>MVP</td>
+<td>PolicyVersion</td>
+</tr>
+<tr>
+<td>F5.4.2</td>
+<td>So sánh hai version</td>
+<td>M</td>
+<td>MVP</td>
+<td>PolicyVersion</td>
+</tr>
+<tr>
+<td>F5.4.3</td>
+<td>Rollback một bấm về version bất kỳ còn giữ</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>PolicyVersion</strong> (version mới từ nội dung cũ)</td>
+</tr>
+<tr>
+<td><strong>F5.5</strong></td>
+<td><strong>Kênh khẩn</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F5.5.1</td>
+<td>Bật Under Attack mode không cần duyệt</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>ZoneSettings</strong>, AuditEntry</td>
+</tr>
+<tr>
+<td>F5.5.2</td>
+<td>Rule tạm có hạn từ case hoặc từ SOC, tự hết hạn</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>TemporaryMitigation</strong></td>
+</tr>
+<tr>
+<td><strong>F5.6</strong></td>
+<td><strong>Policy as code</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F5.6.1</td>
+<td>Toàn bộ F5.1–F5.4 qua public API</td>
+<td>M</td>
+<td>MVP</td>
+<td>—</td>
+</tr>
+<tr>
+<td>F5.6.2</td>
+<td>Terraform provider</td>
+<td>M</td>
+<td>MR</td>
+<td>—</td>
+</tr>
+<tr>
+<td>F5.6.3</td>
+<td>Đồng bộ từ Git (GitOps)</td>
+<td>M</td>
+<td>MR</td>
+<td><strong>GitSource</strong></td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-01-introduction-05-functional-decomposition--f6-phân-phối-cấu-hình-và-fleet">F6 Phân phối cấu hình và fleet</h2>
+<p>Không có persona khách; NOC/SRE xem và can thiệp.</p>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Chức năng lá</th>
+<th>Plane</th>
+<th>Mức</th>
+<th>Dữ liệu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>F6.1</strong></td>
+<td><strong>Biên dịch</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F6.1.1</td>
+<td>Biên dịch PolicyVersion và cấu hình zone thành bundle của zone</td>
+<td>C</td>
+<td>MVP</td>
+<td><strong>ZoneBundle</strong></td>
+</tr>
+<tr>
+<td>F6.1.2</td>
+<td>Từ chối bundle vượt ngân sách (kích thước, độ phức tạp)</td>
+<td>C</td>
+<td>MVP</td>
+<td><strong>CompileResult</strong></td>
+</tr>
+<tr>
+<td>F6.1.3</td>
+<td>Ký bundle, dựng manifest</td>
+<td>C</td>
+<td>MVP</td>
+<td><strong>Manifest</strong></td>
+</tr>
+<tr>
+<td><strong>F6.2</strong></td>
+<td><strong>Phân phối</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F6.2.1</td>
+<td>Đẩy bundle tới PoP store, node nạp khi cần</td>
+<td>C</td>
+<td>MVP</td>
+<td>PoP store</td>
+</tr>
+<tr>
+<td>F6.2.2</td>
+<td>Đường nhanh cho lớp cấu hình khẩn (Under Attack, rule khẩn, purge)</td>
+<td>C</td>
+<td>MVP</td>
+<td>—</td>
+</tr>
+<tr>
+<td>F6.2.3</td>
+<td>Node mới hoặc nối lại tự đồng bộ tới manifest mới nhất</td>
+<td>E</td>
+<td>MVP</td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>F6.3</strong></td>
+<td><strong>Rollout an toàn</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F6.3.1</td>
+<td>Canary theo cell, gate theo chỉ số, tự rollback</td>
+<td>C</td>
+<td>MVP</td>
+<td><strong>Rollout</strong></td>
+</tr>
+<tr>
+<td>F6.3.2</td>
+<td>Rollout bản edge và ruleset theo wave</td>
+<td>C</td>
+<td>MVP</td>
+<td><strong>Rollout</strong></td>
+</tr>
+<tr>
+<td><strong>F6.4</strong></td>
+<td><strong>Fleet và danh tính node</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F6.4.1</td>
+<td>Đăng ký node, cấp cert node 24 giờ, gia hạn tự động</td>
+<td>C</td>
+<td>MVP</td>
+<td><strong>Node</strong>, <strong>NodeCert</strong></td>
+</tr>
+<tr>
+<td>F6.4.2</td>
+<td>Thu hồi node</td>
+<td>C</td>
+<td>MVP</td>
+<td><strong>NodeDenyList</strong></td>
+</tr>
+<tr>
+<td>F6.4.3</td>
+<td>Biết node nào chạy bản edge nào, manifest nào</td>
+<td>C</td>
+<td>MVP</td>
+<td><strong>Node</strong>.state</td>
+</tr>
+<tr>
+<td><strong>F6.5</strong></td>
+<td><strong>Đặt zone vào cell</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F6.5.1</td>
+<td>Chọn pool cell theo gói, chuyển khi đổi gói</td>
+<td>C</td>
+<td>MVP</td>
+<td><strong>ZonePlacement</strong></td>
+</tr>
+<tr>
+<td>F6.5.2</td>
+<td>Cân bằng lại cell, cách ly zone ồn</td>
+<td>C</td>
+<td>MR</td>
+<td><strong>ZonePlacement</strong></td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-01-introduction-05-functional-decomposition--f7-quan-sát-và-điều-tra">F7 Quan sát và điều tra</h2>
+<p>Persona chính: SOC analyst, quản trị bảo mật; support của NCC với quyền giới hạn.</p>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Chức năng lá</th>
+<th>Plane</th>
+<th>Mức</th>
+<th>Dữ liệu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>F7.1</strong></td>
+<td><strong>Thu nhận telemetry</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F7.1.1</td>
+<td>Nhận security event đầy đủ, không mất</td>
+<td>A</td>
+<td>MVP</td>
+<td><strong>SecurityEvent</strong></td>
+</tr>
+<tr>
+<td>F7.1.2</td>
+<td>Nhận access log lấy mẫu theo gói</td>
+<td>A</td>
+<td>MVP</td>
+<td><strong>AccessLog</strong></td>
+</tr>
+<tr>
+<td>F7.1.3</td>
+<td>Nhận mẫu request cho replay (gói cao)</td>
+<td>A</td>
+<td>MR</td>
+<td><strong>RequestSample</strong></td>
+</tr>
+<tr>
+<td>F7.1.4</td>
+<td>Đối soát số bản ghi gửi và nhận</td>
+<td>A</td>
+<td>MVP</td>
+<td>Bộ đếm đối soát</td>
+</tr>
+<tr>
+<td><strong>F7.2</strong></td>
+<td><strong>Xem realtime</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F7.2.1</td>
+<td>Luồng security event trực tiếp theo zone</td>
+<td>A</td>
+<td>MVP</td>
+<td>— (live tap)</td>
+</tr>
+<tr>
+<td>F7.2.2</td>
+<td>Thông báo trong portal (cảnh báo, kết quả phát hành)</td>
+<td>A</td>
+<td>MVP</td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>F7.3</strong></td>
+<td><strong>Tìm kiếm và tra cứu</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F7.3.1</td>
+<td>Tra cứu theo request ID: rule nào, bước nào, version nào</td>
+<td>A</td>
+<td>MVP</td>
+<td>SecurityEvent, AccessLog</td>
+</tr>
+<tr>
+<td>F7.3.2</td>
+<td>Lọc, nhóm event theo trường, khoảng thời gian</td>
+<td>A</td>
+<td>MVP</td>
+<td>SecurityEvent</td>
+</tr>
+<tr>
+<td>F7.3.3</td>
+<td>Lưu truy vấn, chia sẻ trong account</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>SavedSearch</strong></td>
+</tr>
+<tr>
+<td><strong>F7.4</strong></td>
+<td><strong>Dashboard</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F7.4.1</td>
+<td>Dashboard traffic, bảo mật, cache, origin</td>
+<td>A</td>
+<td>MVP</td>
+<td>Bảng tổng hợp</td>
+</tr>
+<tr>
+<td>F7.4.2</td>
+<td>Hiệu quả rule: số khớp, hành động, theo thời gian</td>
+<td>A</td>
+<td>MVP</td>
+<td>Bảng tổng hợp</td>
+</tr>
+<tr>
+<td>F7.4.3</td>
+<td>Phân bố bot, endpoint API</td>
+<td>A</td>
+<td>MR</td>
+<td>Bảng tổng hợp</td>
+</tr>
+<tr>
+<td><strong>F7.5</strong></td>
+<td><strong>Chặn nhầm và hiệu quả rule</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F7.5.1</td>
+<td>Đánh dấu một event là chặn nhầm</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>FalsePositiveLabel</strong></td>
+</tr>
+<tr>
+<td>F7.5.2</td>
+<td>Tỉ lệ chặn nhầm theo rule</td>
+<td>A</td>
+<td>MVP</td>
+<td>Bảng tổng hợp</td>
+</tr>
+<tr>
+<td>F7.5.3</td>
+<td>Từ event đánh dấu, tạo nháp exception</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>Exception</strong> (nháp)</td>
+</tr>
+<tr>
+<td><strong>F7.6</strong></td>
+<td><strong>Export SIEM</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F7.6.1</td>
+<td>Cấu hình đích export (Splunk, S3, HTTP, Kafka, syslog)</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>ExportDestination</strong></td>
+</tr>
+<tr>
+<td>F7.6.2</td>
+<td>Đẩy event liên tục, thử lại, báo đích lỗi</td>
+<td>A</td>
+<td>MVP</td>
+<td>Trạng thái export</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-01-introduction-05-functional-decomposition--f8-phát-hiện-cảnh-báo-sự-cố">F8 Phát hiện, cảnh báo, sự cố</h2>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Chức năng lá</th>
+<th>Plane</th>
+<th>Mức</th>
+<th>Dữ liệu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>F8.1</strong></td>
+<td><strong>Phát hiện</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F8.1.1</td>
+<td>Đánh giá alert template (W, D, O, BOT, API) theo cửa sổ</td>
+<td>A</td>
+<td>MVP</td>
+<td><strong>AlertState</strong></td>
+</tr>
+<tr>
+<td>F8.1.2</td>
+<td>Phát hiện bất thường theo baseline</td>
+<td>A</td>
+<td>NC</td>
+<td>Baseline</td>
+</tr>
+<tr>
+<td>F8.1.3</td>
+<td>Đề xuất mở case và mitigation</td>
+<td>A</td>
+<td>MR</td>
+<td><strong>CaseProposal</strong></td>
+</tr>
+<tr>
+<td><strong>F8.2</strong></td>
+<td><strong>Alert policy</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F8.2.1</td>
+<td>Tạo alert policy: điều kiện, phạm vi zone, mức</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>AlertPolicy</strong></td>
+</tr>
+<tr>
+<td>F8.2.2</td>
+<td>Kênh thông báo: email, webhook, Slack, Teams, PagerDuty, SMS</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>NotificationChannel</strong></td>
+</tr>
+<tr>
+<td>F8.2.3</td>
+<td>Giờ im lặng, chu kỳ lặp, gộp cảnh báo</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>AlertPolicy</strong></td>
+</tr>
+<tr>
+<td>F8.2.4</td>
+<td>Gửi thử kênh</td>
+<td>M</td>
+<td>MVP</td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>F8.3</strong></td>
+<td><strong>Gửi thông báo</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F8.3.1</td>
+<td>Gửi theo kênh, thử lại, ghi kết quả</td>
+<td>A</td>
+<td>MVP</td>
+<td><strong>NotificationDelivery</strong></td>
+</tr>
+<tr>
+<td><strong>F8.4</strong></td>
+<td><strong>Case và sự cố</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F8.4.1</td>
+<td>Mở case tay hoặc từ đề xuất</td>
+<td>M</td>
+<td>MR</td>
+<td><strong>Case</strong></td>
+</tr>
+<tr>
+<td>F8.4.2</td>
+<td>Gắn event, truy vấn, mitigation vào case</td>
+<td>M</td>
+<td>MR</td>
+<td><strong>CaseLink</strong></td>
+</tr>
+<tr>
+<td>F8.4.3</td>
+<td>Workflow case: mở → tiếp nhận → giảm thiểu → đóng, người phụ trách, SLA</td>
+<td>M</td>
+<td>MR</td>
+<td><strong>Case</strong>.status</td>
+</tr>
+<tr>
+<td>F8.4.4</td>
+<td>Đóng case kèm tóm tắt</td>
+<td>M</td>
+<td>MR</td>
+<td><strong>Case</strong></td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-01-introduction-05-functional-decomposition--f9-báo-cáo-và-tuân-thủ">F9 Báo cáo và tuân thủ</h2>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Chức năng lá</th>
+<th>Plane</th>
+<th>Mức</th>
+<th>Dữ liệu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>F9.1</strong></td>
+<td><strong>Báo cáo định kỳ</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F9.1.1</td>
+<td>Định nghĩa báo cáo, lịch gửi, người nhận</td>
+<td>M</td>
+<td>MR</td>
+<td><strong>ReportDefinition</strong></td>
+</tr>
+<tr>
+<td>F9.1.2</td>
+<td>Chạy báo cáo, xuất PDF/CSV</td>
+<td>M</td>
+<td>MR</td>
+<td><strong>ReportRun</strong></td>
+</tr>
+<tr>
+<td><strong>F9.2</strong></td>
+<td><strong>Báo cáo tuân thủ</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F9.2.1</td>
+<td>Báo cáo theo PCI DSS 6.4, SOC 2 (thay đổi, quyền, retention)</td>
+<td>M</td>
+<td>MR</td>
+<td>ReportRun</td>
+</tr>
+<tr>
+<td>F9.2.2</td>
+<td>Báo cáo SLA của NCC theo zone</td>
+<td>A</td>
+<td>MR</td>
+<td>Bảng tổng hợp</td>
+</tr>
+<tr>
+<td><strong>F9.3</strong></td>
+<td><strong>Retention và archive</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F9.3.1</td>
+<td>Giữ log theo thời hạn của gói, xoá khi hết hạn</td>
+<td>A</td>
+<td>MVP</td>
+<td>SecurityEvent, AccessLog</td>
+</tr>
+<tr>
+<td>F9.3.2</td>
+<td>Archive audit log, không xoá</td>
+<td>M</td>
+<td>MVP</td>
+<td>AuditEntry archive</td>
+</tr>
+<tr>
+<td>F9.3.3</td>
+<td>Xoá dữ liệu cá nhân theo yêu cầu</td>
+<td>M</td>
+<td>MVP</td>
+<td>Member, User</td>
+</tr>
+<tr>
+<td><strong>F9.4</strong></td>
+<td><strong>Data residency</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F9.4.1</td>
+<td>Log của account nằm trong region đã chọn</td>
+<td>A</td>
+<td>NC</td>
+<td>—</td>
+</tr>
+<tr>
+<td>F9.4.2</td>
+<td>Cấu hình của tenant Enterprise nằm trong region đã chọn</td>
+<td>M</td>
+<td>NC</td>
+<td>Tenant placement</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-01-introduction-05-functional-decomposition--f10-gói-và-billing">F10 Gói và billing</h2>
+<p>Persona chính: chủ tài khoản, bộ phận tài chính của khách; sales của NCC.</p>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Chức năng lá</th>
+<th>Plane</th>
+<th>Mức</th>
+<th>Dữ liệu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>F10.1</strong></td>
+<td><strong>Danh mục gói</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F10.1.1</td>
+<td>NCC định nghĩa gói, giá, hạn mức, đơn giá vượt, có version</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>Plan</strong>, <strong>PlanVersion</strong>, <strong>Price</strong></td>
+</tr>
+<tr>
+<td>F10.1.2</td>
+<td>Gói riêng cho hợp đồng Enterprise</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>Plan</strong> (riêng tenant)</td>
+</tr>
+<tr>
+<td>F10.1.3</td>
+<td>Add-on (zone phụ, tính năng lẻ)</td>
+<td>M</td>
+<td>MR</td>
+<td><strong>AddOn</strong></td>
+</tr>
+<tr>
+<td><strong>F10.2</strong></td>
+<td><strong>Subscription</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F10.2.1</td>
+<td>Dùng thử 14 ngày, giới hạn số lượt dùng thử mỗi khách</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>Subscription</strong>, <strong>TrialClaim</strong> (toàn cục)</td>
+</tr>
+<tr>
+<td>F10.2.2</td>
+<td>Mua, nâng, hạ gói theo zone hoặc account</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>Subscription</strong></td>
+</tr>
+<tr>
+<td>F10.2.3</td>
+<td>Quá hạn thanh toán: chuyển tiếp tối giản 30 ngày rồi tạm dừng</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>Subscription</strong>.status</td>
+</tr>
+<tr>
+<td><strong>F10.3</strong></td>
+<td><strong>Entitlements</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F10.3.1</td>
+<td>Tính entitlements của zone từ gói, add-on, hợp đồng</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>Entitlements</strong></td>
+</tr>
+<tr>
+<td>F10.3.2</td>
+<td>Phát entitlements mới khi đổi gói, có hiệu lực ≤ 5 phút</td>
+<td>M</td>
+<td>MVP</td>
+<td>Outbox</td>
+</tr>
+<tr>
+<td>F10.3.3</td>
+<td>Chặn tạo vượt giới hạn gói (số rule, số đích export, …)</td>
+<td>M</td>
+<td>MVP</td>
+<td>Entitlements (đọc)</td>
+</tr>
+<tr>
+<td><strong>F10.4</strong></td>
+<td><strong>Đo usage</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F10.4.1</td>
+<td>Đếm băng thông sạch, request theo zone tại edge</td>
+<td>E</td>
+<td>MVP</td>
+<td>Bộ đếm</td>
+</tr>
+<tr>
+<td>F10.4.2</td>
+<td>Gộp theo giờ, ngày, kỳ; đối soát với node</td>
+<td>A</td>
+<td>MVP</td>
+<td><strong>UsageCounter</strong></td>
+</tr>
+<tr>
+<td>F10.4.3</td>
+<td>Nhận usage vào Management để tính tiền</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>UsageDaily</strong></td>
+</tr>
+<tr>
+<td><strong>F10.5</strong></td>
+<td><strong>Hạn mức và trần cứng</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F10.5.1</td>
+<td>Cảnh báo 80% và 100% hạn mức</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>QuotaNotice</strong></td>
+</tr>
+<tr>
+<td>F10.5.2</td>
+<td>Gói có trần: phát lệnh áp trần khi vượt</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>Entitlements</strong>.capState</td>
+</tr>
+<tr>
+<td><strong>F10.6</strong></td>
+<td><strong>Hoá đơn và thanh toán</strong></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>F10.6.1</td>
+<td>Lập hoá đơn cuối kỳ: phí nền, phí vượt, add-on, thuế</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>Invoice</strong>, <strong>InvoiceLine</strong></td>
+</tr>
+<tr>
+<td>F10.6.2</td>
+<td>Thanh toán qua cổng, lưu phương thức (token của cổng)</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>PaymentMethod</strong>, <strong>Payment</strong></td>
+</tr>
+<tr>
+<td>F10.6.3</td>
+<td>Xuất hoá đơn điện tử theo quy định</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>Invoice</strong></td>
+</tr>
+<tr>
+<td>F10.6.4</td>
+<td>Điều chỉnh, hoàn tiền, ghi có</td>
+<td>M</td>
+<td>MR</td>
+<td><strong>CreditNote</strong></td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-01-introduction-05-functional-decomposition--f11-threat-intelligence">F11 Threat intelligence</h2>
+<p>Persona chính: threat research của NCC.</p>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Chức năng lá</th>
+<th>Plane</th>
+<th>Mức</th>
+<th>Dữ liệu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>F11.1.1</td>
+<td>Phát hành system ruleset và bản CRS có version</td>
+<td>C</td>
+<td>MVP</td>
+<td><strong>RulesetRelease</strong></td>
+</tr>
+<tr>
+<td>F11.1.2</td>
+<td>Rollout ruleset theo wave, log-only trước khi chặn</td>
+<td>C</td>
+<td>MVP</td>
+<td><strong>Rollout</strong></td>
+</tr>
+<tr>
+<td>F11.2.1</td>
+<td>Rule khẩn toàn fleet cho CVE mới, ≤ 15 s tới 100% node</td>
+<td>C</td>
+<td>MVP</td>
+<td><strong>EmergencyRule</strong></td>
+</tr>
+<tr>
+<td>F11.3.1</td>
+<td>Nhập và cập nhật feed IP reputation</td>
+<td>C</td>
+<td>MR</td>
+<td><strong>ReputationFeed</strong></td>
+</tr>
+<tr>
+<td>F11.4.1</td>
+<td>Virtual patching theo CVE: gợi ý rule cho zone có công nghệ bị ảnh hưởng</td>
+<td>C</td>
+<td>MR</td>
+<td><strong>VirtualPatch</strong></td>
+</tr>
+<tr>
+<td>F11.4.2</td>
+<td>Tín hiệu chéo tenant ẩn danh</td>
+<td>A</td>
+<td>NC</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-01-introduction-05-functional-decomposition--f12-vận-hành-ncc">F12 Vận hành NCC</h2>
+<p>Persona chính: NOC/SRE, support, product. Chi tiết vận hành ở <a href="#f-08-cross-cutting-12-platform-monitoring">8.12</a>,
+<a href="#f-08-cross-cutting-13-operational-behaviors">8.13</a>.</p>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Chức năng lá</th>
+<th>Plane</th>
+<th>Mức</th>
+<th>Dữ liệu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>F12.1.1</td>
+<td>Giám sát SLI, probe tổng hợp, lan truyền cấu hình</td>
+<td>mọi plane</td>
+<td>MVP</td>
+<td>Metric</td>
+</tr>
+<tr>
+<td>F12.1.2</td>
+<td>Giám sát dung lượng PoP, cell, chống noisy neighbor</td>
+<td>C</td>
+<td>MR</td>
+<td>Metric</td>
+</tr>
+<tr>
+<td>F12.2.1</td>
+<td>Rút PoP khỏi DNS, chuyển traffic</td>
+<td>C</td>
+<td>MVP</td>
+<td><strong>PopState</strong></td>
+</tr>
+<tr>
+<td>F12.2.2</td>
+<td>Đóng băng phát hành toàn fleet</td>
+<td>C</td>
+<td>MVP</td>
+<td><strong>FleetFreeze</strong></td>
+</tr>
+<tr>
+<td>F12.3.1</td>
+<td>Support tra request ID của khách không cần đọc toàn bộ tenant</td>
+<td>A</td>
+<td>MVP</td>
+<td><strong>SupportAccessGrant</strong></td>
+</tr>
+<tr>
+<td>F12.3.2</td>
+<td>Support truy cập tenant khi khách cho phép, có hạn, có audit</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>SupportAccessGrant</strong></td>
+</tr>
+<tr>
+<td>F12.4.1</td>
+<td>Quản trị org: xem, tạm khoá, mở khoá tenant vi phạm</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>Org</strong>.status</td>
+</tr>
+<tr>
+<td>F12.4.2</td>
+<td>Quản lý danh mục gói, đối tác hạ tầng, PoP</td>
+<td>M</td>
+<td>MVP</td>
+<td>Plan, <strong>Partner</strong>, <strong>Pop</strong></td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-01-introduction-05-functional-decomposition--chức-năng-ngoài-phạm-vi">Chức năng ngoài phạm vi</h2>
+<p>Không nằm trong bản đồ, nhắc lại để không bị thêm vào thiết kế dữ liệu: vulnerability scanning (DAST, sản
+phẩm riêng nếu làm), edge compute, tối ưu ảnh, video, client-side protection. Xem <a href="#f-01-introduction-00-index--12-tổng-quan-yêu-cầu">1.2</a>.</p>
+<h2 id="f-01-introduction-05-functional-decomposition--đối-chiếu-với-thiết-kế-hiện-có">Đối chiếu với thiết kế hiện có</h2>
+<table>
+<thead>
+<tr>
+<th>Phát hiện khi phân rã</th>
+<th>Ảnh hưởng</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Có đối tượng dữ liệu chưa có trong <a href="#f-05-building-blocks-08-components-12-management">5.8.12</a>: Invitation, MfaFactor, SsoDomain, ServiceAccount, DomainVerification, OriginCheck, ChangeWindow, TemporaryMitigation, PolicyTemplate/PolicyBinding, GitSource, QuotaNotice, PaymentMethod, Payment, CreditNote, AddOn, TrialClaim, SupportAccessGrant, Partner, Pop</td>
+<td>Bổ sung vào module sau khi requirements chốt</td>
+</tr>
+<tr>
+<td>F1.1.4, F9.3.3 (xoá org, xoá dữ liệu cá nhân) chưa có đường đi trong thiết kế database: audit không xoá nhưng có dữ liệu cá nhân</td>
+<td>Câu hỏi mở OQ-6 ở <a href="#f-01-introduction-06-requirements--9-câu-hỏi-mở-cho-review">1.6</a></td>
+</tr>
+<tr>
+<td>F2.3, F6.4, F11 có dữ liệu gốc ở Control, không ở Management</td>
+<td>Database của Control cần thiết kế riêng, không gộp vào 5.8.14</td>
+</tr>
+<tr>
+<td>F12 cần dữ liệu của NCC (Partner, Pop, gói) trong cùng database với tenant</td>
+<td>Dùng <code>PLATFORM_TENANT_ID</code>, đã ghi ở 5.8.14 §2</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section class="doc" id="f-01-introduction-06-requirements"><div class="path">01-introduction/06-requirements.md</div><h1 id="f-01-introduction-06-requirements--16-requirements">1.6 Requirements</h1>
+<blockquote>
+<p><strong>Trạng thái: bản nháp chờ review (2026-11-06).</strong> Mọi dòng ở đây là <strong>đề xuất</strong>. Các điểm cần quyết
+nằm ở <a href="#f-01-introduction-06-requirements--9-câu-hỏi-mở-cho-review">§9</a>. Khi chốt xong, requirements là căn cứ để đối chiếu lại module
+(<a href="#f-05-building-blocks-08-components-12-management">5.8.12</a>) và database
+(<a href="#f-05-building-blocks-08-components-14-management-database">5.8.14</a>).</p>
+</blockquote>
+<p>Requirements viết từ <a href="#f-01-introduction-05-functional-decomposition">bản đồ phân rã chức năng</a>: mỗi requirement trỏ về
+một hay nhiều chức năng lá <code>F…</code>. Requirement chất lượng không viết lại ở đây mà trỏ về kịch bản đo được
+<code>QS-…</code> ở <a href="#f-10-quality-00-index--103-kịch-bản">10.3</a>.</p>
+<h2 id="f-01-introduction-06-requirements--1-quy-ước">1. Quy ước</h2>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Loại</th>
+<th>Ví dụ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>FR-&lt;nhóm&gt;-&lt;số&gt;</code></td>
+<td>Yêu cầu chức năng; nhóm trùng nhóm F (<code>FR-5-03</code> thuộc F5)</td>
+<td>FR-5-03</td>
+</tr>
+<tr>
+<td><code>BR-&lt;số&gt;</code></td>
+<td>Quy tắc nghiệp vụ: điều luôn đúng, nhiều chức năng cùng phải tuân theo</td>
+<td>BR-4</td>
+</tr>
+<tr>
+<td><code>DT-&lt;số&gt;</code></td>
+<td>Yêu cầu dữ liệu: đối tượng dữ liệu, chủ sở hữu, retention, độ nhạy</td>
+<td>DT-3</td>
+</tr>
+<tr>
+<td><code>NFR-&lt;số&gt;</code></td>
+<td>Yêu cầu phi chức năng chưa có trong 10.3</td>
+<td>NFR-2</td>
+</tr>
+<tr>
+<td><code>IR-&lt;số&gt;</code></td>
+<td>Yêu cầu giao tiếp với hệ thống ngoài</td>
+<td>IR-1</td>
+</tr>
+<tr>
+<td><code>OQ-&lt;số&gt;</code></td>
+<td>Câu hỏi mở cần quyết khi review</td>
+<td>OQ-1</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>Mức</strong>: MVP / MR (Mở rộng) / NC (Nâng cao), như <a href="#f-01-introduction-00-index--12-tổng-quan-yêu-cầu">1.2</a>. Một requirement
+MVP là bắt buộc để ký hợp đồng doanh nghiệp đầu tiên.</li>
+<li><strong>&quot;Phải&quot;</strong> là bắt buộc; <strong>&quot;nên&quot;</strong> là mong muốn, có thể bỏ khi thiếu thời gian mà không đổi kiến trúc.</li>
+<li>Giới hạn theo gói (số rule, retention, kênh…) lấy từ bảng entitlements ở
+<a href="#f-08-cross-cutting-18-segments-and-plans--bảng-tính-năng-và-giới-hạn-entitlements">8.18 §4</a>, không
+lặp lại ở đây.</li>
+</ul>
+<h2 id="f-01-introduction-06-requirements--2-tác-nhân">2. Tác nhân</h2>
+<table>
+<thead>
+<tr>
+<th>Tác nhân</th>
+<th>Loại</th>
+<th>Dùng chức năng</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Chủ tài khoản (owner)</td>
+<td>Người, phía khách</td>
+<td>F1, F10</td>
+</tr>
+<tr>
+<td>Quản trị bảo mật</td>
+<td>Người, phía khách</td>
+<td>F2, F5, F8, F9</td>
+</tr>
+<tr>
+<td>SOC analyst</td>
+<td>Người, phía khách</td>
+<td>F5.5, F7, F8</td>
+</tr>
+<tr>
+<td>DevOps / platform</td>
+<td>Người hoặc máy (API key, Terraform), phía khách</td>
+<td>F2, F4, F5.6</td>
+</tr>
+<tr>
+<td>Developer</td>
+<td>Người, phía khách</td>
+<td>F5.1.4 trong phạm vi được giao, F7 chỉ đọc</td>
+</tr>
+<tr>
+<td>Viewer, Billing</td>
+<td>Người, phía khách</td>
+<td>F7 chỉ đọc; F10</td>
+</tr>
+<tr>
+<td>Kiểm toán</td>
+<td>Người, phía khách</td>
+<td>F1.5, F9</td>
+</tr>
+<tr>
+<td>NOC / SRE, Support, Threat research, Sales</td>
+<td>Người, phía NCC</td>
+<td>F6, F11, F12; F10.1</td>
+</tr>
+<tr>
+<td>End-user</td>
+<td>Người hoặc bot đi qua edge</td>
+<td>F3, F4</td>
+</tr>
+<tr>
+<td>IdP, cổng thanh toán, nhà cung cấp hoá đơn điện tử, CA ACME, SIEM, kênh thông báo</td>
+<td>Hệ thống ngoài</td>
+<td><a href="#f-01-introduction-06-requirements--7-giao-tiếp-với-hệ-thống-ngoài">§7</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-01-introduction-06-requirements--3-yêu-cầu-chức-năng">3. Yêu cầu chức năng</h2>
+<h3 id="f-01-introduction-06-requirements--f1-tenant-và-danh-tính">F1 Tenant và danh tính</h3>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Yêu cầu</th>
+<th>F</th>
+<th>Mức</th>
+<th>Tiêu chí chấp nhận</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FR-1-01</td>
+<td>Người dùng phải tự đăng ký org bằng email đã xác minh; NCC phải tạo được org thay cho khách Enterprise</td>
+<td>F1.1.1</td>
+<td>MVP</td>
+<td>Org mới có một owner và một account mặc định</td>
+</tr>
+<tr>
+<td>FR-1-02</td>
+<td>Owner phải tạo, đổi tên, đóng được account; đóng account khi còn zone hoạt động thì bị từ chối</td>
+<td>F1.1.2</td>
+<td>MVP</td>
+<td>Lỗi nêu số zone còn hoạt động</td>
+</tr>
+<tr>
+<td>FR-1-03</td>
+<td>Owner phải yêu cầu xoá org; dữ liệu bị xoá sau thời hạn giữ (<a href="#f-01-introduction-06-requirements--9-câu-hỏi-mở-cho-review">OQ-6</a>)</td>
+<td>F1.1.4</td>
+<td>MVP</td>
+<td>Trong thời hạn giữ có thể huỷ yêu cầu; sau đó không đăng nhập được</td>
+</tr>
+<tr>
+<td>FR-1-04</td>
+<td>Owner, admin phải mời thành viên qua email; lời mời hết hạn sau 7 ngày, thu hồi được</td>
+<td>F1.2.1</td>
+<td>MVP</td>
+<td>Lời mời đã hết hạn hoặc thu hồi không dùng được</td>
+</tr>
+<tr>
+<td>FR-1-05</td>
+<td>Vai trò phải gán được ở bốn cấp: org, account, nhóm zone, zone; quyền là hợp của mọi binding</td>
+<td>F1.2.2</td>
+<td>MVP</td>
+<td>User có vai trò ở một zone không thấy zone khác</td>
+</tr>
+<tr>
+<td>FR-1-06</td>
+<td>Vai trò mặc định phải gồm owner, security admin, SOC analyst, developer, viewer, billing với quyền như <a href="#f-05-building-blocks-08-components-12-management--quyền-mặc-định">5.8.12</a></td>
+<td>F1.2.2</td>
+<td>MVP</td>
+<td>Ma trận quyền kiểm bằng test tự động</td>
+</tr>
+<tr>
+<td>FR-1-07</td>
+<td>Admin nên tạo được vai trò tuỳ chỉnh từ danh mục quyền</td>
+<td>F1.2.3</td>
+<td>MR</td>
+<td></td>
+</tr>
+<tr>
+<td>FR-1-08</td>
+<td>Gỡ thành viên phải thu hồi phiên và API key cá nhân của họ (<a href="#f-01-introduction-06-requirements--4-quy-tắc-nghiệp-vụ">BR-15</a>)</td>
+<td>F1.2.4</td>
+<td>MVP</td>
+<td>Request kế tiếp bằng phiên cũ bị từ chối</td>
+</tr>
+<tr>
+<td>FR-1-09</td>
+<td>Hệ thống nên đồng bộ user, nhóm qua SCIM 2.0 và gán vai trò theo nhóm IdP</td>
+<td>F1.2.5</td>
+<td>MR</td>
+<td>User bị khoá ở IdP mất quyền ≤ 5 phút</td>
+</tr>
+<tr>
+<td>FR-1-10</td>
+<td>Hệ thống phải hỗ trợ đăng nhập mật khẩu + MFA (TOTP, WebAuthn) và SSO SAML 2.0 / OIDC</td>
+<td>F1.3.1, F1.3.2</td>
+<td>MVP</td>
+<td></td>
+</tr>
+<tr>
+<td>FR-1-11</td>
+<td>Org phải bắt buộc được SSO cho domain email đã xác minh, và bắt buộc MFA</td>
+<td>F1.3.3</td>
+<td>MVP</td>
+<td>User thuộc domain đó không đăng nhập bằng mật khẩu được, trừ tài khoản khẩn của owner</td>
+</tr>
+<tr>
+<td>FR-1-12</td>
+<td>User phải xem và đăng xuất được các phiên của mình; admin đăng xuất được phiên của thành viên</td>
+<td>F1.3.4</td>
+<td>MVP</td>
+<td></td>
+</tr>
+<tr>
+<td>FR-1-13</td>
+<td>Hệ thống phải cấp API key có phạm vi quyền, phạm vi zone, ngày hết hạn; secret chỉ hiện một lần</td>
+<td>F1.4.1</td>
+<td>MVP</td>
+<td><a href="#f-01-introduction-06-requirements--4-quy-tắc-nghiệp-vụ">BR-14</a></td>
+</tr>
+<tr>
+<td>FR-1-14</td>
+<td>API key phải xoay được (hai key song song trong thời gian chuyển) và hiện lần dùng cuối</td>
+<td>F1.4.2</td>
+<td>MVP</td>
+<td>Lần dùng cuối trễ ≤ 5 phút so với thực tế</td>
+</tr>
+<tr>
+<td>FR-1-15</td>
+<td>Hệ thống phải có service account không gắn người, sở hữu API key cho CI/CD</td>
+<td>F1.4.3</td>
+<td>MVP</td>
+<td>Gỡ người tạo không làm mất service account</td>
+</tr>
+<tr>
+<td>FR-1-16</td>
+<td>Mọi thay đổi qua UI, API, Terraform, SCIM, kênh khẩn và thao tác của NCC phải ghi audit: người/máy, đối tượng, trước/sau, thời điểm, IP, kênh</td>
+<td>F1.5.1</td>
+<td>MVP</td>
+<td>Không có API ghi nào mà không sinh audit (test tự động trên toàn bộ API)</td>
+</tr>
+<tr>
+<td>FR-1-17</td>
+<td>Kiểm toán phải lọc audit theo người, đối tượng, loại hành động, thời gian, và xuất CSV/JSON</td>
+<td>F1.5.2, F1.5.3</td>
+<td>MVP</td>
+<td>Xuất 1 triệu dòng không làm chậm portal của tenant khác</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-01-introduction-06-requirements--f2-zone-và-onboarding">F2 Zone và onboarding</h3>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Yêu cầu</th>
+<th>F</th>
+<th>Mức</th>
+<th>Tiêu chí chấp nhận</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FR-2-01</td>
+<td>Người dùng phải thêm zone theo domain gốc; domain đã có ở tenant khác bị từ chối (<a href="#f-01-introduction-06-requirements--4-quy-tắc-nghiệp-vụ">BR-1</a>)</td>
+<td>F2.1.1</td>
+<td>MVP</td>
+<td>Lỗi không tiết lộ tenant đang giữ domain</td>
+</tr>
+<tr>
+<td>FR-2-02</td>
+<td>Hệ thống phải xác minh quyền sở hữu qua bản ghi TXT hoặc CNAME, kiểm lại mỗi ngày khi zone đang hoạt động</td>
+<td>F2.1.2</td>
+<td>MVP</td>
+<td>Mất bản ghi 7 ngày liên tục thì cảnh báo, 14 ngày thì tạm dừng (<a href="#f-01-introduction-06-requirements--9-câu-hỏi-mở-cho-review">OQ-3</a>)</td>
+</tr>
+<tr>
+<td>FR-2-03</td>
+<td>Portal phải hiện hướng dẫn trỏ DNS theo chế độ (CNAME, nameserver) và trạng thái đã trỏ hay chưa</td>
+<td>F2.1.3</td>
+<td>MVP</td>
+<td>Trạng thái cập nhật ≤ 5 phút sau khi DNS đổi</td>
+</tr>
+<tr>
+<td>FR-2-04</td>
+<td>Người dùng phải thêm, xoá hostname trong zone, kể cả wildcard; hostname là duy nhất toàn nền tảng (<a href="#f-01-introduction-06-requirements--4-quy-tắc-nghiệp-vụ">BR-17</a>)</td>
+<td>F2.2.1</td>
+<td>MVP</td>
+<td></td>
+</tr>
+<tr>
+<td>FR-2-05</td>
+<td>Người dùng phải khai báo origin (địa chỉ, cổng, giao thức, SNI, header Host, timeout, retry)</td>
+<td>F2.2.2, F2.2.4</td>
+<td>MVP</td>
+<td></td>
+</tr>
+<tr>
+<td>FR-2-06</td>
+<td>Hệ thống phải kiểm origin trước khi kích hoạt và cho xem kết quả (kết nối, TLS, mã trả, thời gian)</td>
+<td>F2.2.3</td>
+<td>MVP</td>
+<td>Kích hoạt khi kiểm lỗi cần xác nhận rõ ràng của người dùng</td>
+</tr>
+<tr>
+<td>FR-2-07</td>
+<td>Zone phải cấu hình được chế độ đứng sau CDN của khách: danh sách IP tin cậy, header chứa IP client</td>
+<td>F2.2.5</td>
+<td>MVP</td>
+<td></td>
+</tr>
+<tr>
+<td>FR-2-08</td>
+<td>Hệ thống phải tự cấp và gia hạn cert cho hostname đã xác minh; gia hạn lỗi thì cảnh báo trước hạn ≥ 14 ngày</td>
+<td>F2.3.1, F2.3.2</td>
+<td>MVP</td>
+<td>Không hostname nào phục vụ cert hết hạn khi DNS vẫn trỏ đúng</td>
+</tr>
+<tr>
+<td>FR-2-09</td>
+<td>Khách nên tải được cert riêng; khoá riêng chỉ lưu ở secret store</td>
+<td>F2.3.3</td>
+<td>MR</td>
+<td>Khoá không bao giờ có trong database hay log</td>
+</tr>
+<tr>
+<td>FR-2-10</td>
+<td>Zone phải cấu hình được TLS tối thiểu, HSTS, chế độ TLS tới origin</td>
+<td>F2.3.4</td>
+<td>MVP</td>
+<td></td>
+</tr>
+<tr>
+<td>FR-2-11</td>
+<td>Kích hoạt zone phải bật managed ruleset ở log-only trong 7 ngày đầu (<a href="#f-01-introduction-06-requirements--9-câu-hỏi-mở-cho-review">OQ-4</a>)</td>
+<td>F2.4.1</td>
+<td>MVP</td>
+<td>Ngày thứ 7 có thông báo kèm tóm tắt các rule đã khớp</td>
+</tr>
+<tr>
+<td>FR-2-12</td>
+<td>Người dùng phải tạm dừng (chuyển tiếp không bảo vệ) và mở lại zone; tạm dừng là thao tác khẩn, không cần duyệt</td>
+<td>F2.4.2</td>
+<td>MVP</td>
+<td>Có hiệu lực ≤ 30 s (QS-4)</td>
+</tr>
+<tr>
+<td>FR-2-13</td>
+<td>Người dùng phải gỡ zone; domain và hostname được giải phóng (<a href="#f-01-introduction-06-requirements--4-quy-tắc-nghiệp-vụ">BR-16</a>)</td>
+<td>F2.4.3</td>
+<td>MVP</td>
+<td></td>
+</tr>
+<tr>
+<td>FR-2-14</td>
+<td>Owner nên chuyển zone giữa các account cùng org mà không gián đoạn traffic</td>
+<td>F2.4.4</td>
+<td>MR</td>
+<td></td>
+</tr>
+<tr>
+<td>FR-2-15</td>
+<td>Người dùng phải gắn tag và nhóm zone; nhóm dùng được cho phân quyền và lọc</td>
+<td>F2.5.1</td>
+<td>MVP</td>
+<td></td>
+</tr>
+<tr>
+<td>FR-2-16</td>
+<td>Thao tác hàng loạt trên nhóm zone nên chạy nền, có tiến độ, dừng được</td>
+<td>F2.5.2</td>
+<td>MR</td>
+<td>QS-27</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-01-introduction-06-requirements--f3-bảo-vệ-runtime-và-f4-hiệu-năng">F3 Bảo vệ runtime và F4 Hiệu năng</h3>
+<p>Phần lớn là hành vi của edge; requirement đo được đã có ở 10.3. Chỉ ghi phần chức năng.</p>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Yêu cầu</th>
+<th>F</th>
+<th>Mức</th>
+<th>Tiêu chí chấp nhận</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FR-3-01</td>
+<td>Edge phải kết thúc TLS theo SNI cho HTTP/1.1, HTTP/2, HTTP/3, và định danh zone, hostname của mọi request</td>
+<td>F3.1.1, F3.1.2</td>
+<td>MVP</td>
+<td>QS-1</td>
+</tr>
+<tr>
+<td>FR-3-02</td>
+<td>Mọi request phải có request ID trả về client trong header và trang chặn</td>
+<td>F3.1.3</td>
+<td>MVP</td>
+<td>Request ID tra được ở F7.3.1 (QS-11)</td>
+</tr>
+<tr>
+<td>FR-3-03</td>
+<td>Edge phải áp access list IP/CIDR/quốc gia/ASN trước mọi bước kiểm tốn kém</td>
+<td>F3.2.1</td>
+<td>MVP</td>
+<td>QS-17</td>
+</tr>
+<tr>
+<td>FR-3-04</td>
+<td>Edge phải phát hiện và giảm thiểu DDoS L7 tự động theo độ nhạy, hành động khách chọn</td>
+<td>F3.3.1, F3.3.2</td>
+<td>MVP</td>
+<td>QS-17, QS-29</td>
+</tr>
+<tr>
+<td>FR-3-05</td>
+<td>Under Attack mode phải challenge mọi request chưa có clearance của zone</td>
+<td>F3.3.3</td>
+<td>MVP</td>
+<td>QS-5</td>
+</tr>
+<tr>
+<td>FR-3-06</td>
+<td>Edge phải áp rate limit với bộ đếm toàn fleet theo khoá khách chọn</td>
+<td>F3.4.1, F3.4.2</td>
+<td>MVP</td>
+<td>Sai lệch ngưỡng toàn fleet ≤ 10% (<a href="#f-01-introduction-06-requirements--9-câu-hỏi-mở-cho-review">OQ-8</a>)</td>
+</tr>
+<tr>
+<td>FR-3-07</td>
+<td>Edge phải kiểm managed ruleset, custom rule theo thứ tự ưu tiên, exception có phạm vi, trên body trong giới hạn của gói</td>
+<td>F3.5.1–F3.5.4</td>
+<td>MVP</td>
+<td>QS-1, QS-8</td>
+</tr>
+<tr>
+<td>FR-3-08</td>
+<td>Edge phải chặn bot xấu rõ ràng, không chặn bot đã xác minh; tính điểm bot ở gói cao</td>
+<td>F3.6.1, F3.6.2</td>
+<td>MVP / MR</td>
+<td>QS-20, QS-21</td>
+</tr>
+<tr>
+<td>FR-3-09</td>
+<td>Edge nên kiểm request theo schema OpenAPI, JWT, mTLS client của endpoint</td>
+<td>F3.7.1, F3.7.2</td>
+<td>MR</td>
+<td>QS-22, QS-23</td>
+</tr>
+<tr>
+<td>FR-3-10</td>
+<td>Edge phải thực hiện block, challenge, log, allow, skip và phát security event cho mọi quyết định khác allow</td>
+<td>F3.8.1, F3.8.3</td>
+<td>MVP</td>
+<td>QS-10, QS-12</td>
+</tr>
+<tr>
+<td>FR-3-11</td>
+<td>Edge phải thực thi trần cứng của gói có trần</td>
+<td>F3.8.4</td>
+<td>MVP</td>
+<td>QS-36</td>
+</tr>
+<tr>
+<td>FR-3-12</td>
+<td>Zone phải chọn được fail-open hoặc fail-closed khi tầng WAF không trả lời kịp</td>
+<td>F3.9.1</td>
+<td>MVP</td>
+<td>QS-18</td>
+</tr>
+<tr>
+<td>FR-3-13</td>
+<td>Edge phải xác thực với origin bằng mTLS hoặc header bí mật do khách cấu hình</td>
+<td>F3.9.2</td>
+<td>MVP</td>
+<td></td>
+</tr>
+<tr>
+<td>FR-4-01</td>
+<td>Edge phải cache theo Cache-Control và cache rule của khách, phục vụ bản cũ khi origin lỗi</td>
+<td>F4.1.1, F4.1.2, F3.9.3</td>
+<td>MVP</td>
+<td></td>
+</tr>
+<tr>
+<td>FR-4-02</td>
+<td>Người dùng phải purge toàn zone, theo URL, theo prefix trong hạn mức gói</td>
+<td>F4.2.1</td>
+<td>MVP</td>
+<td>QS-15</td>
+</tr>
+<tr>
+<td>FR-4-03</td>
+<td>DNS điều hướng phải trả IP PoP khoẻ, gần client</td>
+<td>F4.3.1</td>
+<td>MVP</td>
+<td>QS-16</td>
+</tr>
+<tr>
+<td>FR-4-04</td>
+<td>Khách nên dùng được DNS authoritative với bản ghi proxied, DNSSEC; nhóm origin có health check và failover</td>
+<td>F4.3.2, F4.4.1</td>
+<td>MR</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-01-introduction-06-requirements--f5-vòng-đời-policy">F5 Vòng đời policy</h3>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Yêu cầu</th>
+<th>F</th>
+<th>Mức</th>
+<th>Tiêu chí chấp nhận</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FR-5-01</td>
+<td>Người dùng phải soạn custom rule bằng builder và bằng biểu thức text; hai cách chuyển qua lại không mất thông tin</td>
+<td>F5.1.1</td>
+<td>MVP</td>
+<td>Mọi rule tạo bằng builder hiển thị được dạng text và ngược lại (trong tập builder hỗ trợ)</td>
+</tr>
+<tr>
+<td>FR-5-02</td>
+<td>Người dùng phải cấu hình managed ruleset: profile, paranoia, ngưỡng anomaly, tắt từng rule trong giới hạn gói</td>
+<td>F5.1.2</td>
+<td>MVP</td>
+<td></td>
+</tr>
+<tr>
+<td>FR-5-03</td>
+<td>Người dùng phải soạn rate limit rule, access list, cấu hình DDoS L7, bot, API security của zone</td>
+<td>F5.1.3, F5.1.5</td>
+<td>MVP</td>
+<td></td>
+</tr>
+<tr>
+<td>FR-5-04</td>
+<td>Người dùng phải tạo exception có phạm vi (zone bắt buộc; rule, trường, đường dẫn tuỳ chọn) và có thể đặt ngày hết hạn</td>
+<td>F5.1.4</td>
+<td>MVP</td>
+<td><a href="#f-01-introduction-06-requirements--4-quy-tắc-nghiệp-vụ">BR-21</a></td>
+</tr>
+<tr>
+<td>FR-5-05</td>
+<td>Mọi rule và cả zone phải đặt được log-only</td>
+<td>F5.1.6</td>
+<td>MVP</td>
+<td>Rule log-only sinh event với hành động <code>log</code>, không ảnh hưởng request</td>
+</tr>
+<tr>
+<td>FR-5-06</td>
+<td>Mọi chỉnh sửa phải nằm trong bản nháp của zone cho tới khi phát hành; nhiều người sửa cùng bản nháp không ghi đè nhau</td>
+<td>F5.1</td>
+<td>MVP</td>
+<td>Xung đột version trả lỗi, không mất thay đổi</td>
+</tr>
+<tr>
+<td>FR-5-07</td>
+<td>Hệ thống phải kiểm cú pháp, kiểu, giới hạn gói khi soạn, và biên dịch thử bằng cùng checker với Control trước khi gửi duyệt</td>
+<td>F5.2.1, F5.2.2</td>
+<td>MVP</td>
+<td>Bản nháp qua kiểm tra không bao giờ bị Control từ chối vì cú pháp</td>
+</tr>
+<tr>
+<td>FR-5-08</td>
+<td>Người dùng nên mô phỏng thay đổi trên traffic 7 ngày gần nhất và thấy số request đổi kết quả</td>
+<td>F5.2.3</td>
+<td>MR</td>
+<td>Kết quả ≤ 5 phút cho zone 10 triệu request/ngày</td>
+</tr>
+<tr>
+<td>FR-5-09</td>
+<td>Gửi duyệt phải tạo change request chứa diff, kết quả kiểm tra, mô phỏng nếu có</td>
+<td>F5.3.1</td>
+<td>MVP</td>
+<td></td>
+</tr>
+<tr>
+<td>FR-5-10</td>
+<td>Account bật 4-eyes thì change request phải có người duyệt khác người tạo (<a href="#f-01-introduction-06-requirements--4-quy-tắc-nghiệp-vụ">BR-5</a>)</td>
+<td>F5.3.2</td>
+<td>MR</td>
+<td></td>
+</tr>
+<tr>
+<td>FR-5-11</td>
+<td>Account nên đặt được khung giờ cho phép phát hành; ngoài khung chỉ kênh khẩn chạy</td>
+<td>F5.3.3</td>
+<td>MR</td>
+<td></td>
+</tr>
+<tr>
+<td>FR-5-12</td>
+<td>Phát hành phải tạo PolicyVersion bất biến và gửi sang Control trong cùng giao dịch với lần ghi (<a href="#f-01-introduction-06-requirements--4-quy-tắc-nghiệp-vụ">BR-4</a>)</td>
+<td>F5.3.4</td>
+<td>MVP</td>
+<td>Không có version nào &quot;đã phát hành&quot; mà Control chưa nhận</td>
+</tr>
+<tr>
+<td>FR-5-13</td>
+<td>Portal phải hiện trạng thái phát hành: đã biên dịch, % node đã áp, lỗi</td>
+<td>F5.3.5</td>
+<td>MVP</td>
+<td>QS-4</td>
+</tr>
+<tr>
+<td>FR-5-14</td>
+<td>Người dùng phải xem lịch sử version, so sánh hai version bất kỳ, và rollback một bấm</td>
+<td>F5.4.1–F5.4.3</td>
+<td>MVP</td>
+<td>QS-7</td>
+</tr>
+<tr>
+<td>FR-5-15</td>
+<td>SOC phải bật Under Attack mode và rule tạm có hạn mà không cần duyệt; rule tạm tự hết hạn (<a href="#f-01-introduction-06-requirements--4-quy-tắc-nghiệp-vụ">BR-6</a>)</td>
+<td>F5.5.1, F5.5.2</td>
+<td>MVP</td>
+<td>QS-5</td>
+</tr>
+<tr>
+<td>FR-5-16</td>
+<td>Mọi thao tác F5.1–F5.4 phải làm được qua public API với cùng quyền như UI</td>
+<td>F5.6.1</td>
+<td>MVP</td>
+<td>UI chỉ dùng public API</td>
+</tr>
+<tr>
+<td>FR-5-17</td>
+<td>Hệ thống nên có Terraform provider và đồng bộ policy từ Git</td>
+<td>F5.6.2, F5.6.3</td>
+<td>MR</td>
+<td><code>terraform plan</code> lần hai sau <code>apply</code> không có thay đổi</td>
+</tr>
+<tr>
+<td>FR-5-18</td>
+<td>Hệ thống nên kế thừa policy org → nhóm zone → zone; zone thấy được rule nào đến từ cấp nào</td>
+<td>F5.1.7</td>
+<td>MR</td>
+<td></td>
+</tr>
+<tr>
+<td>FR-5-19</td>
+<td>Người dùng nên duyệt endpoint API từ discovery và tải OpenAPI làm schema</td>
+<td>F5.1.8</td>
+<td>MR</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-01-introduction-06-requirements--f6-phân-phối-cấu-hình-và-f11-threat-intelligence">F6 Phân phối cấu hình và F11 Threat intelligence</h3>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Yêu cầu</th>
+<th>F</th>
+<th>Mức</th>
+<th>Tiêu chí chấp nhận</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FR-6-01</td>
+<td>Control phải biên dịch mỗi thay đổi thành bundle của zone, từ chối bundle vượt ngân sách và báo lý do về Management</td>
+<td>F6.1.1, F6.1.2</td>
+<td>MVP</td>
+<td></td>
+</tr>
+<tr>
+<td>FR-6-02</td>
+<td>Mọi bundle và manifest phải được ký; edge từ chối bản không có chữ ký hợp lệ</td>
+<td>F6.1.3</td>
+<td>MVP</td>
+<td></td>
+</tr>
+<tr>
+<td>FR-6-03</td>
+<td>Cấu hình khẩn (Under Attack, rule khẩn, purge) phải đi đường nhanh tách khỏi đường thường</td>
+<td>F6.2.2</td>
+<td>MVP</td>
+<td>QS-5, QS-15</td>
+</tr>
+<tr>
+<td>FR-6-04</td>
+<td>Thay đổi phải đi canary theo cell, có gate theo chỉ số, tự rollback khi vượt ngưỡng</td>
+<td>F6.3.1</td>
+<td>MVP</td>
+<td>QS-6</td>
+</tr>
+<tr>
+<td>FR-6-05</td>
+<td>Node phải có danh tính, cert ngắn hạn tự gia hạn, thu hồi được</td>
+<td>F6.4.1, F6.4.2</td>
+<td>MVP</td>
+<td>QS-39, QS-40</td>
+</tr>
+<tr>
+<td>FR-6-06</td>
+<td>NOC phải biết mỗi node chạy bản edge, ruleset, manifest nào</td>
+<td>F6.4.3</td>
+<td>MVP</td>
+<td></td>
+</tr>
+<tr>
+<td>FR-6-07</td>
+<td>Zone phải được đặt vào pool cell theo gói và chuyển khi đổi gói</td>
+<td>F6.5.1</td>
+<td>MVP</td>
+<td>QS-34</td>
+</tr>
+<tr>
+<td>FR-11-01</td>
+<td>Threat research phải phát hành ruleset có version, rollout theo wave, log-only trước khi chặn</td>
+<td>F11.1.1, F11.1.2</td>
+<td>MVP</td>
+<td></td>
+</tr>
+<tr>
+<td>FR-11-02</td>
+<td>Threat research phải phát hành rule khẩn toàn fleet</td>
+<td>F11.2.1</td>
+<td>MVP</td>
+<td>QS-5</td>
+</tr>
+<tr>
+<td>FR-11-03</td>
+<td>Hệ thống nên nhập feed IP reputation và gợi ý virtual patch cho zone bị ảnh hưởng bởi CVE</td>
+<td>F11.3.1, F11.4.1</td>
+<td>MR</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-01-introduction-06-requirements--f7-quan-sát-và-điều-tra">F7 Quan sát và điều tra</h3>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Yêu cầu</th>
+<th>F</th>
+<th>Mức</th>
+<th>Tiêu chí chấp nhận</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FR-7-01</td>
+<td>Analytics phải nhận đủ security event, access log lấy mẫu theo gói, và đối soát số bản ghi</td>
+<td>F7.1.1, F7.1.2, F7.1.4</td>
+<td>MVP</td>
+<td>QS-10</td>
+</tr>
+<tr>
+<td>FR-7-02</td>
+<td>Portal phải hiện luồng security event trực tiếp của zone đang xem</td>
+<td>F7.2.1</td>
+<td>MVP</td>
+<td>QS-37, QS-38</td>
+</tr>
+<tr>
+<td>FR-7-03</td>
+<td>Người dùng phải tra một request ID và thấy rule, bước pipeline, policy version, người duyệt</td>
+<td>F7.3.1</td>
+<td>MVP</td>
+<td>QS-11, QS-12</td>
+</tr>
+<tr>
+<td>FR-7-04</td>
+<td>Người dùng phải lọc, nhóm event theo trường và thời gian trong retention của gói</td>
+<td>F7.3.2</td>
+<td>MVP</td>
+<td>Truy vấn 24 giờ của một zone ≤ 3 s p95 (<a href="#f-01-introduction-06-requirements--9-câu-hỏi-mở-cho-review">OQ-9</a>)</td>
+</tr>
+<tr>
+<td>FR-7-05</td>
+<td>Người dùng phải lưu truy vấn và chia sẻ trong account</td>
+<td>F7.3.3</td>
+<td>MVP</td>
+<td></td>
+</tr>
+<tr>
+<td>FR-7-06</td>
+<td>Portal phải có dashboard traffic, bảo mật, cache, origin, hiệu quả rule</td>
+<td>F7.4.1, F7.4.2</td>
+<td>MVP</td>
+<td></td>
+</tr>
+<tr>
+<td>FR-7-07</td>
+<td>Người dùng phải đánh dấu event là chặn nhầm, thấy tỉ lệ chặn nhầm theo rule, và tạo nháp exception từ event</td>
+<td>F7.5.1–F7.5.3</td>
+<td>MVP</td>
+<td>Exception nháp điền sẵn rule, đường dẫn, trường</td>
+</tr>
+<tr>
+<td>FR-7-08</td>
+<td>Người dùng phải cấu hình đích export SIEM; Analytics đẩy liên tục, thử lại, cảnh báo khi đích lỗi</td>
+<td>F7.6.1, F7.6.2</td>
+<td>MVP</td>
+<td>Đích lỗi 24 giờ không làm mất event trong retention</td>
+</tr>
+<tr>
+<td>FR-7-09</td>
+<td>Mọi truy vấn dữ liệu traffic phải đi qua Query API áp quyền theo tenant</td>
+<td>F7.3</td>
+<td>MVP</td>
+<td>QS-9</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-01-introduction-06-requirements--f8-phát-hiện-cảnh-báo-sự-cố">F8 Phát hiện, cảnh báo, sự cố</h3>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Yêu cầu</th>
+<th>F</th>
+<th>Mức</th>
+<th>Tiêu chí chấp nhận</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FR-8-01</td>
+<td>Người dùng phải tạo alert policy từ template, chọn phạm vi zone, ngưỡng, mức</td>
+<td>F8.2.1</td>
+<td>MVP</td>
+<td></td>
+</tr>
+<tr>
+<td>FR-8-02</td>
+<td>Người dùng phải cấu hình kênh theo gói và gửi thử</td>
+<td>F8.2.2, F8.2.4</td>
+<td>MVP</td>
+<td></td>
+</tr>
+<tr>
+<td>FR-8-03</td>
+<td>Alert policy phải có giờ im lặng, chu kỳ lặp, gộp cảnh báo</td>
+<td>F8.2.3</td>
+<td>MVP</td>
+<td>Một sự cố kéo dài 1 giờ sinh ≤ 1 thông báo mỗi chu kỳ lặp</td>
+</tr>
+<tr>
+<td>FR-8-04</td>
+<td>Hệ thống phải ghi kết quả gửi của từng thông báo, thử lại khi kênh lỗi</td>
+<td>F8.3.1</td>
+<td>MVP</td>
+<td></td>
+</tr>
+<tr>
+<td>FR-8-05</td>
+<td>SOC nên mở case tay hoặc từ đề xuất của Detection, gắn event, truy vấn, mitigation</td>
+<td>F8.4.1, F8.4.2</td>
+<td>MR</td>
+<td></td>
+</tr>
+<tr>
+<td>FR-8-06</td>
+<td>Case nên có workflow mở → tiếp nhận → giảm thiểu → đóng, người phụ trách, SLA, và bắt buộc tóm tắt khi đóng</td>
+<td>F8.4.3, F8.4.4</td>
+<td>MR</td>
+<td><a href="#f-01-introduction-06-requirements--4-quy-tắc-nghiệp-vụ">BR-19</a></td>
+</tr>
+<tr>
+<td>FR-8-07</td>
+<td>Chấp nhận đề xuất mitigation từ case phải tạo rule tạm có hạn qua kênh khẩn</td>
+<td>F8.1.3, F5.5.2</td>
+<td>MR</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-01-introduction-06-requirements--f9-báo-cáo-và-tuân-thủ">F9 Báo cáo và tuân thủ</h3>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Yêu cầu</th>
+<th>F</th>
+<th>Mức</th>
+<th>Tiêu chí chấp nhận</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FR-9-01</td>
+<td>Người dùng nên định nghĩa báo cáo, lịch gửi, người nhận; xuất PDF/CSV</td>
+<td>F9.1.1, F9.1.2</td>
+<td>MR</td>
+<td></td>
+</tr>
+<tr>
+<td>FR-9-02</td>
+<td>Hệ thống nên có báo cáo tuân thủ: thay đổi policy và người duyệt, phân quyền, retention</td>
+<td>F9.2.1</td>
+<td>MR</td>
+<td>Đủ làm bằng chứng cho PCI DSS 6.4.2</td>
+</tr>
+<tr>
+<td>FR-9-03</td>
+<td>Log traffic phải bị xoá khi hết retention của gói</td>
+<td>F9.3.1</td>
+<td>MVP</td>
+<td></td>
+</tr>
+<tr>
+<td>FR-9-04</td>
+<td>Audit log phải giữ tối thiểu 13 tháng truy vấn được, sau đó archive, không xoá (<a href="#f-01-introduction-06-requirements--4-quy-tắc-nghiệp-vụ">BR-12</a>)</td>
+<td>F9.3.2</td>
+<td>MVP</td>
+<td></td>
+</tr>
+<tr>
+<td>FR-9-05</td>
+<td>Hệ thống phải xoá hoặc ẩn danh dữ liệu cá nhân của một người theo yêu cầu (<a href="#f-01-introduction-06-requirements--9-câu-hỏi-mở-cho-review">OQ-6</a>)</td>
+<td>F9.3.3</td>
+<td>MVP</td>
+<td>Tuân thủ Nghị định 13/2023/NĐ-CP</td>
+</tr>
+<tr>
+<td>FR-9-06</td>
+<td>Account nên chọn region lưu log; tenant Enterprise chọn region lưu cấu hình</td>
+<td>F9.4.1, F9.4.2</td>
+<td>NC</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-01-introduction-06-requirements--f10-gói-và-billing">F10 Gói và billing</h3>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Yêu cầu</th>
+<th>F</th>
+<th>Mức</th>
+<th>Tiêu chí chấp nhận</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FR-10-01</td>
+<td>NCC phải định nghĩa gói, giá (VND, USD), hạn mức, đơn giá vượt, entitlements; thay đổi gói tạo version mới, subscription cũ giữ version cũ tới khi gia hạn</td>
+<td>F10.1.1</td>
+<td>MVP</td>
+<td>Hoá đơn của kỳ luôn tính theo version gói của kỳ đó</td>
+</tr>
+<tr>
+<td>FR-10-02</td>
+<td>Sales phải tạo gói riêng cho một hợp đồng Enterprise</td>
+<td>F10.1.2</td>
+<td>MVP</td>
+<td>Gói riêng không hiện cho tenant khác</td>
+</tr>
+<tr>
+<td>FR-10-03</td>
+<td>Khách phải dùng thử 14 ngày tính năng Business trên một zone có trần (<a href="#f-01-introduction-06-requirements--4-quy-tắc-nghiệp-vụ">BR-8</a>)</td>
+<td>F10.2.1</td>
+<td>MVP</td>
+<td></td>
+</tr>
+<tr>
+<td>FR-10-04</td>
+<td>Owner, billing phải mua, nâng, hạ gói theo zone; nâng có hiệu lực ngay, hạ có hiệu lực cuối kỳ (<a href="#f-01-introduction-06-requirements--9-câu-hỏi-mở-cho-review">OQ-10</a>)</td>
+<td>F10.2.2</td>
+<td>MVP</td>
+<td>QS-14, QS-34</td>
+</tr>
+<tr>
+<td>FR-10-05</td>
+<td>Quá hạn thanh toán phải chuyển zone sang chuyển tiếp tối giản 30 ngày rồi tạm dừng (<a href="#f-01-introduction-06-requirements--4-quy-tắc-nghiệp-vụ">BR-9</a>)</td>
+<td>F10.2.3</td>
+<td>MVP</td>
+<td>Có thông báo ở mỗi bước</td>
+</tr>
+<tr>
+<td>FR-10-06</td>
+<td>Management phải tính entitlements của zone từ gói, add-on, hợp đồng và phát sang Control khi đổi</td>
+<td>F10.3.1, F10.3.2</td>
+<td>MVP</td>
+<td>QS-14</td>
+</tr>
+<tr>
+<td>FR-10-07</td>
+<td>Management phải từ chối tạo đối tượng vượt giới hạn gói (số rule, đích export, kênh…)</td>
+<td>F10.3.3</td>
+<td>MVP</td>
+<td>Lỗi nêu giới hạn và gói cần nâng</td>
+</tr>
+<tr>
+<td>FR-10-08</td>
+<td>Edge phải đếm băng thông sạch và request theo zone; Analytics gộp và đối soát; Management nhận usage theo ngày</td>
+<td>F10.4.1–F10.4.3</td>
+<td>MVP</td>
+<td>QS-35</td>
+</tr>
+<tr>
+<td>FR-10-09</td>
+<td>Owner, billing phải nhận cảnh báo ở 80% và 100% hạn mức</td>
+<td>F10.5.1</td>
+<td>MVP</td>
+<td>Mỗi mốc gửi một lần mỗi kỳ</td>
+</tr>
+<tr>
+<td>FR-10-10</td>
+<td>Gói có trần phải phát lệnh áp trần khi vượt</td>
+<td>F10.5.2</td>
+<td>MVP</td>
+<td>QS-36</td>
+</tr>
+<tr>
+<td>FR-10-11</td>
+<td>Hệ thống phải lập hoá đơn cuối kỳ gồm phí nền, phí vượt, add-on, thuế; xuất hoá đơn điện tử</td>
+<td>F10.6.1, F10.6.3</td>
+<td>MVP</td>
+<td>Tổng phí vượt khớp usage đã đối soát</td>
+</tr>
+<tr>
+<td>FR-10-12</td>
+<td>Hệ thống phải thu tiền qua cổng thanh toán; chỉ lưu token của cổng</td>
+<td>F10.6.2</td>
+<td>MVP</td>
+<td>Không có số thẻ trong hệ thống (ngoài phạm vi PCI DSS SAQ D)</td>
+</tr>
+<tr>
+<td>FR-10-13</td>
+<td>NCC nên điều chỉnh, hoàn tiền, ghi có</td>
+<td>F10.6.4</td>
+<td>MR</td>
+<td>Mọi điều chỉnh có audit và lý do</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-01-introduction-06-requirements--f12-vận-hành-ncc">F12 Vận hành NCC</h3>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Yêu cầu</th>
+<th>F</th>
+<th>Mức</th>
+<th>Tiêu chí chấp nhận</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FR-12-01</td>
+<td>NOC phải rút một PoP khỏi DNS và đóng băng phát hành toàn fleet</td>
+<td>F12.2.1, F12.2.2</td>
+<td>MVP</td>
+<td>QS-16</td>
+</tr>
+<tr>
+<td>FR-12-02</td>
+<td>Support phải tra request ID của khách mà không có quyền đọc dữ liệu khác của tenant</td>
+<td>F12.3.1</td>
+<td>MVP</td>
+<td></td>
+</tr>
+<tr>
+<td>FR-12-03</td>
+<td>Support chỉ được vào tenant khi khách cấp quyền, có hạn, có audit hiện cho khách (<a href="#f-01-introduction-06-requirements--4-quy-tắc-nghiệp-vụ">BR-20</a>)</td>
+<td>F12.3.2</td>
+<td>MVP</td>
+<td></td>
+</tr>
+<tr>
+<td>FR-12-04</td>
+<td>NCC phải tạm khoá, mở khoá org (vi phạm, gian lận) kèm lý do</td>
+<td>F12.4.1</td>
+<td>MVP</td>
+<td>Zone của org bị khoá chuyển theo <a href="#f-01-introduction-06-requirements--4-quy-tắc-nghiệp-vụ">BR-9</a>, không cắt đột ngột</td>
+</tr>
+<tr>
+<td>FR-12-05</td>
+<td>NCC phải quản lý danh mục gói, đối tác hạ tầng, PoP</td>
+<td>F12.4.2</td>
+<td>MVP</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-01-introduction-06-requirements--4-quy-tắc-nghiệp-vụ">4. Quy tắc nghiệp vụ</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Quy tắc</th>
+<th>Áp cho</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>BR-1</td>
+<td>Một domain gốc thuộc tối đa một zone chưa gỡ trên toàn nền tảng. Subdomain của domain đã có zone ở tenant khác bị từ chối (<a href="#f-01-introduction-06-requirements--9-câu-hỏi-mở-cho-review">OQ-2</a>)</td>
+<td>F2.1.1</td>
+</tr>
+<tr>
+<td>BR-2</td>
+<td>Zone chỉ kích hoạt khi domain đã xác minh và có ít nhất một origin</td>
+<td>F2.4.1</td>
+</tr>
+<tr>
+<td>BR-3</td>
+<td>Một zone thuộc đúng một account; entitlements tính theo zone</td>
+<td>F2, F10</td>
+</tr>
+<tr>
+<td>BR-4</td>
+<td>PolicyVersion không sửa được. Rollback tạo version mới có nội dung của version cũ</td>
+<td>F5.3.4, F5.4.3</td>
+</tr>
+<tr>
+<td>BR-5</td>
+<td>Khi bật 4-eyes: người duyệt khác người tạo và khác mọi người đã sửa bản nháp đó; người duyệt phải có quyền duyệt trên mọi zone trong change request</td>
+<td>F5.3.2</td>
+</tr>
+<tr>
+<td>BR-6</td>
+<td>Kênh khẩn gồm: Under Attack mode, tạm dừng zone, rule tạm, rule khẩn của NCC. Không cần duyệt, luôn có audit. Rule tạm hết hạn tối đa sau 72 giờ, gia hạn phải đi đường thường (<a href="#f-01-introduction-06-requirements--9-câu-hỏi-mở-cho-review">OQ-5</a>)</td>
+<td>F5.5</td>
+</tr>
+<tr>
+<td>BR-7</td>
+<td>Traffic bị edge chặn hoặc challenge không tính vào usage tính tiền</td>
+<td>F10.4</td>
+</tr>
+<tr>
+<td>BR-8</td>
+<td>Mỗi org dùng thử một lần; định danh dùng thử gồm org, domain email của owner, phương thức thanh toán, domain zone</td>
+<td>F10.2.1</td>
+</tr>
+<tr>
+<td>BR-9</td>
+<td>Không cắt traffic đột ngột: hết dùng thử, quá hạn, bị khoá đều qua chuyển tiếp tối giản 30 ngày rồi mới tạm dừng</td>
+<td>F10.2.3, F12.4.1</td>
+</tr>
+<tr>
+<td>BR-10</td>
+<td>Gói trả phí không bị cắt traffic vì vượt hạn mức, chỉ tính phí vượt. Gói có trần bị áp trần</td>
+<td>F10.5</td>
+</tr>
+<tr>
+<td>BR-11</td>
+<td>Giới hạn gói kiểm khi tạo và khi phát hành. Hạ gói khi đang vượt giới hạn mới thì bị từ chối tới khi giảm bớt (<a href="#f-01-introduction-06-requirements--9-câu-hỏi-mở-cho-review">OQ-10</a>)</td>
+<td>F10.3.3</td>
+</tr>
+<tr>
+<td>BR-12</td>
+<td>Audit không xoá, không sửa. Dữ liệu cá nhân trong audit xử lý theo <a href="#f-01-introduction-06-requirements--9-câu-hỏi-mở-cho-review">OQ-6</a></td>
+<td>F1.5, F9.3.2</td>
+</tr>
+<tr>
+<td>BR-13</td>
+<td>Org luôn có ít nhất một owner; không gỡ hay hạ quyền được owner cuối cùng</td>
+<td>F1.2.4</td>
+</tr>
+<tr>
+<td>BR-14</td>
+<td>Secret của API key chỉ hiện lúc tạo; hệ thống chỉ lưu hash và tiền tố để nhận diện</td>
+<td>F1.4.1</td>
+</tr>
+<tr>
+<td>BR-15</td>
+<td>Gỡ thành viên hoặc khoá user ở IdP thu hồi phiên và key cá nhân trong ≤ 1 phút</td>
+<td>F1.2.4, F1.2.5</td>
+</tr>
+<tr>
+<td>BR-16</td>
+<td>Gỡ zone giải phóng domain và hostname ngay; dữ liệu của zone giữ theo retention rồi xoá</td>
+<td>F2.4.3</td>
+</tr>
+<tr>
+<td>BR-17</td>
+<td>Một hostname thuộc tối đa một zone chưa gỡ trên toàn nền tảng</td>
+<td>F2.2.1</td>
+</tr>
+<tr>
+<td>BR-18</td>
+<td>Thay đổi ảnh hưởng traffic chỉ tới edge qua PolicyVersion hoặc kênh khẩn, không có đường thứ ba</td>
+<td>F5, F6</td>
+</tr>
+<tr>
+<td>BR-19</td>
+<td>Case chỉ đóng khi có tóm tắt và mọi mitigation tạm của case đã hết hạn hoặc được chuyển thành rule thường</td>
+<td>F8.4</td>
+</tr>
+<tr>
+<td>BR-20</td>
+<td>Support của NCC chỉ vào tenant khi khách cấp quyền, tối đa 72 giờ, khách thấy và thu hồi được</td>
+<td>F12.3.2</td>
+</tr>
+<tr>
+<td>BR-21</td>
+<td>Exception luôn có phạm vi zone; exception tắt toàn bộ managed ruleset cho cả zone phải đi qua duyệt kể cả khi 4-eyes tắt</td>
+<td>F5.1.4</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-01-introduction-06-requirements--5-yêu-cầu-dữ-liệu">5. Yêu cầu dữ liệu</h2>
+<p>Bảng này là đầu vào trực tiếp cho thiết kế database. &quot;Chủ&quot; là plane giữ bản gốc; plane khác chỉ giữ bản sao
+hoặc đọc qua API.</p>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Nhóm dữ liệu</th>
+<th>Đối tượng chính</th>
+<th>Chủ</th>
+<th>Quy mô thiết kế</th>
+<th>Retention</th>
+<th>Độ nhạy</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DT-1</td>
+<td>Tenant, danh tính</td>
+<td>Org, Account, Member, Invitation, Role, RoleBinding, Group, SsoConnection, SsoDomain, ServiceAccount, ApiKey, MfaFactor, Session</td>
+<td>M</td>
+<td>400k org, 1,5 triệu member</td>
+<td>Tới khi xoá org + thời hạn giữ</td>
+<td>Dữ liệu cá nhân (email, tên, IP đăng nhập); secret SSO ở secret store</td>
+</tr>
+<tr>
+<td>DT-2</td>
+<td>Registry toàn cục</td>
+<td>DomainClaim, HostnameClaim, ApiKey prefix, SsoDomain claim, TrialClaim, nơi đặt tenant</td>
+<td>M (dùng chung mọi tenant)</td>
+<td>≈ 5 triệu dòng</td>
+<td>Theo vòng đời đối tượng gốc</td>
+<td>Thấp</td>
+</tr>
+<tr>
+<td>DT-3</td>
+<td>Cấu hình zone</td>
+<td>Zone, Hostname, Origin, OriginPool, ZoneSettings, ZoneGroup, ZoneTag, CacheRule, DnsRecord, CustomPage, DomainVerification, OriginCheck</td>
+<td>M</td>
+<td>1 triệu zone, 3 triệu hostname</td>
+<td>Tới khi gỡ zone</td>
+<td>Thấp; secret tới origin ở secret store</td>
+</tr>
+<tr>
+<td>DT-4</td>
+<td>Policy nháp</td>
+<td>PolicyDraft, CustomRule, RateLimitRule, AccessList, ManagedRulesetConfig, Exception, DdosSettings, BotPolicy, ApiEndpoint, ApiSchema, ApiAuthConfig, PolicyTemplate, PolicyBinding</td>
+<td>M</td>
+<td>Tới 1.000 rule mỗi zone, trung bình ≈ 10</td>
+<td>Tới khi gỡ zone</td>
+<td>Trung bình (lộ cách phòng thủ của khách)</td>
+</tr>
+<tr>
+<td>DT-5</td>
+<td>Policy đã phát hành</td>
+<td>PolicyVersion (tài liệu bất biến + <code>content_hash</code>)</td>
+<td>M</td>
+<td>≈ 50 triệu mỗi năm</td>
+<td>Giữ đủ để rollback và kiểm toán (<a href="#f-01-introduction-06-requirements--9-câu-hỏi-mở-cho-review">OQ-7</a>)</td>
+<td>Trung bình</td>
+</tr>
+<tr>
+<td>DT-6</td>
+<td>Thay đổi và duyệt</td>
+<td>ChangeRequest, Approval, ChangeWindow, TemporaryMitigation, BulkOperation, GitSource</td>
+<td>M</td>
+<td>≈ thay đổi cấu hình 1,7/s</td>
+<td>13 tháng truy vấn được</td>
+<td>Trung bình</td>
+</tr>
+<tr>
+<td>DT-7</td>
+<td>Audit</td>
+<td>AuditEntry</td>
+<td>M</td>
+<td>Lớn nhất của Management, ghi thêm</td>
+<td>Không xoá; archive sau 13 tháng</td>
+<td>Có dữ liệu cá nhân</td>
+</tr>
+<tr>
+<td>DT-8</td>
+<td>Gói, billing</td>
+<td>Plan, PlanVersion, Price, AddOn, Subscription, Entitlements, UsageDaily, QuotaNotice, Invoice, InvoiceLine, Payment, PaymentMethod (token), CreditNote</td>
+<td>M</td>
+<td>1 triệu subscription, 1 triệu dòng usage mỗi ngày</td>
+<td>Hoá đơn, chứng từ ≥ 10 năm (Luật Kế toán)</td>
+<td>Tài chính; không lưu số thẻ</td>
+</tr>
+<tr>
+<td>DT-9</td>
+<td>Vận hành bảo mật của khách</td>
+<td>SavedSearch, AlertPolicy, NotificationChannel, ExportDestination, FalsePositiveLabel, Case, CaseLink, ReportDefinition, ReportRun</td>
+<td>M</td>
+<td>Nhỏ so với DT-3</td>
+<td>Theo vòng đời; ReportRun 13 tháng</td>
+<td>Credential kênh, đích export ở secret store</td>
+</tr>
+<tr>
+<td>DT-10</td>
+<td>Dữ liệu NCC</td>
+<td>Partner, Pop, SupportAccessGrant, trạng thái khoá org</td>
+<td>M (<code>PLATFORM_TENANT_ID</code>)</td>
+<td>Nhỏ</td>
+<td>Theo vòng đời</td>
+<td>Thấp</td>
+</tr>
+<tr>
+<td>DT-11</td>
+<td>Phân phối, fleet</td>
+<td>ZoneBundle, Manifest, CompileResult, Rollout, RolloutStatus, Node, NodeCert, NodeDenyList, ZonePlacement, RulesetRelease, EmergencyRule, ReputationFeed, PopState, FleetFreeze</td>
+<td>C</td>
+<td>8 GB bundle mỗi PoP, ≈ 700 node</td>
+<td>Bundle: N version gần nhất mỗi zone</td>
+<td>Khoá ký ở KMS</td>
+</tr>
+<tr>
+<td>DT-12</td>
+<td>Telemetry</td>
+<td>SecurityEvent, AccessLog, RequestSample, UsageCounter, AlertState, NotificationDelivery, ReplayJob, bảng tổng hợp</td>
+<td>A</td>
+<td>≈ 1,15 triệu bản ghi/s, 12 TB/ngày</td>
+<td>Theo gói: 24 giờ đến 365 ngày</td>
+<td>Có IP và header của end-user</td>
+</tr>
+</tbody>
+</table>
+<p>Yêu cầu chung cho dữ liệu:</p>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Yêu cầu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DT-13</td>
+<td>Mọi bản ghi của khách mang tenant; không truy vấn nào của khách đọc được bản ghi tenant khác (QS-9)</td>
+</tr>
+<tr>
+<td>DT-14</td>
+<td>Mọi entity ghi được bởi khách có optimistic locking; ghi đè im lặng là lỗi</td>
+</tr>
+<tr>
+<td>DT-15</td>
+<td>Xoá do khách thực hiện là xoá mềm; xoá cứng chỉ khi hết retention hoặc xoá org</td>
+</tr>
+<tr>
+<td>DT-16</td>
+<td>Không có secret (khoá riêng cert, credential origin, token kênh, secret SSO, secret API key) trong database, log, audit hay bản sao lưu; chỉ tham chiếu tới secret store</td>
+</tr>
+<tr>
+<td>DT-17</td>
+<td>Thay đổi dữ liệu cần tới Control hay Analytics phát sự kiện trong cùng giao dịch với lần ghi</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-01-introduction-06-requirements--6-yêu-cầu-phi-chức-năng">6. Yêu cầu phi chức năng</h2>
+<p>Kịch bản đo được của toàn hệ thống ở <a href="#f-10-quality-00-index--103-kịch-bản">10.3</a> (QS-1…QS-41) là phần
+chính. Dưới đây chỉ là những điểm 10.3 chưa có, chủ yếu cho Management.</p>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Thuộc tính</th>
+<th>Yêu cầu</th>
+<th>Đề xuất</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>NFR-1</td>
+<td>Khôi phục</td>
+<td>Mất database Management</td>
+<td>RPO ≤ 1 phút, RTO ≤ 1 giờ; traffic không bị ảnh hưởng (edge chạy bằng snapshot)</td>
+</tr>
+<tr>
+<td>NFR-2</td>
+<td>Khôi phục</td>
+<td>Khôi phục về một thời điểm</td>
+<td>Point-in-time recovery trong 14 ngày; diễn tập mỗi quý</td>
+</tr>
+<tr>
+<td>NFR-3</td>
+<td>Hiệu năng</td>
+<td>API ghi của Management</td>
+<td>p95 ≤ 500 ms (không tính biên dịch, mô phỏng)</td>
+</tr>
+<tr>
+<td>NFR-4</td>
+<td>Hiệu năng</td>
+<td>Mở một trang portal bất kỳ</td>
+<td>p95 ≤ 2 s trên đường truyền 10 Mbps</td>
+</tr>
+<tr>
+<td>NFR-5</td>
+<td>Bảo vệ API</td>
+<td>Public API theo API key và theo tenant</td>
+<td>Có rate limit, trả <code>429</code> kèm <code>Retry-After</code>; một tenant chạm giới hạn không làm chậm tenant khác</td>
+</tr>
+<tr>
+<td>NFR-6</td>
+<td>Bảo mật</td>
+<td>Portal và public API</td>
+<td>Đạt OWASP ASVS mức 2; pentest bên thứ ba trước khi bán</td>
+</tr>
+<tr>
+<td>NFR-7</td>
+<td>Bảo mật</td>
+<td>Dữ liệu lưu</td>
+<td>Mã hoá lúc lưu và trên đường truyền; bản sao lưu mã hoá</td>
+</tr>
+<tr>
+<td>NFR-8</td>
+<td>Tương thích</td>
+<td>Public API</td>
+<td>Có version; thay đổi phá vỡ chỉ ở version mới, báo trước ≥ 6 tháng</td>
+</tr>
+<tr>
+<td>NFR-9</td>
+<td>Ngôn ngữ</td>
+<td>Portal, email, hoá đơn</td>
+<td>Tiếng Việt và tiếng Anh</td>
+</tr>
+<tr>
+<td>NFR-10</td>
+<td>Trình duyệt</td>
+<td>Portal</td>
+<td>Hai bản mới nhất của Chrome, Edge, Firefox, Safari</td>
+</tr>
+<tr>
+<td>NFR-11</td>
+<td>Truy cập</td>
+<td>Portal</td>
+<td>WCAG 2.1 AA cho luồng chính (<a href="#f-01-introduction-06-requirements--9-câu-hỏi-mở-cho-review">OQ-11</a>)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-01-introduction-06-requirements--7-giao-tiếp-với-hệ-thống-ngoài">7. Giao tiếp với hệ thống ngoài</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Hệ thống</th>
+<th>Chiều</th>
+<th>Yêu cầu</th>
+<th>Mức</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>IR-1</td>
+<td>IdP của khách</td>
+<td>Vào</td>
+<td>SAML 2.0, OIDC; SCIM 2.0 (<code>/Users</code>, <code>/Groups</code>)</td>
+<td>MVP / MR</td>
+</tr>
+<tr>
+<td>IR-2</td>
+<td>Cổng thanh toán</td>
+<td>Hai chiều</td>
+<td>Thẻ quốc tế và cổng nội địa; webhook kết quả có chữ ký; idempotent (<a href="#f-01-introduction-06-requirements--9-câu-hỏi-mở-cho-review">OQ-12</a>)</td>
+<td>MVP</td>
+</tr>
+<tr>
+<td>IR-3</td>
+<td>Nhà cung cấp hoá đơn điện tử</td>
+<td>Ra</td>
+<td>Xuất hoá đơn theo Nghị định 123/2020/NĐ-CP</td>
+<td>MVP</td>
+</tr>
+<tr>
+<td>IR-4</td>
+<td>CA ACME</td>
+<td>Ra</td>
+<td>Let's Encrypt và một CA dự phòng</td>
+<td>MVP</td>
+</tr>
+<tr>
+<td>IR-5</td>
+<td>DNS công cộng</td>
+<td>Ra</td>
+<td>Kiểm bản ghi xác minh, trạng thái trỏ</td>
+<td>MVP</td>
+</tr>
+<tr>
+<td>IR-6</td>
+<td>SIEM, kho lưu của khách</td>
+<td>Ra</td>
+<td>Splunk HEC, S3-compatible, HTTP, Kafka, syslog</td>
+<td>MVP</td>
+</tr>
+<tr>
+<td>IR-7</td>
+<td>Kênh thông báo</td>
+<td>Ra</td>
+<td>Email, webhook có chữ ký, Slack, Teams, PagerDuty, SMS</td>
+<td>MVP / MR</td>
+</tr>
+<tr>
+<td>IR-8</td>
+<td>Terraform, Git</td>
+<td>Vào</td>
+<td>Provider dùng public API; GitOps đọc repo của khách</td>
+<td>MR</td>
+</tr>
+<tr>
+<td>IR-9</td>
+<td>Feed threat intel</td>
+<td>Vào</td>
+<td>IP reputation, CVE</td>
+<td>MR</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-01-introduction-06-requirements--8-truy-vết">8. Truy vết</h2>
+<table>
+<thead>
+<tr>
+<th>Nhóm</th>
+<th>Building block</th>
+<th>Runtime</th>
+<th>Database</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>F1, F2, F5, F8.4, F9, F10, F12 (phần M)</td>
+<td><a href="#f-05-building-blocks-01-management-plane">5.1</a>, <a href="#f-05-building-blocks-08-components-12-management">5.8.12</a></td>
+<td><a href="#f-06-runtime-00-index">6</a></td>
+<td><a href="#f-05-building-blocks-08-components-14-management-database">5.8.14</a></td>
+</tr>
+<tr>
+<td>F6, F11, F2.3</td>
+<td><a href="#f-05-building-blocks-02-control-plane">5.2</a>, <a href="#f-05-building-blocks-08-components-05-config-and-compiler">5.8.5</a>–<a href="#f-05-building-blocks-08-components-07-cert-ruleset-release">5.8.7</a></td>
+<td><a href="#f-08-cross-cutting-15-config-propagation-and-apply">8.15</a></td>
+<td>Chưa thiết kế</td>
+</tr>
+<tr>
+<td>F3, F4</td>
+<td><a href="#f-05-building-blocks-03-edge-plane">5.3</a>, <a href="#f-05-building-blocks-08-components-01-l7">5.8.1</a>–<a href="#f-05-building-blocks-08-components-04-edge-agent-and-state">5.8.4</a></td>
+<td><a href="#f-06-runtime-00-index">6</a></td>
+<td>Không có database (PoP store)</td>
+</tr>
+<tr>
+<td>F7, F8.1–F8.3</td>
+<td><a href="#f-05-building-blocks-04-analytics-plane">5.4</a>, <a href="#f-05-building-blocks-08-components-08-ingestion-and-storage">5.8.8</a>–<a href="#f-05-building-blocks-08-components-11-notification-fanout">5.8.11</a>, <a href="#f-05-building-blocks-08-components-13-realtime-gateway">5.8.13</a></td>
+<td><a href="#f-06-runtime-10-analytics-flows">6.10</a></td>
+<td>ClickHouse (<a href="#f-05-building-blocks-08-components-08-ingestion-and-storage">5.8.8</a>)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-01-introduction-06-requirements--9-câu-hỏi-mở-cho-review">9. Câu hỏi mở cho review</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Câu hỏi</th>
+<th>Đề xuất hiện tại</th>
+<th>Ảnh hưởng</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OQ-1</td>
+<td>Phân cấp org → account → zone có đủ không, hay cần thêm cấp (đơn vị, dự án) cho khách lớn?</td>
+<td>Đủ cho MVP; nhóm zone thay cho cấp thứ tư</td>
+<td>DT-1, quyền</td>
+</tr>
+<tr>
+<td>OQ-2</td>
+<td>Tenant B muốn bảo vệ <code>shop.example.com</code> khi tenant A giữ <code>example.com</code>: từ chối, hay cho phép khi A đồng ý?</td>
+<td>Từ chối ở MVP</td>
+<td>BR-1, DT-2</td>
+</tr>
+<tr>
+<td>OQ-3</td>
+<td>Mất bản ghi xác minh thì làm gì, sau bao lâu?</td>
+<td>Cảnh báo ở ngày 7, tạm dừng ở ngày 14</td>
+<td>FR-2-02</td>
+</tr>
+<tr>
+<td>OQ-4</td>
+<td>Hết 7 ngày log-only: tự chuyển sang chặn, hay chờ khách bấm?</td>
+<td>Chờ khách bấm, nhắc mỗi tuần</td>
+<td>FR-2-11</td>
+</tr>
+<tr>
+<td>OQ-5</td>
+<td>Hạn tối đa của rule tạm qua kênh khẩn</td>
+<td>72 giờ</td>
+<td>BR-6</td>
+</tr>
+<tr>
+<td>OQ-6</td>
+<td>Xoá org và xoá dữ liệu cá nhân khi audit không được xoá: ẩn danh danh tính trong audit, hay giữ nguyên vì nghĩa vụ pháp lý? Thời hạn giữ sau khi xoá org?</td>
+<td>Ẩn danh trường danh tính (thay bằng mã), giữ bản ghi; giữ 30 ngày sau yêu cầu xoá org</td>
+<td>BR-12, FR-1-03, FR-9-05, DT-7</td>
+</tr>
+<tr>
+<td>OQ-7</td>
+<td>Giữ bao nhiêu PolicyVersion mỗi zone?</td>
+<td>Tất cả trong 13 tháng, sau đó 50 bản gần nhất + bản đang chạy</td>
+<td>DT-5, dung lượng</td>
+</tr>
+<tr>
+<td>OQ-8</td>
+<td>Sai lệch cho phép của rate limit toàn fleet</td>
+<td>≤ 10%</td>
+<td>FR-3-06</td>
+</tr>
+<tr>
+<td>OQ-9</td>
+<td>Mục tiêu độ trễ truy vấn event cho khoảng dài (30 ngày, 365 ngày)</td>
+<td>24 giờ ≤ 3 s; 30 ngày ≤ 15 s</td>
+<td>FR-7-04</td>
+</tr>
+<tr>
+<td>OQ-10</td>
+<td>Hạ gói: hiệu lực ngay hay cuối kỳ; xử lý phần vượt giới hạn gói mới thế nào?</td>
+<td>Cuối kỳ; chặn hạ gói tới khi khách giảm bớt</td>
+<td>FR-10-04, BR-11</td>
+</tr>
+<tr>
+<td>OQ-11</td>
+<td>WCAG có bắt buộc cho khách khu vực công không?</td>
+<td>AA cho luồng chính</td>
+<td>NFR-11</td>
+</tr>
+<tr>
+<td>OQ-12</td>
+<td>Cổng thanh toán cụ thể và tính phí theo kỳ trả trước hay trả sau?</td>
+<td>Phí nền trả trước, phí vượt trả sau</td>
+<td>IR-2, FR-10-11</td>
+</tr>
+<tr>
+<td>OQ-13</td>
+<td>Developer có được tạo exception không cần duyệt trong zone được giao không?</td>
+<td>Không, luôn qua change request</td>
+<td>FR-1-06, F5.1.4</td>
+</tr>
+<tr>
+<td>OQ-14</td>
+<td>Billing theo account hay theo org (một hoá đơn cho cả org)?</td>
+<td>Theo account, gộp được ở cấp org</td>
+<td>DT-8</td>
 </tr>
 </tbody>
 </table>
@@ -5697,7 +9378,10 @@ lúc ClickHouse đang chịu tải ghi cao nhất vì tấn công. Vì vậy lu�
 </section>
 <section class="doc" id="f-05-building-blocks-08-components-14-management-database"><div class="path">05-building-blocks/08-components/14-management-database.md</div><h1 id="f-05-building-blocks-08-components-14-management-database--5814-database-của-management-plane">5.8.14 Database của Management plane</h1>
 <blockquote>
-<p><strong>Trạng thái: thiết kế v1, đã chốt (2026-11-06).</strong> Quyết định nền:
+<p><strong>Trạng thái: thiết kế v1 (2026-11-06), cần đối chiếu lại</strong> với <a href="#f-01-introduction-05-functional-decomposition">bản đồ phân rã chức năng</a>
+và <a href="#f-01-introduction-06-requirements">requirements</a> sau khi hai mục đó được review: đã thấy thiếu một số đối tượng dữ liệu
+(1.5, mục &quot;Đối chiếu với thiết kế hiện có&quot;). Các quyết định nền tảng (DB1–DB4, MG1–MG5) không đổi.
+Quyết định nền:
 <a href="#f-09-adr-0046-management-database-tenancy-and-storage">ADR-0046</a>. Mô hình logic ở
 <a href="#f-05-building-blocks-06-data-model">5.6</a>; module và workflow ở <a href="#f-05-building-blocks-08-components-12-management">5.8.12</a>.</p>
 </blockquote>
@@ -5982,21 +9666,21 @@ primary PostgreSQL với replica đọc là đủ, không cần shard</strong>; 
 <h2 id="f-05-building-blocks-08-components-14-management-database--4-entity-theo-module-schema-waap">4. Entity theo module (schema <code>waap</code>)</h2>
 <div class="diagram"><pre class="mermaid">erDiagram
     ORG_PROFILES ||--o{ ACCOUNTS : &quot;tenant có&quot;
-    ACCOUNTS ||--o{ MEMBERS : có
-    MEMBERS ||--o{ ROLE_BINDINGS : được_gán
-    ACCOUNTS ||--|| SUBSCRIPTIONS : có
-    SUBSCRIPTIONS }o--|| PLANS : theo
-    ACCOUNTS ||--o{ ZONES : sở_hữu
-    ZONES ||--o{ HOSTNAMES : phục_vụ
-    ZONES ||--o{ ORIGINS : tới
-    ZONES ||--o{ CERTIFICATES : dùng
-    ZONES ||--|| ZONE_POLICY_STATE : trỏ_tới
+    ACCOUNTS ||--o{ MEMBERS : &quot;có&quot;
+    MEMBERS ||--o{ ROLE_BINDINGS : &quot;được gán&quot;
+    ACCOUNTS ||--|| SUBSCRIPTIONS : &quot;có&quot;
+    SUBSCRIPTIONS }o--|| PLANS : &quot;theo&quot;
+    ACCOUNTS ||--o{ ZONES : &quot;sở hữu&quot;
+    ZONES ||--o{ HOSTNAMES : &quot;phục vụ&quot;
+    ZONES ||--o{ ORIGINS : &quot;tới&quot;
+    ZONES ||--o{ CERTIFICATES : &quot;dùng&quot;
+    ZONES ||--|| ZONE_POLICY_STATE : &quot;trỏ tới&quot;
     ZONES ||--o{ CUSTOM_RULES : &quot;nháp&quot;
     ZONES ||--o{ ACCESS_LISTS : &quot;nháp&quot;
     ZONES ||--o{ POLICY_VERSIONS : &quot;bất biến&quot;
-    ZONES ||--o{ CHANGE_REQUESTS : đề_xuất
-    CHANGE_REQUESTS ||--o{ APPROVALS : cần
-    CHANGE_REQUESTS ||--o| POLICY_VERSIONS : tạo_ra
+    ZONES ||--o{ CHANGE_REQUESTS : &quot;đề xuất&quot;
+    CHANGE_REQUESTS ||--o{ APPROVALS : &quot;cần&quot;
+    CHANGE_REQUESTS ||--o| POLICY_VERSIONS : &quot;tạo ra&quot;
     ZONES {
         uuid id PK
         uuid tenant_id
@@ -15355,6 +19039,22 @@ theo chính sách tài liệu (<a href="#f-02-constraints-00-index--24-conventio
 <td>Tên miền cụ thể trong một zone (ví dụ <code>shop.example.com</code>); một zone có nhiều hostname</td>
 </tr>
 <tr>
+<td><strong>Bản đồ phân rã chức năng</strong></td>
+<td>Functional Decomposition Diagram (FDD): cây chức năng ba cấp nhóm → chức năng → chức năng lá, nói hệ thống làm gì trước khi nói làm bằng gì (<a href="#f-01-introduction-05-functional-decomposition">1.5</a>)</td>
+</tr>
+<tr>
+<td><strong>Chức năng lá</strong></td>
+<td>Cấp thấp nhất của bản đồ phân rã, đủ nhỏ để viết requirement và kiểm thử; mỗi lá có đúng một plane chủ</td>
+</tr>
+<tr>
+<td><strong>Plane chủ</strong></td>
+<td>Plane giữ quyết định và dữ liệu gốc của một chức năng; plane khác chỉ gọi tới hoặc nhận kết quả</td>
+</tr>
+<tr>
+<td><strong>Tiêu chí chấp nhận</strong></td>
+<td>Điều kiện kiểm được để coi một requirement đã đáp ứng (<a href="#f-01-introduction-06-requirements">1.6</a>)</td>
+</tr>
+<tr>
 <td><strong>Origin</strong></td>
 <td>Máy chủ thật của khách đứng sau edge</td>
 </tr>
@@ -16533,6 +20233,16 @@ theo chính sách tài liệu (<a href="#f-02-constraints-00-index--24-conventio
 <td><strong>Q1–Q6</strong></td>
 <td>Mục tiêu chất lượng</td>
 <td><a href="#f-01-introduction-00-index--13-mục-tiêu-chất-lượng">1.3</a></td>
+</tr>
+<tr>
+<td><strong>F1…F12, Fx.y, Fx.y.z</strong></td>
+<td>Nhóm chức năng, chức năng, chức năng lá</td>
+<td><a href="#f-01-introduction-05-functional-decomposition">1.5</a></td>
+</tr>
+<tr>
+<td><strong>FR-x-nn / BR-n / DT-n / NFR-n / IR-n / OQ-n</strong></td>
+<td>Yêu cầu chức năng / quy tắc nghiệp vụ / yêu cầu dữ liệu / phi chức năng / giao tiếp ngoài / câu hỏi mở của requirements</td>
+<td><a href="#f-01-introduction-06-requirements">1.6</a></td>
 </tr>
 <tr>
 <td><strong>QS-1…QS-41</strong></td>
