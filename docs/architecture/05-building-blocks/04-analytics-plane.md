@@ -7,6 +7,7 @@ Một luồng ghi, nhiều kiểu đọc ([ADR-0010](../09-adr/0010-analytics-on
 flowchart LR
     ship["Edge · Log shipper"]
     subgraph A["Analytics plane"]
+        ig["Ingest gateway<br/>mTLS · quota · kiểm schema"]
         bus[("Ingestion bus<br/>bền, phân vùng theo tenant")]
         sp["Stream processor"]
         hot[("Hot search")]
@@ -23,7 +24,7 @@ flowchart LR
     siem["SIEM của khách"]
     notify["Kênh thông báo"]
 
-    ship --> bus --> sp
+    ship -->|HTTPS/gRPC, mTLS| ig --> bus --> sp
     sp --> hot
     sp --> col
     sp --> arc
@@ -42,6 +43,7 @@ flowchart LR
 
 | Thành phần | Trách nhiệm |
 |---|---|
+| **Ingest gateway** | Điểm vào duy nhất cho log từ edge: xác thực node bằng mTLS, kiểm schema version, giới hạn lưu lượng theo tenant và theo node, định tuyến vào topic Kafka. Kafka không bao giờ lộ ra mạng của edge, đối tác hay khách |
 | **Ingestion bus** | Nhận từ log shipper, ack sau khi ghi bền, phân vùng theo tenant, giữ đủ lâu để các consumer chậm đuổi kịp |
 | **Stream processor** | Làm giàu (geo, ASN, tên rule, tên zone), loại trùng theo request ID, gộp theo cửa sổ thời gian, áp retention theo entitlements khi ghi |
 | **Hot search** | Từng request trong vài ngày gần nhất; tra theo request ID, IP, rule, path; phục vụ điều tra và xử lý chặn nhầm |

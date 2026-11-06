@@ -11,7 +11,7 @@ flowchart LR
     relay["Regional relay<br/>HTTPS theo digest"]
     keys["Control · Cert & key<br/>mTLS"]
     vk[("Valkey region")]
-    kafka[("Kafka")]
+    ig["Analytics · Ingest gateway"]
 
     subgraph BIN["edge binary"]
         subgraph AG["Policy agent"]
@@ -42,7 +42,7 @@ flowchart LR
     keys --> sec --> ld
     ld --> vcfg --> vec
     gw <--> hk --> sc <--> vk
-    gw -->|Unix socket| vec --> kafka
+    gw -->|Unix socket| vec -->|vector protocol, mTLS| ig
 ```
 
 ## Policy agent
@@ -92,5 +92,5 @@ stateDiagram-v2
 | Nguồn | Unix socket, bản ghi protobuf có độ dài tiền tố |
 | Biến đổi | Lấy mẫu access log theo zone (security event không lấy mẫu); che trường theo cấu hình khách bằng VRL; gắn `node_id`, `region` |
 | Buffer | Disk buffer có giới hạn dung lượng; khi đầy, nguồn access log bị chặn trước, security event dùng buffer riêng |
-| Sink | Kafka, topic theo loại bản ghi, khoá partition `tenant_id`, nén zstd, `acks=all` |
+| Sink | Ingest gateway của Analytics region được gán, qua giao thức `vector` (gRPC) có mTLS bằng cert node, nén zstd; chỉ xoá khỏi buffer đĩa khi gateway xác nhận đã ghi Kafka (end-to-end ack). Edge không biết Kafka tồn tại |
 | Quan sát | Metrics của Vector (độ trễ, mức buffer, lỗi gửi) được gateway gom vào `/metrics` của node |

@@ -44,6 +44,7 @@ Hai tiêu chí chạy xuyên suốt:
 
 | Thành phần | Công nghệ | License | ADR |
 |---|---|---|---|
+| Ingest gateway (điểm vào log từ edge) | Vector chế độ aggregator, mTLS theo cert node | MPL-2.0 | [0019](../09-adr/0019-vector-as-node-log-shipper.md) |
 | Ingestion bus | Apache Kafka (KRaft) | Apache-2.0 | [0018](../09-adr/0018-kafka-as-telemetry-bus.md) |
 | Stream processor, exporter, detection, notifier, query API | Go services (`franz-go`, `clickhouse-go`) | BSD-3 / Apache-2.0 | [0012](../09-adr/0012-go-as-primary-language.md) |
 | Hot search + số liệu gộp | ClickHouse (bảng raw + materialized view) | Apache-2.0 | [0020](../09-adr/0020-clickhouse-and-parquet-for-analytics.md) |

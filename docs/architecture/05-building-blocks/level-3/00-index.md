@@ -11,7 +11,7 @@ thiết kế, hợp đồng hoặc schema chính, hành vi khi lỗi. Công ngh�
 | [20-config-and-compiler.md](20-config-and-compiler.md) | config-service, compiler, định dạng snapshot | Control |
 | [21-rollout-distribution-fleet.md](21-rollout-distribution-fleet.md) | rollout-orchestrator, distribution, regional relay, fleet-registry | Control |
 | [22-cert-ruleset-release.md](22-cert-ruleset-release.md) | cert-service, pipeline phát hành ruleset | Control |
-| [30-ingestion-and-storage.md](30-ingestion-and-storage.md) | Kafka, enricher, ClickHouse, archiver | Analytics |
+| [30-ingestion-and-storage.md](30-ingestion-and-storage.md) | Ingest gateway, Kafka, enricher, ClickHouse, archiver | Analytics |
 | [31-query-detection-export-replay.md](31-query-detection-export-replay.md) | query-api, detection, notifier, exporter, replay | Analytics |
 | [40-management.md](40-management.md) | waap-management (metap-go), portal | Management |
 
@@ -21,6 +21,7 @@ thiết kế, hợp đồng hoặc schema chính, hành vi khi lỗi. Công ngh�
 |---|---|---|
 | `edge` (gateway + agent + state sync) | Go | Edge node |
 | `vector` | Vector | Edge node |
+| `ingest-gateway` | Vector (aggregator) | Mỗi Analytics region |
 | `regional-relay` | Go | Mỗi region, tuỳ chọn ở PoP lớn |
 | `config-service`, `compiler`, `rollout-orchestrator`, `distribution`, `fleet-registry`, `cert-service` | Go | Core region (Kubernetes) |
 | `enricher`, `archiver`, `query-api`, `detection`, `notifier`, `exporter`, `replay` | Go | Mỗi Analytics region (Kubernetes) |

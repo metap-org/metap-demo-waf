@@ -5,6 +5,12 @@
 ```mermaid
 flowchart LR
     vec["Vector trên edge"]
+    subgraph IG["ingest gateway · Vector aggregator"]
+        auth["mTLS<br/>cert node"]
+        val["Kiểm schema version"]
+        thr["Quota theo tenant / node"]
+        rt["Route theo loại bản ghi"]
+    end
     subgraph K["Kafka (KRaft)"]
         tsec[("telemetry.security.v1")]
         tacc[("telemetry.access.v1")]
@@ -27,9 +33,10 @@ flowchart LR
     s3[("Object storage<br/>archive · samples")]
     cfg["Control<br/>rule catalog, entitlements"]
 
-    vec --> tsec
-    vec --> tacc
-    vec --> tsmp
+    vec --> auth --> val --> thr --> rt
+    rt --> tsec
+    rt --> tacc
+    rt --> tsmp
     tsec --> dd
     tacc --> dd
     dd --> geo --> rc --> exp --> bw
@@ -43,6 +50,24 @@ flowchart LR
     cfg --> exp
 ```
 
+## Ingest gateway
+
+Vector chạy ở chế độ aggregator, mỗi Analytics region một cụm, đứng sau load balancer L4.
+
+| Component | Thiết kế |
+|---|---|
+| **mTLS** | Nguồn `vector` (gRPC) chỉ nhận kết nối có cert node do CA nội bộ (OpenBao PKI) cấp; node bị thu hồi bị từ chối |
+| **Kiểm schema version** | Bản ghi có schema version ngoài N/N-1 bị đưa vào topic `telemetry.rejected.v1` để điều tra, không làm hỏng consumer |
+| **Quota** | Transform `throttle` theo khoá `tenant_id` và `node_id`; vượt quota thì access log bị bỏ trước, security event được ưu tiên; số bị bỏ thành metrics và số đo sử dụng |
+| **Route** | Theo loại bản ghi vào topic tương ứng, khoá partition `tenant_id`, `acks=all` |
+| **Ack đầu cuối** | Chỉ xác nhận về edge sau khi Kafka xác nhận, nên log nằm trong buffer đĩa của edge cho tới khi thật sự bền |
+
+Lý do không cho edge ghi thẳng Kafka: Kafka không phải lộ ra WAN và mạng đối tác/khách; xác thực
+theo danh tính node thay vì credential Kafka trên hàng nghìn máy; có chỗ chặn một tenant hay một node
+gửi quá nhiều; đổi topic, partition hay cụm Kafka không phải cấu hình lại edge. Nếu sau này cần logic
+mà Vector không làm được (quota theo entitlements động, kiểm nội dung sâu hơn), thay aggregator bằng
+service Go cùng giao thức mà không đổi edge.
+
 ## Kafka
 
 | Topic | Khoá | Retention | Consumer |
@@ -52,6 +77,7 @@ flowchart LR
 | `telemetry.sample.v1` | `tenant_id` | 3 ngày | archiver |
 | `telemetry.enriched.v1` | `tenant_id` | 3 ngày | archiver, exporter, streaming detector |
 | `node.status.v1` | `node_id` | 1 ngày | metrics nền tảng |
+| `telemetry.rejected.v1` | `node_id` | 7 ngày | điều tra (bản ghi sai schema) |
 
 Schema bản ghi định nghĩa bằng protobuf trong một repo schema chung; đổi schema theo quy tắc N/N-1
 ([08 §8.4](../../08-cross-cutting/00-index.md#84-version-và-tương-thích)).
