@@ -19,6 +19,14 @@
 | R14 | Nếu edge proxy không phải Go: ngữ nghĩa custom rule lệch giữa `cel-go` và evaluator IR | Thấp | Cao | Bộ vector test đối chiếu chạy ở cả hai phía trong CI ([ADR-0032](../09-adr/0032-cel-checked-at-control-ir-at-edge.md)) | Vector test lệch |
 | R15 | Chặng proxy → WAF làm vượt ngân sách độ trễ | Thấp | Trung bình | PoP nhỏ đặt chung host qua Unix socket; verdict sớm; đo trong spike ([ADR-0033](../09-adr/0033-two-tier-edge-proxy-and-waf.md)) | p99 gọi WAF > 1,5 ms |
 | R16 | Tự xây CDN tốn đầu tư băng thông và lưu trữ trước khi có doanh thu | Trung bình | Cao | Làm theo giai đoạn: cache cơ bản trong proxy ở MVP, tiered cache sau; chế độ đứng sau CDN của khách để bán sớm ([ADR-0035](../09-adr/0035-cdn-and-dns-strategy.md)) | Chi phí băng thông / doanh thu theo PoP |
+| R17 | Bot detection chặn nhầm người dùng thật hoặc bị bot vượt qua (cuộc đua liên tục) | Cao | Cao | Log-only trước khi enforce; QS-21; dữ liệu bot phát hành qua đánh giá và log-only song song; phản hồi khách vào vòng học ([ADR-0038](../09-adr/0038-bot-management-layered-scoring.md)) | Tỉ lệ challenge tương tác tăng; khiếu nại của khách |
+| R18 | Fingerprint và JS thu tín hiệu vướng quy định dữ liệu cá nhân | Trung bình | Trung bình | Lưu dạng hash, JS ngầm mặc định tắt, gộp chéo tenant chỉ thống kê | Yêu cầu từ pháp chế hoặc khách |
+| R19 | Schema API sai làm chặn traffic hợp lệ | Trung bình | Cao | Log-only mặc định, hiển thị chênh lệch discovery và schema, enforce theo endpoint ([ADR-0039](../09-adr/0039-api-security-positive-model.md)) | Vi phạm schema tăng ngay sau khi enforce |
+| R20 | Ước lượng tải ở 7.5 sai lệch lớn (phân bố traffic, năng lực node, kích thước cấu hình) | Trung bình | Cao | Đo lại sau spike và theo từng giai đoạn khách hàng; thiết kế không phụ thuộc tổng số zone nên chỉ cỡ hạ tầng phải đổi | Số đo thật lệch quá 2 lần so với giả định |
+| R21 | Request đầu tiên của zone nguội chậm, hoặc nhiều zone nguội cùng lúc làm quá tải PoP store sau sự cố | Trung bình | Trung bình | Làm nóng trước theo danh sách zone nóng; PoP store dự phòng; giới hạn tốc độ dựng runtime; node lấy được từ regional relay | QS-25 vỡ |
+| R22 | Tenant hoặc zone rất lớn dồn vào một partition Kafka, một shard ClickHouse, một cell | Trung bình | Trung bình | Khoá theo `(tenant, zone)` cho tenant lớn; cell riêng; cân bằng cell theo tải | Lag hoặc CPU lệch giữa partition/shard/cell |
+| R23 | Gói Free bị lạm dụng (phishing, phát file lớn, đăng ký hàng loạt) hoặc chi phí Free vượt mô hình | Cao | Trung bình | Giới hạn zone mỗi account, xác minh domain, fair use, pool mật độ cao, Trust and Safety ([8.18 §5](../08-cross-cutting/18-segments-and-plans.md#5-fair-use-và-lạm-dụng)) | Chi phí Free > 10% hạ tầng; khiếu nại abuse tăng |
+| R24 | Mô hình phân khúc và đơn giá ở 8.18 sai (tỉ lệ Free/Business, tải mỗi zone, giá băng thông) làm gói lỗ | Trung bình | Cao | Giá là entitlement đổi được; đo chi phí thật theo gói từ metering; xem lại hằng quý | Biên lợi nhuận một gói âm 2 tháng liền |
 | R9 | Đội nhỏ dàn trải 4 plane | Cao | Cao | Mua/dùng mã nguồn mở cho phần không khác biệt; làm đúng thứ tự giai đoạn | Trễ MVP |
 
 ## 11.2 Chênh lệch với code demo hiện tại
@@ -48,10 +56,13 @@ CEL), công nghệ của Control, Analytics, Management ([05 · bản đồ côn
 | Chủ đề | Cần quyết | Ảnh hưởng |
 |---|---|---|
 | Tự bật Under Attack mode theo detection | Có cho phép, mặc định tắt hay bật | [ADR-0008](../09-adr/0008-under-attack-mode.md) |
-| Bảng entitlements cụ thể | Giá trị từng gói (lấy mẫu, retention, tỉ lệ mẫu request, số rule) | [ADR-0007](../09-adr/0007-log-by-subscription-entitlements.md), mô hình giá |
+| Giá và bảng entitlements | Đã có bản nháp kèm chi phí phục vụ ở [8.18](../08-cross-cutting/18-segments-and-plans.md); business chốt giá, tiền tệ, giá trị từng giới hạn | [ADR-0007](../09-adr/0007-log-by-subscription-entitlements.md), [ADR-0042](../09-adr/0042-plan-tiers-drive-placement-and-isolation.md) |
 | Cấp phép và cập nhật on-prem | Cách phát hành, cách cập nhật ruleset cho khách offline | [ADR-0006](../09-adr/0006-saas-first-on-prem-capable.md) |
 | Nhà cung cấp geo/ASN | MaxMind hay IPinfo, theo giá và điều khoản phân phối lại | [ADR-0025](../09-adr/0025-geo-asn-data-commercial-license.md) |
 | Đối tác L3/L4 và hạ tầng PoP đầu tiên | Chọn đối tác, region đầu tiên | [ADR-0005](../09-adr/0005-edge-on-own-and-existing-infra.md) |
+| Challenge tương tác | Tự xây (đề xuất, không gửi dữ liệu ra ngoài, chạy on-prem) hay mặc định dùng dịch vụ CAPTCHA bên thứ ba | [ADR-0038](../09-adr/0038-bot-management-layered-scoring.md) |
+| Chính sách crawler AI mặc định | Allow, block, hay theo `robots.txt` cho zone mới | [8.16](../08-cross-cutting/16-bot-management.md#4-policy-của-khách) |
+| **Cell và cách đặt zone** | Cell theo VIP (đề xuất), không cell, hash theo SNI, hay cell theo PoP; số cell ban đầu | [ADR-0041](../09-adr/0041-cells-and-zone-placement.md); phụ thuộc mô hình mạng và số dải IP có được |
 | **Chiến lược CDN và DNS** | Tự xây theo giai đoạn + chế độ đứng sau CDN khách (đề xuất), hay đứng sau CDN, bán lại CDN đối tác, hoặc không CDN | [ADR-0035](../09-adr/0035-cdn-and-dns-strategy.md); kéo theo tiêu chí cache khi chọn nền proxy |
 | **Nền tầng proxy và engine tầng WAF** | Chọn sau spike 3 tuần: shortlist S2 (Pingora + Coraza), S3 (Go + Coraza), S1 (Envoy + Coraza); mốc S5 (NGINX, cho cache) và S4 (HAProxy + SPOE); đo thêm libmodsecurity ở tầng WAF; kèm HTTP/3 | [ADR-0031](../09-adr/0031-edge-l7-and-waf-engine-options.md); kéo theo ngôn ngữ proxy, replay, `edge-verify`, [ADR-0032](../09-adr/0032-cel-checked-at-control-ir-at-edge.md) |
 | Phân công zone cho node | MVP mọi node phục vụ mọi zone; khi nào chia shard | [5.8.6](../05-building-blocks/08-components/06-rollout-distribution-fleet.md) |

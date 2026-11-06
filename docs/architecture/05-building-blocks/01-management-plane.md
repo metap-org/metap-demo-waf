@@ -48,7 +48,7 @@ flowchart TB
 | **Case & incident** | Case, liên kết tới event/truy vấn, người phụ trách, SLA, mitigation tạm có hạn | Case mở tay hoặc tự mở từ Detection; đóng kèm tóm tắt |
 | **Alert policy** | Điều kiện, kênh, người nhận, chu kỳ lặp, giờ im lặng | Phát cấu hình sang Analytics; Analytics đánh giá và gửi |
 | **Report & saved search** | Truy vấn đã lưu, định nghĩa báo cáo, lịch gửi | Thực thi qua Query API theo lịch |
-| **Plan, billing & metering** | Gói, subscription, **entitlements**, số liệu sử dụng, hoá đơn | Đổi gói phát entitlements mới; nhận số đo sử dụng từ Analytics để tính tiền |
+| **Plan, billing & metering** | Gói, subscription, **entitlements**, số liệu sử dụng, hoá đơn | Đổi gói phát entitlements mới và yêu cầu Control chuyển zone sang pool cell của gói mới; nhận số đo sử dụng từ Analytics để tính tiền và đo chi phí phục vụ thật theo gói ([8.18](../08-cross-cutting/18-segments-and-plans.md)) |
 | **Audit log** | Ai đổi gì, lúc nào, từ đâu, qua UI hay API | Chỉ ghi thêm, không xoá, xuất được cho kiểm toán |
 
 Management **không** giữ log thô. Nó chỉ giữ thứ người dùng tạo ra và đọc dữ liệu traffic qua

@@ -7,6 +7,9 @@
 | [13-operational-behaviors.md](13-operational-behaviors.md) | 8.13 Hành vi vận hành: từng tình huống và thao tác với tín hiệu, cảnh báo, tự phản ứng, runbook |
 | [14-latency-and-error-attribution.md](14-latency-and-error-attribution.md) | 8.14 Đo độ trễ theo tầng, đo chặng tới client, quy mỗi status code về đúng nguồn |
 | [15-config-propagation-and-apply.md](15-config-propagation-and-apply.md) | 8.15 Luồng cấu hình xuống edge; cấu hình nào đổi nóng, build nền, reload, nâng phần mềm |
+| [16-bot-management.md](16-bot-management.md) | 8.16 Bot management: tín hiệu nhiều lớp, điểm và lớp, policy, challenge, vòng học, quyền riêng tư, chống chiếm tài khoản |
+| [17-api-security.md](17-api-security.md) | 8.17 API security: discovery, kho API, kiểm schema, JWT/mTLS, danh tính consumer, GraphQL, BOLA, dữ liệu nhạy cảm |
+| [18-segments-and-plans.md](18-segments-and-plans.md) | 8.18 Phân khúc khách, tải theo phân khúc, chi phí phục vụ, gói giá và entitlements, kiến trúc theo gói, thứ tự hy sinh khi quá tải |
 
 ## 8.1 Multi-tenancy và cô lập
 
@@ -61,6 +64,8 @@
 - Xoá theo tenant khi chấm dứt hợp đồng; retention không vượt entitlements.
 
 ## 8.7 Entitlements
+
+Giá trị từng gói, chi phí phục vụ và cách gói quyết định chỗ đặt zone: [8.18](18-segments-and-plans.md).
 
 Gói cước là cấu hình, không phải nhánh code ([ADR-0007](../09-adr/0007-log-by-subscription-entitlements.md)).
 

@@ -29,6 +29,7 @@ có thể viết bằng ngôn ngữ khác.
 | T8 | Kỹ năng đội (chủ yếu Go) | Cả hai | Trung bình |
 | T9 | Dùng lại code cho replay và `edge-verify` | Cả hai | Trung bình |
 | T10 | HTTP/3 | Proxy | Thấp |
+| T12 | Truy cập ClientHello và frame HTTP/2 thô (để tính JA4, fingerprint HTTP/2 cho bot management, [ADR-0038](0038-bot-management-layered-scoring.md)) | Proxy | Trung bình |
 | T11 | License phát hành on-prem | Cả hai | Điều kiện loại |
 
 ## 3. Nền cho tầng proxy

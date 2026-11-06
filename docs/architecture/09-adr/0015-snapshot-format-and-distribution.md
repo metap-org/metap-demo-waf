@@ -1,6 +1,6 @@
 # ADR-0015: Định dạng snapshot và kênh phân phối
 
-- Trạng thái: Chấp nhận
+- Trạng thái: Chấp nhận; cấu trúc manifest và cách node nhận bundle sửa bởi [ADR-0040](0040-config-distribution-at-scale.md) (manifest hai tầng theo bucket, routing index, PoP config store, nạp khi cần)
 - Ngày: 2026-11-06
 
 ## Quyết định

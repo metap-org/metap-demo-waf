@@ -45,6 +45,8 @@ flowchart LR
 
 ## Ruleset release
 
+Cùng pipeline này phát hành **dữ liệu bot** ([8.16 §6](../../08-cross-cutting/16-bot-management.md#6-vòng-học-ở-analytics)): danh sách bot đã xác minh (dải IP công bố của các bot lớn, kiểm rDNS định kỳ), reputation fingerprint/ASN/IP gộp từ Analytics, và mô hình bot. Mô hình và reputation qua đánh giá trên tập giữ lại và log-only song song như ruleset.
+
 Pipeline phát hành CRS upstream, system ruleset của NCC, và dữ liệu geo/ASN, chạy như CI.
 
 ```mermaid

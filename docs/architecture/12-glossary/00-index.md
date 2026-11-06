@@ -47,6 +47,24 @@
 | **edge_error** | Mã chi tiết khi WAAP tự sinh response thay cho origin (ví dụ `origin_connect_timeout`) |
 | **edge_us** | Thời gian do WAAP gây ra cho một request, không gồm chờ origin và client |
 | **RUM** | Real user monitoring: đo trải nghiệm thật trên trình duyệt người dùng |
+| **bot.score / bot.class** | Điểm 1–99 (thấp là tự động) và lớp `verified_bot`, `likely_human`, `likely_automated`, `automated` |
+| **Bot đã xác minh** | Bot tốt được xác nhận qua dải IP công bố, rDNS hoặc chữ ký của agent |
+| **JA4** | Fingerprint của TLS ClientHello, dùng nhận diện client |
+| **API discovery** | Học danh sách endpoint từ traffic thật |
+| **Shadow / zombie API** | Endpoint có traffic nhưng không khai báo / đã deprecated mà vẫn được gọi |
+| **api.consumer** | Danh tính đã băm của client API (từ JWT `sub`, API key, cert), khoá cho rate limit và analytics |
+| **BOLA** | Broken Object Level Authorization: truy cập đối tượng của người khác bằng cách đổi ID |
+| **JWKS** | Tập khoá công khai để kiểm chữ ký JWT |
+| **Bucket manifest / top manifest** | Cây digest cấu hình: 4.096 bucket theo hash zone, top manifest ký liệt kê digest các bucket |
+| **Routing index** | Bảng (hostname, cổng) → zone, cell, cert, digest; có trong RAM mọi node |
+| **PoP config store** | Bản sao đủ bundle và cert của mỗi PoP trên NVMe; node nạp từ đây khi cần |
+| **Zone nóng / nguội** | Zone đang có traffic trên node (runtime trong RAM) / chưa có |
+| **Cell** | Nhóm node trong mỗi PoP phục vụ một tập zone, có VIP riêng |
+| **Pool cell** | Nhóm cell dành cho một hoặc vài gói: Free (mật độ cao), chuẩn (Pro, Business), Enterprise |
+| **Chi phí phục vụ (cost to serve)** | Chi phí hạ tầng phân bổ cho một zone hoặc một gói mỗi tháng |
+| **Thứ tự hy sinh** | Thứ tự cố định hạ cấp tài nguyên theo gói khi PoP quá tải, từ Free lên |
+| **Profile lite** | Profile WAF của gói Free: tập con rule CVE nghiêm trọng, khoảng 1/4 chi phí CPU của CRS PL1 |
+| **Profile CRS** | Tổ hợp (ruleset release, paranoia, ngưỡng) dùng chung một instance engine cho nhiều zone |
 | **Request ID** | Định danh duy nhất của request, in trên trang chặn, khoá tra cứu và bỏ trùng |
 | **Replay** | Chạy policy nháp trên traffic lịch sử để mô phỏng tác động |
 | **SIEM export** | Đẩy log liên tục sang hệ thống SIEM của khách |

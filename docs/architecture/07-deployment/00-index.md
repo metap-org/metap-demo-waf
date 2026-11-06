@@ -1,5 +1,7 @@
 # 7. Deployment View
 
+Ước lượng tải, số node và sharding ở quy mô 1 triệu zone: [7.5](05-capacity-and-sharding.md).
+
 ## 7.1 Ba mô hình triển khai
 
 Cùng các plane, khác chỗ đặt ([ADR-0006](../09-adr/0006-saas-first-on-prem-capable.md)).

@@ -88,6 +88,15 @@ Danh mục cảnh báo WAF/DDoS, cấu hình ngưỡng và công thức tính ch
 | **Sink** | HTTP (Splunk HEC, Elastic/OpenSearch bulk, Datadog, endpoint tuỳ ý), syslog qua TLS, ghi object storage của khách |
 | **Bảo mật** | Đích kiểm qua SSRF guard (cùng chính sách với `metap-cron` webhook); credential đích lưu qua `SecretStore` |
 
+## API discovery và dữ liệu bot
+
+| Component | Thiết kế |
+|---|---|
+| **API discovery job** | Hằng giờ trên access log và mẫu request: gom path thành template, thống kê theo endpoint, so với kho API, gửi endpoint mới/shadow/zombie/không dùng về Management qua RabbitMQ; sinh schema nháp ([8.17 §4](../../08-cross-cutting/17-api-security.md#4-api-discovery-a1)) |
+| **BOLA detector** (Nâng cao) | Theo `(endpoint template, api.consumer)`: số ID khác nhau, tỉ lệ 403/404 từ origin, độ tuần tự; so baseline median/MAD; vượt ngưỡng → cảnh báo API3 |
+| **Bot reputation aggregator** | Hằng ngày: gộp theo JA4, fingerprint HTTP/2, ASN, IP từ toàn fleet (ẩn danh tenant), xuất bảng reputation cho ruleset release |
+| **Bot model training** (Nâng cao) | Nhãn từ kết quả challenge, bot đã xác minh, phản hồi của khách; huấn luyện, đánh giá trên tập giữ lại, chuyển cho ruleset release |
+
 ## Replay
 
 | Component | Thiết kế |
