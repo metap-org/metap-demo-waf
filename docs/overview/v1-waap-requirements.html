@@ -96,6 +96,16 @@ blockquote { margin: 0 0 14px; padding: 8px 16px; border-left: 3px solid var(--l
 <a class="sub" href="#f-02-requirements">2. Requirements</a>
 <a class="top" href="#f-03-business-analysis-00-index">3. Phân tích nghiệp vụ</a>
 <a class="sub" href="#f-03-business-analysis-01-onboarding">3.1 Onboarding một website</a>
+<a class="sub" href="#f-03-business-analysis-02-policy-change">3.2 Viết, duyệt, phát hành một thay đổi policy</a>
+<a class="sub" href="#f-03-business-analysis-03-attack-response">3.3 Phản ứng khi bị tấn công</a>
+<a class="sub" href="#f-03-business-analysis-04-false-positive">3.4 Xử lý chặn nhầm</a>
+<a class="sub" href="#f-03-business-analysis-05-plans-billing">3.5 Mua, đổi gói, vượt hạn mức, thanh toán</a>
+<a class="sub" href="#f-03-business-analysis-06-members-access">3.6 Quản lý thành viên, SSO, API key</a>
+<a class="sub" href="#f-03-business-analysis-07-offboarding">3.7 Rời dịch vụ: gỡ zone, xoá org, xoá dữ liệu</a>
+<a class="sub" href="#f-03-business-analysis-08-monitoring-investigation">3.8 Giám sát, điều tra, cảnh báo, báo cáo</a>
+<a class="sub" href="#f-03-business-analysis-09-bot-api-security">3.9 Bật bot management và API security</a>
+<a class="sub" href="#f-03-business-analysis-10-cache-performance">3.10 Cache, hiệu năng, nội dung</a>
+<a class="sub" href="#f-03-business-analysis-11-provider-operations">3.11 Vận hành của NCC: threat research, support, sự cố nền tảng, bán hàng</a>
   </nav>
   <main>
     <details class="mtoc">
@@ -105,6 +115,16 @@ blockquote { margin: 0 0 14px; padding: 8px 16px; border-left: 3px solid var(--l
 <a class="sub" href="#f-02-requirements">2. Requirements</a>
 <a class="top" href="#f-03-business-analysis-00-index">3. Phân tích nghiệp vụ</a>
 <a class="sub" href="#f-03-business-analysis-01-onboarding">3.1 Onboarding một website</a>
+<a class="sub" href="#f-03-business-analysis-02-policy-change">3.2 Viết, duyệt, phát hành một thay đổi policy</a>
+<a class="sub" href="#f-03-business-analysis-03-attack-response">3.3 Phản ứng khi bị tấn công</a>
+<a class="sub" href="#f-03-business-analysis-04-false-positive">3.4 Xử lý chặn nhầm</a>
+<a class="sub" href="#f-03-business-analysis-05-plans-billing">3.5 Mua, đổi gói, vượt hạn mức, thanh toán</a>
+<a class="sub" href="#f-03-business-analysis-06-members-access">3.6 Quản lý thành viên, SSO, API key</a>
+<a class="sub" href="#f-03-business-analysis-07-offboarding">3.7 Rời dịch vụ: gỡ zone, xoá org, xoá dữ liệu</a>
+<a class="sub" href="#f-03-business-analysis-08-monitoring-investigation">3.8 Giám sát, điều tra, cảnh báo, báo cáo</a>
+<a class="sub" href="#f-03-business-analysis-09-bot-api-security">3.9 Bật bot management và API security</a>
+<a class="sub" href="#f-03-business-analysis-10-cache-performance">3.10 Cache, hiệu năng, nội dung</a>
+<a class="sub" href="#f-03-business-analysis-11-provider-operations">3.11 Vận hành của NCC: threat research, support, sự cố nền tảng, bán hàng</a>
     </details>
     <section class="doc" id="f-index"><div class="path">index.md</div><h1 id="f-index--requirements-waap">Requirements WAAP</h1>
 <p>Tài liệu này nói <strong>hệ thống phải làm gì</strong>: chức năng, quy tắc nghiệp vụ, dữ liệu, tiêu chí chấp nhận, và
@@ -4652,23 +4672,21 @@ chính. Dưới đây chỉ là những điểm 10.3 chưa có, chủ yếu cho 
 <td>5.5, outbox của Management</td>
 </tr>
 <tr>
-<td>OQ-16…OQ-32</td>
-<td>Câu hỏi của onboarding: OQ-21…OQ-32 là danh sách đang mở (zone là gì, IP tĩnh v4/v6, cổng phi chuẩn, traffic không phải HTTP, DNS hosting, nhà DNS trong nước, phân khúc, tunnel, origin theo path, nền tảng SaaS, ACME của origin, A/AAAA lệch); OQ-16…OQ-20 thuộc bản nháp</td>
-<td>Ở <a href="#f-03-business-analysis-01-onboarding--4-câu-hỏi-cần-chủ-dự-án-quyết">requirements §3.1</a></td>
-<td>F2</td>
+<td>OQ-16…OQ-93</td>
+<td>Câu hỏi của phân tích nghiệp vụ: OQ-16…OQ-20 thuộc bản nháp onboarding cũ; OQ-21…OQ-93 đang mở theo từng nghiệp vụ (onboarding, thay đổi policy, tấn công, chặn nhầm, billing, thành viên, rời dịch vụ, giám sát, bot/API, cache, vận hành NCC)</td>
+<td>Ở <a href="#f-03-business-analysis-00-index">requirements §3</a></td>
+<td>Theo trang</td>
 </tr>
 </tbody>
 </table>
 </section>
 <section class="doc" id="f-03-business-analysis-00-index"><div class="path">03-business-analysis/00-index.md</div><h1 id="f-03-business-analysis-00-index--3-phân-tích-nghiệp-vụ">3. Phân tích nghiệp vụ</h1>
 <blockquote>
-<p><strong>Trạng thái: đang làm (2026-11-06).</strong> Mỗi nghiệp vụ phân tích xong sẽ cập nhật lại
-<a href="#f-01-functional-decomposition">bản đồ phân rã chức năng</a>, <a href="#f-02-requirements">requirements</a> và
-<a href="v1-waap-architecture.html#f-05-building-blocks-05-contracts" target="_blank" rel="noopener">hợp đồng giữa các plane</a>. Những chỗ thay đổi được liệt kê ở cuối
-từng trang.</p>
+<p><strong>Trạng thái: bước 1 (concern) cho 11 nghiệp vụ, chờ chủ dự án trả lời (2026-11-06).</strong> Chưa nghiệp vụ nào
+có luồng được duyệt.</p>
 </blockquote>
 <p>Bản đồ phân rã nói hệ thống <strong>có</strong> những chức năng gì. Mục này đi qua từng nghiệp vụ theo trình tự khách
-thật làm. Với mỗi nghiệp vụ, nó trả lời các câu hỏi sau:</p>
+thật làm. Khi xong, mỗi nghiệp vụ trả lời được các câu hỏi sau:</p>
 <ul>
 <li>Bước nào phải làm trước bước nào, và vì sao.</li>
 <li>Khách phải chuẩn bị gì trước khi bắt đầu.</li>
@@ -4678,64 +4696,123 @@ thật làm. Với mỗi nghiệp vụ, nó trả lời các câu hỏi sau:</p>
 </ul>
 <p>Thứ tự phân tích đi theo vòng đời của khách: onboarding trước, vì đó là lần đầu sản phẩm chạm vào traffic
 thật và cũng là lúc dễ gây sự cố nhất.</p>
+<p>Mỗi nghiệp vụ đi qua hai bước, và <strong>không viết bước 2 khi chủ dự án chưa trả lời bước 1</strong>:</p>
+<ol>
+<li><strong>Concern</strong>: kịch bản theo từng trục (mã <code>KB&lt;số trang&gt;-&lt;trục&gt;&lt;số&gt;</code>) và câu hỏi cần chủ dự án quyết
+(<code>OQ-…</code>). Ý kiến lúc ghi để ở cột &quot;ghi chú ban đầu&quot;, không phải quyết định.</li>
+<li><strong>Luồng</strong>: sau khi có trả lời; khi đó cập nhật <a href="#f-01-functional-decomposition">§1</a>,
+<a href="#f-02-requirements">§2</a> và kiến trúc.</li>
+</ol>
 <table>
 <thead>
 <tr>
 <th>Mục</th>
 <th>Nghiệp vụ</th>
+<th>Câu hỏi</th>
 <th>Trạng thái</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><a href="#f-03-business-analysis-01-onboarding">requirements §3.1</a></td>
-<td>Onboarding một website: từ lúc thêm domain tới khi traffic được bảo vệ ở chế độ chặn</td>
-<td>Đang mở: đã liệt kê kịch bản và câu hỏi, chủ dự án đang phân tích; luồng chưa viết</td>
+<td><a href="#f-03-business-analysis-01-onboarding">3.1</a></td>
+<td>Onboarding một website</td>
+<td>OQ-21…OQ-32</td>
+<td>Bước 1, chờ chủ dự án (có bản nháp luồng cũ chưa duyệt ở phụ lục)</td>
 </tr>
 <tr>
-<td>3.2</td>
+<td><a href="#f-03-business-analysis-02-policy-change">3.2</a></td>
 <td>Viết, duyệt, phát hành một thay đổi policy</td>
-<td>Chưa làm</td>
+<td>OQ-33…OQ-40</td>
+<td>Bước 1, chờ chủ dự án</td>
 </tr>
 <tr>
-<td>3.3</td>
+<td><a href="#f-03-business-analysis-03-attack-response">3.3</a></td>
 <td>Phản ứng khi bị tấn công</td>
-<td>Chưa làm</td>
+<td>OQ-41…OQ-47</td>
+<td>Bước 1, chờ chủ dự án</td>
 </tr>
 <tr>
-<td>3.4</td>
+<td><a href="#f-03-business-analysis-04-false-positive">3.4</a></td>
 <td>Xử lý chặn nhầm</td>
-<td>Chưa làm</td>
+<td>OQ-48…OQ-53</td>
+<td>Bước 1, chờ chủ dự án</td>
 </tr>
 <tr>
-<td>3.5</td>
+<td><a href="#f-03-business-analysis-05-plans-billing">3.5</a></td>
 <td>Mua, đổi gói, vượt hạn mức, thanh toán</td>
-<td>Chưa làm</td>
+<td>OQ-54…OQ-61</td>
+<td>Bước 1, chờ chủ dự án</td>
 </tr>
 <tr>
-<td>3.6</td>
+<td><a href="#f-03-business-analysis-06-members-access">3.6</a></td>
 <td>Quản lý thành viên, SSO, API key</td>
-<td>Chưa làm</td>
+<td>OQ-62…OQ-68</td>
+<td>Bước 1, chờ chủ dự án</td>
 </tr>
 <tr>
-<td>3.7</td>
+<td><a href="#f-03-business-analysis-07-offboarding">3.7</a></td>
 <td>Rời dịch vụ: gỡ zone, xoá org, xoá dữ liệu</td>
-<td>Chưa làm</td>
+<td>OQ-69…OQ-74</td>
+<td>Bước 1, chờ chủ dự án</td>
+</tr>
+<tr>
+<td><a href="#f-03-business-analysis-08-monitoring-investigation">3.8</a></td>
+<td>Giám sát, điều tra, cảnh báo, báo cáo</td>
+<td>OQ-75…OQ-80</td>
+<td>Bước 1, chờ chủ dự án</td>
+</tr>
+<tr>
+<td><a href="#f-03-business-analysis-09-bot-api-security">3.9</a></td>
+<td>Bật bot management và API security</td>
+<td>OQ-81…OQ-85</td>
+<td>Bước 1, chờ chủ dự án</td>
+</tr>
+<tr>
+<td><a href="#f-03-business-analysis-10-cache-performance">3.10</a></td>
+<td>Cache, hiệu năng, nội dung (gồm chính sách abuse)</td>
+<td>OQ-86…OQ-88</td>
+<td>Bước 1, chờ chủ dự án</td>
+</tr>
+<tr>
+<td><a href="#f-03-business-analysis-11-provider-operations">3.11</a></td>
+<td>Vận hành của NCC: threat research, support, sự cố nền tảng, bán hàng</td>
+<td>OQ-89…OQ-93</td>
+<td>Bước 1, chờ chủ dự án</td>
 </tr>
 </tbody>
 </table>
-<p>Mỗi trang dùng cùng một khung:</p>
-<ol>
-<li>Mục tiêu và định nghĩa &quot;xong&quot;.</li>
-<li>Tác nhân và biến thể theo phân khúc.</li>
-<li>Khách cần chuẩn bị gì.</li>
-<li>Các bước, thứ tự và cổng.</li>
-<li>Chi tiết từng bước: đầu vào, xử lý, kết quả, lỗi thường gặp, plane, chức năng, dữ liệu.</li>
-<li>Trường hợp đặc biệt.</li>
-<li>Mục tiêu thời gian.</li>
-<li>Thay đổi kéo theo ở §1, §2 và ở architecture (5.5, các thành phần).</li>
-<li>Câu hỏi mở.</li>
-</ol>
+<h2 id="f-03-business-analysis-00-index--câu-hỏi-nối-giữa-các-nghiệp-vụ">Câu hỏi nối giữa các nghiệp vụ</h2>
+<p>Một số câu hỏi xuất hiện ở nhiều trang; trả lời một lần cho tất cả:</p>
+<table>
+<thead>
+<tr>
+<th>Chủ đề</th>
+<th>Câu hỏi</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Một khách nhỏ nhiều domain, agency, reseller, MSSP</td>
+<td>OQ-27, OQ-54, OQ-59, OQ-62, OQ-63, OQ-75</td>
+</tr>
+<tr>
+<td>Ai được xem dữ liệu request (dữ liệu cá nhân)</td>
+<td>OQ-50, OQ-68, OQ-84</td>
+</tr>
+<tr>
+<td>NCC làm thay khách (bật mitigation, sửa policy, khôi phục quyền)</td>
+<td>OQ-40, OQ-41, OQ-64</td>
+</tr>
+<tr>
+<td>Pháp lý: cơ quan chức năng, lưu log, abuse</td>
+<td>OQ-45, OQ-73, OQ-79, OQ-88</td>
+</tr>
+<tr>
+<td>Dữ liệu cá nhân trong audit và khi xoá</td>
+<td>OQ-6, OQ-70, OQ-71</td>
+</tr>
+</tbody>
+</table>
 </section>
 <section class="doc" id="f-03-business-analysis-01-onboarding"><div class="path">03-business-analysis/01-onboarding.md</div><h1 id="f-03-business-analysis-01-onboarding--31-onboarding-một-website">3.1 Onboarding một website</h1>
 <blockquote>
@@ -4762,7 +4839,7 @@ phân khúc nào.</p>
 </ul>
 <p>Mỗi nhánh đổi bước cần làm và rủi ro. Vì vậy phải liệt kê đủ kịch bản trước, rồi mới thiết kế luồng.</p>
 <h2 id="f-03-business-analysis-01-onboarding--2-kịch-bản-theo-từng-trục">2. Kịch bản theo từng trục</h2>
-<p>Mã <code>KB-&lt;trục&gt;&lt;số&gt;</code> dùng để nhắc tới kịch bản khi phân tích.</p>
+<p>Mã <code>KB1-&lt;trục&gt;&lt;số&gt;</code> dùng để nhắc tới kịch bản khi phân tích.</p>
 <h3 id="f-03-business-analysis-01-onboarding--a-origin-của-khách">A. Origin của khách</h3>
 <table>
 <thead>
@@ -4774,52 +4851,52 @@ phân khúc nào.</p>
 </thead>
 <tbody>
 <tr>
-<td>KB-A1</td>
+<td>KB1-A1</td>
 <td>Một VPS, một IP public, nginx hoặc apache</td>
 <td>Kịch bản phổ biến nhất ở khách nhỏ. Thường chạy nhiều site trên cùng VPS (virtual host) nên nhiều domain dùng chung một IP origin</td>
 </tr>
 <tr>
-<td>KB-A2</td>
+<td>KB1-A2</td>
 <td>VPS chỉ IPv4 / IPv4 và IPv6 / chỉ IPv6</td>
 <td>Edge nhận client v4 và v6 nhưng nối tới origin theo họ IP origin có. Origin dual-stack thì chọn họ nào, có fallback không</td>
 </tr>
 <tr>
-<td>KB-A3</td>
+<td>KB1-A3</td>
 <td>Shared hosting (cPanel, DirectAdmin), IP dùng chung với khách khác</td>
 <td>Khách không sửa được firewall nên không khoá origin theo IP được. Host thường tự cấp cert (AutoSSL). Origin nhận diện site theo Host header</td>
 </tr>
 <tr>
-<td>KB-A4</td>
+<td>KB1-A4</td>
 <td>Load balancer của cloud (ALB, GCP LB…), origin là hostname, IP thay đổi</td>
 <td>Origin phải khai báo được bằng hostname, edge phải phân giải lại theo TTL</td>
 </tr>
 <tr>
-<td>KB-A5</td>
+<td>KB1-A5</td>
 <td>Một hostname, nhiều backend theo path (<code>/api</code> → server khác, <code>/static</code> → bucket)</td>
 <td>Định tuyến origin theo path có thuộc phạm vi không</td>
 </tr>
 <tr>
-<td>KB-A6</td>
+<td>KB1-A6</td>
 <td>Nhiều origin cho một hostname (dự phòng, chia tải)</td>
 <td>Health check, failover (đang ở mức Mở rộng)</td>
 </tr>
 <tr>
-<td>KB-A7</td>
+<td>KB1-A7</td>
 <td>Origin sau NAT, máy ở nhà, không có IP public</td>
 <td>Cần tunnel từ origin ra edge</td>
 </tr>
 <tr>
-<td>KB-A8</td>
+<td>KB1-A8</td>
 <td>Đã có CDN hoặc WAF khác đứng trước</td>
 <td>Thay hẳn, hay đứng sau CDN đó</td>
 </tr>
 <tr>
-<td>KB-A9</td>
+<td>KB1-A9</td>
 <td>Website tĩnh trên object storage</td>
 <td>Host header gửi về origin khác hostname thật</td>
 </tr>
 <tr>
-<td>KB-A10</td>
+<td>KB1-A10</td>
 <td>Origin là nền tảng SaaS (Shopify, Wix, Haravan, Sapo…)</td>
 <td>Nền tảng đó có cho đứng trước nó không, có kiểm Host, có tự cấp cert theo domain khách không</td>
 </tr>
@@ -4836,34 +4913,34 @@ phân khúc nào.</p>
 </thead>
 <tbody>
 <tr>
-<td>KB-B1</td>
+<td>KB1-B1</td>
 <td>DNS tại nhà đăng ký trong nước (Mắt Bão, PA Việt Nam, Nhân Hoà, Tenten, iNET…)</td>
 <td>Giao diện mỗi nhà một kiểu. Có nhà không có ALIAS ở apex, có thể không cho tên bản ghi bắt đầu bằng <code>_</code>, giới hạn độ dài TXT, TTL tối thiểu cao. Cần khảo sát thực tế từng nhà</td>
 </tr>
 <tr>
-<td>KB-B2</td>
+<td>KB1-B2</td>
 <td>DNS ở nhà cung cấp quốc tế (Cloudflare, Route53, Google Cloud DNS)</td>
-<td>Có ALIAS hoặc flattening; nếu đang ở Cloudflare thì thường đang proxy luôn (KB-A8)</td>
+<td>Có ALIAS hoặc flattening; nếu đang ở Cloudflare thì thường đang proxy luôn (KB1-A8)</td>
 </tr>
 <tr>
-<td>KB-B3</td>
+<td>KB1-B3</td>
 <td>Khách muốn chuyển hẳn nameserver sang NCC</td>
 <td>NCC thành DNS hosting: phải quản lý mọi bản ghi (MX, TXT, SRV, CAA…), không chỉ bản ghi web</td>
 </tr>
 <tr>
-<td>KB-B4</td>
+<td>KB1-B4</td>
 <td>Người onboard không có quyền DNS (agency, phòng IT khác, nhà cung cấp cũ giữ)</td>
 <td>Gửi hướng dẫn cho người giữ DNS; người đó có cần tài khoản không</td>
 </tr>
 <tr>
-<td>KB-B5</td>
+<td>KB1-B5</td>
 <td>Domain mới mua, chưa có bản ghi nào</td>
 <td>Không có gì để gợi ý origin; DNS mặc định của nhà đăng ký</td>
 </tr>
 <tr>
-<td>KB-B6</td>
+<td>KB1-B6</td>
 <td>DNS do hosting quản lý kèm (shared hosting)</td>
-<td>Khách sửa DNS qua giao diện hosting, thường hạn chế hơn KB-B1</td>
+<td>Khách sửa DNS qua giao diện hosting, thường hạn chế hơn KB1-B1</td>
 </tr>
 </tbody>
 </table>
@@ -4878,52 +4955,52 @@ phân khúc nào.</p>
 </thead>
 <tbody>
 <tr>
-<td>KB-C1</td>
+<td>KB1-C1</td>
 <td>CNAME cho subdomain (<code>www</code>, <code>shop</code>, <code>api</code>)</td>
 <td>Dễ nhất, cho phép đổi IP edge và điều hướng theo vị trí</td>
 </tr>
 <tr>
-<td>KB-C2</td>
+<td>KB1-C2</td>
 <td>Apex trỏ A (IPv4) / AAAA (IPv6) sang IP của NCC</td>
 <td>Cần dải IP tĩnh v4 và v6. Chưa có anycast thì một IP gắn người dùng với một nơi, mất điều hướng theo vị trí và mất cách rút PoP bằng DNS</td>
 </tr>
 <tr>
-<td>KB-C3</td>
+<td>KB1-C3</td>
 <td>Khách muốn dùng A/AAAA cho cả subdomain, không dùng CNAME</td>
-<td>Như KB-C2; nhiều khách quen trỏ IP hơn CNAME</td>
+<td>Như KB1-C2; nhiều khách quen trỏ IP hơn CNAME</td>
 </tr>
 <tr>
-<td>KB-C4</td>
+<td>KB1-C4</td>
 <td>Chỉ khai A, không khai AAAA (hoặc ngược lại)</td>
 <td>Người dùng IPv6 đi thẳng origin nếu AAAA còn trỏ về origin: một nửa traffic không qua WAF</td>
 </tr>
 <tr>
-<td>KB-C5</td>
+<td>KB1-C5</td>
 <td>Apex dùng ALIAS / CNAME flattening</td>
-<td>Phụ thuộc nhà DNS (KB-B1, KB-B2)</td>
+<td>Phụ thuộc nhà DNS (KB1-B1, KB1-B2)</td>
 </tr>
 <tr>
-<td>KB-C6</td>
+<td>KB1-C6</td>
 <td>Apex chuyển hướng sang <code>www</code></td>
 <td>Khách phải chấp nhận đổi URL chính; ai làm chuyển hướng (nhà DNS, origin, edge)</td>
 </tr>
 <tr>
-<td>KB-C7</td>
+<td>KB1-C7</td>
 <td>Đổi nameserver sang NCC</td>
-<td>Xem KB-B3</td>
+<td>Xem KB1-B3</td>
 </tr>
 <tr>
-<td>KB-C8</td>
+<td>KB1-C8</td>
 <td>Đứng sau CDN của khách: CDN trỏ origin về edge</td>
 <td>Tin IP và header client nào</td>
 </tr>
 <tr>
-<td>KB-C9</td>
+<td>KB1-C9</td>
 <td>Trỏ A apex về edge làm hỏng dịch vụ khác trên cùng IP (SSH, mail, FTP, game, panel quản trị cổng 2083/8443…)</td>
 <td>Edge chỉ proxy HTTP(S). Phải phát hiện và cảnh báo; khách phải tách hostname cho dịch vụ khác</td>
 </tr>
 <tr>
-<td>KB-C10</td>
+<td>KB1-C10</td>
 <td>Trỏ một phần (chỉ một số hostname, hoặc đổi dần theo trọng số)</td>
 <td>Theo dõi trạng thái từng hostname</td>
 </tr>
@@ -4940,47 +5017,47 @@ phân khúc nào.</p>
 </thead>
 <tbody>
 <tr>
-<td>KB-D1</td>
+<td>KB1-D1</td>
 <td>Chỉ apex; apex và <code>www</code>; vài subdomain chọn lọc</td>
 <td>Chọn hostname nào được bảo vệ; hostname không chọn thì vẫn đi thẳng origin</td>
 </tr>
 <tr>
-<td>KB-D2</td>
+<td>KB1-D2</td>
 <td>Wildcard <code>*.example.com</code></td>
 <td>Cert wildcard chỉ cấp được qua DNS-01; wildcard có bảo vệ subdomain chưa khai báo không</td>
 </tr>
 <tr>
-<td>KB-D3</td>
+<td>KB1-D3</td>
 <td>Subdomain nhiều cấp (<code>a.b.example.com</code>)</td>
 <td>Wildcard một cấp không phủ được; cert riêng</td>
 </tr>
 <tr>
-<td>KB-D4</td>
+<td>KB1-D4</td>
 <td>Chỉ bảo vệ <code>shop.example.com</code>, không có quyền với apex (công ty con, apex do bên khác giữ)</td>
 <td>Zone là domain gốc hay có thể là một hostname riêng</td>
 </tr>
 <tr>
-<td>KB-D5</td>
+<td>KB1-D5</td>
 <td>Một khách nhiều domain (<code>example.com</code>, <code>example.vn</code>, domain thương hiệu phụ)</td>
 <td>Mỗi domain một zone? Dùng chung policy thế nào? Tính giá thế nào</td>
 </tr>
 <tr>
-<td>KB-D6</td>
+<td>KB1-D6</td>
 <td>Thêm subdomain sau onboarding</td>
 <td>Có phải xác minh lại không, cert cấp thế nào, có tự bật bảo vệ không</td>
 </tr>
 <tr>
-<td>KB-D7</td>
+<td>KB1-D7</td>
 <td>Xoá subdomain, đổi subdomain sang origin khác</td>
 <td>Giải phóng claim, cert</td>
 </tr>
 <tr>
-<td>KB-D8</td>
+<td>KB1-D8</td>
 <td>Domain IDN (tiếng Việt có dấu)</td>
 <td>Lưu dạng punycode, hiển thị dạng Unicode</td>
 </tr>
 <tr>
-<td>KB-D9</td>
+<td>KB1-D9</td>
 <td>Subdomain do khách khác của NCC giữ (<code>a.example.com</code> ở tenant A, <code>b.example.com</code> ở tenant B)</td>
 <td>Cho phép hay không; ai sở hữu domain gốc</td>
 </tr>
@@ -4997,47 +5074,47 @@ phân khúc nào.</p>
 </thead>
 <tbody>
 <tr>
-<td>KB-E1</td>
+<td>KB1-E1</td>
 <td>Client dùng cổng chuẩn 80/443</td>
 <td>Chuẩn</td>
 </tr>
 <tr>
-<td>KB-E2</td>
+<td>KB1-E2</td>
 <td>Client dùng cổng phi chuẩn (<code>https://example.com:8443</code>, <code>:8080</code>, <code>:2053</code>)</td>
 <td>Edge phải nghe cổng đó. Danh sách cổng cố định thì dễ; cổng tuỳ ý thì gần như phải cấp IP riêng hoặc proxy L4</td>
 </tr>
 <tr>
-<td>KB-E3</td>
+<td>KB1-E3</td>
 <td>Edge nhận 443, origin chạy cổng phi chuẩn (8080, 3000, 8443)</td>
 <td>Chỉ là cấu hình origin</td>
 </tr>
 <tr>
-<td>KB-E4</td>
+<td>KB1-E4</td>
 <td>Một hostname, nhiều cổng ra nhiều ứng dụng (443 web, 8443 admin)</td>
 <td>Cấu hình theo (hostname, cổng)</td>
 </tr>
 <tr>
-<td>KB-E5</td>
+<td>KB1-E5</td>
 <td>Origin chỉ có HTTP, không có TLS</td>
 <td>Edge HTTPS → origin HTTP: đoạn sau không mã hoá, dễ vòng chuyển hướng khi origin tự ép HTTPS</td>
 </tr>
 <tr>
-<td>KB-E6</td>
+<td>KB1-E6</td>
 <td>Chuyển hướng HTTP → HTTPS ở edge hay ở origin</td>
 <td>Lặp chuyển hướng nếu cả hai cùng làm sai cách</td>
 </tr>
 <tr>
-<td>KB-E7</td>
+<td>KB1-E7</td>
 <td>WebSocket, gRPC, SSE, long polling, upload lớn, download lớn</td>
 <td>Timeout, giới hạn body theo gói, buffer</td>
 </tr>
 <tr>
-<td>KB-E8</td>
+<td>KB1-E8</td>
 <td>HTTP/2, HTTP/3 phía client; HTTP/1.1 phía origin</td>
 <td>Chuyển đổi giao thức</td>
 </tr>
 <tr>
-<td>KB-E9</td>
+<td>KB1-E9</td>
 <td>Traffic không phải HTTP (TCP/UDP: game, MQTT, SSH, SMTP)</td>
 <td>Ngoài WAF; có làm proxy L4 không</td>
 </tr>
@@ -5054,37 +5131,37 @@ phân khúc nào.</p>
 </thead>
 <tbody>
 <tr>
-<td>KB-F1</td>
+<td>KB1-F1</td>
 <td>NCC cấp cert tự động</td>
 <td>Xác minh và cấp lúc nào so với lúc đổi DNS, để không có khoảng lỗi HTTPS</td>
 </tr>
 <tr>
-<td>KB-F2</td>
+<td>KB1-F2</td>
 <td>Khách tải cert riêng (EV, OV, cert mua)</td>
 <td>Theo gói; khách tự gia hạn, nhắc hạn</td>
 </tr>
 <tr>
-<td>KB-F3</td>
+<td>KB1-F3</td>
 <td>VPS đang tự gia hạn Let's Encrypt bằng certbot (HTTP-01)</td>
 <td>Sau khi trỏ về edge, gia hạn ở origin hỏng, trừ khi edge chuyển <code>/.well-known/acme-challenge/</code> không phải của NCC về origin</td>
 </tr>
 <tr>
-<td>KB-F4</td>
+<td>KB1-F4</td>
 <td>Cert ở origin tự ký, hết hạn, sai hostname</td>
 <td>Nới kiểm cert phía origin tới đâu</td>
 </tr>
 <tr>
-<td>KB-F5</td>
+<td>KB1-F5</td>
 <td>Domain có CAA chỉ cho phép một CA khác</td>
 <td>CA của NCC bị từ chối cấp</td>
 </tr>
 <tr>
-<td>KB-F6</td>
+<td>KB1-F6</td>
 <td>HSTS preload, HPKP cũ, client mobile pin cert</td>
 <td>Không được có lúc nào sai cert; pin cert làm app mobile hỏng khi đổi cert</td>
 </tr>
 <tr>
-<td>KB-F7</td>
+<td>KB1-F7</td>
 <td>Client dùng mTLS tới website</td>
 <td>Edge phải giữ CA của khách</td>
 </tr>
@@ -5101,27 +5178,27 @@ phân khúc nào.</p>
 </thead>
 <tbody>
 <tr>
-<td>KB-G1</td>
+<td>KB1-G1</td>
 <td>Log, thống kê, rate limit ở origin theo IP</td>
 <td>Sau khi qua edge, IP nguồn là IP edge; ứng dụng phải đọc header</td>
 </tr>
 <tr>
-<td>KB-G2</td>
+<td>KB1-G2</td>
 <td>Origin có allowlist IP (trang admin, API cho đối tác)</td>
 <td>Allowlist ở origin không còn tác dụng; phải chuyển lên edge</td>
 </tr>
 <tr>
-<td>KB-G3</td>
+<td>KB1-G3</td>
 <td>Origin chặn theo quốc gia, fail2ban</td>
 <td>Thấy IP edge, có thể tự chặn edge</td>
 </tr>
 <tr>
-<td>KB-G4</td>
+<td>KB1-G4</td>
 <td>Webhook từ đối tác (cổng thanh toán, ngân hàng) gọi vào</td>
 <td>Dễ bị WAF hoặc bot chặn nhầm; cần allowlist ngay từ đầu</td>
 </tr>
 <tr>
-<td>KB-G5</td>
+<td>KB1-G5</td>
 <td>Ứng dụng mobile, client cũ không theo chuyển hướng, không hỗ trợ SNI hay TLS mới</td>
 <td>Cấu hình TLS tối thiểu</td>
 </tr>
@@ -5138,27 +5215,27 @@ phân khúc nào.</p>
 </thead>
 <tbody>
 <tr>
-<td>KB-H1</td>
+<td>KB1-H1</td>
 <td>Khách đổi IP origin, đổi hosting</td>
 <td>Cập nhật origin không gián đoạn</td>
 </tr>
 <tr>
-<td>KB-H2</td>
+<td>KB1-H2</td>
 <td>Khách đổi nhà DNS, xoá nhầm bản ghi xác minh hoặc uỷ quyền</td>
 <td>Gia hạn cert hỏng; phát hiện sớm</td>
 </tr>
 <tr>
-<td>KB-H3</td>
+<td>KB1-H3</td>
 <td>Domain hết hạn đăng ký, domain đổi chủ, domain bị bán lại</td>
 <td>Chủ mới không được thừa hưởng cấu hình của chủ cũ; xác minh lại định kỳ</td>
 </tr>
 <tr>
-<td>KB-H4</td>
+<td>KB1-H4</td>
 <td>Khách muốn thôi dùng, trỏ DNS về origin</td>
 <td>Hướng dẫn quay lui, origin còn chạy được không sau khi đã khoá origin</td>
 </tr>
 <tr>
-<td>KB-H5</td>
+<td>KB1-H5</td>
 <td>IP của edge thay đổi</td>
 <td>Khách đã trỏ A và đã khoá firewall theo IP edge phải được báo trước</td>
 </tr>
@@ -5175,27 +5252,27 @@ phân khúc nào.</p>
 </thead>
 <tbody>
 <tr>
-<td>KB-I1</td>
+<td>KB1-I1</td>
 <td>Một VPS chạy 5 domain nhỏ</td>
 <td>5 zone Pro có hợp lý không, hay cần gói theo nhóm domain</td>
 </tr>
 <tr>
-<td>KB-I2</td>
+<td>KB1-I2</td>
 <td>Zone staging, domain phụ</td>
 <td>Giá zone phụ áp khi nào</td>
 </tr>
 <tr>
-<td>KB-I3</td>
+<td>KB1-I3</td>
 <td>Dùng thử theo domain hay theo org</td>
 <td>Lạm dụng dùng thử bằng nhiều domain</td>
 </tr>
 <tr>
-<td>KB-I4</td>
+<td>KB1-I4</td>
 <td>Agency hoặc nhà phát triển quản lý website cho nhiều khách</td>
 <td>Một org cho mỗi khách cuối hay một org agency; ai trả tiền; khách cuối có quyền gì</td>
 </tr>
 <tr>
-<td>KB-I5</td>
+<td>KB1-I5</td>
 <td>Nhà cung cấp hosting, VPS muốn bán lại (reseller)</td>
 <td>Mô hình đối tác, nhãn trắng</td>
 </tr>
@@ -5212,22 +5289,22 @@ phân khúc nào.</p>
 </thead>
 <tbody>
 <tr>
-<td>KB-J1</td>
+<td>KB1-J1</td>
 <td>Người onboard không rành DNS (chủ shop nhỏ)</td>
 <td>Mức hướng dẫn: ảnh chụp theo từng nhà DNS, video, chat hỗ trợ</td>
 </tr>
 <tr>
-<td>KB-J2</td>
+<td>KB1-J2</td>
 <td>DevOps muốn làm hết bằng API hoặc Terraform</td>
 <td>Onboarding không được bắt buộc qua UI</td>
 </tr>
 <tr>
-<td>KB-J3</td>
+<td>KB1-J3</td>
 <td>Enterprise onboard có kỹ sư NCC đi kèm</td>
 <td>Danh sách việc chuẩn bị, khung giờ đổi DNS</td>
 </tr>
 <tr>
-<td>KB-J4</td>
+<td>KB1-J4</td>
 <td>Khách onboard đúng lúc đang bị tấn công</td>
 <td>Cần đường tắt, chấp nhận rủi ro chặn nhầm</td>
 </tr>
@@ -5270,73 +5347,73 @@ có câu trả lời.</p>
 <tr>
 <td>OQ-21</td>
 <td>Zone là domain gốc, hay cho phép onboard riêng một hostname khi khách không kiểm soát apex?</td>
-<td>KB-D4, KB-D9</td>
+<td>KB1-D4, KB1-D9</td>
 <td>Domain gốc làm mặc định, hostname riêng làm ngoại lệ có xác minh theo hostname</td>
 </tr>
 <tr>
 <td>OQ-22</td>
 <td>Có cấp IP tĩnh v4 và v6 cho khách trỏ A/AAAA ngay từ MVP không: dải dùng chung theo region, IP riêng theo zone ở gói cao, hay chỉ CNAME và ALIAS? Có làm anycast không, khi nào?</td>
-<td>KB-C2, KB-C3, KB-C4</td>
+<td>KB1-C2, KB1-C3, KB1-C4</td>
 <td>Khách thuê VPS hay trỏ A, chỉ CNAME có lẽ không đủ</td>
 </tr>
 <tr>
 <td>OQ-23</td>
 <td>Cổng phi chuẩn phía client: danh sách cố định cho mọi gói, cổng tuỳ ý ở gói cao kèm IP riêng, hay không hỗ trợ ở MVP?</td>
-<td>KB-E2, KB-E4</td>
+<td>KB1-E2, KB1-E4</td>
 <td></td>
 </tr>
 <tr>
 <td>OQ-24</td>
 <td>Traffic không phải HTTP trên cùng domain: chỉ cảnh báo và hướng dẫn tách hostname, hay có kế hoạch proxy L4?</td>
-<td>KB-C9, KB-E9</td>
+<td>KB1-C9, KB1-E9</td>
 <td></td>
 </tr>
 <tr>
 <td>OQ-25</td>
 <td>Có nhận quản lý toàn bộ DNS của khách (nameserver) ngay từ MVP không?</td>
-<td>KB-B3, KB-C7</td>
+<td>KB1-B3, KB1-C7</td>
 <td>Nếu có, cần màn quản lý mọi loại bản ghi</td>
 </tr>
 <tr>
 <td>OQ-26</td>
 <td>Có cần hướng dẫn riêng cho từng nhà DNS trong nước không? Nhà nào không cho bản ghi bắt đầu bằng <code>_</code>?</td>
-<td>KB-B1, KB-J1</td>
+<td>KB1-B1, KB1-J1</td>
 <td>Cần khảo sát thực tế</td>
 </tr>
 <tr>
 <td>OQ-27</td>
 <td>Phân khúc chính ở MVP: người thuê VPS, shared hosting, doanh nghiệp có đội IT? Giá cho nhiều domain trên một VPS? Agency, reseller?</td>
-<td>KB-A1, KB-A3, KB-I1, KB-I4, KB-I5</td>
+<td>KB1-A1, KB1-A3, KB1-I1, KB1-I4, KB1-I5</td>
 <td></td>
 </tr>
 <tr>
 <td>OQ-28</td>
 <td>Tunnel cho origin không có IP public có vào MVP không?</td>
-<td>KB-A7</td>
+<td>KB1-A7</td>
 <td></td>
 </tr>
 <tr>
 <td>OQ-29</td>
 <td>Định tuyến origin theo path, nhiều origin cho một hostname: MVP hay Mở rộng?</td>
-<td>KB-A5, KB-A6</td>
+<td>KB1-A5, KB1-A6</td>
 <td></td>
 </tr>
 <tr>
 <td>OQ-30</td>
 <td>Origin là nền tảng SaaS (Shopify, Haravan, Sapo…): có hỗ trợ chính thức không?</td>
-<td>KB-A10</td>
+<td>KB1-A10</td>
 <td>Cần kiểm từng nền tảng</td>
 </tr>
 <tr>
 <td>OQ-31</td>
 <td>Edge có chuyển challenge ACME của origin (certbot) về origin không?</td>
-<td>KB-F3</td>
+<td>KB1-F3</td>
 <td></td>
 </tr>
 <tr>
 <td>OQ-32</td>
 <td>Khi khách khai A nhưng AAAA vẫn trỏ origin (hoặc ngược lại): chỉ cảnh báo, hay chặn bước hoàn tất?</td>
-<td>KB-C4</td>
+<td>KB1-C4</td>
 <td></td>
 </tr>
 </tbody>
@@ -6210,6 +6287,2552 @@ token ở đó và cấp, gia hạn cert <strong>trước khi</strong> traffic t
 </tr>
 </tbody>
 </table>
+</section>
+<section class="doc" id="f-03-business-analysis-02-policy-change"><div class="path">03-business-analysis/02-policy-change.md</div><h1 id="f-03-business-analysis-02-policy-change--32-viết-duyệt-phát-hành-một-thay-đổi-policy">3.2 Viết, duyệt, phát hành một thay đổi policy</h1>
+<blockquote>
+<p><strong>Trạng thái: đang mở, chưa có quyết định nào (2026-11-06).</strong> Trang này chỉ liệt kê kịch bản và câu hỏi.
+Cột &quot;ghi chú ban đầu&quot; là ý kiến lúc ghi, không phải quyết định.</p>
+</blockquote>
+<h2 id="f-03-business-analysis-02-policy-change--1-phạm-vi">1. Phạm vi</h2>
+<p>Bắt đầu khi ai đó muốn đổi cách edge xử lý traffic của một hoặc nhiều zone. Kết thúc khi thay đổi đã chạy
+trên edge và được theo dõi, hoặc đã bị huỷ hay rollback. Không gồm: kênh khẩn khi đang bị tấn công (3.3),
+exception sinh từ chặn nhầm (3.4), cập nhật ruleset do NCC phát hành (chỉ ghi phần ảnh hưởng tới khách, ở
+trục I).</p>
+<p>Liên quan: F5 ở <a href="#f-01-functional-decomposition--f5-vòng-đời-policy">§1</a>, FR-5-xx ở
+<a href="#f-02-requirements--f5-vòng-đời-policy">§2</a>.</p>
+<h2 id="f-03-business-analysis-02-policy-change--2-kịch-bản-theo-từng-trục">2. Kịch bản theo từng trục</h2>
+<h3 id="f-03-business-analysis-02-policy-change--a-ai-thay-đổi-qua-kênh-nào">A. Ai thay đổi, qua kênh nào</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB2-A1</td>
+<td>Quản trị bảo mật sửa trên portal</td>
+<td>Kênh chính</td>
+</tr>
+<tr>
+<td>KB2-A2</td>
+<td>DevOps sửa qua public API hoặc Terraform</td>
+<td>Cùng quyền, cùng kiểm tra như UI; drift giữa Terraform và UI</td>
+</tr>
+<tr>
+<td>KB2-A3</td>
+<td>Policy đồng bộ từ Git (GitOps)</td>
+<td>Git là nguồn sự thật thì sửa trên UI bị khoá hay bị ghi đè ở lần đồng bộ sau</td>
+</tr>
+<tr>
+<td>KB2-A4</td>
+<td>Support của NCC sửa thay khách</td>
+<td>Cần quyền khách cấp, audit hiện cho khách, có cần khách duyệt không</td>
+</tr>
+<tr>
+<td>KB2-A5</td>
+<td>Developer chỉ được sửa trong phạm vi được giao</td>
+<td>Phạm vi là zone, path hay loại rule</td>
+</tr>
+<tr>
+<td>KB2-A6</td>
+<td>Org chỉ có một người</td>
+<td>4-eyes không áp được</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-02-policy-change--b-loại-thay-đổi">B. Loại thay đổi</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB2-B1</td>
+<td>Custom rule, rate limit, access list</td>
+<td>Ảnh hưởng trực tiếp traffic</td>
+</tr>
+<tr>
+<td>KB2-B2</td>
+<td>Cấu hình managed ruleset: paranoia, ngưỡng anomaly, tắt rule</td>
+<td>Một con số đổi có thể đổi kết quả hàng nghìn rule</td>
+</tr>
+<tr>
+<td>KB2-B3</td>
+<td>Exception</td>
+<td>Mở rộng quá tay là lỗ hổng; hẹp quá thì không hết chặn nhầm</td>
+</tr>
+<tr>
+<td>KB2-B4</td>
+<td>Cài đặt zone (TLS, fail mode, origin, cache rule)</td>
+<td>Có đi qua cùng change request với rule không; đổi origin sai làm sập website</td>
+</tr>
+<tr>
+<td>KB2-B5</td>
+<td>Cấu hình bot, API schema</td>
+<td>Ảnh hưởng client không chạy được JavaScript (app mobile, đối tác)</td>
+</tr>
+<tr>
+<td>KB2-B6</td>
+<td>Chỉ đổi tên, mô tả, thứ tự hiển thị</td>
+<td>Có cần duyệt không</td>
+</tr>
+<tr>
+<td>KB2-B7</td>
+<td>Chuyển một rule từ log-only sang chặn</td>
+<td>Là thay đổi rủi ro nhất trong thực tế</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-02-policy-change--c-phạm-vi">C. Phạm vi</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB2-C1</td>
+<td>Một zone</td>
+<td>Mặc định</td>
+</tr>
+<tr>
+<td>KB2-C2</td>
+<td>Nhóm zone theo tag</td>
+<td>Một change request cho nhiều zone; một zone lỗi biên dịch thì cả nhóm dừng hay phát phần còn lại</td>
+</tr>
+<tr>
+<td>KB2-C3</td>
+<td>Template ở cấp org, kế thừa xuống zone</td>
+<td>Sửa template ảnh hưởng hàng nghìn zone; zone có quyền ghi đè không</td>
+</tr>
+<tr>
+<td>KB2-C4</td>
+<td>Thay đổi hàng loạt 100.000 zone (Terraform, đổi mặc định)</td>
+<td>QS-27; duyệt một lần hay từng zone</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-02-policy-change--d-kiểm-tra-trước-khi-phát-hành">D. Kiểm tra trước khi phát hành</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB2-D1</td>
+<td>Kiểm cú pháp và biên dịch thử</td>
+<td>Lỗi phải chỉ đúng vị trí trong rule</td>
+</tr>
+<tr>
+<td>KB2-D2</td>
+<td>Mô phỏng trên traffic lịch sử</td>
+<td>Chỉ gói có mẫu request; zone ít traffic không đủ mẫu; mẫu chứa dữ liệu cá nhân</td>
+</tr>
+<tr>
+<td>KB2-D3</td>
+<td>Thay đổi vượt giới hạn gói (số rule, độ phức tạp)</td>
+<td>Báo khi soạn hay khi phát hành</td>
+</tr>
+<tr>
+<td>KB2-D4</td>
+<td>Rule đúng cú pháp nhưng chặn tất cả (ví dụ điều kiện luôn đúng)</td>
+<td>Có cảnh báo &quot;rule này khớp X% traffic&quot; trước khi phát hành không</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-02-policy-change--e-duyệt">E. Duyệt</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB2-E1</td>
+<td>4-eyes bật, người duyệt khác người tạo</td>
+<td>Người duyệt vắng mặt, thay đổi kẹt</td>
+</tr>
+<tr>
+<td>KB2-E2</td>
+<td>Duyệt theo mức rủi ro</td>
+<td>Đổi mô tả tự duyệt; chuyển log-only sang chặn cần duyệt</td>
+</tr>
+<tr>
+<td>KB2-E3</td>
+<td>Khung giờ cho phép thay đổi</td>
+<td>Thay đổi khẩn ngoài giờ</td>
+</tr>
+<tr>
+<td>KB2-E4</td>
+<td>Người duyệt chỉ có quyền trên một phần zone trong change request</td>
+<td>Duyệt một phần hay từ chối cả request</td>
+</tr>
+<tr>
+<td>KB2-E5</td>
+<td>Change request để lâu, bản nháp đã đổi tiếp</td>
+<td>Duyệt bản nào; hết hạn duyệt</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-02-policy-change--f-phát-hành-và-theo-dõi">F. Phát hành và theo dõi</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB2-F1</td>
+<td>Phát hành đi qua canary theo cell</td>
+<td>Khách thấy gì trong lúc canary; mất bao lâu</td>
+</tr>
+<tr>
+<td>KB2-F2</td>
+<td>Gate canary của NCC tự rollback thay đổi của khách</td>
+<td>Khách được báo thế nào, lý do có hiểu được không</td>
+</tr>
+<tr>
+<td>KB2-F3</td>
+<td>Một phần node áp lỗi</td>
+<td>Zone chạy hai version cùng lúc</td>
+</tr>
+<tr>
+<td>KB2-F4</td>
+<td>Sau khi phát hành, tỉ lệ chặn tăng vọt</td>
+<td>Có tự cảnh báo khách trong 15 phút đầu không</td>
+</tr>
+<tr>
+<td>KB2-F5</td>
+<td>Khách muốn phát hành theo tỉ lệ traffic (1% → 10% → 100%)</td>
+<td>Có làm không, ở gói nào</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-02-policy-change--g-xung-đột">G. Xung đột</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB2-G1</td>
+<td>Hai người sửa cùng bản nháp</td>
+<td>Khoá, gộp, hay báo xung đột version</td>
+</tr>
+<tr>
+<td>KB2-G2</td>
+<td>Terraform apply trong lúc có change request đang chờ duyệt trên UI</td>
+<td>Cái nào thắng</td>
+</tr>
+<tr>
+<td>KB2-G3</td>
+<td>Rule tạm của kênh khẩn đang chạy khi có thay đổi thường</td>
+<td>Phát hành thường có xoá rule tạm không</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-02-policy-change--h-rollback">H. Rollback</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB2-H1</td>
+<td>Rollback về version trước</td>
+<td>Có cần duyệt không</td>
+</tr>
+<tr>
+<td>KB2-H2</td>
+<td>Rollback về version dùng tính năng đã hết sau khi hạ gói</td>
+<td>Từ chối, hay rollback một phần</td>
+</tr>
+<tr>
+<td>KB2-H3</td>
+<td>Rollback về version tham chiếu ruleset release đã ngừng</td>
+<td>Dùng release nào</td>
+</tr>
+<tr>
+<td>KB2-H4</td>
+<td>Rollback chỉ một rule, không rollback cả version</td>
+<td>Có cần không</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-02-policy-change--i-thay-đổi-do-ncc-phát-hành">I. Thay đổi do NCC phát hành</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB2-I1</td>
+<td>Bản CRS hoặc system ruleset mới đổi hành vi zone dù khách không đổi gì</td>
+<td>Tự áp, hay khách chọn khi nào nhận; có giai đoạn log-only cho rule mới không</td>
+</tr>
+<tr>
+<td>KB2-I2</td>
+<td>Khách Enterprise muốn ghim version ruleset</td>
+<td>Ghim được bao lâu; bản vá bảo mật có bắt buộc không</td>
+</tr>
+<tr>
+<td>KB2-I3</td>
+<td>Rule khẩn của NCC cho CVE mới</td>
+<td>Có hiện trong lịch sử thay đổi của zone không</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-03-business-analysis-02-policy-change--3-câu-hỏi-cần-chủ-dự-án-quyết">3. Câu hỏi cần chủ dự án quyết</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Câu hỏi</th>
+<th>Kịch bản</th>
+<th>Ghi chú ban đầu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OQ-33</td>
+<td>Mọi thay đổi đều đi qua change request, hay chỉ thay đổi ảnh hưởng traffic? Cài đặt zone (origin, TLS) có đi cùng đường với rule không?</td>
+<td>KB2-B4, KB2-B6</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-34</td>
+<td>Org một người: 4-eyes tắt hẳn, hay thay bằng bước tự xác nhận và thời gian chờ?</td>
+<td>KB2-A6</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-35</td>
+<td>Khi dùng GitOps hoặc Terraform: UI bị khoá chỉ đọc, hay cho sửa và báo drift?</td>
+<td>KB2-A2, KB2-A3, KB2-G2</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-36</td>
+<td>Cập nhật ruleset của NCC: tự áp cho mọi zone, hay khách chọn thời điểm; rule mới có chạy log-only trước không?</td>
+<td>KB2-I1, KB2-I2</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-37</td>
+<td>Có duyệt theo mức rủi ro (thay đổi nhỏ tự duyệt) không?</td>
+<td>KB2-E2</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-38</td>
+<td>Thay đổi template ảnh hưởng nhiều zone: duyệt một lần, phát hành theo đợt?</td>
+<td>KB2-C2, KB2-C3</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-39</td>
+<td>Khách có thấy và điều khiển được tốc độ phát hành (canary, phần trăm traffic) không?</td>
+<td>KB2-F1, KB2-F5</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-40</td>
+<td>Support của NCC có được sửa policy thay khách không, có cần khách duyệt không?</td>
+<td>KB2-A4</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-03-business-analysis-02-policy-change--4-phụ-thuộc">4. Phụ thuộc</h2>
+<p>FR-5-01…FR-5-19, BR-4, BR-5, BR-6, BR-18, BR-21 ở <a href="#f-02-requirements">§2</a> viết trước phân tích này;
+sẽ đối chiếu lại khi các câu hỏi trên có trả lời.</p>
+</section>
+<section class="doc" id="f-03-business-analysis-03-attack-response"><div class="path">03-business-analysis/03-attack-response.md</div><h1 id="f-03-business-analysis-03-attack-response--33-phản-ứng-khi-bị-tấn-công">3.3 Phản ứng khi bị tấn công</h1>
+<blockquote>
+<p><strong>Trạng thái: đang mở, chưa có quyết định nào (2026-11-06).</strong> Trang này chỉ liệt kê kịch bản và câu hỏi.</p>
+</blockquote>
+<h2 id="f-03-business-analysis-03-attack-response--1-phạm-vi">1. Phạm vi</h2>
+<p>Từ lúc một zone bắt đầu bị tấn công cho tới khi tấn công dừng, mitigation tạm được gỡ và khách có báo cáo.
+Gồm cả tấn công làm ảnh hưởng khách khác hoặc chính nền tảng. Liên quan: F3.3, F5.5, F8 ở
+<a href="#f-01-functional-decomposition">§1</a>.</p>
+<h2 id="f-03-business-analysis-03-attack-response--2-kịch-bản-theo-từng-trục">2. Kịch bản theo từng trục</h2>
+<h3 id="f-03-business-analysis-03-attack-response--a-loại-tấn-công">A. Loại tấn công</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB3-A1</td>
+<td>Flood HTTP từ nhiều nguồn (botnet)</td>
+<td>DDoS L7 tự động; ngưỡng theo baseline của zone</td>
+</tr>
+<tr>
+<td>KB3-A2</td>
+<td>Flood từ ít nguồn</td>
+<td>Pre-filter, rate limit theo IP đủ</td>
+</tr>
+<tr>
+<td>KB3-A3</td>
+<td>Low-and-slow (Slowloris, giữ kết nối)</td>
+<td>Giới hạn kết nối ở L7</td>
+</tr>
+<tr>
+<td>KB3-A4</td>
+<td>Tấn công vào endpoint đắt (tìm kiếm, đăng nhập, xuất báo cáo) với lượng nhỏ</td>
+<td>Không vượt ngưỡng DDoS nhưng làm sập origin</td>
+</tr>
+<tr>
+<td>KB3-A5</td>
+<td>Credential stuffing, dò mật khẩu</td>
+<td>Bot, ATO (Nâng cao)</td>
+</tr>
+<tr>
+<td>KB3-A6</td>
+<td>Khai thác CVE mới công bố</td>
+<td>Rule khẩn của NCC, virtual patch</td>
+</tr>
+<tr>
+<td>KB3-A7</td>
+<td>Volumetric L3/L4</td>
+<td>Ngoài edge HTTP; phụ thuộc hạ tầng hoặc đối tác</td>
+</tr>
+<tr>
+<td>KB3-A8</td>
+<td>Đánh thẳng vào IP origin, bỏ qua edge</td>
+<td>WAF không thấy gì; origin chưa khoá (3.1)</td>
+</tr>
+<tr>
+<td>KB3-A9</td>
+<td>Tấn công vào DNS điều hướng, portal, API của NCC</td>
+<td>Ảnh hưởng mọi khách</td>
+</tr>
+<tr>
+<td>KB3-A10</td>
+<td>Tống tiền: đe doạ DDoS kèm đòi tiền</td>
+<td>Khách cần hỗ trợ ngoài kỹ thuật</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-03-attack-response--b-ai-phát-hiện">B. Ai phát hiện</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB3-B1</td>
+<td>Edge tự phát hiện và giảm thiểu</td>
+<td>Khách biết qua cảnh báo; có thể không cần làm gì</td>
+</tr>
+<tr>
+<td>KB3-B2</td>
+<td>Detection của Analytics cảnh báo</td>
+<td>Trễ bao lâu</td>
+</tr>
+<tr>
+<td>KB3-B3</td>
+<td>Khách thấy origin chậm hoặc chết trước khi hệ thống phát hiện</td>
+<td>Khách cần nút &quot;đang bị tấn công&quot;</td>
+</tr>
+<tr>
+<td>KB3-B4</td>
+<td>NOC thấy PoP hoặc cell quá tải</td>
+<td>Tấn công nhắm một zone kéo theo zone khác</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-03-attack-response--c-ai-phản-ứng">C. Ai phản ứng</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB3-C1</td>
+<td>Tự động hoàn toàn</td>
+<td>Rủi ro chặn nhầm khi bật mạnh tay</td>
+</tr>
+<tr>
+<td>KB3-C2</td>
+<td>Khách bật Under Attack mode, thêm rule tạm</td>
+<td>Khách không rành thì không biết làm gì</td>
+</tr>
+<tr>
+<td>KB3-C3</td>
+<td>NCC (NOC, SOC của NCC) bật thay khách</td>
+<td>Có quyền không, theo gói nào, khách có đồng ý trước không</td>
+</tr>
+<tr>
+<td>KB3-C4</td>
+<td>Tự bật Under Attack khi phát hiện (Enterprise)</td>
+<td>Người dùng thật bị challenge</td>
+</tr>
+<tr>
+<td>KB3-C5</td>
+<td>Tấn công ngoài giờ, không ai trực</td>
+<td>Gói thấp không có người trực</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-03-attack-response--d-ảnh-hưởng-tới-khách-khác-và-nền-tảng">D. Ảnh hưởng tới khách khác và nền tảng</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB3-D1</td>
+<td>Zone bị tấn công lớn được chuyển sang cell cách ly</td>
+<td>Zone đó có chậm hơn không</td>
+</tr>
+<tr>
+<td>KB3-D2</td>
+<td>Zone Free bị tấn công vượt mọi ngưỡng</td>
+<td>Chặn toàn bộ traffic zone, rút khỏi edge, hay vẫn giữ</td>
+</tr>
+<tr>
+<td>KB3-D3</td>
+<td>Nhiều zone cùng bị tấn công (chiến dịch)</td>
+<td>Thứ tự hy sinh theo gói (8.18)</td>
+</tr>
+<tr>
+<td>KB3-D4</td>
+<td>Tấn công làm tăng chi phí băng thông của NCC</td>
+<td>Ai chịu</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-03-attack-response--e-chi-phí-cho-khách">E. Chi phí cho khách</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB3-E1</td>
+<td>Traffic bị chặn không tính tiền</td>
+<td>Đã có (BR-7)</td>
+</tr>
+<tr>
+<td>KB3-E2</td>
+<td>Tấn công lọt qua (trông như traffic sạch) và bị tính phí vượt</td>
+<td>Tranh chấp hoá đơn; có hoàn không</td>
+</tr>
+<tr>
+<td>KB3-E3</td>
+<td>Gói có trần bị chạm trần vì tấn công</td>
+<td>Website bị chuyển tiếp tối giản đúng lúc bị tấn công</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-03-attack-response--f-giao-tiếp-và-kết-thúc">F. Giao tiếp và kết thúc</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB3-F1</td>
+<td>Khách cần biết gì trong lúc tấn công</td>
+<td>Lượng traffic, đã chặn bao nhiêu, origin còn sống không</td>
+</tr>
+<tr>
+<td>KB3-F2</td>
+<td>Tắt Under Attack, gỡ rule tạm khi nào</td>
+<td>Tự hết hạn hay khách tắt; tấn công quay lại</td>
+</tr>
+<tr>
+<td>KB3-F3</td>
+<td>Báo cáo sau sự cố</td>
+<td>Theo gói nào, ai viết</td>
+</tr>
+<tr>
+<td>KB3-F4</td>
+<td>SLA bị vi phạm trong lúc tấn công</td>
+<td>Credit</td>
+</tr>
+<tr>
+<td>KB3-F5</td>
+<td>Cơ quan chức năng yêu cầu log để điều tra</td>
+<td>Quy trình pháp lý, dữ liệu nào được giao</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-03-business-analysis-03-attack-response--3-câu-hỏi-cần-chủ-dự-án-quyết">3. Câu hỏi cần chủ dự án quyết</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Câu hỏi</th>
+<th>Kịch bản</th>
+<th>Ghi chú ban đầu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OQ-41</td>
+<td>NCC có được bật mitigation thay khách không, ở gói nào, có cần khách đồng ý trước không?</td>
+<td>KB3-C3, KB3-C5</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-42</td>
+<td>Zone gói thấp bị tấn công vượt khả năng: chặn toàn bộ, rút khỏi edge (trả DNS về origin), hay giữ và chịu?</td>
+<td>KB3-D2</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-43</td>
+<td>Tấn công lọt và bị tính phí vượt: chính sách hoàn tiền thế nào? Trần cứng có tạm nới khi đang bị tấn công không?</td>
+<td>KB3-E2, KB3-E3</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-44</td>
+<td>Báo cáo sau sự cố và SLA credit theo gói nào?</td>
+<td>KB3-F3, KB3-F4</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-45</td>
+<td>Quy trình khi cơ quan chức năng yêu cầu log</td>
+<td>KB3-F5</td>
+<td>Cần tư vấn pháp lý</td>
+</tr>
+<tr>
+<td>OQ-46</td>
+<td>Có hỗ trợ khách bị tống tiền DDoS không (tư vấn, liên hệ cơ quan chức năng)?</td>
+<td>KB3-A10</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-47</td>
+<td>Tấn công vào endpoint đắt mà không vượt ngưỡng DDoS: có sản phẩm cho việc này không (rate limit theo endpoint mặc định, bảo vệ origin theo độ trễ)?</td>
+<td>KB3-A4</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-03-business-analysis-03-attack-response--4-phụ-thuộc">4. Phụ thuộc</h2>
+<p>FR-3-04, FR-3-05, FR-5-15, FR-8-05…FR-8-07, BR-6, BR-7, BR-10 ở <a href="#f-02-requirements">§2</a>; thứ tự hy sinh và
+cell cách ly ở kiến trúc 8.18, ADR-0041.</p>
+</section>
+<section class="doc" id="f-03-business-analysis-04-false-positive"><div class="path">03-business-analysis/04-false-positive.md</div><h1 id="f-03-business-analysis-04-false-positive--34-xử-lý-chặn-nhầm">3.4 Xử lý chặn nhầm</h1>
+<blockquote>
+<p><strong>Trạng thái: đang mở, chưa có quyết định nào (2026-11-06).</strong> Trang này chỉ liệt kê kịch bản và câu hỏi.</p>
+</blockquote>
+<h2 id="f-03-business-analysis-04-false-positive--1-phạm-vi">1. Phạm vi</h2>
+<p>Từ lúc một người dùng thật hoặc client hợp lệ bị chặn hoặc bị challenge, cho tới khi nguyên nhân được sửa
+và có bằng chứng không còn chặn nhầm. Đây là nguyên nhân chính làm khách mất niềm tin (R2). Liên quan: F7.5,
+F5.1.4 ở <a href="#f-01-functional-decomposition">§1</a>.</p>
+<h2 id="f-03-business-analysis-04-false-positive--2-kịch-bản-theo-từng-trục">2. Kịch bản theo từng trục</h2>
+<h3 id="f-03-business-analysis-04-false-positive--a-ai-phát-hiện">A. Ai phát hiện</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB4-A1</td>
+<td>End-user bị chặn, gọi hotline hoặc nhắn cho chủ website</td>
+<td>End-user không biết request ID là gì</td>
+</tr>
+<tr>
+<td>KB4-A2</td>
+<td>Chủ website thấy doanh thu hoặc đơn hàng giảm</td>
+<td>Không biết là do chặn</td>
+</tr>
+<tr>
+<td>KB4-A3</td>
+<td>SOC thấy rule khớp bất thường</td>
+<td>Tỉ lệ chặn nhầm theo rule</td>
+</tr>
+<tr>
+<td>KB4-A4</td>
+<td>Hệ thống tự nghi (rule khớp nhiều trên người dùng đã đăng nhập, trên cùng path)</td>
+<td>Mức tin cậy của tín hiệu</td>
+</tr>
+<tr>
+<td>KB4-A5</td>
+<td>Đối tác (cổng thanh toán, webhook) báo bị từ chối</td>
+<td>Client máy không đọc được trang chặn</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-04-false-positive--b-end-user-thấy-gì">B. End-user thấy gì</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB4-B1</td>
+<td>Trang chặn có request ID và hướng dẫn liên hệ</td>
+<td>Không lộ rule nào chặn (kẻ tấn công cũng đọc được)</td>
+</tr>
+<tr>
+<td>KB4-B2</td>
+<td>Trang chặn tuỳ biến theo thương hiệu, tiếng Việt và tiếng Anh</td>
+<td>Theo gói</td>
+</tr>
+<tr>
+<td>KB4-B3</td>
+<td>Nút &quot;báo chặn nhầm&quot; trên trang chặn, gửi thẳng cho chủ website</td>
+<td>Bị lạm dụng để spam; dữ liệu end-user gửi lên</td>
+</tr>
+<tr>
+<td>KB4-B4</td>
+<td>API client nhận lỗi dạng JSON thay vì trang HTML</td>
+<td>Định dạng lỗi theo <code>Accept</code></td>
+</tr>
+<tr>
+<td>KB4-B5</td>
+<td>Challenge lặp vô hạn với trình duyệt chặn cookie, mạng chậm</td>
+<td>Người dùng kẹt</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-04-false-positive--c-điều-tra">C. Điều tra</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB4-C1</td>
+<td>Tra request ID: rule, phần request khớp, version</td>
+<td>Phần request khớp có thể chứa mật khẩu, dữ liệu cá nhân</td>
+</tr>
+<tr>
+<td>KB4-C2</td>
+<td>Không có request ID (end-user chỉ nhớ giờ và trang)</td>
+<td>Tìm theo IP, giờ, path</td>
+</tr>
+<tr>
+<td>KB4-C3</td>
+<td>Chặn nhầm ngoài retention của gói</td>
+<td>Không còn bằng chứng</td>
+</tr>
+<tr>
+<td>KB4-C4</td>
+<td>Chặn ở bước pre-filter hoặc DDoS, không phải rule WAF</td>
+<td>Khách không có rule nào để sửa</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-04-false-positive--d-cách-xử-lý">D. Cách xử lý</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB4-D1</td>
+<td>Exception hẹp nhất (rule × path × tham số)</td>
+<td>Khách thường chọn cách rộng nhất cho nhanh</td>
+</tr>
+<tr>
+<td>KB4-D2</td>
+<td>Tắt cả rule, chuyển rule sang log-only</td>
+<td>Mở lỗ cho cả zone</td>
+</tr>
+<tr>
+<td>KB4-D3</td>
+<td>Allowlist IP</td>
+<td>IP động, IP NAT của nhà mạng dùng chung cho hàng nghìn người</td>
+</tr>
+<tr>
+<td>KB4-D4</td>
+<td>Exception có hạn, tự hết hạn</td>
+<td>Hết hạn thì chặn nhầm quay lại</td>
+</tr>
+<tr>
+<td>KB4-D5</td>
+<td>Đang mất tiền (thanh toán hỏng): cần sửa trong vài phút</td>
+<td>Có đi kênh khẩn không duyệt không</td>
+</tr>
+<tr>
+<td>KB4-D6</td>
+<td>Developer tạo exception</td>
+<td>Có cần duyệt không</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-04-false-positive--e-chặn-nhầm-do-ncc">E. Chặn nhầm do NCC</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB4-E1</td>
+<td>Bản ruleset mới gây chặn nhầm ở nhiều khách cùng lúc</td>
+<td>NCC rollback; khách có được báo không</td>
+</tr>
+<tr>
+<td>KB4-E2</td>
+<td>Dữ liệu bot hoặc reputation sai (IP nhà mạng bị đánh dấu xấu)</td>
+<td>Ảnh hưởng một vùng địa lý</td>
+</tr>
+<tr>
+<td>KB4-E3</td>
+<td>Lỗi engine</td>
+<td>Khách không tự sửa được</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-04-false-positive--f-học-từ-chặn-nhầm">F. Học từ chặn nhầm</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB4-F1</td>
+<td>Nhãn chặn nhầm của khách dùng để cải thiện ruleset chung</td>
+<td>Dữ liệu một tenant dùng cho tenant khác: quyền riêng tư, hợp đồng</td>
+</tr>
+<tr>
+<td>KB4-F2</td>
+<td>Gợi ý exception từ nhãn của khách khác cùng ứng dụng (cùng CMS)</td>
+<td>Như trên</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-03-business-analysis-04-false-positive--3-câu-hỏi-cần-chủ-dự-án-quyết">3. Câu hỏi cần chủ dự án quyết</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Câu hỏi</th>
+<th>Kịch bản</th>
+<th>Ghi chú ban đầu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OQ-48</td>
+<td>End-user bị chặn liên hệ ai? Có nút &quot;báo chặn nhầm&quot; gửi chủ website không?</td>
+<td>KB4-A1, KB4-B3</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-49</td>
+<td>Exception khẩn khi đang mất tiền: có đi kênh khẩn không cần duyệt không, giới hạn thế nào?</td>
+<td>KB4-D5</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-50</td>
+<td>Ai được xem phần request đã khớp (có thể chứa dữ liệu cá nhân)? Che những gì mặc định?</td>
+<td>KB4-C1</td>
+<td>Có thể cần quyền riêng</td>
+</tr>
+<tr>
+<td>OQ-51</td>
+<td>Có dùng nhãn chặn nhầm chéo tenant không, với điều kiện gì?</td>
+<td>KB4-F1, KB4-F2</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-52</td>
+<td>NCC cam kết gì khi chặn nhầm do ruleset của NCC (thời gian rollback, thông báo, credit)?</td>
+<td>KB4-E1, KB4-E2</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-53</td>
+<td>Allowlist IP có cảnh báo khi IP thuộc dải NAT dùng chung của nhà mạng không?</td>
+<td>KB4-D3</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-03-business-analysis-04-false-positive--4-phụ-thuộc">4. Phụ thuộc</h2>
+<p>FR-7-03, FR-7-07, FR-5-04, BR-21 ở <a href="#f-02-requirements">§2</a>.</p>
+</section>
+<section class="doc" id="f-03-business-analysis-05-plans-billing"><div class="path">03-business-analysis/05-plans-billing.md</div><h1 id="f-03-business-analysis-05-plans-billing--35-mua-đổi-gói-vượt-hạn-mức-thanh-toán">3.5 Mua, đổi gói, vượt hạn mức, thanh toán</h1>
+<blockquote>
+<p><strong>Trạng thái: đang mở, chưa có quyết định nào (2026-11-06).</strong> Trang này chỉ liệt kê kịch bản và câu hỏi. Giá
+và hạn mức tham chiếu ở kiến trúc 8.18; trang này hỏi về cách mua và tính tiền, không hỏi lại giá.</p>
+</blockquote>
+<h2 id="f-03-business-analysis-05-plans-billing--1-phạm-vi">1. Phạm vi</h2>
+<p>Từ dùng thử, mua, nâng, hạ gói, vượt hạn mức, thanh toán, hoá đơn tới thanh toán thất bại và huỷ. Liên quan:
+F10 ở <a href="#f-01-functional-decomposition--f10-gói-và-billing">§1</a>.</p>
+<h2 id="f-03-business-analysis-05-plans-billing--2-kịch-bản-theo-từng-trục">2. Kịch bản theo từng trục</h2>
+<h3 id="f-03-business-analysis-05-plans-billing--a-cách-mua">A. Cách mua</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB5-A1</td>
+<td>Cá nhân, shop nhỏ trả bằng thẻ hoặc ví, QR ngân hàng</td>
+<td>Thẻ nội địa, ví điện tử, thanh toán định kỳ có được hỗ trợ không</td>
+</tr>
+<tr>
+<td>KB5-A2</td>
+<td>Doanh nghiệp trong nước cần hợp đồng, hoá đơn VAT, chuyển khoản sau khi nhận hoá đơn</td>
+<td>Trả sau nghĩa là cấp dịch vụ trước khi thu tiền</td>
+</tr>
+<tr>
+<td>KB5-A3</td>
+<td>Enterprise qua đấu thầu, PO, hợp đồng năm</td>
+<td>Gói riêng, điều khoản riêng</td>
+</tr>
+<tr>
+<td>KB5-A4</td>
+<td>Khách nước ngoài trả USD</td>
+<td>Thuế, tỉ giá, cổng thanh toán quốc tế</td>
+</tr>
+<tr>
+<td>KB5-A5</td>
+<td>Mua qua đối tác, reseller, nhà cung cấp hosting</td>
+<td>Ai xuất hoá đơn cho khách cuối</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-05-plans-billing--b-đơn-vị-tính">B. Đơn vị tính</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB5-B1</td>
+<td>Theo zone</td>
+<td>Một VPS chạy 5 domain nhỏ thành 5 zone</td>
+</tr>
+<tr>
+<td>KB5-B2</td>
+<td>Theo account hoặc org, gộp nhiều zone</td>
+<td>Một hoá đơn cho cả công ty</td>
+</tr>
+<tr>
+<td>KB5-B3</td>
+<td>Zone phụ (staging, domain phụ)</td>
+<td>Cái gì là zone phụ, ai xác định</td>
+</tr>
+<tr>
+<td>KB5-B4</td>
+<td>Add-on lẻ (thêm rule, thêm retention, bot nâng cao)</td>
+<td>Bán lẻ tính năng hay chỉ bán theo gói</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-05-plans-billing--c-kỳ-thanh-toán">C. Kỳ thanh toán</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB5-C1</td>
+<td>Tháng hay năm, giảm giá khi trả năm</td>
+<td></td>
+</tr>
+<tr>
+<td>KB5-C2</td>
+<td>Nâng gói giữa kỳ</td>
+<td>Tính theo ngày còn lại (proration) hay từ kỳ sau</td>
+</tr>
+<tr>
+<td>KB5-C3</td>
+<td>Phí nền trả trước, phí vượt trả sau</td>
+<td>Hai hoá đơn hay một</td>
+</tr>
+<tr>
+<td>KB5-C4</td>
+<td>Chốt kỳ theo múi giờ nào</td>
+<td>Usage lúc nửa đêm</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-05-plans-billing--d-usage-và-vượt-hạn-mức">D. Usage và vượt hạn mức</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB5-D1</td>
+<td>Cảnh báo 80% và 100%</td>
+<td>Đã có</td>
+</tr>
+<tr>
+<td>KB5-D2</td>
+<td>Khách đặt trần chi tiêu: vượt trần thì làm gì</td>
+<td>Cắt traffic hay hạ cấp, hay chỉ báo</td>
+</tr>
+<tr>
+<td>KB5-D3</td>
+<td>Khách không đồng ý số liệu usage</td>
+<td>Bằng chứng: đối soát, số liệu theo giờ</td>
+</tr>
+<tr>
+<td>KB5-D4</td>
+<td>Tăng đột biến hợp lệ (khuyến mãi, sự kiện)</td>
+<td>Gợi ý nâng gói tạm thời</td>
+</tr>
+<tr>
+<td>KB5-D5</td>
+<td>Traffic tấn công lọt bị tính phí</td>
+<td>Xem 3.3</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-05-plans-billing--e-hạ-gói-và-huỷ">E. Hạ gói và huỷ</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB5-E1</td>
+<td>Hạ gói khi đang dùng quá giới hạn gói thấp (số rule, đích export)</td>
+<td>Chặn hạ gói, hay tự tắt bớt (tắt cái nào)</td>
+</tr>
+<tr>
+<td>KB5-E2</td>
+<td>Hạ gói làm retention ngắn lại</td>
+<td>Xoá log cũ ngay hay giữ tới hết hạn cũ</td>
+</tr>
+<tr>
+<td>KB5-E3</td>
+<td>Huỷ giữa kỳ</td>
+<td>Hoàn tiền phần còn lại không</td>
+</tr>
+<tr>
+<td>KB5-E4</td>
+<td>Tạm ngừng dịch vụ (mùa vụ)</td>
+<td>Có gói tạm ngừng không</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-05-plans-billing--f-thanh-toán-thất-bại">F. Thanh toán thất bại</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB5-F1</td>
+<td>Thẻ hết hạn, không đủ tiền</td>
+<td>Thử lại mấy lần, khi nào chuyển sang chuyển tiếp tối giản (BR-9)</td>
+</tr>
+<tr>
+<td>KB5-F2</td>
+<td>Doanh nghiệp trả sau quá hạn</td>
+<td>Quy trình nhắc nợ khác với thẻ</td>
+</tr>
+<tr>
+<td>KB5-F3</td>
+<td>Khách trả lại tiền qua ngân hàng (chargeback)</td>
+<td>Khoá org không</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-05-plans-billing--g-thuế-và-hoá-đơn">G. Thuế và hoá đơn</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB5-G1</td>
+<td>Hoá đơn điện tử VAT trong nước</td>
+<td>Thuế suất, thông tin doanh nghiệp, sửa hoá đơn sai</td>
+</tr>
+<tr>
+<td>KB5-G2</td>
+<td>Cá nhân không lấy hoá đơn VAT</td>
+<td>Vẫn phải xuất theo quy định</td>
+</tr>
+<tr>
+<td>KB5-G3</td>
+<td>Khách nước ngoài</td>
+<td>Thuế nhà thầu, hoá đơn thương mại</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-05-plans-billing--h-dùng-thử-khuyến-mãi-đối-tác">H. Dùng thử, khuyến mãi, đối tác</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB5-H1</td>
+<td>Hết dùng thử, chuyển sang trả phí giữ nguyên cấu hình</td>
+<td>Không mất gì khi chuyển</td>
+</tr>
+<tr>
+<td>KB5-H2</td>
+<td>Lạm dụng dùng thử bằng nhiều org, nhiều domain</td>
+<td>Định danh dùng thử (BR-8)</td>
+</tr>
+<tr>
+<td>KB5-H3</td>
+<td>Mã giảm giá, chương trình khuyến mãi</td>
+<td></td>
+</tr>
+<tr>
+<td>KB5-H4</td>
+<td>Reseller, hoa hồng đối tác, nhãn trắng</td>
+<td>Mô hình đối tác</td>
+</tr>
+<tr>
+<td>KB5-H5</td>
+<td>Enterprise cam kết sử dụng, vượt cam kết, bù trừ cuối năm</td>
+<td></td>
+</tr>
+<tr>
+<td>KB5-H6</td>
+<td>On-prem: license theo node theo năm</td>
+<td>Kiểm license khi không có mạng</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-03-business-analysis-05-plans-billing--3-câu-hỏi-cần-chủ-dự-án-quyết">3. Câu hỏi cần chủ dự án quyết</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Câu hỏi</th>
+<th>Kịch bản</th>
+<th>Ghi chú ban đầu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OQ-54</td>
+<td>Đơn vị mua là zone, account hay org? Có gói theo nhóm domain cho khách nhỏ nhiều site không?</td>
+<td>KB5-B1, KB5-B2</td>
+<td>Liên quan OQ-27 của onboarding</td>
+</tr>
+<tr>
+<td>OQ-55</td>
+<td>Có cho khách đặt trần chi tiêu không, vượt thì làm gì?</td>
+<td>KB5-D2</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-56</td>
+<td>Nâng gói giữa kỳ có tính theo ngày còn lại không?</td>
+<td>KB5-C2</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-57</td>
+<td>Doanh nghiệp trong nước trả sau bằng chuyển khoản: có hỗ trợ ngay từ MVP không, hạn mức nợ bao nhiêu?</td>
+<td>KB5-A2, KB5-F2</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-58</td>
+<td>Hạ gói: log ngoài retention mới bị xoá ngay hay giữ tới hết hạn cũ?</td>
+<td>KB5-E2</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-59</td>
+<td>Có bán qua reseller, nhà cung cấp hosting ở MVP không?</td>
+<td>KB5-A5, KB5-H4</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-60</td>
+<td>Cổng thanh toán và phương thức nào ở MVP (thẻ quốc tế, thẻ nội địa, QR, ví)?</td>
+<td>KB5-A1</td>
+<td>Trùng OQ-12</td>
+</tr>
+<tr>
+<td>OQ-61</td>
+<td>Huỷ giữa kỳ có hoàn tiền không? Có gói tạm ngừng không?</td>
+<td>KB5-E3, KB5-E4</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-03-business-analysis-05-plans-billing--4-phụ-thuộc">4. Phụ thuộc</h2>
+<p>FR-10-01…FR-10-13, BR-7…BR-11, DT-8, IR-2, IR-3, OQ-10, OQ-12, OQ-14 ở <a href="#f-02-requirements">§2</a>.</p>
+</section>
+<section class="doc" id="f-03-business-analysis-06-members-access"><div class="path">03-business-analysis/06-members-access.md</div><h1 id="f-03-business-analysis-06-members-access--36-quản-lý-thành-viên-sso-api-key">3.6 Quản lý thành viên, SSO, API key</h1>
+<blockquote>
+<p><strong>Trạng thái: đang mở, chưa có quyết định nào (2026-11-06).</strong> Trang này chỉ liệt kê kịch bản và câu hỏi.</p>
+</blockquote>
+<h2 id="f-03-business-analysis-06-members-access--1-phạm-vi">1. Phạm vi</h2>
+<p>Ai vào được tổ chức của khách, làm được gì, bằng danh tính nào, và mất quyền khi nào. Gồm cả máy (API key,
+service account) và người của NCC. Liên quan: F1 ở <a href="#f-01-functional-decomposition--f1-tenant-và-danh-tính">§1</a>.</p>
+<h2 id="f-03-business-analysis-06-members-access--2-kịch-bản-theo-từng-trục">2. Kịch bản theo từng trục</h2>
+<h3 id="f-03-business-analysis-06-members-access--a-cấu-trúc-tổ-chức-của-khách">A. Cấu trúc tổ chức của khách</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB6-A1</td>
+<td>Một người làm tất cả</td>
+<td>Mọi vai trò dồn vào owner</td>
+</tr>
+<tr>
+<td>KB6-A2</td>
+<td>Công ty có nhiều dự án, mỗi dự án một nhóm</td>
+<td>Account theo dự án hay nhóm zone</td>
+</tr>
+<tr>
+<td>KB6-A3</td>
+<td>Agency quản lý website cho nhiều khách</td>
+<td>Một org agency chứa khách, hay mỗi khách một org và agency là thành viên</td>
+</tr>
+<tr>
+<td>KB6-A4</td>
+<td>Tập đoàn có công ty con, mỗi công ty con tự quản</td>
+<td>Phân cấp nhiều tầng (OQ-1)</td>
+</tr>
+<tr>
+<td>KB6-A5</td>
+<td>Nhà thầu bên ngoài cần quyền tạm thời</td>
+<td>Quyền có hạn</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-06-members-access--b-mời-nhận-rời">B. Mời, nhận, rời</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB6-B1</td>
+<td>Mời người có email khác domain công ty</td>
+<td>Có chặn theo domain không</td>
+</tr>
+<tr>
+<td>KB6-B2</td>
+<td>Một người thuộc nhiều org (làm cho agency và công ty mình)</td>
+<td>Một tài khoản nhiều org, hay mỗi org một tài khoản</td>
+</tr>
+<tr>
+<td>KB6-B3</td>
+<td>Chuyển quyền owner</td>
+<td>Cần xác nhận cả hai bên</td>
+</tr>
+<tr>
+<td>KB6-B4</td>
+<td>Owner duy nhất nghỉ việc, mất email, mất MFA</td>
+<td>Khôi phục quyền: NCC xác minh danh tính thế nào</td>
+</tr>
+<tr>
+<td>KB6-B5</td>
+<td>Người rời công ty nhưng vẫn còn API key cá nhân đang chạy trong CI</td>
+<td>Gỡ người thì CI hỏng</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-06-members-access--c-sso-và-mfa">C. SSO và MFA</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB6-C1</td>
+<td>Bắt buộc SSO cho domain email</td>
+<td>IdP sập thì ai vào được (tài khoản khẩn)</td>
+</tr>
+<tr>
+<td>KB6-C2</td>
+<td>Tạo user tự động khi đăng nhập SSO lần đầu (JIT)</td>
+<td>Vai trò mặc định là gì</td>
+</tr>
+<tr>
+<td>KB6-C3</td>
+<td>Gỡ user qua SCIM</td>
+<td>Phiên đang mở, key đang chạy</td>
+</tr>
+<tr>
+<td>KB6-C4</td>
+<td>Nhiều IdP trong một org (sau sáp nhập)</td>
+<td></td>
+</tr>
+<tr>
+<td>KB6-C5</td>
+<td>Mất thiết bị MFA</td>
+<td>Mã khôi phục, khôi phục qua support</td>
+</tr>
+<tr>
+<td>KB6-C6</td>
+<td>Đăng nhập bằng Google, Microsoft cho khách nhỏ</td>
+<td>Không phải SSO doanh nghiệp nhưng tiện</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-06-members-access--d-quyền">D. Quyền</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB6-D1</td>
+<td>Vai trò mặc định có đủ không</td>
+<td></td>
+</tr>
+<tr>
+<td>KB6-D2</td>
+<td>Quyền theo zone hoặc nhóm zone</td>
+<td>Đã có (FR-1-05)</td>
+</tr>
+<tr>
+<td>KB6-D3</td>
+<td>Quyền xem dữ liệu request (có thể chứa dữ liệu cá nhân) tách riêng</td>
+<td>Liên quan OQ-50</td>
+</tr>
+<tr>
+<td>KB6-D4</td>
+<td>Quyền billing tách khỏi quyền kỹ thuật</td>
+<td>Kế toán chỉ thấy hoá đơn</td>
+</tr>
+<tr>
+<td>KB6-D5</td>
+<td>Quyền chỉ đọc cho kiểm toán viên bên ngoài, có hạn</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-06-members-access--e-api-key-và-máy">E. API key và máy</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB6-E1</td>
+<td>Key cá nhân hay key của service account</td>
+<td>Gỡ người không làm hỏng máy</td>
+</tr>
+<tr>
+<td>KB6-E2</td>
+<td>Key có hết hạn bắt buộc không</td>
+<td>Key hết hạn làm hỏng CI vào nửa đêm</td>
+</tr>
+<tr>
+<td>KB6-E3</td>
+<td>Key bị lộ lên GitHub công khai</td>
+<td>Quét và tự thu hồi</td>
+</tr>
+<tr>
+<td>KB6-E4</td>
+<td>Giới hạn IP nguồn cho key</td>
+<td></td>
+</tr>
+<tr>
+<td>KB6-E5</td>
+<td>Terraform cần quyền rộng</td>
+<td>Phạm vi tối thiểu</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-06-members-access--f-truy-cập-của-ncc-và-phiên">F. Truy cập của NCC và phiên</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB6-F1</td>
+<td>Support xin quyền vào tenant</td>
+<td>Đã có (BR-20); khách thấy support đã làm gì</td>
+</tr>
+<tr>
+<td>KB6-F2</td>
+<td>Phiên đăng nhập từ quốc gia lạ, nhiều thiết bị</td>
+<td>Cảnh báo cho user</td>
+</tr>
+<tr>
+<td>KB6-F3</td>
+<td>Thời gian phiên, đăng xuất khi nhàn rỗi</td>
+<td>Theo org</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-03-business-analysis-06-members-access--3-câu-hỏi-cần-chủ-dự-án-quyết">3. Câu hỏi cần chủ dự án quyết</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Câu hỏi</th>
+<th>Kịch bản</th>
+<th>Ghi chú ban đầu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OQ-62</td>
+<td>Một tài khoản có thuộc nhiều org không?</td>
+<td>KB6-B2, KB6-A3</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-63</td>
+<td>Agency quản lý nhiều khách: mô hình nào?</td>
+<td>KB6-A3</td>
+<td>Liên quan OQ-59 (reseller)</td>
+</tr>
+<tr>
+<td>OQ-64</td>
+<td>Khôi phục khi owner duy nhất mất truy cập: NCC xác minh danh tính bằng gì?</td>
+<td>KB6-B4, KB6-C5</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-65</td>
+<td>Tài khoản khẩn khi bắt buộc SSO: có, ai giữ, kiểm soát thế nào?</td>
+<td>KB6-C1</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-66</td>
+<td>API key có bắt buộc hạn không? Có quét key lộ công khai không?</td>
+<td>KB6-E2, KB6-E3</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-67</td>
+<td>Đăng nhập Google, Microsoft cho khách nhỏ có ở MVP không?</td>
+<td>KB6-C6</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-68</td>
+<td>Quyền xem dữ liệu request có tách thành quyền riêng không?</td>
+<td>KB6-D3</td>
+<td>Gộp với OQ-50</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-03-business-analysis-06-members-access--4-phụ-thuộc">4. Phụ thuộc</h2>
+<p>FR-1-01…FR-1-17, BR-13…BR-15, BR-20, DT-1, OQ-1 ở <a href="#f-02-requirements">§2</a>.</p>
+</section>
+<section class="doc" id="f-03-business-analysis-07-offboarding"><div class="path">03-business-analysis/07-offboarding.md</div><h1 id="f-03-business-analysis-07-offboarding--37-rời-dịch-vụ-gỡ-zone-xoá-org-xoá-dữ-liệu">3.7 Rời dịch vụ: gỡ zone, xoá org, xoá dữ liệu</h1>
+<blockquote>
+<p><strong>Trạng thái: đang mở, chưa có quyết định nào (2026-11-06).</strong> Trang này chỉ liệt kê kịch bản và câu hỏi.</p>
+</blockquote>
+<h2 id="f-03-business-analysis-07-offboarding--1-phạm-vi">1. Phạm vi</h2>
+<p>Khách gỡ một zone, huỷ gói, xoá org, hoặc NCC chấm dứt dịch vụ. Gồm việc trả traffic về origin, xuất và xoá
+dữ liệu. Liên quan: F2.4.3, F1.1.4, F9.3 ở <a href="#f-01-functional-decomposition">§1</a>.</p>
+<h2 id="f-03-business-analysis-07-offboarding--2-kịch-bản-theo-từng-trục">2. Kịch bản theo từng trục</h2>
+<h3 id="f-03-business-analysis-07-offboarding--a-gỡ-một-zone">A. Gỡ một zone</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB7-A1</td>
+<td>Khách gỡ zone sau khi đã trỏ DNS về origin</td>
+<td>Bình thường</td>
+</tr>
+<tr>
+<td>KB7-A2</td>
+<td>Khách gỡ zone khi DNS vẫn trỏ về edge</td>
+<td>Edge trả gì: lỗi, trang thông báo, hay vẫn chuyển tiếp một thời gian</td>
+</tr>
+<tr>
+<td>KB7-A3</td>
+<td>Origin đã khoá chỉ nhận edge</td>
+<td>Trỏ DNS về origin xong thì origin từ chối người dùng; cần nhắc mở lại</td>
+</tr>
+<tr>
+<td>KB7-A4</td>
+<td>Origin không có cert vì trước đây edge lo TLS</td>
+<td>HTTPS lỗi sau khi rời</td>
+</tr>
+<tr>
+<td>KB7-A5</td>
+<td>Gỡ nhầm zone</td>
+<td>Khôi phục trong bao lâu</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-07-offboarding--b-huỷ-gói-xoá-org">B. Huỷ gói, xoá org</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB7-B1</td>
+<td>Huỷ gói, giữ org và cấu hình</td>
+<td>Zone về gói nào (Free, tạm dừng)</td>
+</tr>
+<tr>
+<td>KB7-B2</td>
+<td>Xoá org</td>
+<td>Thời hạn huỷ yêu cầu xoá; ai được yêu cầu (chỉ owner)</td>
+</tr>
+<tr>
+<td>KB7-B3</td>
+<td>Xoá account trong org</td>
+<td>Zone của account đi đâu</td>
+</tr>
+<tr>
+<td>KB7-B4</td>
+<td>Org còn nợ</td>
+<td>Có cho xoá không</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-07-offboarding--c-dữ-liệu">C. Dữ liệu</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB7-C1</td>
+<td>Xuất trước khi xoá: cấu hình (dạng API hoặc Terraform), log, audit, hoá đơn</td>
+<td>Định dạng, kích thước</td>
+</tr>
+<tr>
+<td>KB7-C2</td>
+<td>Audit không được xoá nhưng có dữ liệu cá nhân</td>
+<td>Ẩn danh (OQ-6)</td>
+</tr>
+<tr>
+<td>KB7-C3</td>
+<td>Hoá đơn, chứng từ phải giữ theo luật kế toán</td>
+<td>Giữ dù org đã xoá</td>
+</tr>
+<tr>
+<td>KB7-C4</td>
+<td>Bản sao lưu vẫn chứa dữ liệu đã xoá</td>
+<td>Xoá khỏi backup hay để hết hạn backup</td>
+</tr>
+<tr>
+<td>KB7-C5</td>
+<td>Tenant Enterprise có database riêng</td>
+<td>Huỷ database và khoá mã hoá</td>
+</tr>
+<tr>
+<td>KB7-C6</td>
+<td>Log đã gửi sang SIEM của khách</td>
+<td>Ngoài trách nhiệm của NCC</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-07-offboarding--d-ncc-chấm-dứt">D. NCC chấm dứt</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB7-D1</td>
+<td>Vi phạm điều khoản, gian lận thanh toán</td>
+<td>Khoá có báo trước không</td>
+</tr>
+<tr>
+<td>KB7-D2</td>
+<td>Website lừa đảo, phishing, nội dung vi phạm pháp luật đứng sau edge</td>
+<td>Xem 3.10; khoá ngay</td>
+</tr>
+<tr>
+<td>KB7-D3</td>
+<td>Yêu cầu của cơ quan nhà nước</td>
+<td>Quy trình, căn cứ pháp lý</td>
+</tr>
+<tr>
+<td>KB7-D4</td>
+<td>NCC ngừng một gói hoặc một tính năng</td>
+<td>Báo trước bao lâu</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-07-offboarding--e-domain">E. Domain</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB7-E1</td>
+<td>Domain hết hạn đăng ký khi zone còn hoạt động</td>
+<td>Zone tiếp tục, hay tạm dừng</td>
+</tr>
+<tr>
+<td>KB7-E2</td>
+<td>Domain đổi chủ (bán, chuyển nhượng)</td>
+<td>Chủ mới không được thừa hưởng cấu hình và log của chủ cũ</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-03-business-analysis-07-offboarding--3-câu-hỏi-cần-chủ-dự-án-quyết">3. Câu hỏi cần chủ dự án quyết</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Câu hỏi</th>
+<th>Kịch bản</th>
+<th>Ghi chú ban đầu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OQ-69</td>
+<td>Zone đã gỡ mà DNS vẫn trỏ về edge: edge trả gì, trong bao lâu?</td>
+<td>KB7-A2</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-70</td>
+<td>Thời hạn giữ dữ liệu sau khi xoá org, thời hạn khôi phục zone gỡ nhầm</td>
+<td>KB7-A5, KB7-B2</td>
+<td>Gắn với OQ-6</td>
+</tr>
+<tr>
+<td>OQ-71</td>
+<td>Xoá khỏi bản sao lưu: xoá chủ động hay chờ backup hết hạn?</td>
+<td>KB7-C4</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-72</td>
+<td>Xuất cấu hình dạng nào khi rời (JSON của API, Terraform)?</td>
+<td>KB7-C1</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-73</td>
+<td>Quy trình khoá theo yêu cầu cơ quan nhà nước và khi phát hiện vi phạm</td>
+<td>KB7-D2, KB7-D3</td>
+<td>Cần tư vấn pháp lý</td>
+</tr>
+<tr>
+<td>OQ-74</td>
+<td>Domain hết hạn hoặc đổi chủ: phát hiện thế nào, làm gì?</td>
+<td>KB7-E1, KB7-E2</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-03-business-analysis-07-offboarding--4-phụ-thuộc">4. Phụ thuộc</h2>
+<p>FR-1-03, FR-2-13, FR-9-03…FR-9-05, BR-12, BR-16, DT-7, OQ-6 ở <a href="#f-02-requirements">§2</a>; <code>DataErasureRequested</code>
+ở kiến trúc 5.5.</p>
+</section>
+<section class="doc" id="f-03-business-analysis-08-monitoring-investigation"><div class="path">03-business-analysis/08-monitoring-investigation.md</div><h1 id="f-03-business-analysis-08-monitoring-investigation--38-giám-sát-điều-tra-cảnh-báo-báo-cáo">3.8 Giám sát, điều tra, cảnh báo, báo cáo</h1>
+<blockquote>
+<p><strong>Trạng thái: đang mở, chưa có quyết định nào (2026-11-06).</strong> Trang này chỉ liệt kê kịch bản và câu hỏi.</p>
+</blockquote>
+<h2 id="f-03-business-analysis-08-monitoring-investigation--1-phạm-vi">1. Phạm vi</h2>
+<p>Công việc thường ngày sau onboarding: xem tình hình, điều tra một sự việc, nhận cảnh báo, đẩy log sang hệ
+thống của khách, làm báo cáo cho lãnh đạo và kiểm toán. Liên quan: F7, F8, F9 ở
+<a href="#f-01-functional-decomposition">§1</a>.</p>
+<h2 id="f-03-business-analysis-08-monitoring-investigation--2-kịch-bản-theo-từng-trục">2. Kịch bản theo từng trục</h2>
+<h3 id="f-03-business-analysis-08-monitoring-investigation--a-ai-dùng">A. Ai dùng</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB8-A1</td>
+<td>Chủ shop xem mỗi tuần một lần</td>
+<td>Cần tóm tắt dễ hiểu, không phải bảng log</td>
+</tr>
+<tr>
+<td>KB8-A2</td>
+<td>SOC trực 24/7 của doanh nghiệp</td>
+<td>Màn hình realtime, điều tra nhanh, phím tắt</td>
+</tr>
+<tr>
+<td>KB8-A3</td>
+<td>Đơn vị giám sát an ninh thuê ngoài (MSSP) giám sát nhiều khách</td>
+<td>Một màn hình cho nhiều org</td>
+</tr>
+<tr>
+<td>KB8-A4</td>
+<td>Lãnh đạo xem báo cáo tháng</td>
+<td>Chứng minh giá trị: đã chặn gì, tiết kiệm gì</td>
+</tr>
+<tr>
+<td>KB8-A5</td>
+<td>Kiểm toán viên</td>
+<td>Bằng chứng tuân thủ</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-08-monitoring-investigation--b-xem-và-điều-tra">B. Xem và điều tra</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB8-B1</td>
+<td>Từ một cảnh báo đi tới event, request, rule, version</td>
+<td>Mấy bấm</td>
+</tr>
+<tr>
+<td>KB8-B2</td>
+<td>Tìm theo IP, user agent, path, quốc gia, ASN</td>
+<td>Truy vấn nhanh trên khoảng dài</td>
+</tr>
+<tr>
+<td>KB8-B3</td>
+<td>Điều tra vượt retention của gói</td>
+<td>Archive có khôi phục được không, tính phí</td>
+</tr>
+<tr>
+<td>KB8-B4</td>
+<td>So sánh trước và sau một thay đổi policy</td>
+<td></td>
+</tr>
+<tr>
+<td>KB8-B5</td>
+<td>Xem traffic theo thời gian thực khi đang có sự cố</td>
+<td>Nhiều người cùng xem (QS-38)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-08-monitoring-investigation--c-cảnh-báo">C. Cảnh báo</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB8-C1</td>
+<td>Cảnh báo bật sẵn khi tạo zone</td>
+<td>Bộ nào; quá nhiều cảnh báo thì khách tắt hết</td>
+</tr>
+<tr>
+<td>KB8-C2</td>
+<td>Cảnh báo về chính dịch vụ: cert sắp hết hạn, origin lỗi, usage gần hạn mức</td>
+<td>Khác cảnh báo bảo mật</td>
+</tr>
+<tr>
+<td>KB8-C3</td>
+<td>Kênh theo thị trường Việt Nam (Zalo, Telegram, SMS)</td>
+<td>Ngoài email, Slack, Teams</td>
+</tr>
+<tr>
+<td>KB8-C4</td>
+<td>Gộp cảnh báo, giờ im lặng, người trực</td>
+<td>Lịch trực có tích hợp không</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-08-monitoring-investigation--d-đẩy-log-ra-ngoài">D. Đẩy log ra ngoài</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB8-D1</td>
+<td>SIEM của khách (Splunk, Elastic, QRadar, SIEM trong nước)</td>
+<td>Định dạng, giao thức</td>
+</tr>
+<tr>
+<td>KB8-D2</td>
+<td>Đích hỏng nhiều ngày</td>
+<td>Giữ bao lâu, báo ai</td>
+</tr>
+<tr>
+<td>KB8-D3</td>
+<td>Chi phí băng thông của việc đẩy log</td>
+<td>Ai chịu</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-08-monitoring-investigation--e-báo-cáo-và-tuân-thủ">E. Báo cáo và tuân thủ</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB8-E1</td>
+<td>Báo cáo tháng cho lãnh đạo</td>
+<td>Mẫu báo cáo</td>
+</tr>
+<tr>
+<td>KB8-E2</td>
+<td>Bằng chứng PCI DSS, SOC 2, ISO 27001</td>
+<td>Mục nào của tiêu chuẩn</td>
+</tr>
+<tr>
+<td>KB8-E3</td>
+<td>Quy định Việt Nam về lưu trữ dữ liệu và log (Luật An ninh mạng, Nghị định 53/2022)</td>
+<td>Có áp cho log của khách không, lưu ở đâu</td>
+</tr>
+<tr>
+<td>KB8-E4</td>
+<td>Báo cáo SLA của NCC</td>
+<td>Theo gói</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-03-business-analysis-08-monitoring-investigation--3-câu-hỏi-cần-chủ-dự-án-quyết">3. Câu hỏi cần chủ dự án quyết</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Câu hỏi</th>
+<th>Kịch bản</th>
+<th>Ghi chú ban đầu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OQ-75</td>
+<td>Có hỗ trợ MSSP giám sát nhiều khách từ một màn hình không?</td>
+<td>KB8-A3</td>
+<td>Liên quan OQ-62, OQ-63</td>
+</tr>
+<tr>
+<td>OQ-76</td>
+<td>Bộ cảnh báo bật sẵn gồm những gì?</td>
+<td>KB8-C1, KB8-C2</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-77</td>
+<td>Kênh Zalo, Telegram, SMS có ở MVP không?</td>
+<td>KB8-C3</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-78</td>
+<td>Truy vấn ngoài retention: khôi phục từ archive có làm không, tính phí không?</td>
+<td>KB8-B3</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-79</td>
+<td>Nghĩa vụ lưu log theo quy định Việt Nam áp cho phần nào?</td>
+<td>KB8-E3</td>
+<td>Cần tư vấn pháp lý</td>
+</tr>
+<tr>
+<td>OQ-80</td>
+<td>Báo cáo tuân thủ nhắm tiêu chuẩn nào trước?</td>
+<td>KB8-E2</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-03-business-analysis-08-monitoring-investigation--4-phụ-thuộc">4. Phụ thuộc</h2>
+<p>FR-7-01…FR-7-09, FR-8-01…FR-8-07, FR-9-01…FR-9-06, IR-6, IR-7 ở <a href="#f-02-requirements">§2</a>.</p>
+</section>
+<section class="doc" id="f-03-business-analysis-09-bot-api-security"><div class="path">03-business-analysis/09-bot-api-security.md</div><h1 id="f-03-business-analysis-09-bot-api-security--39-bật-bot-management-và-api-security">3.9 Bật bot management và API security</h1>
+<blockquote>
+<p><strong>Trạng thái: đang mở, chưa có quyết định nào (2026-11-06).</strong> Trang này chỉ liệt kê kịch bản và câu hỏi. Thiết
+kế kỹ thuật ở kiến trúc 8.16, 8.17.</p>
+</blockquote>
+<h2 id="f-03-business-analysis-09-bot-api-security--1-phạm-vi">1. Phạm vi</h2>
+<p>Khách bật và tinh chỉnh bảo vệ bot và bảo vệ API trên một zone đang chạy. Hai tính năng này dễ làm hỏng
+client hợp lệ hơn WAF thông thường, nên được phân tích riêng. Liên quan: F3.6, F3.7, F5.1.5, F5.1.8 ở
+<a href="#f-01-functional-decomposition">§1</a>.</p>
+<h2 id="f-03-business-analysis-09-bot-api-security--2-kịch-bản-theo-từng-trục">2. Kịch bản theo từng trục</h2>
+<h3 id="f-03-business-analysis-09-bot-api-security--a-client-hợp-lệ-dễ-bị-ảnh-hưởng">A. Client hợp lệ dễ bị ảnh hưởng</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB9-A1</td>
+<td>Ứng dụng mobile gọi API, không chạy được JavaScript challenge</td>
+<td>Cách nhận diện app thật</td>
+</tr>
+<tr>
+<td>KB9-A2</td>
+<td>Bot tìm kiếm (Google, Bing, Cốc Cốc)</td>
+<td>Danh sách bot đã xác minh có đủ bot trong nước không</td>
+</tr>
+<tr>
+<td>KB9-A3</td>
+<td>Crawler AI</td>
+<td>Chặn hay cho mặc định; khách chọn</td>
+</tr>
+<tr>
+<td>KB9-A4</td>
+<td>Đối tác lấy dữ liệu hợp lệ (so sánh giá, tổng hợp tin)</td>
+<td>Allowlist theo gì</td>
+</tr>
+<tr>
+<td>KB9-A5</td>
+<td>Công cụ giám sát uptime, webhook</td>
+<td></td>
+</tr>
+<tr>
+<td>KB9-A6</td>
+<td>Người dùng sau NAT nhà mạng, trình duyệt cũ, mạng chậm</td>
+<td>Bị chấm điểm bot sai</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-09-bot-api-security--b-challenge">B. Challenge</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB9-B1</td>
+<td>Challenge bằng JavaScript ẩn</td>
+<td></td>
+</tr>
+<tr>
+<td>KB9-B2</td>
+<td>Challenge tương tác (captcha)</td>
+<td>Tự làm hay dùng bên thứ ba; trợ năng cho người khuyết tật; dữ liệu đi ra nước ngoài</td>
+</tr>
+<tr>
+<td>KB9-B3</td>
+<td>Challenge trên trang thanh toán</td>
+<td>Mất đơn</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-09-bot-api-security--c-api-security">C. API security</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB9-C1</td>
+<td>Tự phát hiện endpoint từ traffic</td>
+<td>Endpoint lạ có thể là của kẻ tấn công dò; ai xác nhận</td>
+</tr>
+<tr>
+<td>KB9-C2</td>
+<td>Khách tải OpenAPI lên nhưng tài liệu cũ, không khớp thực tế</td>
+<td>Chạy log-only bao lâu trước khi chặn theo schema</td>
+</tr>
+<tr>
+<td>KB9-C3</td>
+<td>Xác thực JWT với nhiều issuer, khoá xoay</td>
+<td></td>
+</tr>
+<tr>
+<td>KB9-C4</td>
+<td>Consumer là gì: API key trong header, <code>sub</code> của JWT, IP</td>
+<td>Rate limit theo consumer</td>
+</tr>
+<tr>
+<td>KB9-C5</td>
+<td>GraphQL (một endpoint, nhiều thao tác), gRPC</td>
+<td></td>
+</tr>
+<tr>
+<td>KB9-C6</td>
+<td>API trả dữ liệu nhạy cảm trong response</td>
+<td>Edge có đọc response không</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-03-business-analysis-09-bot-api-security--3-câu-hỏi-cần-chủ-dự-án-quyết">3. Câu hỏi cần chủ dự án quyết</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Câu hỏi</th>
+<th>Kịch bản</th>
+<th>Ghi chú ban đầu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OQ-81</td>
+<td>Captcha tự làm, bên thứ ba, hay không có captcha (chỉ challenge ẩn)?</td>
+<td>KB9-B2</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-82</td>
+<td>Crawler AI: mặc định cho, chặn, hay bắt khách chọn khi bật?</td>
+<td>KB9-A3</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-83</td>
+<td>Nhận diện app mobile thật (attestation, SDK) có trong lộ trình không?</td>
+<td>KB9-A1</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-84</td>
+<td>API discovery có lưu mẫu request, response không (dữ liệu cá nhân)?</td>
+<td>KB9-C1, KB9-C6</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-85</td>
+<td>Bot tìm kiếm trong nước có nằm trong danh sách bot đã xác minh không, ai duy trì?</td>
+<td>KB9-A2</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-03-business-analysis-09-bot-api-security--4-phụ-thuộc">4. Phụ thuộc</h2>
+<p>FR-3-08, FR-3-09, FR-5-03, FR-5-19 ở <a href="#f-02-requirements">§2</a>.</p>
+</section>
+<section class="doc" id="f-03-business-analysis-10-cache-performance"><div class="path">03-business-analysis/10-cache-performance.md</div><h1 id="f-03-business-analysis-10-cache-performance--310-cache-hiệu-năng-nội-dung">3.10 Cache, hiệu năng, nội dung</h1>
+<blockquote>
+<p><strong>Trạng thái: đang mở, chưa có quyết định nào (2026-11-06).</strong> Trang này chỉ liệt kê kịch bản và câu hỏi.</p>
+</blockquote>
+<h2 id="f-03-business-analysis-10-cache-performance--1-phạm-vi">1. Phạm vi</h2>
+<p>Khách dùng cache để giảm tải origin, xoá cache khi đổi nội dung, và chịu trách nhiệm về nội dung đi qua
+edge. Liên quan: F4 ở <a href="#f-01-functional-decomposition--f4-hiệu-năng-và-phân-phối">§1</a>.</p>
+<h2 id="f-03-business-analysis-10-cache-performance--2-kịch-bản-theo-từng-trục">2. Kịch bản theo từng trục</h2>
+<h3 id="f-03-business-analysis-10-cache-performance--a-cái-gì-được-cache">A. Cái gì được cache</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB10-A1</td>
+<td>Site động (giỏ hàng, đăng nhập, trang cá nhân)</td>
+<td>Cache nhầm trang của người này cho người khác là rò rỉ dữ liệu, rủi ro lớn nhất</td>
+</tr>
+<tr>
+<td>KB10-A2</td>
+<td>Origin không gửi <code>Cache-Control</code> đúng</td>
+<td>Mặc định cache gì</td>
+</tr>
+<tr>
+<td>KB10-A3</td>
+<td>Cache key theo query string, cookie, ngôn ngữ, thiết bị</td>
+<td></td>
+</tr>
+<tr>
+<td>KB10-A4</td>
+<td>File lớn, video, tải theo đoạn (range)</td>
+<td>Giới hạn kích thước theo gói</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-10-cache-performance--b-xoá-cache">B. Xoá cache</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB10-B1</td>
+<td>Xoá sau mỗi lần deploy</td>
+<td>Qua API trong CI</td>
+</tr>
+<tr>
+<td>KB10-B2</td>
+<td>CMS tự xoá khi sửa bài (plugin WordPress)</td>
+<td>Có làm plugin không</td>
+</tr>
+<tr>
+<td>KB10-B3</td>
+<td>Xoá theo tag</td>
+<td>Mở rộng</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-10-cache-performance--c-origin-lỗi">C. Origin lỗi</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB10-C1</td>
+<td>Origin chết, phục vụ bản cũ</td>
+<td>Bao lâu, có báo người dùng không</td>
+</tr>
+<tr>
+<td>KB10-C2</td>
+<td>Origin chậm</td>
+<td>Edge có timeout ngắn hơn trình duyệt</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-10-cache-performance--d-nội-dung-đi-qua-edge">D. Nội dung đi qua edge</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB10-D1</td>
+<td>Website lừa đảo, phishing, phát tán mã độc dùng edge để giấu origin</td>
+<td>Nhận báo cáo abuse, xác minh, khoá; NCC có trách nhiệm gì</td>
+</tr>
+<tr>
+<td>KB10-D2</td>
+<td>Yêu cầu gỡ nội dung vi phạm bản quyền</td>
+<td>Quy trình</td>
+</tr>
+<tr>
+<td>KB10-D3</td>
+<td>Yêu cầu tiết lộ origin thật của một website (nạn nhân, cơ quan chức năng)</td>
+<td>Quy trình, căn cứ</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-03-business-analysis-10-cache-performance--3-câu-hỏi-cần-chủ-dự-án-quyết">3. Câu hỏi cần chủ dự án quyết</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Câu hỏi</th>
+<th>Kịch bản</th>
+<th>Ghi chú ban đầu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OQ-86</td>
+<td>Mặc định cache gì khi origin không nói gì?</td>
+<td>KB10-A1, KB10-A2</td>
+<td>Chỉ tài nguyên tĩnh là an toàn</td>
+</tr>
+<tr>
+<td>OQ-87</td>
+<td>Có làm plugin cho CMS phổ biến (WordPress) không?</td>
+<td>KB10-B2</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-88</td>
+<td>Chính sách abuse: ai nhận báo cáo, thời gian xử lý, khi nào khoá zone, có tiết lộ origin không?</td>
+<td>KB10-D1…KB10-D3</td>
+<td>Cần tư vấn pháp lý; dịch vụ che origin luôn bị dùng cho mục đích xấu</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-03-business-analysis-10-cache-performance--4-phụ-thuộc">4. Phụ thuộc</h2>
+<p>FR-4-01…FR-4-04 ở <a href="#f-02-requirements">§2</a>. Chính sách abuse chưa có requirement nào.</p>
+</section>
+<section class="doc" id="f-03-business-analysis-11-provider-operations"><div class="path">03-business-analysis/11-provider-operations.md</div><h1 id="f-03-business-analysis-11-provider-operations--311-vận-hành-của-ncc-threat-research-support-sự-cố-nền-tảng-bán-hàng">3.11 Vận hành của NCC: threat research, support, sự cố nền tảng, bán hàng</h1>
+<blockquote>
+<p><strong>Trạng thái: đang mở, chưa có quyết định nào (2026-11-06).</strong> Trang này chỉ liệt kê kịch bản và câu hỏi. Vận
+hành kỹ thuật (runbook, giám sát) ở kiến trúc 8.12, 8.13.</p>
+</blockquote>
+<h2 id="f-03-business-analysis-11-provider-operations--1-phạm-vi">1. Phạm vi</h2>
+<p>Các nghiệp vụ phía NCC mà khách chạm tới: phát hành bảo vệ mới, hỗ trợ khách, xử lý sự cố của chính nền
+tảng, bán và triển khai cho Enterprise, làm việc với đối tác hạ tầng. Liên quan: F11, F12 ở
+<a href="#f-01-functional-decomposition">§1</a>.</p>
+<h2 id="f-03-business-analysis-11-provider-operations--2-kịch-bản-theo-từng-trục">2. Kịch bản theo từng trục</h2>
+<h3 id="f-03-business-analysis-11-provider-operations--a-threat-research">A. Threat research</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB11-A1</td>
+<td>CVE nghiêm trọng mới công bố, đang bị khai thác</td>
+<td>Từ lúc biết tới lúc có rule khẩn: bao lâu, ai duyệt</td>
+</tr>
+<tr>
+<td>KB11-A2</td>
+<td>Rule khẩn chặn nhầm</td>
+<td>Rollback, thông báo (3.4)</td>
+</tr>
+<tr>
+<td>KB11-A3</td>
+<td>Khách hỏi &quot;tôi có được bảo vệ khỏi CVE X không&quot;</td>
+<td>Trang công bố theo CVE</td>
+</tr>
+<tr>
+<td>KB11-A4</td>
+<td>Nguồn threat intel (feed thương mại, CERT trong nước)</td>
+<td>Chi phí, điều khoản</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-11-provider-operations--b-support">B. Support</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB11-B1</td>
+<td>Kênh: email, chat, điện thoại, Zalo</td>
+<td>Theo gói</td>
+</tr>
+<tr>
+<td>KB11-B2</td>
+<td>Giờ hỗ trợ: giờ hành chính hay 24/7</td>
+<td>Theo gói</td>
+</tr>
+<tr>
+<td>KB11-B3</td>
+<td>Thời gian phản hồi theo mức nghiêm trọng</td>
+<td>SLA support</td>
+</tr>
+<tr>
+<td>KB11-B4</td>
+<td>Support cần xem dữ liệu của khách</td>
+<td>BR-20</td>
+</tr>
+<tr>
+<td>KB11-B5</td>
+<td>Tài liệu tự phục vụ, tiếng Việt</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-11-provider-operations--c-sự-cố-của-nền-tảng">C. Sự cố của nền tảng</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB11-C1</td>
+<td>Một PoP hoặc region lỗi</td>
+<td>Khách có được báo không</td>
+</tr>
+<tr>
+<td>KB11-C2</td>
+<td>Lỗi do NCC làm sập traffic của khách</td>
+<td>Thông báo, báo cáo sự cố, credit</td>
+</tr>
+<tr>
+<td>KB11-C3</td>
+<td>Trang trạng thái công khai</td>
+<td>Có không, mức chi tiết</td>
+</tr>
+<tr>
+<td>KB11-C4</td>
+<td>Bảo trì có kế hoạch</td>
+<td>Báo trước bao lâu</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-11-provider-operations--d-bán-hàng-và-enterprise">D. Bán hàng và Enterprise</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB11-D1</td>
+<td>Dùng thử có hỗ trợ (POC) cho Enterprise</td>
+<td>Bao lâu, miễn phí không, tiêu chí thành công</td>
+</tr>
+<tr>
+<td>KB11-D2</td>
+<td>Hợp đồng có điều khoản riêng (SLA cao hơn, phạt)</td>
+<td>Ảnh hưởng thiết kế (cell riêng, database riêng)</td>
+</tr>
+<tr>
+<td>KB11-D3</td>
+<td>Hybrid, on-prem</td>
+<td>Ai vận hành, ai cập nhật</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-11-provider-operations--e-đối-tác-hạ-tầng">E. Đối tác hạ tầng</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB11-E1</td>
+<td>PoP chạy trên hạ tầng của đối tác</td>
+<td>SLA giữa hai bên, ai xử lý sự cố</td>
+</tr>
+<tr>
+<td>KB11-E2</td>
+<td>Đối tác chống DDoS L3/L4</td>
+<td>Phạm vi, chi phí</td>
+</tr>
+<tr>
+<td>KB11-E3</td>
+<td>Đối tác bán lại dịch vụ</td>
+<td>Xem 3.5</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-03-business-analysis-11-provider-operations--3-câu-hỏi-cần-chủ-dự-án-quyết">3. Câu hỏi cần chủ dự án quyết</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Câu hỏi</th>
+<th>Kịch bản</th>
+<th>Ghi chú ban đầu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OQ-89</td>
+<td>Kênh, giờ và thời gian phản hồi support theo gói</td>
+<td>KB11-B1…KB11-B3</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-90</td>
+<td>Có trang trạng thái công khai không? Báo cáo sự cố nền tảng gửi cho ai?</td>
+<td>KB11-C1…KB11-C3</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-91</td>
+<td>Mục tiêu thời gian từ CVE tới rule khẩn; có trang công bố theo CVE không?</td>
+<td>KB11-A1, KB11-A3</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-92</td>
+<td>POC cho Enterprise: thời gian, chi phí, ai làm</td>
+<td>KB11-D1</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-93</td>
+<td>On-prem: NCC vận hành hay khách tự vận hành?</td>
+<td>KB11-D3</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-03-business-analysis-11-provider-operations--4-phụ-thuộc">4. Phụ thuộc</h2>
+<p>FR-11-01…FR-11-03, FR-12-01…FR-12-05 ở <a href="#f-02-requirements">§2</a>; runbook ở kiến trúc 8.13.</p>
 </section>
   </main>
 </div>

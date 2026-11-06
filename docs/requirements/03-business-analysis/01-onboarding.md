@@ -28,127 +28,127 @@ Mỗi nhánh đổi bước cần làm và rủi ro. Vì vậy phải liệt kê
 
 ## 2. Kịch bản theo từng trục
 
-Mã `KB-<trục><số>` dùng để nhắc tới kịch bản khi phân tích.
+Mã `KB1-<trục><số>` dùng để nhắc tới kịch bản khi phân tích.
 
 ### A. Origin của khách
 
 | Mã | Kịch bản | Concern |
 |---|---|---|
-| KB-A1 | Một VPS, một IP public, nginx hoặc apache | Kịch bản phổ biến nhất ở khách nhỏ. Thường chạy nhiều site trên cùng VPS (virtual host) nên nhiều domain dùng chung một IP origin |
-| KB-A2 | VPS chỉ IPv4 / IPv4 và IPv6 / chỉ IPv6 | Edge nhận client v4 và v6 nhưng nối tới origin theo họ IP origin có. Origin dual-stack thì chọn họ nào, có fallback không |
-| KB-A3 | Shared hosting (cPanel, DirectAdmin), IP dùng chung với khách khác | Khách không sửa được firewall nên không khoá origin theo IP được. Host thường tự cấp cert (AutoSSL). Origin nhận diện site theo Host header |
-| KB-A4 | Load balancer của cloud (ALB, GCP LB…), origin là hostname, IP thay đổi | Origin phải khai báo được bằng hostname, edge phải phân giải lại theo TTL |
-| KB-A5 | Một hostname, nhiều backend theo path (`/api` → server khác, `/static` → bucket) | Định tuyến origin theo path có thuộc phạm vi không |
-| KB-A6 | Nhiều origin cho một hostname (dự phòng, chia tải) | Health check, failover (đang ở mức Mở rộng) |
-| KB-A7 | Origin sau NAT, máy ở nhà, không có IP public | Cần tunnel từ origin ra edge |
-| KB-A8 | Đã có CDN hoặc WAF khác đứng trước | Thay hẳn, hay đứng sau CDN đó |
-| KB-A9 | Website tĩnh trên object storage | Host header gửi về origin khác hostname thật |
-| KB-A10 | Origin là nền tảng SaaS (Shopify, Wix, Haravan, Sapo…) | Nền tảng đó có cho đứng trước nó không, có kiểm Host, có tự cấp cert theo domain khách không |
+| KB1-A1 | Một VPS, một IP public, nginx hoặc apache | Kịch bản phổ biến nhất ở khách nhỏ. Thường chạy nhiều site trên cùng VPS (virtual host) nên nhiều domain dùng chung một IP origin |
+| KB1-A2 | VPS chỉ IPv4 / IPv4 và IPv6 / chỉ IPv6 | Edge nhận client v4 và v6 nhưng nối tới origin theo họ IP origin có. Origin dual-stack thì chọn họ nào, có fallback không |
+| KB1-A3 | Shared hosting (cPanel, DirectAdmin), IP dùng chung với khách khác | Khách không sửa được firewall nên không khoá origin theo IP được. Host thường tự cấp cert (AutoSSL). Origin nhận diện site theo Host header |
+| KB1-A4 | Load balancer của cloud (ALB, GCP LB…), origin là hostname, IP thay đổi | Origin phải khai báo được bằng hostname, edge phải phân giải lại theo TTL |
+| KB1-A5 | Một hostname, nhiều backend theo path (`/api` → server khác, `/static` → bucket) | Định tuyến origin theo path có thuộc phạm vi không |
+| KB1-A6 | Nhiều origin cho một hostname (dự phòng, chia tải) | Health check, failover (đang ở mức Mở rộng) |
+| KB1-A7 | Origin sau NAT, máy ở nhà, không có IP public | Cần tunnel từ origin ra edge |
+| KB1-A8 | Đã có CDN hoặc WAF khác đứng trước | Thay hẳn, hay đứng sau CDN đó |
+| KB1-A9 | Website tĩnh trên object storage | Host header gửi về origin khác hostname thật |
+| KB1-A10 | Origin là nền tảng SaaS (Shopify, Wix, Haravan, Sapo…) | Nền tảng đó có cho đứng trước nó không, có kiểm Host, có tự cấp cert theo domain khách không |
 
 ### B. Nơi khách quản lý DNS
 
 | Mã | Kịch bản | Concern |
 |---|---|---|
-| KB-B1 | DNS tại nhà đăng ký trong nước (Mắt Bão, PA Việt Nam, Nhân Hoà, Tenten, iNET…) | Giao diện mỗi nhà một kiểu. Có nhà không có ALIAS ở apex, có thể không cho tên bản ghi bắt đầu bằng `_`, giới hạn độ dài TXT, TTL tối thiểu cao. Cần khảo sát thực tế từng nhà |
-| KB-B2 | DNS ở nhà cung cấp quốc tế (Cloudflare, Route53, Google Cloud DNS) | Có ALIAS hoặc flattening; nếu đang ở Cloudflare thì thường đang proxy luôn (KB-A8) |
-| KB-B3 | Khách muốn chuyển hẳn nameserver sang NCC | NCC thành DNS hosting: phải quản lý mọi bản ghi (MX, TXT, SRV, CAA…), không chỉ bản ghi web |
-| KB-B4 | Người onboard không có quyền DNS (agency, phòng IT khác, nhà cung cấp cũ giữ) | Gửi hướng dẫn cho người giữ DNS; người đó có cần tài khoản không |
-| KB-B5 | Domain mới mua, chưa có bản ghi nào | Không có gì để gợi ý origin; DNS mặc định của nhà đăng ký |
-| KB-B6 | DNS do hosting quản lý kèm (shared hosting) | Khách sửa DNS qua giao diện hosting, thường hạn chế hơn KB-B1 |
+| KB1-B1 | DNS tại nhà đăng ký trong nước (Mắt Bão, PA Việt Nam, Nhân Hoà, Tenten, iNET…) | Giao diện mỗi nhà một kiểu. Có nhà không có ALIAS ở apex, có thể không cho tên bản ghi bắt đầu bằng `_`, giới hạn độ dài TXT, TTL tối thiểu cao. Cần khảo sát thực tế từng nhà |
+| KB1-B2 | DNS ở nhà cung cấp quốc tế (Cloudflare, Route53, Google Cloud DNS) | Có ALIAS hoặc flattening; nếu đang ở Cloudflare thì thường đang proxy luôn (KB1-A8) |
+| KB1-B3 | Khách muốn chuyển hẳn nameserver sang NCC | NCC thành DNS hosting: phải quản lý mọi bản ghi (MX, TXT, SRV, CAA…), không chỉ bản ghi web |
+| KB1-B4 | Người onboard không có quyền DNS (agency, phòng IT khác, nhà cung cấp cũ giữ) | Gửi hướng dẫn cho người giữ DNS; người đó có cần tài khoản không |
+| KB1-B5 | Domain mới mua, chưa có bản ghi nào | Không có gì để gợi ý origin; DNS mặc định của nhà đăng ký |
+| KB1-B6 | DNS do hosting quản lý kèm (shared hosting) | Khách sửa DNS qua giao diện hosting, thường hạn chế hơn KB1-B1 |
 
 ### C. Cách trỏ về edge
 
 | Mã | Kịch bản | Concern |
 |---|---|---|
-| KB-C1 | CNAME cho subdomain (`www`, `shop`, `api`) | Dễ nhất, cho phép đổi IP edge và điều hướng theo vị trí |
-| KB-C2 | Apex trỏ A (IPv4) / AAAA (IPv6) sang IP của NCC | Cần dải IP tĩnh v4 và v6. Chưa có anycast thì một IP gắn người dùng với một nơi, mất điều hướng theo vị trí và mất cách rút PoP bằng DNS |
-| KB-C3 | Khách muốn dùng A/AAAA cho cả subdomain, không dùng CNAME | Như KB-C2; nhiều khách quen trỏ IP hơn CNAME |
-| KB-C4 | Chỉ khai A, không khai AAAA (hoặc ngược lại) | Người dùng IPv6 đi thẳng origin nếu AAAA còn trỏ về origin: một nửa traffic không qua WAF |
-| KB-C5 | Apex dùng ALIAS / CNAME flattening | Phụ thuộc nhà DNS (KB-B1, KB-B2) |
-| KB-C6 | Apex chuyển hướng sang `www` | Khách phải chấp nhận đổi URL chính; ai làm chuyển hướng (nhà DNS, origin, edge) |
-| KB-C7 | Đổi nameserver sang NCC | Xem KB-B3 |
-| KB-C8 | Đứng sau CDN của khách: CDN trỏ origin về edge | Tin IP và header client nào |
-| KB-C9 | Trỏ A apex về edge làm hỏng dịch vụ khác trên cùng IP (SSH, mail, FTP, game, panel quản trị cổng 2083/8443…) | Edge chỉ proxy HTTP(S). Phải phát hiện và cảnh báo; khách phải tách hostname cho dịch vụ khác |
-| KB-C10 | Trỏ một phần (chỉ một số hostname, hoặc đổi dần theo trọng số) | Theo dõi trạng thái từng hostname |
+| KB1-C1 | CNAME cho subdomain (`www`, `shop`, `api`) | Dễ nhất, cho phép đổi IP edge và điều hướng theo vị trí |
+| KB1-C2 | Apex trỏ A (IPv4) / AAAA (IPv6) sang IP của NCC | Cần dải IP tĩnh v4 và v6. Chưa có anycast thì một IP gắn người dùng với một nơi, mất điều hướng theo vị trí và mất cách rút PoP bằng DNS |
+| KB1-C3 | Khách muốn dùng A/AAAA cho cả subdomain, không dùng CNAME | Như KB1-C2; nhiều khách quen trỏ IP hơn CNAME |
+| KB1-C4 | Chỉ khai A, không khai AAAA (hoặc ngược lại) | Người dùng IPv6 đi thẳng origin nếu AAAA còn trỏ về origin: một nửa traffic không qua WAF |
+| KB1-C5 | Apex dùng ALIAS / CNAME flattening | Phụ thuộc nhà DNS (KB1-B1, KB1-B2) |
+| KB1-C6 | Apex chuyển hướng sang `www` | Khách phải chấp nhận đổi URL chính; ai làm chuyển hướng (nhà DNS, origin, edge) |
+| KB1-C7 | Đổi nameserver sang NCC | Xem KB1-B3 |
+| KB1-C8 | Đứng sau CDN của khách: CDN trỏ origin về edge | Tin IP và header client nào |
+| KB1-C9 | Trỏ A apex về edge làm hỏng dịch vụ khác trên cùng IP (SSH, mail, FTP, game, panel quản trị cổng 2083/8443…) | Edge chỉ proxy HTTP(S). Phải phát hiện và cảnh báo; khách phải tách hostname cho dịch vụ khác |
+| KB1-C10 | Trỏ một phần (chỉ một số hostname, hoặc đổi dần theo trọng số) | Theo dõi trạng thái từng hostname |
 
 ### D. Quản lý domain và subdomain
 
 | Mã | Kịch bản | Concern |
 |---|---|---|
-| KB-D1 | Chỉ apex; apex và `www`; vài subdomain chọn lọc | Chọn hostname nào được bảo vệ; hostname không chọn thì vẫn đi thẳng origin |
-| KB-D2 | Wildcard `*.example.com` | Cert wildcard chỉ cấp được qua DNS-01; wildcard có bảo vệ subdomain chưa khai báo không |
-| KB-D3 | Subdomain nhiều cấp (`a.b.example.com`) | Wildcard một cấp không phủ được; cert riêng |
-| KB-D4 | Chỉ bảo vệ `shop.example.com`, không có quyền với apex (công ty con, apex do bên khác giữ) | Zone là domain gốc hay có thể là một hostname riêng |
-| KB-D5 | Một khách nhiều domain (`example.com`, `example.vn`, domain thương hiệu phụ) | Mỗi domain một zone? Dùng chung policy thế nào? Tính giá thế nào |
-| KB-D6 | Thêm subdomain sau onboarding | Có phải xác minh lại không, cert cấp thế nào, có tự bật bảo vệ không |
-| KB-D7 | Xoá subdomain, đổi subdomain sang origin khác | Giải phóng claim, cert |
-| KB-D8 | Domain IDN (tiếng Việt có dấu) | Lưu dạng punycode, hiển thị dạng Unicode |
-| KB-D9 | Subdomain do khách khác của NCC giữ (`a.example.com` ở tenant A, `b.example.com` ở tenant B) | Cho phép hay không; ai sở hữu domain gốc |
+| KB1-D1 | Chỉ apex; apex và `www`; vài subdomain chọn lọc | Chọn hostname nào được bảo vệ; hostname không chọn thì vẫn đi thẳng origin |
+| KB1-D2 | Wildcard `*.example.com` | Cert wildcard chỉ cấp được qua DNS-01; wildcard có bảo vệ subdomain chưa khai báo không |
+| KB1-D3 | Subdomain nhiều cấp (`a.b.example.com`) | Wildcard một cấp không phủ được; cert riêng |
+| KB1-D4 | Chỉ bảo vệ `shop.example.com`, không có quyền với apex (công ty con, apex do bên khác giữ) | Zone là domain gốc hay có thể là một hostname riêng |
+| KB1-D5 | Một khách nhiều domain (`example.com`, `example.vn`, domain thương hiệu phụ) | Mỗi domain một zone? Dùng chung policy thế nào? Tính giá thế nào |
+| KB1-D6 | Thêm subdomain sau onboarding | Có phải xác minh lại không, cert cấp thế nào, có tự bật bảo vệ không |
+| KB1-D7 | Xoá subdomain, đổi subdomain sang origin khác | Giải phóng claim, cert |
+| KB1-D8 | Domain IDN (tiếng Việt có dấu) | Lưu dạng punycode, hiển thị dạng Unicode |
+| KB1-D9 | Subdomain do khách khác của NCC giữ (`a.example.com` ở tenant A, `b.example.com` ở tenant B) | Cho phép hay không; ai sở hữu domain gốc |
 
 ### E. Giao thức và cổng
 
 | Mã | Kịch bản | Concern |
 |---|---|---|
-| KB-E1 | Client dùng cổng chuẩn 80/443 | Chuẩn |
-| KB-E2 | Client dùng cổng phi chuẩn (`https://example.com:8443`, `:8080`, `:2053`) | Edge phải nghe cổng đó. Danh sách cổng cố định thì dễ; cổng tuỳ ý thì gần như phải cấp IP riêng hoặc proxy L4 |
-| KB-E3 | Edge nhận 443, origin chạy cổng phi chuẩn (8080, 3000, 8443) | Chỉ là cấu hình origin |
-| KB-E4 | Một hostname, nhiều cổng ra nhiều ứng dụng (443 web, 8443 admin) | Cấu hình theo (hostname, cổng) |
-| KB-E5 | Origin chỉ có HTTP, không có TLS | Edge HTTPS → origin HTTP: đoạn sau không mã hoá, dễ vòng chuyển hướng khi origin tự ép HTTPS |
-| KB-E6 | Chuyển hướng HTTP → HTTPS ở edge hay ở origin | Lặp chuyển hướng nếu cả hai cùng làm sai cách |
-| KB-E7 | WebSocket, gRPC, SSE, long polling, upload lớn, download lớn | Timeout, giới hạn body theo gói, buffer |
-| KB-E8 | HTTP/2, HTTP/3 phía client; HTTP/1.1 phía origin | Chuyển đổi giao thức |
-| KB-E9 | Traffic không phải HTTP (TCP/UDP: game, MQTT, SSH, SMTP) | Ngoài WAF; có làm proxy L4 không |
+| KB1-E1 | Client dùng cổng chuẩn 80/443 | Chuẩn |
+| KB1-E2 | Client dùng cổng phi chuẩn (`https://example.com:8443`, `:8080`, `:2053`) | Edge phải nghe cổng đó. Danh sách cổng cố định thì dễ; cổng tuỳ ý thì gần như phải cấp IP riêng hoặc proxy L4 |
+| KB1-E3 | Edge nhận 443, origin chạy cổng phi chuẩn (8080, 3000, 8443) | Chỉ là cấu hình origin |
+| KB1-E4 | Một hostname, nhiều cổng ra nhiều ứng dụng (443 web, 8443 admin) | Cấu hình theo (hostname, cổng) |
+| KB1-E5 | Origin chỉ có HTTP, không có TLS | Edge HTTPS → origin HTTP: đoạn sau không mã hoá, dễ vòng chuyển hướng khi origin tự ép HTTPS |
+| KB1-E6 | Chuyển hướng HTTP → HTTPS ở edge hay ở origin | Lặp chuyển hướng nếu cả hai cùng làm sai cách |
+| KB1-E7 | WebSocket, gRPC, SSE, long polling, upload lớn, download lớn | Timeout, giới hạn body theo gói, buffer |
+| KB1-E8 | HTTP/2, HTTP/3 phía client; HTTP/1.1 phía origin | Chuyển đổi giao thức |
+| KB1-E9 | Traffic không phải HTTP (TCP/UDP: game, MQTT, SSH, SMTP) | Ngoài WAF; có làm proxy L4 không |
 
 ### F. Cert
 
 | Mã | Kịch bản | Concern |
 |---|---|---|
-| KB-F1 | NCC cấp cert tự động | Xác minh và cấp lúc nào so với lúc đổi DNS, để không có khoảng lỗi HTTPS |
-| KB-F2 | Khách tải cert riêng (EV, OV, cert mua) | Theo gói; khách tự gia hạn, nhắc hạn |
-| KB-F3 | VPS đang tự gia hạn Let's Encrypt bằng certbot (HTTP-01) | Sau khi trỏ về edge, gia hạn ở origin hỏng, trừ khi edge chuyển `/.well-known/acme-challenge/` không phải của NCC về origin |
-| KB-F4 | Cert ở origin tự ký, hết hạn, sai hostname | Nới kiểm cert phía origin tới đâu |
-| KB-F5 | Domain có CAA chỉ cho phép một CA khác | CA của NCC bị từ chối cấp |
-| KB-F6 | HSTS preload, HPKP cũ, client mobile pin cert | Không được có lúc nào sai cert; pin cert làm app mobile hỏng khi đổi cert |
-| KB-F7 | Client dùng mTLS tới website | Edge phải giữ CA của khách |
+| KB1-F1 | NCC cấp cert tự động | Xác minh và cấp lúc nào so với lúc đổi DNS, để không có khoảng lỗi HTTPS |
+| KB1-F2 | Khách tải cert riêng (EV, OV, cert mua) | Theo gói; khách tự gia hạn, nhắc hạn |
+| KB1-F3 | VPS đang tự gia hạn Let's Encrypt bằng certbot (HTTP-01) | Sau khi trỏ về edge, gia hạn ở origin hỏng, trừ khi edge chuyển `/.well-known/acme-challenge/` không phải của NCC về origin |
+| KB1-F4 | Cert ở origin tự ký, hết hạn, sai hostname | Nới kiểm cert phía origin tới đâu |
+| KB1-F5 | Domain có CAA chỉ cho phép một CA khác | CA của NCC bị từ chối cấp |
+| KB1-F6 | HSTS preload, HPKP cũ, client mobile pin cert | Không được có lúc nào sai cert; pin cert làm app mobile hỏng khi đổi cert |
+| KB1-F7 | Client dùng mTLS tới website | Edge phải giữ CA của khách |
 
 ### G. Ứng dụng phụ thuộc IP client và hành vi cũ
 
 | Mã | Kịch bản | Concern |
 |---|---|---|
-| KB-G1 | Log, thống kê, rate limit ở origin theo IP | Sau khi qua edge, IP nguồn là IP edge; ứng dụng phải đọc header |
-| KB-G2 | Origin có allowlist IP (trang admin, API cho đối tác) | Allowlist ở origin không còn tác dụng; phải chuyển lên edge |
-| KB-G3 | Origin chặn theo quốc gia, fail2ban | Thấy IP edge, có thể tự chặn edge |
-| KB-G4 | Webhook từ đối tác (cổng thanh toán, ngân hàng) gọi vào | Dễ bị WAF hoặc bot chặn nhầm; cần allowlist ngay từ đầu |
-| KB-G5 | Ứng dụng mobile, client cũ không theo chuyển hướng, không hỗ trợ SNI hay TLS mới | Cấu hình TLS tối thiểu |
+| KB1-G1 | Log, thống kê, rate limit ở origin theo IP | Sau khi qua edge, IP nguồn là IP edge; ứng dụng phải đọc header |
+| KB1-G2 | Origin có allowlist IP (trang admin, API cho đối tác) | Allowlist ở origin không còn tác dụng; phải chuyển lên edge |
+| KB1-G3 | Origin chặn theo quốc gia, fail2ban | Thấy IP edge, có thể tự chặn edge |
+| KB1-G4 | Webhook từ đối tác (cổng thanh toán, ngân hàng) gọi vào | Dễ bị WAF hoặc bot chặn nhầm; cần allowlist ngay từ đầu |
+| KB1-G5 | Ứng dụng mobile, client cũ không theo chuyển hướng, không hỗ trợ SNI hay TLS mới | Cấu hình TLS tối thiểu |
 
 ### H. Sau onboarding
 
 | Mã | Kịch bản | Concern |
 |---|---|---|
-| KB-H1 | Khách đổi IP origin, đổi hosting | Cập nhật origin không gián đoạn |
-| KB-H2 | Khách đổi nhà DNS, xoá nhầm bản ghi xác minh hoặc uỷ quyền | Gia hạn cert hỏng; phát hiện sớm |
-| KB-H3 | Domain hết hạn đăng ký, domain đổi chủ, domain bị bán lại | Chủ mới không được thừa hưởng cấu hình của chủ cũ; xác minh lại định kỳ |
-| KB-H4 | Khách muốn thôi dùng, trỏ DNS về origin | Hướng dẫn quay lui, origin còn chạy được không sau khi đã khoá origin |
-| KB-H5 | IP của edge thay đổi | Khách đã trỏ A và đã khoá firewall theo IP edge phải được báo trước |
+| KB1-H1 | Khách đổi IP origin, đổi hosting | Cập nhật origin không gián đoạn |
+| KB1-H2 | Khách đổi nhà DNS, xoá nhầm bản ghi xác minh hoặc uỷ quyền | Gia hạn cert hỏng; phát hiện sớm |
+| KB1-H3 | Domain hết hạn đăng ký, domain đổi chủ, domain bị bán lại | Chủ mới không được thừa hưởng cấu hình của chủ cũ; xác minh lại định kỳ |
+| KB1-H4 | Khách muốn thôi dùng, trỏ DNS về origin | Hướng dẫn quay lui, origin còn chạy được không sau khi đã khoá origin |
+| KB1-H5 | IP của edge thay đổi | Khách đã trỏ A và đã khoá firewall theo IP edge phải được báo trước |
 
 ### I. Thương mại
 
 | Mã | Kịch bản | Concern |
 |---|---|---|
-| KB-I1 | Một VPS chạy 5 domain nhỏ | 5 zone Pro có hợp lý không, hay cần gói theo nhóm domain |
-| KB-I2 | Zone staging, domain phụ | Giá zone phụ áp khi nào |
-| KB-I3 | Dùng thử theo domain hay theo org | Lạm dụng dùng thử bằng nhiều domain |
-| KB-I4 | Agency hoặc nhà phát triển quản lý website cho nhiều khách | Một org cho mỗi khách cuối hay một org agency; ai trả tiền; khách cuối có quyền gì |
-| KB-I5 | Nhà cung cấp hosting, VPS muốn bán lại (reseller) | Mô hình đối tác, nhãn trắng |
+| KB1-I1 | Một VPS chạy 5 domain nhỏ | 5 zone Pro có hợp lý không, hay cần gói theo nhóm domain |
+| KB1-I2 | Zone staging, domain phụ | Giá zone phụ áp khi nào |
+| KB1-I3 | Dùng thử theo domain hay theo org | Lạm dụng dùng thử bằng nhiều domain |
+| KB1-I4 | Agency hoặc nhà phát triển quản lý website cho nhiều khách | Một org cho mỗi khách cuối hay một org agency; ai trả tiền; khách cuối có quyền gì |
+| KB1-I5 | Nhà cung cấp hosting, VPS muốn bán lại (reseller) | Mô hình đối tác, nhãn trắng |
 
 ### J. Ai làm và hỗ trợ
 
 | Mã | Kịch bản | Concern |
 |---|---|---|
-| KB-J1 | Người onboard không rành DNS (chủ shop nhỏ) | Mức hướng dẫn: ảnh chụp theo từng nhà DNS, video, chat hỗ trợ |
-| KB-J2 | DevOps muốn làm hết bằng API hoặc Terraform | Onboarding không được bắt buộc qua UI |
-| KB-J3 | Enterprise onboard có kỹ sư NCC đi kèm | Danh sách việc chuẩn bị, khung giờ đổi DNS |
-| KB-J4 | Khách onboard đúng lúc đang bị tấn công | Cần đường tắt, chấp nhận rủi ro chặn nhầm |
+| KB1-J1 | Người onboard không rành DNS (chủ shop nhỏ) | Mức hướng dẫn: ảnh chụp theo từng nhà DNS, video, chat hỗ trợ |
+| KB1-J2 | DevOps muốn làm hết bằng API hoặc Terraform | Onboarding không được bắt buộc qua UI |
+| KB1-J3 | Enterprise onboard có kỹ sư NCC đi kèm | Danh sách việc chuẩn bị, khung giờ đổi DNS |
+| KB1-J4 | Khách onboard đúng lúc đang bị tấn công | Cần đường tắt, chấp nhận rủi ro chặn nhầm |
 
 ## 3. Ví dụ: một VPS và một domain riêng
 
@@ -181,18 +181,18 @@ flowchart TB
 
 | ID | Câu hỏi | Kịch bản | Ghi chú ban đầu (không phải quyết định) |
 |---|---|---|---|
-| OQ-21 | Zone là domain gốc, hay cho phép onboard riêng một hostname khi khách không kiểm soát apex? | KB-D4, KB-D9 | Domain gốc làm mặc định, hostname riêng làm ngoại lệ có xác minh theo hostname |
-| OQ-22 | Có cấp IP tĩnh v4 và v6 cho khách trỏ A/AAAA ngay từ MVP không: dải dùng chung theo region, IP riêng theo zone ở gói cao, hay chỉ CNAME và ALIAS? Có làm anycast không, khi nào? | KB-C2, KB-C3, KB-C4 | Khách thuê VPS hay trỏ A, chỉ CNAME có lẽ không đủ |
-| OQ-23 | Cổng phi chuẩn phía client: danh sách cố định cho mọi gói, cổng tuỳ ý ở gói cao kèm IP riêng, hay không hỗ trợ ở MVP? | KB-E2, KB-E4 | |
-| OQ-24 | Traffic không phải HTTP trên cùng domain: chỉ cảnh báo và hướng dẫn tách hostname, hay có kế hoạch proxy L4? | KB-C9, KB-E9 | |
-| OQ-25 | Có nhận quản lý toàn bộ DNS của khách (nameserver) ngay từ MVP không? | KB-B3, KB-C7 | Nếu có, cần màn quản lý mọi loại bản ghi |
-| OQ-26 | Có cần hướng dẫn riêng cho từng nhà DNS trong nước không? Nhà nào không cho bản ghi bắt đầu bằng `_`? | KB-B1, KB-J1 | Cần khảo sát thực tế |
-| OQ-27 | Phân khúc chính ở MVP: người thuê VPS, shared hosting, doanh nghiệp có đội IT? Giá cho nhiều domain trên một VPS? Agency, reseller? | KB-A1, KB-A3, KB-I1, KB-I4, KB-I5 | |
-| OQ-28 | Tunnel cho origin không có IP public có vào MVP không? | KB-A7 | |
-| OQ-29 | Định tuyến origin theo path, nhiều origin cho một hostname: MVP hay Mở rộng? | KB-A5, KB-A6 | |
-| OQ-30 | Origin là nền tảng SaaS (Shopify, Haravan, Sapo…): có hỗ trợ chính thức không? | KB-A10 | Cần kiểm từng nền tảng |
-| OQ-31 | Edge có chuyển challenge ACME của origin (certbot) về origin không? | KB-F3 | |
-| OQ-32 | Khi khách khai A nhưng AAAA vẫn trỏ origin (hoặc ngược lại): chỉ cảnh báo, hay chặn bước hoàn tất? | KB-C4 | |
+| OQ-21 | Zone là domain gốc, hay cho phép onboard riêng một hostname khi khách không kiểm soát apex? | KB1-D4, KB1-D9 | Domain gốc làm mặc định, hostname riêng làm ngoại lệ có xác minh theo hostname |
+| OQ-22 | Có cấp IP tĩnh v4 và v6 cho khách trỏ A/AAAA ngay từ MVP không: dải dùng chung theo region, IP riêng theo zone ở gói cao, hay chỉ CNAME và ALIAS? Có làm anycast không, khi nào? | KB1-C2, KB1-C3, KB1-C4 | Khách thuê VPS hay trỏ A, chỉ CNAME có lẽ không đủ |
+| OQ-23 | Cổng phi chuẩn phía client: danh sách cố định cho mọi gói, cổng tuỳ ý ở gói cao kèm IP riêng, hay không hỗ trợ ở MVP? | KB1-E2, KB1-E4 | |
+| OQ-24 | Traffic không phải HTTP trên cùng domain: chỉ cảnh báo và hướng dẫn tách hostname, hay có kế hoạch proxy L4? | KB1-C9, KB1-E9 | |
+| OQ-25 | Có nhận quản lý toàn bộ DNS của khách (nameserver) ngay từ MVP không? | KB1-B3, KB1-C7 | Nếu có, cần màn quản lý mọi loại bản ghi |
+| OQ-26 | Có cần hướng dẫn riêng cho từng nhà DNS trong nước không? Nhà nào không cho bản ghi bắt đầu bằng `_`? | KB1-B1, KB1-J1 | Cần khảo sát thực tế |
+| OQ-27 | Phân khúc chính ở MVP: người thuê VPS, shared hosting, doanh nghiệp có đội IT? Giá cho nhiều domain trên một VPS? Agency, reseller? | KB1-A1, KB1-A3, KB1-I1, KB1-I4, KB1-I5 | |
+| OQ-28 | Tunnel cho origin không có IP public có vào MVP không? | KB1-A7 | |
+| OQ-29 | Định tuyến origin theo path, nhiều origin cho một hostname: MVP hay Mở rộng? | KB1-A5, KB1-A6 | |
+| OQ-30 | Origin là nền tảng SaaS (Shopify, Haravan, Sapo…): có hỗ trợ chính thức không? | KB1-A10 | Cần kiểm từng nền tảng |
+| OQ-31 | Edge có chuyển challenge ACME của origin (certbot) về origin không? | KB1-F3 | |
+| OQ-32 | Khi khách khai A nhưng AAAA vẫn trỏ origin (hoặc ngược lại): chỉ cảnh báo, hay chặn bước hoàn tất? | KB1-C4 | |
 
 ## 5. Những chỗ đang phụ thuộc vào trang này
 

@@ -1,12 +1,10 @@
 # 3. Phân tích nghiệp vụ
 
-> **Trạng thái: đang làm (2026-11-06).** Mỗi nghiệp vụ phân tích xong sẽ cập nhật lại
-> [bản đồ phân rã chức năng](../01-functional-decomposition.md), [requirements](../02-requirements.md) và
-> [hợp đồng giữa các plane](../../architecture/05-building-blocks/05-contracts.md). Những chỗ thay đổi được liệt kê ở cuối
-> từng trang.
+> **Trạng thái: bước 1 (concern) cho 11 nghiệp vụ, chờ chủ dự án trả lời (2026-11-06).** Chưa nghiệp vụ nào
+> có luồng được duyệt.
 
 Bản đồ phân rã nói hệ thống **có** những chức năng gì. Mục này đi qua từng nghiệp vụ theo trình tự khách
-thật làm. Với mỗi nghiệp vụ, nó trả lời các câu hỏi sau:
+thật làm. Khi xong, mỗi nghiệp vụ trả lời được các câu hỏi sau:
 
 - Bước nào phải làm trước bước nào, và vì sao.
 - Khách phải chuẩn bị gì trước khi bắt đầu.
@@ -17,24 +15,35 @@ thật làm. Với mỗi nghiệp vụ, nó trả lời các câu hỏi sau:
 Thứ tự phân tích đi theo vòng đời của khách: onboarding trước, vì đó là lần đầu sản phẩm chạm vào traffic
 thật và cũng là lúc dễ gây sự cố nhất.
 
-| Mục | Nghiệp vụ | Trạng thái |
-|---|---|---|
-| [requirements §3.1](01-onboarding.md) | Onboarding một website: từ lúc thêm domain tới khi traffic được bảo vệ ở chế độ chặn | Đang mở: đã liệt kê kịch bản và câu hỏi, chủ dự án đang phân tích; luồng chưa viết |
-| 3.2 | Viết, duyệt, phát hành một thay đổi policy | Chưa làm |
-| 3.3 | Phản ứng khi bị tấn công | Chưa làm |
-| 3.4 | Xử lý chặn nhầm | Chưa làm |
-| 3.5 | Mua, đổi gói, vượt hạn mức, thanh toán | Chưa làm |
-| 3.6 | Quản lý thành viên, SSO, API key | Chưa làm |
-| 3.7 | Rời dịch vụ: gỡ zone, xoá org, xoá dữ liệu | Chưa làm |
+Mỗi nghiệp vụ đi qua hai bước, và **không viết bước 2 khi chủ dự án chưa trả lời bước 1**:
 
-Mỗi trang dùng cùng một khung:
+1. **Concern**: kịch bản theo từng trục (mã `KB<số trang>-<trục><số>`) và câu hỏi cần chủ dự án quyết
+   (`OQ-…`). Ý kiến lúc ghi để ở cột "ghi chú ban đầu", không phải quyết định.
+2. **Luồng**: sau khi có trả lời; khi đó cập nhật [§1](../01-functional-decomposition.md),
+   [§2](../02-requirements.md) và kiến trúc.
 
-1. Mục tiêu và định nghĩa "xong".
-2. Tác nhân và biến thể theo phân khúc.
-3. Khách cần chuẩn bị gì.
-4. Các bước, thứ tự và cổng.
-5. Chi tiết từng bước: đầu vào, xử lý, kết quả, lỗi thường gặp, plane, chức năng, dữ liệu.
-6. Trường hợp đặc biệt.
-7. Mục tiêu thời gian.
-8. Thay đổi kéo theo ở §1, §2 và ở architecture (5.5, các thành phần).
-9. Câu hỏi mở.
+| Mục | Nghiệp vụ | Câu hỏi | Trạng thái |
+|---|---|---|---|
+| [3.1](01-onboarding.md) | Onboarding một website | OQ-21…OQ-32 | Bước 1, chờ chủ dự án (có bản nháp luồng cũ chưa duyệt ở phụ lục) |
+| [3.2](02-policy-change.md) | Viết, duyệt, phát hành một thay đổi policy | OQ-33…OQ-40 | Bước 1, chờ chủ dự án |
+| [3.3](03-attack-response.md) | Phản ứng khi bị tấn công | OQ-41…OQ-47 | Bước 1, chờ chủ dự án |
+| [3.4](04-false-positive.md) | Xử lý chặn nhầm | OQ-48…OQ-53 | Bước 1, chờ chủ dự án |
+| [3.5](05-plans-billing.md) | Mua, đổi gói, vượt hạn mức, thanh toán | OQ-54…OQ-61 | Bước 1, chờ chủ dự án |
+| [3.6](06-members-access.md) | Quản lý thành viên, SSO, API key | OQ-62…OQ-68 | Bước 1, chờ chủ dự án |
+| [3.7](07-offboarding.md) | Rời dịch vụ: gỡ zone, xoá org, xoá dữ liệu | OQ-69…OQ-74 | Bước 1, chờ chủ dự án |
+| [3.8](08-monitoring-investigation.md) | Giám sát, điều tra, cảnh báo, báo cáo | OQ-75…OQ-80 | Bước 1, chờ chủ dự án |
+| [3.9](09-bot-api-security.md) | Bật bot management và API security | OQ-81…OQ-85 | Bước 1, chờ chủ dự án |
+| [3.10](10-cache-performance.md) | Cache, hiệu năng, nội dung (gồm chính sách abuse) | OQ-86…OQ-88 | Bước 1, chờ chủ dự án |
+| [3.11](11-provider-operations.md) | Vận hành của NCC: threat research, support, sự cố nền tảng, bán hàng | OQ-89…OQ-93 | Bước 1, chờ chủ dự án |
+
+## Câu hỏi nối giữa các nghiệp vụ
+
+Một số câu hỏi xuất hiện ở nhiều trang; trả lời một lần cho tất cả:
+
+| Chủ đề | Câu hỏi |
+|---|---|
+| Một khách nhỏ nhiều domain, agency, reseller, MSSP | OQ-27, OQ-54, OQ-59, OQ-62, OQ-63, OQ-75 |
+| Ai được xem dữ liệu request (dữ liệu cá nhân) | OQ-50, OQ-68, OQ-84 |
+| NCC làm thay khách (bật mitigation, sửa policy, khôi phục quyền) | OQ-40, OQ-41, OQ-64 |
+| Pháp lý: cơ quan chức năng, lưu log, abuse | OQ-45, OQ-73, OQ-79, OQ-88 |
+| Dữ liệu cá nhân trong audit và khi xoá | OQ-6, OQ-70, OQ-71 |
