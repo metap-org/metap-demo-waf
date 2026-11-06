@@ -361,7 +361,7 @@ Mỗi tiền tố chỉ có một nghĩa trong toàn bộ tài liệu.
 | **L1…L4** (sharding) | Bốn lớp sharding: routing index, PoP store, runtime node, cell | [7.5 §4](../07-deployment/05-capacity-and-sharding.md#4-sharding-bốn-lớp) |
 | **T1…T13** | Tiêu chí chọn nền L7 và engine WAF | [ADR-0031](../09-adr/0031-edge-l7-and-waf-engine-options.md) |
 | **N1…N5 / E1…E3 / I1…I3 / K1…K5** | Phương án nền L7 / engine WAF / cách L7 gọi WAF / tổ hợp cho spike | [ADR-0031](../09-adr/0031-edge-l7-and-waf-engine-options.md) |
-| **IA1…IA12** | Điểm còn mở của hợp đồng Inspection API | [5.5](../05-building-blocks/05-contracts.md#inspection-api-l7--waf) |
+| **IA1…IA13** | Điểm còn mở của hợp đồng Inspection API | [5.5](../05-building-blocks/05-contracts.md#inspection-api-l7--waf) |
 | **C1…C4** | Phương án cell | [ADR-0041](../09-adr/0041-cells-and-zone-placement.md) |
 | **Lớp A/B/C/D** | Lớp áp dụng cấu hình trên edge | [8.15](../08-cross-cutting/15-config-propagation-and-apply.md) |
 | **SEV1, SEV2, SEV3** | Mức sự cố | [8.13](../08-cross-cutting/13-operational-behaviors.md) |

@@ -1666,7 +1666,7 @@ có thêm <strong>lớp rule khẩn</strong> nhỏ, tách khỏi ruleset release
 <blockquote>
 <p><strong>Trạng thái: bản nháp, chưa chốt, đang mở để nghiên cứu.</strong> Hợp đồng giữa hai tầng
 (<a href="#f-09-adr-0031-edge-l7-and-waf-engine-options">ADR-0031</a> §5, phương án I1), độc lập với nền L7 được
-chọn. Phần dưới gồm khung message hiện có, các điểm còn mở kèm hướng đề xuất và việc cần nghiên cứu,
+chọn. Phần dưới gồm khung message hiện có, các điểm còn mở (IA1–IA13) kèm hướng đề xuất và việc cần nghiên cứu,
 rồi bản proto nháp gom các hướng đề xuất. Không điểm nào dưới đây là quyết định; mọi con số phải được
 đo trong spike của ADR-0031 trước khi chốt.</p>
 </blockquote>
@@ -1814,6 +1814,13 @@ message Verdict {
 <td>Nhu cầu thật (dữ liệu nhạy cảm, <a href="#f-08-cross-cutting-17-api-security">8.17</a>); chi phí độ trễ khi phải đệm response</td>
 </tr>
 <tr>
+<td>IA13</td>
+<td><strong>Transport của callout</strong>: gRPC, HTTP thường, hay giao thức nhị phân tự viết</td>
+<td>gRPC (HTTP/2 + protobuf): có sẵn ghép kênh, flow control theo stream, huỷ, deadline, schema N/N-1, mTLS, sinh code Go/Rust/C++; tiền lệ Envoy <code>ext_proc</code></td>
+<td>HTTP/1.1 hoặc HTTP/2 thường, ngữ cảnh trong header (kiểu <code>ext_authz</code> HTTP, <code>auth_request</code>; không schema, HTTP/1.1 không ghép kênh); giao thức nhị phân trên Unix socket cho PoP nhỏ chạy L7 và WAF chung host (bỏ HTTP/2 và TLS, có thể zero-copy hoặc shared memory; kiểu HAProxy SPOE). UDP bị loại: body lớn hơn MTU, không thứ tự, không flow control</td>
+<td>Chi phí mỗi lần gọi (µs) và CPU của cả ba ở 50.000–100.000 request/s mỗi node L7, body 0 / 4 KB / 64 KB; chi phí copy body vào protobuf; độ phức tạp tự viết framing, huỷ, flow control cho phương án nhị phân</td>
+</tr>
+<tr>
 <td>IA12</td>
 <td><strong>WebSocket, gRPC của khách</strong></td>
 <td>Chỉ request bắt tay đi qua Inspection API; frame (Nâng cao) cần message riêng</td>
@@ -1889,7 +1896,7 @@ message Verdict {
 <p>Gắn vào spike của <a href="#f-09-adr-0031-edge-l7-and-waf-engine-options">ADR-0031</a>; kết quả quyết định hợp
 đồng v1:</p>
 <ol>
-<li>Dựng client ở L7 ứng viên (Pingora, Go) và server WAF (Coraza) theo proto nháp; đo IA1, IA5, IA6.</li>
+<li>Dựng client ở L7 ứng viên (Pingora, Go) và server WAF (Coraza) theo proto nháp; đo IA1, IA5, IA6, và so transport gRPC / HTTP/2 thường / nhị phân trên Unix socket cho IA13.</li>
 <li>Bộ test evasion cho IA2: chạy cùng request qua L7, engine WAF và một tập origin, so khác biệt.</li>
 <li>Mô phỏng rollout để đo IA3; mô phỏng một profile rất nóng để đo IA4.</li>
 <li>Đánh giá mô hình đe doạ cho IA10 cùng đội bảo mật.</li>
@@ -12533,6 +12540,54 @@ vụ kiểm tra; N2/N4 ngược lại. N1 và N5 phải tự viết cả hai nh�
 <p>Vì tầng WAF đã tách process, nhược điểm lớn nhất của E1 (GC) và E2 (an toàn bộ nhớ) đều giảm nhiều.
 <strong>E1 là mặc định hợp lý</strong>; E2 đưa vào spike để so CPU mỗi request, vì CPU tầng WAF là chi phí hạ tầng lớn.</p>
 <h2 id="f-09-adr-0031-edge-l7-and-waf-engine-options--5-cách-l7-gọi-waf">5. Cách L7 gọi WAF</h2>
+<h3 id="f-09-adr-0031-edge-l7-and-waf-engine-options--waf-là-callout-không-phải-một-chặng-đã-chốt">WAF là callout, không phải một chặng (đã chốt)</h3>
+<p>L7 gửi request sang WAF và chỉ nhận lại <strong>verdict</strong>; WAF không nằm trên đường đi của traffic tới origin.
+Phương án &quot;WAF làm reverse proxy nối tiếp&quot; (L7 → WAF → origin) đã bị loại ở
+<a href="#f-09-adr-0033-two-tier-edge-proxy-and-waf">ADR-0033</a>. Lý do:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>WAF là một chặng (forward HTTP)</th>
+<th>WAF là callout, chỉ trả verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Response của origin</td>
+<td>Đi qua WAF (response ≈ 25 KB so với request ≈ 1 KB): nhiều lần băng thông nội bộ PoP và RAM ở tầng WAF</td>
+<td>Không đi qua WAF</td>
+</tr>
+<tr>
+<td>Tài nguyên tầng WAF</td>
+<td>Giữ kết nối, đệm response, TLS tới origin: lại thành proxy tốn RAM</td>
+<td>Thuần CPU</td>
+</tr>
+<tr>
+<td>WAF chết hoặc quá tải</td>
+<td>Đường đi của request đứt; fail-open cần L7 tự đi vòng</td>
+<td>L7 vẫn giữ request, áp fail mode ngay</td>
+</tr>
+<tr>
+<td>Verdict sớm</td>
+<td>WAF tự trả trang chặn, tự đóng kết nối</td>
+<td>WAF trả <code>BLOCK</code> giữa body, L7 dừng gửi</td>
+</tr>
+<tr>
+<td>Ngữ cảnh từ L7 (bot, consumer, deadline, version)</td>
+<td>Nhét vào header, phải lọc header giả từ client</td>
+<td>Trường có kiểu trong message</td>
+</tr>
+<tr>
+<td>Thực thi hành động, ghi log</td>
+<td>Cả hai tầng cùng làm</td>
+<td>Chỉ L7</td>
+</tr>
+</tbody>
+</table>
+<p>Dạng lai kiểu <code>auth_request</code> (gửi bản copy request, lấy status code làm verdict) vẫn là callout; chỉ khác
+giao thức, thuộc câu hỏi transport bên dưới.</p>
+<h3 id="f-09-adr-0031-edge-l7-and-waf-engine-options--giao-thức-callout-còn-mở">Giao thức callout (còn mở)</h3>
 <table>
 <thead>
 <tr>
@@ -12563,7 +12618,7 @@ vụ kiểm tra; N2/N4 ngược lại. N1 và N5 phải tự viết cả hai nh�
 </tr>
 </tbody>
 </table>
-<p>Đề xuất: <strong>I1 là hợp đồng chuẩn</strong>; chi tiết hợp đồng còn mở (IA1–IA12 ở <a href="#f-05-building-blocks-05-contracts--inspection-api-l7--waf">5.5</a>) và được nghiên cứu trong spike này. Nếu chọn N2 hoặc N4, viết adapter nhỏ ở phía WAF nhận <code>ext_proc</code>
+<p>Hướng hiện tại: <strong>I1 là hợp đồng chuẩn</strong>, chạy trên gRPC; transport còn mở (IA13); chi tiết hợp đồng còn mở (IA1–IA13 ở <a href="#f-05-building-blocks-05-contracts--inspection-api-l7--waf">5.5</a>) và được nghiên cứu trong spike này. Nếu chọn N2 hoặc N4, viết adapter nhỏ ở phía WAF nhận <code>ext_proc</code>
 hoặc SPOE rồi chuyển sang I1, để tầng WAF chỉ có một giao diện.</p>
 <h2 id="f-09-adr-0031-edge-l7-and-waf-engine-options--6-tổ-hợp-và-shortlist">6. Tổ hợp và shortlist</h2>
 <table>
@@ -14342,7 +14397,7 @@ Elixir + Phoenix cho realtime gateway và notifier (<a href="#f-09-adr-0044-real
 </tr>
 <tr>
 <td><strong>Hợp đồng Inspection API (L7 ↔ WAF) v1</strong></td>
-<td>Mô hình stream, ai chuẩn hoá request, version lệch, chọn instance, retry, backpressure, mức tin dữ liệu (IA1–IA12)</td>
+<td>Mô hình stream, ai chuẩn hoá request, version lệch, chọn instance, retry, backpressure, mức tin dữ liệu (IA1–IA13)</td>
 <td><a href="#f-05-building-blocks-05-contracts--inspection-api-l7--waf">5.5</a>; nghiên cứu trong spike của <a href="#f-09-adr-0031-edge-l7-and-waf-engine-options">ADR-0031</a></td>
 </tr>
 <tr>
@@ -15648,7 +15703,7 @@ theo chính sách tài liệu (<a href="#f-02-constraints-00-index--24-conventio
 <td><a href="#f-09-adr-0031-edge-l7-and-waf-engine-options">ADR-0031</a></td>
 </tr>
 <tr>
-<td><strong>IA1…IA12</strong></td>
+<td><strong>IA1…IA13</strong></td>
 <td>Điểm còn mở của hợp đồng Inspection API</td>
 <td><a href="#f-05-building-blocks-05-contracts--inspection-api-l7--waf">5.5</a></td>
 </tr>

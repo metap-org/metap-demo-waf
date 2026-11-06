@@ -74,7 +74,7 @@ có thêm **lớp rule khẩn** nhỏ, tách khỏi ruleset release để fast l
 
 > **Trạng thái: bản nháp, chưa chốt, đang mở để nghiên cứu.** Hợp đồng giữa hai tầng
 > ([ADR-0031](../09-adr/0031-edge-l7-and-waf-engine-options.md) §5, phương án I1), độc lập với nền L7 được
-> chọn. Phần dưới gồm khung message hiện có, các điểm còn mở kèm hướng đề xuất và việc cần nghiên cứu,
+> chọn. Phần dưới gồm khung message hiện có, các điểm còn mở (IA1–IA13) kèm hướng đề xuất và việc cần nghiên cứu,
 > rồi bản proto nháp gom các hướng đề xuất. Không điểm nào dưới đây là quyết định; mọi con số phải được
 > đo trong spike của ADR-0031 trước khi chốt.
 
@@ -131,6 +131,7 @@ message Verdict {
 | IA9 | **Bắt tay khi mở kết nối** | RPC `Hello`: version schema, kích thước body tối đa, decoder có sẵn, profile đang nạp | Đọc capability từ snapshot (không cần RPC) | Có cần thông tin động (profile đang nạp) hay chỉ tĩnh |
 | IA10 | **Mức tin dữ liệu từ L7** | WAF tin toàn bộ head (IP client, bot, API) vì L7 đã được xác thực bằng mTLS với vai trò `l7` | WAF kiểm lại một phần (ví dụ IP client với PROXY protocol) | Mô hình đe doạ khi một node L7 bị chiếm; có cần ký head không |
 | IA11 | **Kiểm response** (Nâng cao) | Để sẵn pha `ResponseHead` / chunk response trong schema, chưa dùng ở MVP | Kênh riêng cho response | Nhu cầu thật (dữ liệu nhạy cảm, [8.17](../08-cross-cutting/17-api-security.md)); chi phí độ trễ khi phải đệm response |
+| IA13 | **Transport của callout**: gRPC, HTTP thường, hay giao thức nhị phân tự viết | gRPC (HTTP/2 + protobuf): có sẵn ghép kênh, flow control theo stream, huỷ, deadline, schema N/N-1, mTLS, sinh code Go/Rust/C++; tiền lệ Envoy `ext_proc` | HTTP/1.1 hoặc HTTP/2 thường, ngữ cảnh trong header (kiểu `ext_authz` HTTP, `auth_request`; không schema, HTTP/1.1 không ghép kênh); giao thức nhị phân trên Unix socket cho PoP nhỏ chạy L7 và WAF chung host (bỏ HTTP/2 và TLS, có thể zero-copy hoặc shared memory; kiểu HAProxy SPOE). UDP bị loại: body lớn hơn MTU, không thứ tự, không flow control | Chi phí mỗi lần gọi (µs) và CPU của cả ba ở 50.000–100.000 request/s mỗi node L7, body 0 / 4 KB / 64 KB; chi phí copy body vào protobuf; độ phức tạp tự viết framing, huỷ, flow control cho phương án nhị phân |
 | IA12 | **WebSocket, gRPC của khách** | Chỉ request bắt tay đi qua Inspection API; frame (Nâng cao) cần message riêng | | Theo [5.8.2 Phạm vi giao thức](08-components/02-waf-inspection.md#phạm-vi-giao-thức) |
 
 ### Proto nháp gom các hướng đề xuất
@@ -207,7 +208,7 @@ sequenceDiagram
 Gắn vào spike của [ADR-0031](../09-adr/0031-edge-l7-and-waf-engine-options.md); kết quả quyết định hợp
 đồng v1:
 
-1. Dựng client ở L7 ứng viên (Pingora, Go) và server WAF (Coraza) theo proto nháp; đo IA1, IA5, IA6.
+1. Dựng client ở L7 ứng viên (Pingora, Go) và server WAF (Coraza) theo proto nháp; đo IA1, IA5, IA6, và so transport gRPC / HTTP/2 thường / nhị phân trên Unix socket cho IA13.
 2. Bộ test evasion cho IA2: chạy cùng request qua L7, engine WAF và một tập origin, so khác biệt.
 3. Mô phỏng rollout để đo IA3; mô phỏng một profile rất nóng để đo IA4.
 4. Đánh giá mô hình đe doạ cho IA10 cùng đội bảo mật.
