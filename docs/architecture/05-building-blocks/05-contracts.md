@@ -9,8 +9,8 @@ và giữ trạng thái cũ, không đọc dở.
 | **PolicyVersionPublished** | Management → Control | zone ID, PolicyVersion ID và cha, AST của rule, cấu hình ruleset, exception, cài đặt zone, người duyệt, kênh (thường / khẩn) | Outbox → at-least-once; Control bỏ trùng theo version ID |
 | **ZoneChanged** | Management → Control | hostname, origin, trạng thái, fail mode, yêu cầu cert | Như trên |
 | **EntitlementsChanged** | Management → Control, Analytics | Giới hạn theo gói: tỉ lệ lấy mẫu log, retention tối đa, khoảng truy vấn, số rule, đích export, tính năng bật | Như trên; có hiệu lực không cần deploy |
-| **Snapshot** | Control → Edge | Bundle theo zone + bundle chung; schema version; chữ ký; version của từng phần | Pull theo version, kiểm chữ ký trước khi nạp |
-| **SnapshotAnnouncement** | Control → Edge | "zone X có version N" hoặc "bundle chung có version M"; cờ khẩn | Push nhẹ, mất cũng không sao vì agent tự kiểm định kỳ |
+| **Snapshot** | Control → Edge | Top manifest (digest của 4.096 bucket, ký) → bucket manifest (digest bundle của các zone trong bucket) → bundle zone, bundle chung, routing index delta ([ADR-0040](../09-adr/0040-config-distribution-at-scale.md)) | PoP store đồng bộ theo bucket; node kéo bundle zone từ PoP store khi cần, kiểm digest |
+| **SnapshotAnnouncement** | Control → Edge | "top manifest version V", danh sách bucket đổi; cờ khẩn | Push nhẹ, mất cũng không sao vì agent tự kiểm định kỳ; node ACK theo V (tăng đơn điệu) |
 | **NodeProfile** | Control → Edge | Cấu hình của node/PoP: cổng nghe, số worker, giới hạn RAM, kích thước cache đĩa, tham số HTTP toàn cục, kích thước pool WAF, địa chỉ relay | Bundle riêng có chữ ký; rollout như phần mềm; áp bằng hot restart (lớp C, [8.15](../08-cross-cutting/15-config-propagation-and-apply.md)) |
 | **NodeStatus** | Edge → Control | Node ID, phần mềm, version đang chạy theo zone, lỗi nạp, chỉ số sức khoẻ | Heartbeat định kỳ + sự kiện khi đổi version |
 | **Inspection API** | Edge proxy → WAF inspection (trong PoP) | Header, body theo chunk, ngữ cảnh zone/tenant/request ID; trả verdict | gRPC stream đồng bộ, có deadline; xem mục bên dưới |
@@ -21,6 +21,21 @@ và giữ trạng thái cũ, không đọc dở.
 | **UsageReport** | Analytics → Management | Số đo sử dụng theo tenant và kỳ | Định kỳ, có thể chạy lại |
 
 ## Snapshot gồm gì
+
+Ở quy mô 1 triệu zone ([7.5](../07-deployment/05-capacity-and-sharding.md)), snapshot không phải một
+gói chứa mọi zone mà là một cây theo digest:
+
+```text
+top manifest (version V, ký Ed25519, ≈ 128 KB)
+  ├── digest bundle chung, digest routing index
+  └── digest của 4.096 bucket manifest
+        bucket manifest (≈ 250 zone mỗi bucket)
+          └── zone_id → digest bundle proxy, digest bundle WAF, cell_id
+routing index: (hostname, cổng) → zone_id, cell_id, cert_ref, digest   (mọi node, ≈ 200 MB)
+```
+
+Mỗi bundle có nội dung như dưới; node chỉ nạp bundle của zone đang có traffic ([ADR-0040](../09-adr/0040-config-distribution-at-scale.md)).
+
 
 ```text
 bundle chung (version M)

@@ -3,7 +3,27 @@
 Các con số là **mục tiêu đề xuất**, cần chốt cùng product trước khi thiết kế chi tiết. Mỗi kịch
 bản phải đo được bằng chỉ số nền tảng ở [08 §8.11](../08-cross-cutting/00-index.md#811-quan-sát-chính-nền-tảng).
 
-## 10.1 Cây chất lượng
+## 10.1 Thuộc tính chất lượng
+
+Các thuộc tính theo ISO/IEC 25010, cộng hai thuộc tính riêng của hệ thống phân tán (khả năng mở rộng,
+cô lập). Mỗi thuộc tính trỏ tới mục tiêu ở [1.3](../01-introduction/00-index.md#13-mục-tiêu-chất-lượng),
+kịch bản đo được (§10.3) và cơ chế kiến trúc đáp ứng nó.
+
+| Thuộc tính | Định nghĩa trong hệ thống này | Mục tiêu | Kịch bản | Cơ chế chính |
+|---|---|---|---|---|
+| **Hiệu năng** | Độ trễ thêm do WAAP, thông lượng mỗi node | Q1 | QS-1, QS-2, QS-17, QS-20, QS-22, QS-25 | Edge hai tầng, pre-filter, nạp khi cần, cache ([ADR-0033](../09-adr/0033-two-tier-edge-proxy-and-waf.md), [ADR-0040](../09-adr/0040-config-distribution-at-scale.md)) |
+| **Khả dụng** | Phục vụ traffic khi một phần hệ thống hỏng | Q1 | QS-2, QS-3, QS-16, QS-18 | Edge độc lập runtime, fail mode, DNS điều hướng ([ADR-0001](../09-adr/0001-four-planes.md)) |
+| **Khả năng mở rộng** | Thêm zone, traffic, node mà chi phí mỗi đơn vị không tăng | Q6 | QS-24, QS-26, QS-27 | Manifest hai tầng, routing index, PoP store, cell ([ADR-0040](../09-adr/0040-config-distribution-at-scale.md), [ADR-0041](../09-adr/0041-cells-and-zone-placement.md)) |
+| **Co giãn và hấp thụ tấn công** | Chịu đột biến traffic và tấn công không làm ảnh hưởng khách khác | Q1, Q3 | QS-17, QS-29 | Pre-filter rẻ, admission control WAF, cell cách ly |
+| **Cô lập** | Tenant, cell không ảnh hưởng lẫn nhau về dữ liệu, tài nguyên, cấu hình lỗi | Q3 | QS-8, QS-9, QS-28 | Governor theo tenant, fair share WAF, cell, Query API |
+| **An toàn thay đổi** | Không thay đổi nào gây sự cố diện rộng | Q2 | QS-4, QS-5, QS-6, QS-7, QS-15, QS-23 | Snapshot ký, canary theo cell, lớp áp dụng ([ADR-0037](../09-adr/0037-config-apply-classes.md)) |
+| **Bảo mật** | Phát hiện và chặn tấn công đúng; bảo vệ chính nền tảng | — | QS-3 (S3), QS-20, QS-21 | CRS + system ruleset, bot, API security, mTLS, chữ ký |
+| **Khả năng quan sát** | Biết chậm ở đâu, lỗi của ai, có mất dữ liệu không | Q4 | QS-10, QS-11, QS-12, QS-19 | Đo theo chặng, `status_source`, đối soát ([ADR-0036](../09-adr/0036-request-timing-and-error-attribution.md)) |
+| **Khả năng triển khai** | Chạy trên PoP riêng, hạ tầng đối tác, on-prem | Q5 | QS-13 | Một artifact, Kubernetes cho plane trung tâm |
+| **Hiệu quả chi phí** | Chi phí hạ tầng trên một đơn vị traffic | Q6 | QS-30, QS-31 | Lọc rẻ trước, dùng chung instance CRS, lấy mẫu log theo gói |
+| **Khả năng vận hành** | Đổi cấu hình, nâng cấp, xử lý sự cố với ít thao tác tay | Q2, Q4 | QS-14, QS-27 | Rollout tự động có gate, runbook ([8.13](../08-cross-cutting/13-operational-behaviors.md)) |
+
+## 10.2 Cây chất lượng
 
 ```mermaid
 flowchart LR
@@ -13,6 +33,7 @@ flowchart LR
     q --> q3["Q3 Cô lập tenant"]
     q --> q4["Q4 Bằng chứng đầy đủ"]
     q --> q5["Q5 Triển khai nhiều nơi"]
+    q --> q6["Q6 Mở rộng tới 1 triệu zone"]
     q1 --> l1["Độ trễ thêm"]
     q1 --> l2["Khả dụng edge"]
     q2 --> s1["Lan truyền"]
@@ -24,9 +45,13 @@ flowchart LR
     q4 --> e2["Độ trễ tới tra cứu"]
     q4 --> e3["Truy vết quyết định"]
     q5 --> p1["Cùng artifact"]
+    q6 --> m1["RAM node không tăng theo tổng zone"]
+    q6 --> m2["Phân phối cấu hình theo bucket"]
+    q6 --> m3["Cell và cách ly"]
+    q6 --> m4["Chi phí trên request"]
 ```
 
-## 10.2 Kịch bản
+## 10.3 Kịch bản
 
 | ID | Thuộc tính | Kịch bản | Mục tiêu |
 |---|---|---|---|
@@ -53,15 +78,27 @@ flowchart LR
 | QS-21 | Bot | Người dùng thật trên zone bật bot management ở mức mặc định | Tỉ lệ bị challenge tương tác ≤ 1% |
 | QS-22 | API | Request tới endpoint có schema | Kiểm ở proxy ≤ 20 µs, kiểm body JSON 10 KB ở WAF ≤ 300 µs p99 |
 | QS-23 | API | Khách xoay khoá JWKS | Edge chấp nhận token ký bằng khoá mới trong ≤ 60 s |
+| QS-24 | Mở rộng | Số zone tăng từ 1 triệu lên 2 triệu, tập zone hoạt động mỗi PoP không đổi | RAM dùng cho runtime trên mỗi node tăng ≤ 10% (chỉ phần routing index); không đổi thiết kế |
+| QS-25 | Hiệu năng | Request đầu tiên của một zone chưa có trong RAM node | Độ trễ thêm ≤ 10 ms p99 cho request đó (lấy từ PoP store + dựng runtime); request sau trở lại QS-1 |
+| QS-26 | Mở rộng | Một thay đổi cấu hình zone | Tới PoP store của mọi PoP ≤ 10 s; dữ liệu gửi mỗi PoP ≤ kích thước bundle + 1 KB; tối đa 1 top manifest/s |
+| QS-27 | Vận hành | Thay đổi hàng loạt 100.000 zone (đổi mặc định, Terraform) | Hoàn tất ≤ 15 phút; QS-1 không vỡ trong lúc đó |
+| QS-28 | Cô lập | Cấu hình lỗi hoặc tấn công trong một cell | p99 của cell khác thay đổi ≤ 5% |
+| QS-29 | Hấp thụ tấn công | Flood L7 30 triệu rps nhắm một zone | Zone được chuyển sang cell cách ly ≤ 2 phút; zone khác không bị ảnh hưởng |
+| QS-30 | Chi phí | 1 triệu request hợp lệ, CRS PL1 | CPU tổng (proxy + WAF) ≤ mục tiêu đặt sau spike; theo dõi theo release |
+| QS-31 | Chi phí | Toàn fleet ở đỉnh 10 triệu rps | Mức sử dụng CPU trung bình node ≤ 60%, đủ dư cho tấn công theo [7.5](../07-deployment/05-capacity-and-sharding.md) |
 
-## 10.3 Quy mô thiết kế
+## 10.4 Quy mô thiết kế
 
-Cần product xác nhận; dùng để chọn công nghệ.
+Ước lượng chi tiết, giả định và cách tính ở [7.5](../07-deployment/05-capacity-and-sharding.md). Tóm tắt:
 
-| Chỉ số | Giả định ban đầu |
+| Chỉ số | Giá trị thiết kế |
 |---|---|
-| Request / giây toàn fleet (đỉnh) | 1 triệu |
-| Tenant / zone | 1.000 / 20.000 |
+| Zone / hostname / cert | 1.000.000 / ≈ 3.000.000 / ≈ 2.000.000 |
+| Request hợp lệ | 3 triệu rps trung bình, 10 triệu rps đỉnh; thêm tới 30 triệu rps tấn công L7 |
+| Băng thông ra client | ≈ 600 Gbps trung bình, ≈ 2 Tbps đỉnh |
+| Node | ≈ 450 edge proxy, ≈ 150 WAF inspection, 30 PoP |
+| Cấu hình | ≈ 8 GB bundle nén + 8 GB cert mỗi PoP store; ≈ 200 MB routing index mỗi node |
+| Thay đổi cấu hình | ≈ 1,7/s trung bình, 30/s đỉnh |
+| Telemetry | ≈ 0,9 triệu bản ghi/s trung bình; ≈ 9,4 TB/ngày trong ClickHouse |
 | Rule / zone (tối đa theo gói cao nhất) | 1.000 custom rule |
-| Access log / ngày (trước lấy mẫu) | ~ 50 tỉ bản ghi |
 | Retention tối đa | 365 ngày (archive), 30 ngày (hot) |

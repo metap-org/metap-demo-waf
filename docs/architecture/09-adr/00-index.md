@@ -19,7 +19,7 @@ cân nhắc. Quyết định bị thay thế giữ lại với trạng thái "B�
 | [0012](0012-go-as-primary-language.md) | Go là ngôn ngữ chính cho mọi plane | Bị thay thế bởi 0030 |
 | [0013](0013-edge-gateway-custom-go-with-coraza.md) | Edge gateway tự xây bằng Go, nhúng Coraza + CRS v4 | Thay bằng thiết kế hai tầng; Go + Coraza nằm trong tổ hợp S3 của 0031 |
 | [0014](0014-cel-as-rule-language.md) | CEL là ngôn ngữ custom rule | Chấp nhận, sửa bởi 0032 |
-| [0015](0015-snapshot-format-and-distribution.md) | Snapshot protobuf + zstd ký Ed25519; gRPC desired state + HTTPS pull qua relay | Chấp nhận |
+| [0015](0015-snapshot-format-and-distribution.md) | Snapshot protobuf + zstd ký Ed25519; gRPC desired state + HTTPS pull qua relay | Chấp nhận, sửa bởi 0040 |
 | [0016](0016-postgres-and-s3-compatible-storage.md) | PostgreSQL cho trạng thái điều khiển, object storage chuẩn S3 (SeaweedFS khi tự host) | Chấp nhận |
 | [0017](0017-openbao-for-signing-keys-and-node-pki.md) | OpenBao cho khoá ký, mã hoá key cert, CA của node | Chấp nhận |
 | [0018](0018-kafka-as-telemetry-bus.md) | Apache Kafka làm ingestion bus | Chấp nhận |
@@ -44,5 +44,7 @@ cân nhắc. Quyết định bị thay thế giữ lại với trạng thái "B�
 | [0037](0037-config-apply-classes.md) | Phân lớp cấu hình A/B/C/D theo cách áp dụng; fast lane chỉ lớp A; rule khẩn là lớp riêng | Chấp nhận |
 | [0038](0038-bot-management-layered-scoring.md) | Bot management chấm điểm nhiều lớp ở proxy; challenge tự phát; dữ liệu bot phát hành như ruleset | Chấp nhận |
 | [0039](0039-api-security-positive-model.md) | API security: discovery, schema chia proxy/WAF, JWT/mTLS ở edge, danh tính consumer | Chấp nhận |
+| [0040](0040-config-distribution-at-scale.md) | Phân phối cấu hình ở 1 triệu zone: manifest theo bucket, routing index, PoP store, nạp khi cần, ACK theo version tổng | Chấp nhận |
+| [0041](0041-cells-and-zone-placement.md) | Cell và cách đặt zone: so sánh 4 phương án, đề xuất cell theo VIP | **Đề xuất, chờ chọn** |
 
 Quyết định đang chờ: xem [11. Risks and Technical Debt](../11-risks/00-index.md#113-quyết-định-còn-mở).

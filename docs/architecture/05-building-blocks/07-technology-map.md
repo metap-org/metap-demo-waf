@@ -27,6 +27,8 @@ Hai tiêu chí chạy xuyên suốt:
 | API security | Route table + JWT/mTLS ở proxy; validator JSON Schema, GraphQL ở WAF; discovery ở Analytics | — | [0039](../09-adr/0039-api-security-positive-model.md) |
 | Geo / ASN | Định dạng MMDB, dữ liệu thương mại có quyền phân phối lại | Theo hợp đồng | [0025](../09-adr/0025-geo-asn-data-commercial-license.md) |
 | Policy agent, state sync | Policy agent trong binary của cả hai tầng; state sync trong edge proxy; con trỏ nguyên tử tới runtime bất biến | — | [0015](../09-adr/0015-snapshot-format-and-distribution.md) |
+| PoP config store | KV nhúng trên NVMe (kiểu LMDB) sau một dịch vụ Go nhỏ, hai bản mỗi PoP | — | [0040](../09-adr/0040-config-distribution-at-scale.md) |
+| Routing index | Bảng trong RAM mỗi node, cập nhật delta theo bucket | — | [0040](../09-adr/0040-config-distribution-at-scale.md) |
 | Rate limit đồng bộ | Valkey theo region, chỉ cho hot key | BSD-3 | [0021](../09-adr/0021-valkey-for-hot-key-rate-limit-sync.md) |
 | Log shipper | Vector (process riêng trên node) | MPL-2.0 | [0019](../09-adr/0019-vector-as-node-log-shipper.md) |
 | L3/L4 | Năng lực hạ tầng / đối tác; PoP riêng: XDP (Mở rộng) | — | [0005](../09-adr/0005-edge-on-own-and-existing-infra.md) |

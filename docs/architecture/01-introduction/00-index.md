@@ -29,7 +29,7 @@ Vulnerability scanning (DAST) không phải lõi WAAP; nếu làm, là sản ph�
 
 ## 1.3 Mục tiêu chất lượng
 
-Năm mục tiêu xếp theo thứ tự ưu tiên. Khi hai mục xung đột, mục đứng trên thắng. Kịch bản đo được
+Sáu mục tiêu xếp theo thứ tự ưu tiên. Khi hai mục xung đột, mục đứng trên thắng. Kịch bản đo được
 ở [10. Quality Requirements](../10-quality/00-index.md).
 
 | # | Mục tiêu | Ý nghĩa |
@@ -39,6 +39,7 @@ Năm mục tiêu xếp theo thứ tự ưu tiên. Khi hai mục xung đột, m�
 | Q3 | **Cô lập tenant** | Một tenant không đọc được dữ liệu, không làm chậm, không làm sập tenant khác |
 | Q4 | **Bằng chứng đầy đủ** | Log và event không mất; mọi quyết định chặn truy ngược được tới rule và version |
 | Q5 | **Triển khai được ở nhiều nơi** | Cùng một kiến trúc chạy trên PoP riêng, hạ tầng có sẵn, và on-prem |
+| Q6 | **Mở rộng tới 1 triệu zone với chi phí hợp lý** | Tài nguyên mỗi node phụ thuộc vào traffic đang hoạt động, không phụ thuộc tổng số zone; chi phí trên request giảm khi quy mô tăng |
 
 ## 1.4 Các bên liên quan
 

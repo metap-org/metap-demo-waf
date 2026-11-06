@@ -159,6 +159,16 @@ ticket trong giờ làm việc.
 | Tự phản ứng | Không |
 | Runbook | (1) Lấy request ID hoặc khoảng thời gian, URL. (2) Lỗi: đọc `status_source` → `origin` hoặc `origin_unreachable` thì gửi khách `edge_error` và thời gian kết nối/TTFB của origin làm bằng chứng; `edge_platform` thì mở sự cố phía NCC. (3) Chậm: so p95 từng chặng với baseline của zone: `edge_us` tăng → điều tra phía WAAP (A4, A13); `origin_ttfb_us` tăng → website; `origin_connect_us` tăng → mạng tới origin hoặc origin hết kết nối; `client_rtt_us`/`client_retrans` tăng theo quốc gia/ASN → mạng phía người dùng, kiểm định tuyến PoP. (4) Gửi khách waterfall và kết luận |
 
+### A16. Cell quá tải hoặc zone cần cách ly
+
+| | |
+|---|---|
+| Mục tiêu | QS-28, QS-29: cell khác không bị ảnh hưởng; zone bị tấn công được tách trong ≤ 2 phút |
+| Tín hiệu | CPU, RAM, rps theo cell và PoP; top zone theo rps trong cell; tỉ lệ zone nguội phải nạp (`waap_agent_zone_cold_load_total`), độ trễ nạp từ PoP store |
+| Cảnh báo | P2: một zone chiếm > 30% rps của cell trong 5 phút, hoặc CPU một cell > 80% trong khi cell khác < 50%. P1: cell vượt năng lực ở nhiều PoP |
+| Tự phản ứng | Chuyển zone chiếm tải bất thường sang cell cách ly (đổi `cell_id` trong routing index và câu trả lời DNS); cân bằng lại cell theo tải hằng ngày |
+| Runbook | Xác nhận zone bị chuyển và lý do (tấn công hay tăng trưởng thật); tăng trưởng thật thì chuyển zone sang cell riêng hoặc thêm node cho cell; theo dõi tỉ lệ nạp zone nguội sau mỗi lần chuyển |
+
 ## B. Thao tác của người vận hành
 
 ### B1. Rollout phần mềm edge

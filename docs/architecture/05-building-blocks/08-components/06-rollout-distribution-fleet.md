@@ -77,10 +77,11 @@ stateDiagram-v2
 
 | Component | Thiết kế |
 |---|---|
-| **Desired-state resolver** | Tính manifest đích cho từng node từ trạng thái rollout và phân công zone của node (MVP: mọi node phục vụ mọi zone) |
+| **Desired-state resolver** | Tính top manifest version đích cho từng node (theo cell khi rollout canary) từ trạng thái rollout và phân công zone của node (MVP: mọi node phục vụ mọi zone) |
 | **Stream server** | gRPC stream hai chiều, xác thực bằng cert node; mỗi node một stream; gửi `DesiredState` khi thay đổi và khi node vừa kết nối |
 | **Fan-out hub** | Phát thay đổi desired state tới mọi replica distribution (qua PostgreSQL `LISTEN/NOTIFY` hoặc Valkey pub/sub); node nối vào replica nào cũng nhận được |
 | **Regional relay** | Reverse proxy cache cho artifact, khoá theo digest, cache vĩnh viễn (nội dung bất biến); xác thực node bằng mTLS; đặt ở mỗi region và tuỳ chọn ở PoP lớn |
+| **PoP config store** | Một bản sao đủ trên NVMe mỗi PoP của bundle zone và cert đã mã hoá cho các cell PoP phục vụ (≈ 16 GB ở 1 triệu zone); đồng bộ theo bucket manifest (so digest bucket, chỉ kéo bucket khác); chạy dự phòng hai bản; node gọi qua mTLS ([7.5](../../07-deployment/05-capacity-and-sharding.md)) |
 
 Giao thức (rút gọn):
 

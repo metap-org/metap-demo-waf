@@ -47,6 +47,18 @@ sequenceDiagram
 
 Thời gian quan sát canary (mặc định vài phút) nằm ngoài ngân sách trên; đó là chủ đích để an toàn.
 
+### Ở quy mô 1 triệu zone
+
+Ở quy mô này, "node nhận cấu hình" nghĩa là ([ADR-0040](../09-adr/0040-config-distribution-at-scale.md)):
+
+- Mọi node nhận **top manifest** mới và **routing index delta**.
+- **PoP config store** kéo bundle của các bucket đã đổi.
+- Node chỉ **dựng runtime** của zone đó nếu zone đang nóng trên node; zone nguội được dựng lại ở request
+  kế tiếp.
+
+"Đã áp dụng" được đo theo top manifest version node đã ACK: node đã ACK V thì request kế tiếp của bất kỳ
+zone nào đều chạy cấu hình ≤ V.
+
 ## 2. Bốn lớp áp dụng
 
 | Lớp | Cách áp dụng | Ảnh hưởng request/kết nối đang chạy | Kênh phân phối |

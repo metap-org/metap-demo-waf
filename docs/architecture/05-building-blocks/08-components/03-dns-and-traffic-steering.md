@@ -36,7 +36,7 @@ flowchart LR
 | Component | Thiết kế |
 |---|---|
 | **DNS server** | CoreDNS (Apache-2.0) với plugin riêng đọc zone data từ snapshot; chạy ở mọi PoP; anycast khi PoP có, nếu không thì danh sách NS phân tán theo địa lý |
-| **Steering** | Trả IP của PoP theo: (1) vị trí resolver hoặc EDNS Client Subnet, (2) PoP đang khoẻ (từ fleet registry + probe P1), (3) trọng số theo dung lượng còn lại; TTL ngắn (30–60 s) |
+| **Steering** | Mỗi zone có CNAME đích riêng (`z<zone_id>.edge.<ncc>`); DNS trả **VIP của cell** chứa zone ([ADR-0041](../../09-adr/0041-cells-and-zone-placement.md)) tại PoP chọn theo: (1) vị trí resolver hoặc EDNS Client Subnet, (2) PoP đang khoẻ, (3) trọng số theo dung lượng còn lại; TTL ngắn (30–60 s); chuyển zone sang cell khác (cân bằng, cách ly khi bị tấn công) bằng cách đổi câu trả lời |
 | **Rút PoP** | PoP lỗi probe hoặc quá tải bị loại khỏi câu trả lời trong ≤ 60 s ([8.13 A1](../../08-cross-cutting/13-operational-behaviors.md#a1-một-pop-xuống-cấp-hoặc-sập)) |
 | **Định tuyến tấn công** | Zone đang bị tấn công lớn có thể được gán nhóm PoP riêng (cô lập ảnh hưởng tới khách khác) bằng cách đổi câu trả lời cho hostname edge của zone đó |
 

@@ -55,6 +55,12 @@
 | **api.consumer** | Danh tính đã băm của client API (từ JWT `sub`, API key, cert), khoá cho rate limit và analytics |
 | **BOLA** | Broken Object Level Authorization: truy cập đối tượng của người khác bằng cách đổi ID |
 | **JWKS** | Tập khoá công khai để kiểm chữ ký JWT |
+| **Bucket manifest / top manifest** | Cây digest cấu hình: 4.096 bucket theo hash zone, top manifest ký liệt kê digest các bucket |
+| **Routing index** | Bảng (hostname, cổng) → zone, cell, cert, digest; có trong RAM mọi node |
+| **PoP config store** | Bản sao đủ bundle và cert của mỗi PoP trên NVMe; node nạp từ đây khi cần |
+| **Zone nóng / nguội** | Zone đang có traffic trên node (runtime trong RAM) / chưa có |
+| **Cell** | Nhóm node trong mỗi PoP phục vụ một tập zone, có VIP riêng |
+| **Profile CRS** | Tổ hợp (ruleset release, paranoia, ngưỡng) dùng chung một instance engine cho nhiều zone |
 | **Request ID** | Định danh duy nhất của request, in trên trang chặn, khoá tra cứu và bỏ trùng |
 | **Replay** | Chạy policy nháp trên traffic lịch sử để mô phỏng tác động |
 | **SIEM export** | Đẩy log liên tục sang hệ thống SIEM của khách |
