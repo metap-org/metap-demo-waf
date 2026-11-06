@@ -76,7 +76,7 @@ Danh mục cảnh báo WAF/DDoS, cấu hình ngưỡng và công thức tính ch
 | **Scheduled detector** | Mỗi phút chạy truy vấn của alert policy trên MV (tỉ lệ 5xx, tỉ lệ chặn, traffic tăng vọt) |
 | **Anomaly detector** | Nâng cao: baseline theo zone, giờ trong tuần (EWMA + mùa vụ), lưu trong ClickHouse; vượt dải → tín hiệu cho alert engine |
 | **Alert engine** | Trạng thái alert (`firing`, `resolved`) trong PostgreSQL; gộp theo khoá; giờ im lặng; đề xuất mitigation (chặn ASN/IP có hạn, bật Under Attack mode) gửi Management dạng `CaseProposed` |
-| **Notifier** | Kênh: email (SMTP relay), chat (Slack, Teams, Telegram), on-call (PagerDuty, Opsgenie), webhook ký HMAC; retry có backoff, bỏ trùng theo khoá alert |
+| **Notifier** | Chi tiết ở [33-notification-fanout.md](33-notification-fanout.md). Kênh: email (SMTP relay), chat (Slack, Teams, Telegram), on-call (PagerDuty, Opsgenie), webhook ký HMAC; retry có backoff, bỏ trùng theo khoá alert |
 
 ## Exporter
 

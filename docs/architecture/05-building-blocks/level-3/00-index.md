@@ -14,6 +14,7 @@ thiết kế, hợp đồng hoặc schema chính, hành vi khi lỗi. Công ngh�
 | [30-ingestion-and-storage.md](30-ingestion-and-storage.md) | Ingest gateway, Kafka, enricher, ClickHouse, archiver | Analytics |
 | [31-query-detection-export-replay.md](31-query-detection-export-replay.md) | query-api, detection, notifier, exporter, replay | Analytics |
 | [32-alerting-rules-and-algorithms.md](32-alerting-rules-and-algorithms.md) | Cảnh báo WAF và DDoS: danh mục, cấu hình ngưỡng, thuật toán | Analytics |
+| [33-notification-fanout.md](33-notification-fanout.md) | Notifier: fan-out nhiều kênh, khách tự tích hợp, kênh theo gói | Analytics |
 | [40-management.md](40-management.md) | waap-management (metap-go), portal | Management |
 
 ## Danh sách deployable

@@ -47,6 +47,7 @@ Hai tiêu chí chạy xuyên suốt:
 | Ingest gateway (điểm vào log từ edge) | Vector chế độ aggregator, mTLS theo cert node | MPL-2.0 | [0019](../09-adr/0019-vector-as-node-log-shipper.md) |
 | Ingestion bus | Apache Kafka (KRaft) | Apache-2.0 | [0018](../09-adr/0018-kafka-as-telemetry-bus.md) |
 | Stream processor, exporter, detection, notifier, query API | Go services (`franz-go`, `clickhouse-go`) | BSD-3 / Apache-2.0 | [0012](../09-adr/0012-go-as-primary-language.md) |
+| Hàng đợi gửi cảnh báo | Bảng `deliveries` trên PostgreSQL (SKIP LOCKED), adapter theo kênh | — | [0028](../09-adr/0028-notification-adapters-and-plan-gated-channels.md) |
 | Hot search + số liệu gộp | ClickHouse (bảng raw + materialized view) | Apache-2.0 | [0020](../09-adr/0020-clickhouse-and-parquet-for-analytics.md) |
 | Archive, mẫu request cho replay | Parquet trên object storage | Apache-2.0 | [0020](../09-adr/0020-clickhouse-and-parquet-for-analytics.md), [0026](../09-adr/0026-replay-on-request-samples-with-shared-pipeline.md) |
 | Replay | Go, dùng chung thư viện pipeline với edge | — | [0026](../09-adr/0026-replay-on-request-samples-with-shared-pipeline.md) |
@@ -67,4 +68,4 @@ Hai tiêu chí chạy xuyên suốt:
 |---|---|---|---|
 | Runtime cho Management, Control, Analytics | Kubernetes + Helm; operator: CloudNativePG, Strimzi, Altinity ClickHouse Operator | Apache-2.0 | [0023](../09-adr/0023-kubernetes-for-central-planes-edge-outside.md) |
 | Edge | Binary + systemd hoặc container; không bắt buộc Kubernetes | — | [0023](../09-adr/0023-kubernetes-for-central-planes-edge-outside.md) |
-| Quan sát nền tảng | OpenTelemetry, Prometheus-compatible (VictoriaMetrics), Grafana (chỉ nội bộ NCC) | Apache-2.0 / AGPL nội bộ | [0024](../09-adr/0024-licensing-policy-for-shipped-components.md) |
+| Quan sát nền tảng | OpenTelemetry Collector, VictoriaMetrics, VictoriaLogs, Jaeger, Alertmanager, prober tự viết; Grafana chỉ nội bộ NCC | Apache-2.0 / AGPL nội bộ | [0029](../09-adr/0029-independent-platform-observability.md) |

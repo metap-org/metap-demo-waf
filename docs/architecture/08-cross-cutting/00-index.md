@@ -1,5 +1,11 @@
 # 8. Cross-cutting Concepts
 
+| File | Nội dung |
+|---|---|
+| [00-index.md](00-index.md) | 8.1–8.11: multi-tenancy, bảo mật, quyền, version, fail mode, quyền riêng tư, entitlements, challenge, giao nhận, thời gian |
+| [01-platform-monitoring.md](01-platform-monitoring.md) | 8.12 Giám sát nền tảng: SLI/SLO, probe tổng hợp theo hành vi, cảnh báo theo burn rate, đối soát mất dữ liệu |
+| [02-operational-behaviors.md](02-operational-behaviors.md) | 8.13 Hành vi vận hành: từng tình huống và thao tác với tín hiệu, cảnh báo, tự phản ứng, runbook |
+
 ## 8.1 Multi-tenancy và cô lập
 
 | Nơi | Cơ chế |
@@ -59,6 +65,7 @@ Gói cước là cấu hình, không phải nhánh code ([ADR-0007](../09-adr/00
 | Retention tối đa theo loại log | Analytics (stream processor, store) |
 | Khoảng thời gian truy vấn tối đa, chi phí truy vấn | Analytics (Query API) |
 | Số đích SIEM export | Management + Analytics |
+| Kênh cảnh báo, số routing rule, escalation, hạn mức SMS ([33](../05-building-blocks/level-3/33-notification-fanout.md#kênh-theo-gói)) | Management (validate) + notifier (lúc gửi) |
 | Số rule, số zone, tính năng (bot, API security, replay, canary) | Management (validate) + Control (compiler) |
 | Giới hạn tài nguyên kiểm tra tại edge | Edge, qua snapshot |
 
@@ -83,6 +90,8 @@ Gói cước là cấu hình, không phải nhánh code ([ADR-0007](../09-adr/00
   thời điểm xảy ra; độ lệch giữa hai thời điểm là chỉ số vận hành.
 
 ## 8.11 Quan sát chính nền tảng
+
+Thiết kế đầy đủ ở [01-platform-monitoring.md](01-platform-monitoring.md) và [02-operational-behaviors.md](02-operational-behaviors.md).
 
 Tách khỏi telemetry của khách. Chỉ số NCC theo dõi: độ trễ thêm tại edge theo bước pipeline, độ
 phủ version (bao nhiêu % node đã ack version mới nhất), thời gian lan truyền, lỗi nạp snapshot, độ
