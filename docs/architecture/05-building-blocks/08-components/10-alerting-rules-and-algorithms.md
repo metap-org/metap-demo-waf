@@ -1,7 +1,7 @@
-# C3 · Cảnh báo WAF và DDoS: cấu hình ngưỡng và thuật toán
+# 5.8.10 Cảnh báo WAF và DDoS: cấu hình ngưỡng và thuật toán
 
-Chi tiết hoá phần detection & alerting ở [31](31-query-detection-export-replay.md#detection--alerting)
-và luồng [6.10 E](../../06-runtime/01-analytics-flows.md#e-phát-hiện-cảnh-báo-case). Nguyên tắc
+Chi tiết hoá phần detection & alerting ở [31](09-query-detection-export-replay.md#detection--alerting)
+và luồng [6.10 E](../../06-runtime/10-analytics-flows.md#e-phát-hiện-cảnh-báo-case). Nguyên tắc
 ([ADR-0027](../../09-adr/0027-explicit-alert-formulas.md)): mỗi cảnh báo là một **template có công thức
 tường minh**; khách chỉnh tham số, không viết truy vấn; mỗi lần cảnh báo kèm đủ số liệu đầu vào để
 người nhận tự kiểm lại phép tính.
@@ -10,7 +10,7 @@ người nhận tự kiểm lại phép tính.
 
 | Trường | Ý nghĩa | Giá trị cho phép |
 |---|---|---|
-| `template` | Loại cảnh báo trong danh mục §3 | `W1`…`W6`, `D1`…`D6` |
+| `template` | Loại cảnh báo trong danh mục §3 | `W1`…`W6`, `D1`…`D6`, `O1`…`O3` |
 | `scope` | Áp cho zone nào | một zone, nhiều zone, nhóm zone (tag), cả account |
 | `window` | Cửa sổ tính tín hiệu | `1m`, `5m`, `15m`, `1h` (tuỳ template) |
 | `evaluate_every` | Chu kỳ đánh giá | `10s` (streaming) hoặc `1m` (theo lịch) |
@@ -99,6 +99,16 @@ Ghi chú:
 | **D4** | Origin quá tải | `x₁ = E5 / R` hoặc `x₂ = L95`; bật khi một trong hai vượt | zone | static, warning 5% / 2 s, critical 20% / 5 s, `min_volume` 500, window 5m |
 | **D5** | Đề xuất bật Under Attack mode | Tổ hợp: `D1 ≥ warning` **và** (`D4 ≥ warning` **hoặc** `D3 ≥ warning`) trong cùng chu kỳ | zone | không có ngưỡng riêng, dùng ngưỡng của D1, D3, D4 |
 | **D6** | Rate limit rule kích hoạt hàng loạt | `x = B_rule` với rule loại rate limit | zone, rule_id | static, warning 1.000, critical 10.000, window 5m |
+
+### Origin và nền tảng
+
+Dựa trên `status_source` và `edge_error` ([8.14](../../08-cross-cutting/14-latency-and-error-attribution.md)).
+
+| ID | Tên | Công thức tín hiệu `x` | `group_by` | Mặc định |
+|---|---|---|---|---|
+| **O1** | Không kết nối được origin | `x = R(status_source = origin_unreachable) / R`, kèm phân bố `edge_error` | zone, edge_error | static, warning 1%, critical 5%, `min_volume` 200, window 5m |
+| **O2** | Lỗi do nền tảng trong zone | `x = R(status_source = edge_platform) / R` | zone | static, warning 0,1%, critical 1%, `min_volume` 1.000, window 5m; luôn gửi kèm cho NOC |
+| **O3** | Origin chậm | `x = p95(origin_ttfb_us)` | zone | relative, warning `k=2`, critical `k=4`, floor 500 ms, window 15m |
 
 L3/L4 (khi hạ tầng hoặc đối tác cung cấp telemetry): template `D7` cùng mô hình, tín hiệu là gói/giây
 và băng thông, để ở giai đoạn Mở rộng.
@@ -226,7 +236,7 @@ xuất: người dùng chấp nhận thì thành ChangeRequest (kênh khẩn cho
 | Template | Detector | Lý do |
 |---|---|---|
 | D1, D2, W3, W4 | Streaming (bucket 10 s trên Kafka enriched) | Cần phản ứng trong vài chục giây |
-| W1, W2, W5, D3, D4, D6 | Scheduled (mỗi phút trên MV) | Cửa sổ 5–15 phút, cần baseline hoặc đếm IP khác nhau |
+| W1, W2, W5, D3, D4, D6, O1, O2, O3 | Scheduled (mỗi phút trên MV) | Cửa sổ 5–15 phút, cần baseline hoặc đếm IP khác nhau |
 | W6 | Scheduled, kích hoạt khi có version mới đạt 100% node | Gắn với rollout |
 | D5 | Alert engine, tổ hợp kết quả các template khác | Không có tín hiệu riêng |
 

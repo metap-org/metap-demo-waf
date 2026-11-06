@@ -12,8 +12,7 @@
   NACK kèm lỗi, có nonce để khớp.
 - **Kênh dữ liệu:** node kéo bundle theo digest qua HTTPS từ **regional relay** (cache bất biến,
   vì nội dung theo digest không bao giờ đổi); relay kéo từ artifact store.
-- **Policy agent nằm trong binary gateway**, không phải process riêng: swap con trỏ nguyên khối,
-  không cần IPC.
+- **Policy agent nằm trong binary của từng tầng** (proxy và WAF, [ADR-0033](0033-two-tier-edge-proxy-and-waf.md)), không phải process riêng: swap con trỏ nguyên khối, không cần IPC. Mỗi tầng chỉ nạp phần bundle của mình từ cùng một manifest.
 - **Bí mật không nằm trong snapshot:** private key cert được agent lấy riêng qua mTLS, chỉ giữ trong RAM.
 
 ## Hệ quả

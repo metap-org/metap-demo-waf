@@ -2,7 +2,7 @@
 
 Mỗi hành vi được phân tích theo cùng khung: **mục tiêu** (SLO hoặc điều kiện thành công), **tín hiệu**
 (đo bằng gì), **cảnh báo** (điều kiện cụ thể, mức), **tự phản ứng** (hệ thống tự làm gì), **runbook**
-(người trực làm gì). SLO, probe và thuật toán burn rate ở [01-platform-monitoring.md](01-platform-monitoring.md).
+(người trực làm gì). SLO, probe và thuật toán burn rate ở [12-platform-monitoring.md](12-platform-monitoring.md).
 
 Mức cảnh báo: **P1** gọi on-call ngay; **P2** gọi on-call trong giờ, ngoài giờ trong 30 phút; **P3**
 ticket trong giờ làm việc.
@@ -14,7 +14,7 @@ ticket trong giờ làm việc.
 | | |
 |---|---|
 | Mục tiêu | Traffic của PoP chuyển sang PoP khác trong ≤ 60 s; S1 không vỡ |
-| Tín hiệu | Probe P1 theo PoP từ ≥ 3 điểm đo; tỉ lệ lỗi `error_source=platform` theo PoP; số node sống của PoP |
+| Tín hiệu | Probe P1 theo PoP từ ≥ 3 điểm đo; tỉ lệ lỗi `status_source=edge_platform` theo PoP; số node sống của PoP |
 | Cảnh báo | P1: P1 lỗi từ ≥ 2/3 điểm đo trong 2 chu kỳ liên tiếp. P2: một PoP mất > 30% node |
 | Tự phản ứng | Health checker rút PoP khỏi anycast (rút route) hoặc khỏi GeoDNS; trả lại khi P1 xanh 5 phút liên tục |
 | Runbook | Xác nhận đã rút; kiểm hạ tầng/đối tác của PoP; kiểm dung lượng PoP lân cận đủ gánh; không trả PoP thủ công khi P1 chưa xanh |
@@ -27,7 +27,7 @@ ticket trong giờ làm việc.
 | Tín hiệu | `waap_agent_nack_total{stage}`; tỉ lệ NACK theo manifest trong fleet registry |
 | Cảnh báo | P2: một manifest bị NACK ở > 1% node đích. P3: một node NACK lặp lại > 3 manifest liên tiếp |
 | Tự phản ứng | Orchestrator dừng đợt khi NACK vượt ngưỡng gate, rollback các node đã nhận |
-| Runbook | Đọc `stage` + lỗi trong NACK (chữ ký, schema, dựng CEL/Coraza, self-test); nếu lỗi theo nhóm node → kiểm phiên bản phần mềm edge của nhóm đó; nếu lỗi theo manifest → chặn manifest, báo đội compiler |
+| Runbook | Đọc `stage` + lỗi trong NACK (chữ ký, schema, dựng IR custom rule / engine WAF, self-test); nếu lỗi theo nhóm node → kiểm phiên bản phần mềm edge của nhóm đó; nếu lỗi theo manifest → chặn manifest, báo đội compiler |
 
 ### A3. Node mất kết nối Control lâu
 
@@ -114,7 +114,7 @@ ticket trong giờ làm việc.
 | | |
 |---|---|
 | Mục tiêu | Khách tự xử lý được bằng công cụ có sẵn; nền tảng không bị kéo sập; khách khác không bị ảnh hưởng |
-| Tín hiệu | Cảnh báo D1–D5 của khách ([32](../05-building-blocks/level-3/32-alerting-rules-and-algorithms.md)); rps theo PoP so với năng lực; tỉ lệ request bị DDoS L7 giảm thiểu |
+| Tín hiệu | Cảnh báo D1–D5 của khách ([32](../05-building-blocks/08-components/10-alerting-rules-and-algorithms.md)); rps theo PoP so với năng lực; tỉ lệ request bị DDoS L7 giảm thiểu |
 | Cảnh báo | NOC P2: một zone chiếm > 20% rps của một PoP. P1: PoP vượt 80% năng lực |
 | Tự phản ứng | DDoS L7 và rate limit của zone; Under Attack mode nếu khách đã bật tự động (chưa chốt); L3/L4 của hạ tầng/đối tác |
 | Runbook | Liên hệ khách (gói Business+), đề xuất Under Attack mode, rule chặn theo top nguồn; nếu PoP quá tải → bật scrubbing của đối tác cho dải IP bị tấn công, phân tán qua nhiều PoP; ghi sự cố, báo cáo sau tấn công cho khách |
@@ -128,6 +128,36 @@ ticket trong giờ làm việc.
 | Cảnh báo | Burn rate S8. P2: lỗi một provider > 10% trong 10 phút |
 | Tự phản ứng | Chuyển provider dự phòng (SMTP, SMS); cảnh báo critical rơi về email |
 | Runbook | Kiểm trạng thái provider, quota, khoá API; thông báo khách nếu một loại kênh ngừng > 30 phút |
+
+### A13. Tầng WAF của một PoP quá tải
+
+| | |
+|---|---|
+| Mục tiêu | S11; kết nối client không bị ảnh hưởng (QS-18) |
+| Tín hiệu | `waap_waf_queue_depth`, `waap_waf_overloaded_total{tenant}`, CPU của pool WAF, `waap_edge_failmode_triggered_total{reason="waf_overloaded"}` |
+| Cảnh báo | Burn rate S11. P2: `Overloaded` > 0,1% request đi qua WAF trong 5 phút ở một PoP. P1: circuit breaker ở proxy mở cho cả PoP |
+| Tự phản ứng | Admission control giữ phần CPU của từng tenant; proxy áp fail mode theo zone; autoscale pool WAF nếu PoP chạy trên hạ tầng co giãn được |
+| Runbook | Xem tenant nào chiếm CPU (`waap_waf_cpu_seconds_total{tenant}`): tấn công tầng ứng dụng nhắm một zone → đề xuất Under Attack mode hoặc rule pre để loại ở proxy; ruleset mới tốn CPU hơn → so sánh theo version, rollback; thiếu năng lực thật → thêm node WAF, điều hướng bớt traffic sang PoP khác qua DNS |
+
+### A14. Cache hiệu quả thấp hoặc purge chậm
+
+| | |
+|---|---|
+| Mục tiêu | S12; hit ratio theo zone không giảm đột ngột |
+| Tín hiệu | `waap_edge_cache_requests_total{status}` theo zone, `waap_edge_purge_duration_seconds`, dung lượng cache theo PoP |
+| Cảnh báo | P3: hit ratio của một zone giảm > 30% so với baseline sau một thay đổi cache rule. P2: burn rate S12 |
+| Tự phản ứng | Không |
+| Runbook | Hit ratio giảm sau thay đổi → so sánh cache rule theo version, đề xuất rollback cho khách; purge chậm → kiểm fast lane và node chưa ack |
+
+### A15. Khách báo site chậm hoặc lỗi
+
+| | |
+|---|---|
+| Mục tiêu | Trả lời trong 15 phút: chậm/lỗi ở chặng nào, của website hay của WAAP, có bằng chứng |
+| Tín hiệu | Dashboard độ trễ theo chặng và lỗi theo `status_source` của zone; trace theo request ID ([8.14](14-latency-and-error-attribution.md)) |
+| Cảnh báo | Không (do khách báo); nếu `edge_platform` tăng thì đã có cảnh báo S1 |
+| Tự phản ứng | Không |
+| Runbook | (1) Lấy request ID hoặc khoảng thời gian, URL. (2) Lỗi: đọc `status_source` → `origin` hoặc `origin_unreachable` thì gửi khách `edge_error` và thời gian kết nối/TTFB của origin làm bằng chứng; `edge_platform` thì mở sự cố phía NCC. (3) Chậm: so p95 từng chặng với baseline của zone: `edge_us` tăng → điều tra phía WAAP (A4, A13); `origin_ttfb_us` tăng → website; `origin_connect_us` tăng → mạng tới origin hoặc origin hết kết nối; `client_rtt_us`/`client_retrans` tăng theo quốc gia/ASN → mạng phía người dùng, kiểm định tuyến PoP. (4) Gửi khách waterfall và kết luận |
 
 ## B. Thao tác của người vận hành
 
@@ -146,7 +176,7 @@ ticket trong giờ làm việc.
 | | |
 |---|---|
 | Mục tiêu | Không tăng chặn nhầm; không giảm khả năng phát hiện; không tăng độ trễ quá ngưỡng |
-| Cách làm | Pipeline release ([22](../05-building-blocks/level-3/22-cert-ruleset-release.md)) → log-only song song toàn fleet ≥ 24 h → chuyển mặc định cho zone "tự nhận bản mới" |
+| Cách làm | Pipeline release ([22](../05-building-blocks/08-components/07-cert-ruleset-release.md)) → log-only song song toàn fleet ≥ 24 h → chuyển mặc định cho zone "tự nhận bản mới" |
 | Gate | Chênh lệch tỉ lệ chặn bản mới vs bản cũ trên traffic thật theo rule; W5 (nghi chặn nhầm) trên dữ liệu log-only |
 | Tự phản ứng | Dừng chuyển mặc định nếu gate hỏng |
 | Runbook | Rule mới gây chênh lệch lớn → tắt rule đó trong release, phát hành lại; thông báo thay đổi cho khách cố định version |

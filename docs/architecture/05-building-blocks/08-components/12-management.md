@@ -1,4 +1,4 @@
-# C3 · Management plane
+# 5.8.12 Management plane
 
 Một **modular monolith** trên `metap-go`, không tách microservice như demo. Đội nhỏ, các context
 dùng chung tenant, quyền, audit; tách service khi có lý do scale cụ thể.
@@ -54,7 +54,7 @@ flowchart TB
 | Module | Entity chính (EntityDefinition) | Workflow | Hành động ngoài CRUD |
 |---|---|---|---|
 | **tenant** | Org, Account, Member, Role binding, ApiKey, SsoConnection | — | Đăng nhập SAML/OIDC, SCIM `/Users` `/Groups`, tạo/thu hồi API key |
-| **zone** | Zone, Hostname, Origin, CertRequest | `pending → verifying → active ↔ paused → removed` | Xác minh DNS, kiểm origin, đổi fail mode |
+| **zone** | Zone, Hostname, Origin, CertRequest, CacheRule, PurgeRequest, DnsRecord (Mở rộng) | `pending → verifying → active ↔ paused → removed` | Xác minh DNS, kiểm origin, đổi fail mode, purge cache (fast lane), cấu hình chế độ đứng sau CDN của khách, quản lý bản ghi DNS (Mở rộng) |
 | **policy** | PolicyDraft, CustomRule, AccessList, RateLimitRule, ManagedRulesetConfig, Exception, ZoneSettings, PolicyVersion | — | Validate CEL (gọi cùng thư viện checker với Control), tạo PolicyVersion bất biến, rollback |
 | **change** | ChangeRequest, Approval | `draft → simulating → pending_approval → approved → publishing → enforced` / `rejected` / `rolled_back` | Gửi replay, duyệt 4-eyes, publish (ghi outbox), kênh khẩn (Under Attack mode, rule tạm) |
 | **case** | Case, CaseLink, Mitigation | `open → acknowledged → mitigating → resolved` | Chấp nhận đề xuất từ `CaseProposed` thành ChangeRequest khẩn có hạn |

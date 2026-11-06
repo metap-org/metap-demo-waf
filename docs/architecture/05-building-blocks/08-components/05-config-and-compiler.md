@@ -1,4 +1,4 @@
-# C3 · Config service và compiler (Control plane)
+# 5.8.5 Config service và compiler (Control plane)
 
 Nhận ý định từ Management, lưu thành bản bất biến, biên dịch ra snapshot đã ký.
 
@@ -16,11 +16,11 @@ flowchart LR
     pg[("PostgreSQL · control")]
     subgraph CMP["compiler (Go workers)"]
         q["Job queue<br/>SKIP LOCKED"]
-        celc["CEL checker<br/>kiểu · chi phí"]
+        celc["CEL checker · cel-go<br/>kiểu · chi phí · hạ xuống IR"]
         crs["CRS config generator<br/>SecLang directives"]
         lim["Entitlement validator"]
         bld["Bundle builder<br/>protobuf · zstd · SHA-256"]
-        st["Self-test<br/>package pipeline"]
+        st["Self-test<br/>edge-verify (cùng code edge)"]
         sig["Manifest signer"]
     end
     bao["OpenBao transit<br/>Ed25519"]
@@ -46,11 +46,11 @@ flowchart LR
 | **Config repository** | Lưu bản bất biến | Bảng chỉ insert, không update; mỗi bản có `id`, `parent_id`, `content_hash` |
 | **Internal gRPC API** | Phục vụ orchestrator, console NCC, Management (đọc trạng thái) | Đọc version, lịch sử, trạng thái biên dịch và rollout |
 | **Job queue** | Lập lịch biên dịch | Bảng `compile_jobs`, worker lấy bằng `FOR UPDATE SKIP LOCKED`; job khẩn có priority cao hơn |
-| **CEL checker** | Kiểm tra custom rule | Parse lại text, check với môi trường biến/hàm cố định, ước lượng chi phí; vượt giới hạn của gói → lỗi biên dịch trả về Management |
+| **CEL checker** | Kiểm tra và hạ rule xuống IR | `cel-go`: parse lại text, check với môi trường biến/hàm cố định, ước lượng chi phí; vượt giới hạn của gói → lỗi biên dịch trả về Management; hợp lệ thì hạ checked AST xuống IR cho edge ([ADR-0032](../../09-adr/0032-cel-checked-at-control-ir-at-edge.md)) |
 | **CRS config generator** | Sinh cấu hình SecLang cho zone | `SecAction` cho paranoia level và ngưỡng anomaly; `SecRuleRemoveById` cho rule tắt; exception thành `SecRule ... "ctl:ruleRemoveTargetById=..."` có điều kiện path/method |
 | **Entitlement validator** | Áp giới hạn gói | Số rule, kích thước body kiểm tra, tính năng được bật |
-| **Bundle builder** | Đóng gói | Protobuf → zstd → SHA-256; bundle zone tham chiếu digest của bundle chung |
-| **Self-test** | Bảo đảm bundle chạy được | Nạp bundle bằng chính loader của edge, chạy corpus request mẫu của zone (onboarding) và corpus chung; lỗi → không ký |
+| **Bundle builder** | Đóng gói | Protobuf → zstd → SHA-256; bundle zone chia **phần proxy** và **phần WAF** ([5.5](../05-contracts.md#snapshot-gồm-gì)), tham chiếu digest của bundle chung; **chia custom rule theo tầng**: xếp theo priority, rule đầu tiên cần trường đắt (body, tham số đã parse, JSON path) và mọi rule sau nó vào phần WAF, các rule trước vào phần proxy ([ADR-0034](../../09-adr/0034-pre-filter-and-rule-split-across-tiers.md)) |
+| **Self-test** | Bảo đảm bundle chạy được | Gọi `edge-verify` (build từ cùng code với edge, chạy sidecar cạnh compiler) để nạp bundle bằng chính loader của edge, chạy corpus request mẫu của zone (onboarding) và corpus chung; lỗi → không ký |
 | **Manifest signer** | Ký | Gọi OpenBao transit `sign` với khoá Ed25519; manifest gồm danh sách digest, schema version, thời điểm, ID khoá |
 
 ## Dữ liệu (PostgreSQL · control)
@@ -84,7 +84,7 @@ message ZoneBundle {
   Origin origin = 5; TlsSettings tls = 6; FailMode fail_mode = 7;
   repeated AccessListEntry access_lists = 8;
   repeated RateLimitRule rate_limits = 9;
-  repeated CompiledRule custom_rules = 10;  // checked CEL AST, theo priority
+  repeated CompiledRule custom_rules = 10;  // IR đã hạ từ CEL, theo priority
   CrsConfig crs = 11;                        // SecLang directives sinh ra
   UnderAttack under_attack = 12;
   EdgeEntitlements entitlements = 13;        // lấy mẫu, giới hạn tài nguyên

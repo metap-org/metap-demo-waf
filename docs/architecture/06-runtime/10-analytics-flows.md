@@ -1,8 +1,8 @@
 # 6.10 Luồng Analytics
 
 Toàn bộ đường đi của dữ liệu traffic: từ lúc gateway tạo bản ghi tới từng kiểu đọc. Thành phần chi
-tiết ở [level-3/30](../05-building-blocks/level-3/30-ingestion-and-storage.md) và
-[level-3/31](../05-building-blocks/level-3/31-query-detection-export-replay.md).
+tiết ở [5.8.8](../05-building-blocks/08-components/08-ingestion-and-storage.md) và
+[5.8.9](../05-building-blocks/08-components/09-query-detection-export-replay.md).
 
 | # | Luồng |
 |---|---|
@@ -154,7 +154,7 @@ Analytics để tính toán; Analytics không phải nơi gốc của nhãn.
 
 ## E. Phát hiện, cảnh báo, case
 
-Danh mục cảnh báo, ngưỡng và thuật toán: [level-3/32](../05-building-blocks/level-3/32-alerting-rules-and-algorithms.md).
+Danh mục cảnh báo, ngưỡng và thuật toán: [5.8.10](../05-building-blocks/08-components/10-alerting-rules-and-algorithms.md).
 
 ```mermaid
 sequenceDiagram
@@ -225,7 +225,7 @@ sequenceDiagram
     C-->>RP: snapshot nháp
     M->>RP: job(zone, 7 ngày, cỡ mẫu)
     RP->>S3: đọc mẫu request của zone
-    RP->>RP: chạy package pipeline với snapshot nháp
+    RP->>RP: chạy thư viện pipeline (cùng code edge) với snapshot nháp
     RP->>RP: so với quyết định gốc trong mẫu
     RP-->>M: thêm chặn / bớt chặn theo rule, ví dụ, khoảng tin cậy
 ```

@@ -1,70 +1,84 @@
 # 5.3 Edge plane
 
-Nhiều node, nhiều region, chạy trên PoP riêng, hạ tầng đối tác hoặc trong hạ tầng của khách
-([ADR-0005](../09-adr/0005-edge-on-own-and-existing-infra.md)). Mọi node chạy cùng một artifact.
+Nhiều PoP, nhiều region, chạy trên PoP riêng, hạ tầng đối tác hoặc trong hạ tầng của khách
+([ADR-0005](../09-adr/0005-edge-on-own-and-existing-infra.md)). Mỗi PoP có **ba lớp** với tài nguyên
+khác nhau ([ADR-0033](../09-adr/0033-two-tier-edge-proxy-and-waf.md)), cộng DNS điều hướng:
 
-## Bên trong một node
+| Lớp | Làm gì | Tài nguyên chính | Chi tiết |
+|---|---|---|---|
+| L3/L4 | Hấp thụ flood mạng, anycast | Băng thông | Hạ tầng / đối tác; PoP riêng: XDP (Mở rộng) |
+| **Edge proxy** | TLS, kết nối, pre-filter, challenge, rate limit, cache, proxy tới origin | **RAM, kết nối, băng thông** | [5.8.1](08-components/01-edge-proxy.md) |
+| **WAF inspection** | CRS, custom rule cần body, API schema; trả verdict | **CPU** | [5.8.2](08-components/02-waf-inspection.md) |
+| DNS điều hướng | Đưa người dùng tới PoP gần, khoẻ | Nhẹ | [5.8.3](08-components/03-dns-and-traffic-steering.md) |
+
+## Bên trong một PoP
 
 ```mermaid
 flowchart LR
     ctrl["Control · Distribution"]
-    peers["Node khác"]
-    ana["Analytics · Ingestion"]
+    peers["PoP khác · Valkey region"]
+    ana["Analytics · Ingest gateway"]
+    dns["DNS điều hướng"]
     req["Request"]
-    origin["Origin"]
+    origin["Origin / origin shield"]
 
-    subgraph N["Edge node"]
-        agent["Policy agent"]
-        snap[("Snapshot trong RAM<br/>active + last-good")]
-        sync["State sync"]
-        gw["Edge gateway<br/>pipeline 12 bước"]
-        ship["Log shipper<br/>buffer đĩa"]
+    subgraph POP["PoP"]
+        subgraph PX["Pool edge proxy (RAM)"]
+            agp["Policy agent"]
+            px["Edge proxy<br/>pre-filter · challenge · cache"]
+            sync["State sync"]
+        end
+        subgraph WF["Pool WAF inspection (CPU)"]
+            agw["Policy agent"]
+            waf["WAF inspection<br/>CRS · rule inspect"]
+        end
+        ship["Vector<br/>buffer đĩa"]
     end
 
-    ctrl -->|báo, kéo snapshot| agent
-    agent -.->|ack, health| ctrl
-    agent -->|kiểm chữ ký, swap nguyên khối| snap
-    snap -->|đọc, không khoá| gw
-    gw <-->|counter| sync
-    sync <-->|gộp định kỳ| peers
-    req --> gw --> origin
-    gw --> ship --> ana
+    dns -.->|IP của PoP| req
+    req --> px
+    px <-->|Inspection API| waf
+    px --> origin
+    ctrl --> agp
+    ctrl --> agw
+    agp -.->|ack, health| ctrl
+    agw -.->|ack, health| ctrl
+    px <--> sync <--> peers
+    px --> ship --> ana
+    waf --> ship
 ```
 
 | Thành phần | Trách nhiệm | Khi mất kết nối |
 |---|---|---|
-| **Policy agent** | Kéo snapshot, kiểm chữ ký và schema version, nạp thử, swap nguyên khối; giữ bản last-good; báo ack theo version và health | Tiếp tục chạy bản đang có; không bao giờ xoá config vì mất kết nối |
-| **Snapshot trong RAM** | Policy đã biên dịch theo zone, ruleset, cert theo SNI, khoá ký clearance token, entitlements áp ở edge (tỉ lệ lấy mẫu, giới hạn) | |
-| **Edge gateway** | Xử lý request theo pipeline bên dưới | Không phụ thuộc mạng ngoài node |
-| **State sync** | Counter rate limit và DDoS L7: đếm cục bộ, gộp định kỳ với node khác ([ADR-0011](../09-adr/0011-approximate-fleet-rate-limiting.md)) | Rơi về đếm cục bộ |
-| **Log shipper** | Gom event và access log, che trường nhạy cảm, lấy mẫu theo entitlements, nén, gửi at-least-once | Ghi vào buffer đĩa; khi đầy thì bỏ access log trước, giữ security event |
+| **Policy agent** (ở cả hai pool) | Kéo snapshot, kiểm chữ ký, nạp phần của tầng mình, swap nguyên khối, giữ last-good, báo ack | Chạy tiếp bản đang có |
+| **Edge proxy** | Pipeline bước 2–9, 11–13 ([5.8.1](08-components/01-edge-proxy.md#thứ-tự-xử-lý)) | Không phụ thuộc mạng ngoài PoP |
+| **WAF inspection** | Bước 10: managed ruleset, custom rule phần inspect, API schema | Không phụ thuộc mạng ngoài PoP |
+| **State sync** | Counter rate limit và DDoS L7 ([ADR-0011](../09-adr/0011-approximate-fleet-rate-limiting.md)) | Rơi về đếm cục bộ |
+| **Vector** | Gom event và access log của cả hai tầng, gửi ingest gateway | Buffer đĩa |
 
 ## Pipeline request
 
-Thứ tự là quyết định sản phẩm: nó quyết định allowlist có vượt được rate limit không, bot có bị
-WAF chặn trước khi được chấm điểm không.
+| # | Bước | Tầng | Ghi chú |
+|---|---|---|---|
+| 1 | L3/L4 mitigation | Hạ tầng | Volumetric |
+| 2 | TLS | Proxy | Cert theo SNI |
+| 3 | Giới hạn giao thức, chuẩn hoá | Proxy | Chặn request sai chuẩn, smuggling |
+| 4 | Access list, reputation | Proxy | `allow` có phạm vi, có thể bỏ qua cả WAF |
+| 5 | Under Attack mode, challenge | Proxy | Mọi challenge đều ở proxy ([ADR-0034](../09-adr/0034-pre-filter-and-rule-split-across-tiers.md)) |
+| 6 | Rate limit, DDoS L7 | Proxy | |
+| 7 | Bot (tín hiệu rẻ) | Proxy | Mở rộng |
+| 8 | Custom rule phần pre | Proxy | Rule trước rule đầu tiên cần body |
+| 9 | Inspect gate | Proxy | Gọi hay không gọi WAF |
+| 10 | Managed ruleset, custom rule phần inspect, API schema | **WAF** | Chỉ request còn lại sau bước 4–9 |
+| 11 | Quyết định | Proxy | allow / log / challenge / block |
+| 12 | Cache | Proxy | Mặc định sau WAF; tài nguyên tĩnh có thể miễn WAF |
+| 13 | Proxy tới origin | Proxy | Qua origin shield ở Mở rộng |
 
-| # | Bước | Ghi chú |
-|---|---|---|
-| 1 | L3/L4 mitigation | Volumetric; thường là năng lực của hạ tầng nơi đặt node |
-| 2 | TLS | Cert theo SNI, phiên bản và cipher theo cấu hình zone |
-| 3 | Chuẩn hoá | Decode, gộp path, chống né (double encoding, unicode); giới hạn kích thước header/body |
-| 4 | Access list | IP / CIDR / geo / ASN; `allow` bỏ qua các bước kiểm tra phía sau theo phạm vi cấu hình |
-| 5 | Under Attack mode | Nếu bật: request không có clearance token hợp lệ nhận challenge ([ADR-0008](../09-adr/0008-under-attack-mode.md)) |
-| 6 | Rate limit & DDoS L7 | Counter theo khoá (IP, API key, session, path); ngưỡng thích ứng theo baseline zone |
-| 7 | Bot | Mở rộng: xác minh bot tốt, điểm hành vi, challenge |
-| 8 | Managed ruleset | CRS + system ruleset trên engine SecLang, anomaly scoring, paranoia level, exclusion của khách ([ADR-0004](../09-adr/0004-managed-ruleset-crs-on-seclang.md)) |
-| 9 | Custom rule | Biểu thức của khách theo priority, first match wins |
-| 10 | API schema | Mở rộng: OpenAPI, JWT |
-| 11 | Quyết định | allow / log / challenge / block; log-only hạ mọi hành động xuống log; trang chặn luôn in request ID |
-| 12 | Cache / proxy | Tới origin qua kết nối có xác thực |
+Mỗi bước có ngân sách thời gian và hành vi khi lỗi theo zone (fail-open hoặc fail-closed); tầng WAF
+không trả lời kịp cũng áp fail mode này.
 
-Mỗi bước có **ngân sách thời gian** và hành vi khi lỗi hoặc quá hạn theo zone: **fail-open**
-(cho qua, ghi event) hoặc **fail-closed** (chặn). Mọi bước ra quyết định phát một security event;
-bước 12 phát access log cho mọi request.
+## Cô lập tenant
 
-## Cô lập tenant tại node
-
-Một node phục vụ nhiều tenant. Giới hạn theo tenant: thời gian CPU cho kiểm tra body, kích thước
-body được kiểm tra, số rule, độ phức tạp regex (chặn ở compiler), băng thông log. Tenant vượt giới
-hạn bị hạ cấp (ví dụ bỏ kiểm tra body sâu, theo fail mode của zone) chứ không làm chậm tenant khác.
+- Ở proxy: giới hạn kết nối, RAM cho body buffer, băng thông log theo tenant.
+- Ở WAF: phần CPU theo gói (fair share), kích thước body được kiểm tra, độ phức tạp regex (chặn ở compiler).
+- Tenant vượt giới hạn bị hạ cấp theo fail mode của chính nó, không làm chậm tenant khác.

@@ -21,7 +21,8 @@ flowchart LR
         notify["Kênh thông báo<br/>email · chat · on-call · webhook"]
         feed["Threat feed<br/>CRS upstream · reputation"]
         pay["Cổng thanh toán"]
-        infra["Hạ tầng đối tác<br/>cloud · CDN · scrubbing L3/L4"]
+        infra["Hạ tầng đối tác<br/>cloud · scrubbing L3/L4"]
+        ccdn["CDN của khách<br/>(chế độ đứng sau CDN)"]
     end
 
     cust -->|cấu hình, điều tra| waap
@@ -36,6 +37,7 @@ flowchart LR
     feed -->|ruleset, reputation| waap
     waap <-->|thanh toán| pay
     waap <-->|chạy edge node, L3/L4| infra
+    ccdn -->|traffic đã qua CDN khách| waap
 ```
 
 | Đối tác | Vào hệ thống | Ra khỏi hệ thống |
@@ -51,13 +53,16 @@ flowchart LR
 | Kênh thông báo | | Cảnh báo, thông báo thay đổi |
 | Threat feed | Bản CRS mới, IP reputation | |
 | Cổng thanh toán | Trạng thái thanh toán | Hoá đơn, yêu cầu thu |
+| CDN của khách | Traffic đã qua CDN của khách, kèm header IP client | Response (cache do CDN khách giữ) |
 | Hạ tầng đối tác | Năng lực chạy node, scrubbing L3/L4 | Edge artifact, yêu cầu định tuyến |
 
 ## 3.2 Bối cảnh kỹ thuật
 
 | Kênh | Hướng | Đặc điểm cần có |
 |---|---|---|
-| Traffic khách vào edge | End-user → Edge | Trỏ qua CNAME hoặc anycast; TLS theo SNI; HTTP/1.1, HTTP/2, HTTP/3 |
+| Traffic khách vào edge | End-user → Edge | CNAME tới hostname edge của NCC, DNS điều hướng trả IP PoP gần và khoẻ (hoặc anycast); TLS theo SNI; HTTP/1.1, HTTP/2, HTTP/3 |
+| Chế độ đứng sau CDN | CDN khách → Edge | Chỉ nhận từ dải IP của CDN đó; IP client lấy từ header khách chỉ định |
+| DNS authoritative (Mở rộng) | Registrar → DNS của NCC | Khách đổi nameserver; bản ghi proxied, DNSSEC |
 | Edge → origin | Edge → Origin | TLS, khuyến nghị mTLS hoặc header bí mật; khách chặn mọi IP không phải edge |
 | Portal và public API | Người dùng → Management | HTTPS, SSO, API key có phạm vi; cùng mô hình quyền cho UI và API |
 | IaC | DevOps → Management | Provider Terraform và GitOps đi qua public API, không có đường riêng |

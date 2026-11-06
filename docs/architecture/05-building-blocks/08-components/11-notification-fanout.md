@@ -1,6 +1,6 @@
-# C3 · Notification: fan-out nhiều kênh, khách tự tích hợp, mở kênh theo gói
+# 5.8.11 Notification: fan-out nhiều kênh, khách tự tích hợp, mở kênh theo gói
 
-Nhận sự kiện cảnh báo từ alert engine ([32](32-alerting-rules-and-algorithms.md)) và gửi tới mọi kênh
+Nhận sự kiện cảnh báo từ alert engine ([32](10-alerting-rules-and-algorithms.md)) và gửi tới mọi kênh
 khách cấu hình. Quyết định nền: [ADR-0028](../../09-adr/0028-notification-adapters-and-plan-gated-channels.md).
 
 Ba yêu cầu:

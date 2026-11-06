@@ -19,7 +19,11 @@ mức demo. **Mở rộng** để ngang đối thủ trong vòng đánh giá, **
 | Quan sát & vận hành bảo mật | Security event realtime, access log theo gói, tra cứu theo request ID, dashboard (traffic, bảo mật, hiệu quả rule), đánh dấu chặn nhầm + tỉ lệ FP theo rule, cảnh báo đa kênh, SIEM export | Case/sự cố, báo cáo định kỳ và tuân thủ | Phát hiện bất thường theo baseline |
 | Threat intelligence | Cập nhật ruleset có version, rule khẩn toàn fleet | IP reputation, virtual patching theo CVE | Tín hiệu chéo tenant (ẩn danh) |
 | Tenant & thương mại | Onboarding (DNS, xác minh domain, cert), org/account/zone, RBAC + SSO, audit log, gói/quota/metering/billing, public API | SCIM, báo cáo SLA | Data residency cho log |
+| Hiệu năng & phân phối (CDN, DNS) | Cache cơ bản (Cache-Control, cache rule, purge theo URL/prefix, stale-if-error), DNS điều hướng, chế độ đứng sau CDN của khách | Tiered cache / origin shield, purge theo tag, DNS authoritative cho khách (proxied record, DNSSEC), load balancing và origin failover | Tối ưu ảnh, edge compute, video |
 | Vận hành nhà cung cấp | Quản lý fleet, giám sát lan truyền config, failover | Chống noisy neighbor | |
+
+CDN không phải phần phụ: khi traffic đã đi qua edge vì hiệu năng, WAF trở thành phần cộng thêm gần như
+không tốn độ trễ, và băng thông tiết kiệm ở origin bù chi phí dịch vụ ([ADR-0035](../09-adr/0035-cdn-and-dns-strategy.md)).
 
 Vulnerability scanning (DAST) không phải lõi WAAP; nếu làm, là sản phẩm riêng dùng chung tenant.
 

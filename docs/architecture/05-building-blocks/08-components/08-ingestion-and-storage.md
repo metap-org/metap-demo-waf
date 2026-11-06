@@ -1,4 +1,4 @@
-# C3 · Ingestion, xử lý luồng, lưu trữ (Analytics plane)
+# 5.8.8 Ingestion, xử lý luồng, lưu trữ (Analytics plane)
 
 ## Component diagram
 
@@ -103,6 +103,13 @@ CREATE TABLE security_events (
   client_ip IPv6, country LowCardinality(String), asn UInt32,
   method LowCardinality(String), host String, path String, status UInt16,
   user_agent String, node_id String, region LowCardinality(String),
+  cache_status LowCardinality(String), inspected UInt8, body_truncated UInt8,
+  status_source LowCardinality(String), edge_error LowCardinality(String),
+  -- thời gian theo chặng, micro giây (8.14)
+  client_tls_us UInt32, client_rtt_us UInt32, client_retrans UInt16, req_recv_us UInt32,
+  pre_us UInt32, waf_rtt_us UInt32, waf_queue_us UInt32, waf_engine_us UInt32, cache_us UInt32,
+  origin_connect_us UInt32, origin_tls_us UInt32, origin_ttfb_us UInt32, origin_transfer_us UInt32,
+  client_ttfb_us UInt32, client_send_us UInt32, edge_us UInt32, total_us UInt32,
   fp_label Nullable(UInt8), expire_at DateTime,
   INDEX idx_req request_id TYPE bloom_filter GRANULARITY 4
 ) ENGINE = ReplicatedMergeTree
@@ -120,7 +127,8 @@ AS SELECT tenant_id, zone_id, toStartOfMinute(ts) AS minute, action, rule_id,
 | Bảng / view | Mục đích |
 |---|---|
 | `security_events`, `access_logs` | Raw, tra theo request ID, điều tra, xử lý chặn nhầm |
-| `traffic_1m`, `traffic_1h` | Dashboard traffic; tổng traffic (đã nhân ngược tỉ lệ lấy mẫu) làm mẫu số |
+| `traffic_1m`, `traffic_1h` | Dashboard traffic; tổng traffic (đã nhân ngược tỉ lệ lấy mẫu) làm mẫu số; đếm theo `status_source`, `edge_error` |
+| `latency_1m` | Quantile state (p50/p95/p99) của từng chặng theo zone, PoP, quốc gia; nguồn cho dashboard độ trễ và cảnh báo O3 |
 | `rule_efficacy_1h` | Số lần khớp, tỉ lệ chặn, số nhãn FP theo rule và policy version |
 | `usage_1h` | Metering cho billing |
 | `fp_labels` | Nhãn chặn nhầm từ Management, join vào `rule_efficacy` |
