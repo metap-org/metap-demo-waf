@@ -1663,8 +1663,14 @@ manifest nên hai tầng chạy cùng version policy, trừ khoảng lệch ng�
 (<a href="#f-08-cross-cutting-15-config-propagation-and-apply--6-hai-tầng-swap-lệch-nhau">8.15 §6</a>). Bundle chung
 có thêm <strong>lớp rule khẩn</strong> nhỏ, tách khỏi ruleset release để fast lane không phải build lại CRS.</p>
 <h2 id="f-05-building-blocks-05-contracts--inspection-api-l7--waf">Inspection API (L7 → WAF)</h2>
-<p>Hợp đồng chuẩn giữa hai tầng (<a href="#f-09-adr-0031-edge-l7-and-waf-engine-options">ADR-0031</a> §5), độc lập
-với nền L7 được chọn.</p>
+<blockquote>
+<p><strong>Trạng thái: bản nháp, chưa chốt, đang mở để nghiên cứu.</strong> Hợp đồng giữa hai tầng
+(<a href="#f-09-adr-0031-edge-l7-and-waf-engine-options">ADR-0031</a> §5, phương án I1), độc lập với nền L7 được
+chọn. Phần dưới gồm khung message hiện có, các điểm còn mở kèm hướng đề xuất và việc cần nghiên cứu,
+rồi bản proto nháp gom các hướng đề xuất. Không điểm nào dưới đây là quyết định; mọi con số phải được
+đo trong spike của ADR-0031 trước khi chốt.</p>
+</blockquote>
+<h3 id="f-05-building-blocks-05-contracts--khung-hiện-có">Khung hiện có</h3>
 <pre class="code"><code class="lang-protobuf">service Inspection {
   rpc Inspect(stream InspectRequest) returns (stream InspectResponse);
 }
@@ -1696,7 +1702,7 @@ message Verdict {
 <thead>
 <tr>
 <th>Quy tắc</th>
-<th>Giá trị</th>
+<th>Giá trị hiện ghi</th>
 </tr>
 </thead>
 <tbody>
@@ -1714,10 +1720,181 @@ message Verdict {
 </tr>
 <tr>
 <td>Bảo mật</td>
-<td>Unix socket khi chung host, mTLS khi khác node</td>
+<td>Unix socket khi chung host, mTLS khi khác node (<a href="#f-08-cross-cutting-19-node-identity-and-mtls">8.19</a>)</td>
 </tr>
 </tbody>
 </table>
+<h3 id="f-05-building-blocks-05-contracts--các-điểm-còn-mở">Các điểm còn mở</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Câu hỏi</th>
+<th>Hướng đề xuất (chưa chốt)</th>
+<th>Phương án khác</th>
+<th>Cần nghiên cứu, đo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>IA1</td>
+<td><strong>Mô hình stream</strong>: mỗi request một stream, hay một stream dài ghép nhiều request</td>
+<td>Mỗi request một HTTP/2 stream trên pool kết nối dài L7 → WAF; huỷ request = huỷ stream</td>
+<td>Stream dài ghép request theo <code>request_id</code> (ít overhead mở stream, nhưng head-of-line và huỷ phức tạp); unary RPC cho request không body</td>
+<td>Overhead mở stream gRPC ở 50k–100k request/s mỗi node L7; độ trễ p99 hai mô hình; hành vi khi một request body lớn chiếm kết nối</td>
+</tr>
+<tr>
+<td>IA2</td>
+<td><strong>Ai chuẩn hoá request</strong> (decode URL, path <code>..</code>, header trùng, cookie, charset, giải nén body)</td>
+<td>L7 chuẩn hoá một lần theo quy tắc cố định, gửi <strong>cả bản gốc lẫn bản đã chuẩn hoá</strong>; WAF không tự giải mã thêm ngoài transformation của SecLang</td>
+<td>WAF tự chuẩn hoá từ bản gốc (giống ModSecurity truyền thống); L7 chỉ chuyển nguyên văn</td>
+<td>Danh sách khác biệt giữa cách L7, engine WAF và các origin phổ biến (NGINX, Apache, Node, Java) hiểu cùng một request; bộ test evasion (path, encoding, header trùng, HTTP/2 → HTTP/1 downgrade); xung đột với transformation của CRS</td>
+</tr>
+<tr>
+<td>IA3</td>
+<td><strong>Version policy lệch</strong> giữa L7 và WAF</td>
+<td>WAF giữ version hiện tại và liền trước; không có version được yêu cầu thì kiểm bằng version mới nhất và gắn cờ <code>version_mismatch</code></td>
+<td>Từ chối (<code>Error</code>) để L7 áp fail mode; hoặc L7 chỉ gửi khi WAF báo đã có version</td>
+<td>Tần suất lệch thật trong lúc rollout; ảnh hưởng tới replay và thống kê theo version</td>
+</tr>
+<tr>
+<td>IA4</td>
+<td><strong>Chọn instance WAF</strong></td>
+<td>Hash theo profile CRS (giữ instance engine nóng) kết hợp cân bằng theo tải, chuyển instance kế tiếp trên ring khi quá tải</td>
+<td>Least-request thuần; hash theo zone</td>
+<td>Tỉ lệ trúng instance đã nạp profile; độ lệch tải khi một profile rất nóng; chi phí dựng instance khi trượt</td>
+</tr>
+<tr>
+<td>IA5</td>
+<td><strong>Retry</strong></td>
+<td>Thử lại một lần, sang instance khác, chỉ khi <code>Error</code> và còn ngân sách thời gian; <code>Overloaded</code> không thử lại</td>
+<td>Không bao giờ thử lại; hoặc hedged request (gửi song song sau p95)</td>
+<td>Tỉ lệ <code>Error</code> thật; ảnh hưởng của retry tới tải lúc quá tải; chi phí body phải gửi lại (L7 phải giữ body tới khi có verdict)</td>
+</tr>
+<tr>
+<td>IA6</td>
+<td><strong>Backpressure và giới hạn khi gửi body</strong></td>
+<td>Giới hạn kích thước chunk (ví dụ 16 KB), số chunk đang bay, số request đồng thời mỗi kết nối; client gửi body chậm quá ngưỡng thì áp <code>body_overflow</code></td>
+<td>Đệm toàn bộ body ở L7 rồi gửi một lần (đơn giản, tốn RAM L7, mất verdict sớm)</td>
+<td>RAM L7 và WAF ở body 1 MB × số request đồng thời; độ trễ đuôi khi upload chậm; tương tác với flow control của HTTP/2</td>
+</tr>
+<tr>
+<td>IA7</td>
+<td><strong>Nghĩa của action</strong> và ai thực thi</td>
+<td>L7 luôn thực thi; verdict mang <code>status</code>, <code>block_page_id</code>, <code>challenge_type</code>, header thêm vào request gửi origin (ví dụ điểm WAF)</td>
+<td>WAF trả cả response chặn đầy đủ</td>
+<td>Danh sách hành động thật cần cho custom rule phần inspect và CRS; trang chặn theo zone</td>
+</tr>
+<tr>
+<td>IA8</td>
+<td><strong>Ai ghi log</strong></td>
+<td>Chỉ L7 ghi một bản ghi mỗi request; verdict mang đủ rule, điểm, trường khớp, thời gian để L7 ghép</td>
+<td>WAF ghi security event riêng rồi Analytics ghép theo <code>request_id</code></td>
+<td>Kích thước verdict khi khớp nhiều rule; mất bản ghi khi L7 chết sau khi nhận verdict</td>
+</tr>
+<tr>
+<td>IA9</td>
+<td><strong>Bắt tay khi mở kết nối</strong></td>
+<td>RPC <code>Hello</code>: version schema, kích thước body tối đa, decoder có sẵn, profile đang nạp</td>
+<td>Đọc capability từ snapshot (không cần RPC)</td>
+<td>Có cần thông tin động (profile đang nạp) hay chỉ tĩnh</td>
+</tr>
+<tr>
+<td>IA10</td>
+<td><strong>Mức tin dữ liệu từ L7</strong></td>
+<td>WAF tin toàn bộ head (IP client, bot, API) vì L7 đã được xác thực bằng mTLS với vai trò <code>l7</code></td>
+<td>WAF kiểm lại một phần (ví dụ IP client với PROXY protocol)</td>
+<td>Mô hình đe doạ khi một node L7 bị chiếm; có cần ký head không</td>
+</tr>
+<tr>
+<td>IA11</td>
+<td><strong>Kiểm response</strong> (Nâng cao)</td>
+<td>Để sẵn pha <code>ResponseHead</code> / chunk response trong schema, chưa dùng ở MVP</td>
+<td>Kênh riêng cho response</td>
+<td>Nhu cầu thật (dữ liệu nhạy cảm, <a href="#f-08-cross-cutting-17-api-security">8.17</a>); chi phí độ trễ khi phải đệm response</td>
+</tr>
+<tr>
+<td>IA12</td>
+<td><strong>WebSocket, gRPC của khách</strong></td>
+<td>Chỉ request bắt tay đi qua Inspection API; frame (Nâng cao) cần message riêng</td>
+<td></td>
+<td>Theo <a href="#f-05-building-blocks-08-components-02-waf-inspection--phạm-vi-giao-thức">5.8.2 Phạm vi giao thức</a></td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-05-building-blocks-05-contracts--proto-nháp-gom-các-hướng-đề-xuất">Proto nháp gom các hướng đề xuất</h3>
+<p>Chỉ để thảo luận và dùng làm điểm xuất phát cho spike; tên và trường sẽ đổi.</p>
+<pre class="code"><code class="lang-protobuf">service Inspection {
+  rpc Hello(HelloRequest) returns (HelloResponse);                    // IA9
+  rpc Inspect(stream InspectRequest) returns (stream InspectResponse); // IA1: một stream mỗi request
+}
+message InspectRequest {
+  oneof m {
+    RequestHead head   = 1;
+    BodyChunk   chunk  = 2;   // IA6: tối đa N byte mỗi chunk, số chunk đang bay có giới hạn
+    End         end    = 3;   // body_truncated, client_aborted
+    // ResponseHead resp_head = 4;  ResponseChunk resp_chunk = 5;   // IA11, chưa dùng
+  }
+}
+message RequestHead {
+  string request_id = 1; string zone_id = 2; string tenant_id = 3;
+  string policy_version_id = 4; uint32 deadline_us = 5;
+  RawRequest raw = 6;              // IA2: nguyên văn như nhận từ client
+  NormalizedRequest normalized = 7; // IA2: bản L7 đã chuẩn hoá (path, query, header, cookie, charset)
+  ClientContext client = 8;        // IP, geo, ASN, JA4; IA10: WAF tin vì L7 đã xác thực mTLS
+  BotContext bot = 9; ApiContext api = 10;
+  repeated string pre_rule_ids = 11; // rule phần pre đã khớp ở L7 (log-only)
+}
+message InspectResponse {
+  oneof m {
+    Verdict    verdict    = 1;
+    Overloaded overloaded = 2;   // IA5: không thử lại
+    Error      error      = 3;   // IA5: thử lại một lần nếu còn ngân sách
+  }
+}
+message Verdict {
+  Action action = 1;               // ALLOW, LOG, CHALLENGE, BLOCK
+  uint32 status = 2; string block_page_id = 3; ChallengeType challenge = 4;  // IA7
+  repeated Header add_upstream_headers = 5;                                    // IA7
+  repeated RuleMatch matches = 6;  // rule_id, phase, trường khớp đã che; IA8: L7 ghi log
+  uint32 anomaly_score = 7; uint32 engine_time_us = 8;
+  string evaluated_version_id = 9; bool version_mismatch = 10;               // IA3
+  bool profile_fallback = 11;      // waf_profile_fallback
+}
+</code></pre>
+<div class="diagram"><pre class="mermaid">sequenceDiagram
+    participant C as Client
+    participant L as L7
+    participant W as WAF instance
+    C-&gt;&gt;L: request (header, body đang tới)
+    L-&gt;&gt;L: pre-filter, chuẩn hoá, inspect gate
+    L-&gt;&gt;W: stream mới: RequestHead (raw + normalized, deadline)
+    loop body tới đâu gửi tới đó
+        L-&gt;&gt;W: BodyChunk (có giới hạn đang bay)
+    end
+    alt điểm anomaly vượt ngưỡng sớm
+        W--&gt;&gt;L: Verdict BLOCK (trước khi hết body)
+        L-&gt;&gt;L: huỷ stream, ngừng đọc body
+    else hết body
+        L-&gt;&gt;W: End
+        W--&gt;&gt;L: Verdict
+    end
+    alt Overloaded hoặc quá deadline
+        L-&gt;&gt;L: áp fail mode của zone
+    end
+    L-&gt;&gt;C: chặn / challenge, hoặc chuyển tiếp tới origin
+    L-&gt;&gt;L: ghi một bản ghi log cho request
+</pre></div>
+<h3 id="f-05-building-blocks-05-contracts--kế-hoạch-nghiên-cứu">Kế hoạch nghiên cứu</h3>
+<p>Gắn vào spike của <a href="#f-09-adr-0031-edge-l7-and-waf-engine-options">ADR-0031</a>; kết quả quyết định hợp
+đồng v1:</p>
+<ol>
+<li>Dựng client ở L7 ứng viên (Pingora, Go) và server WAF (Coraza) theo proto nháp; đo IA1, IA5, IA6.</li>
+<li>Bộ test evasion cho IA2: chạy cùng request qua L7, engine WAF và một tập origin, so khác biệt.</li>
+<li>Mô phỏng rollout để đo IA3; mô phỏng một profile rất nóng để đo IA4.</li>
+<li>Đánh giá mô hình đe doạ cho IA10 cùng đội bảo mật.</li>
+<li>Chốt v1 bằng một ADR riêng; tới lúc đó các component 5.8.1, 5.8.2 coi phần gọi WAF là theo bản nháp.</li>
+</ol>
 </section>
 <section class="doc" id="f-05-building-blocks-06-data-model"><div class="path">05-building-blocks/06-data-model.md</div><h1 id="f-05-building-blocks-06-data-model--56-mô-hình-dữ-liệu">5.6 Mô hình dữ liệu</h1>
 <h2 id="f-05-building-blocks-06-data-model--management-logic">Management (logic)</h2>
@@ -2568,7 +2745,7 @@ không body) để giảm tải WAF cho site nhiều static.</p>
 </tr>
 <tr>
 <td><strong>Inspection client</strong></td>
-<td>gRPC stream tới pool WAF trong PoP (<a href="#f-05-building-blocks-05-contracts--inspection-api-l7--waf">Inspection API</a>); timeout theo zone; circuit breaker khi tầng WAF lỗi hoặc quá tải → fail mode của zone</td>
+<td>gRPC stream tới pool WAF trong PoP (<a href="#f-05-building-blocks-05-contracts--inspection-api-l7--waf">Inspection API</a>, <strong>bản nháp, đang nghiên cứu</strong>: mô hình stream, chuẩn hoá, retry, chọn instance còn mở); timeout theo zone; circuit breaker khi tầng WAF lỗi hoặc quá tải → fail mode của zone</td>
 </tr>
 <tr>
 <td><strong>Cache</strong></td>
@@ -2677,7 +2854,7 @@ trả <strong>verdict</strong>. Tài nguyên chính là <strong>CPU</strong>. En
 <tbody>
 <tr>
 <td><strong>Inspection server</strong></td>
-<td>gRPC stream hai chiều: nhận header, rồi body theo chunk, rồi <code>end</code>; trả <code>Verdict</code> ngay khi có kết luận (có thể trước khi hết body nếu đã vượt ngưỡng anomaly)</td>
+<td>Theo <a href="#f-05-building-blocks-05-contracts--inspection-api-l7--waf">Inspection API</a> (bản nháp, đang nghiên cứu). gRPC stream hai chiều: nhận header, rồi body theo chunk, rồi <code>end</code>; trả <code>Verdict</code> ngay khi có kết luận (có thể trước khi hết body nếu đã vượt ngưỡng anomaly)</td>
 </tr>
 <tr>
 <td><strong>Admission control</strong></td>
@@ -12386,7 +12563,7 @@ vụ kiểm tra; N2/N4 ngược lại. N1 và N5 phải tự viết cả hai nh�
 </tr>
 </tbody>
 </table>
-<p>Đề xuất: <strong>I1 là hợp đồng chuẩn</strong>. Nếu chọn N2 hoặc N4, viết adapter nhỏ ở phía WAF nhận <code>ext_proc</code>
+<p>Đề xuất: <strong>I1 là hợp đồng chuẩn</strong>; chi tiết hợp đồng còn mở (IA1–IA12 ở <a href="#f-05-building-blocks-05-contracts--inspection-api-l7--waf">5.5</a>) và được nghiên cứu trong spike này. Nếu chọn N2 hoặc N4, viết adapter nhỏ ở phía WAF nhận <code>ext_proc</code>
 hoặc SPOE rồi chuyển sang I1, để tầng WAF chỉ có một giao diện.</p>
 <h2 id="f-09-adr-0031-edge-l7-and-waf-engine-options--6-tổ-hợp-và-shortlist">6. Tổ hợp và shortlist</h2>
 <table>
@@ -14038,6 +14215,14 @@ kịch bản đo được (§10.3) và cơ chế kiến trúc đáp ứng nó.</
 <td>Thiếu người đọc được Elixir; sự cố gateway kéo dài</td>
 </tr>
 <tr>
+<td>R28</td>
+<td>L7 và WAF hiểu cùng một request khác nhau (chuẩn hoá lệch), kẻ tấn công lách qua WAF</td>
+<td>Trung bình</td>
+<td>Cao</td>
+<td>Một bên chuẩn hoá, gửi cả bản gốc và bản đã chuẩn hoá; bộ test evasion trong CI (IA2)</td>
+<td>Payload bị chặn ở WAF test nhưng lọt qua edge thật</td>
+</tr>
+<tr>
 <td>R9</td>
 <td>Đội nhỏ dàn trải 4 plane</td>
 <td>Cao</td>
@@ -14154,6 +14339,11 @@ Elixir + Phoenix cho realtime gateway và notifier (<a href="#f-09-adr-0044-real
 <td>Chính sách crawler AI mặc định</td>
 <td>Allow, block, hay theo <code>robots.txt</code> cho zone mới</td>
 <td><a href="#f-08-cross-cutting-16-bot-management--4-policy-của-khách">8.16</a></td>
+</tr>
+<tr>
+<td><strong>Hợp đồng Inspection API (L7 ↔ WAF) v1</strong></td>
+<td>Mô hình stream, ai chuẩn hoá request, version lệch, chọn instance, retry, backpressure, mức tin dữ liệu (IA1–IA12)</td>
+<td><a href="#f-05-building-blocks-05-contracts--inspection-api-l7--waf">5.5</a>; nghiên cứu trong spike của <a href="#f-09-adr-0031-edge-l7-and-waf-engine-options">ADR-0031</a></td>
 </tr>
 <tr>
 <td><strong>Cell và cách đặt zone</strong></td>
@@ -15403,7 +15593,7 @@ theo chính sách tài liệu (<a href="#f-02-constraints-00-index--24-conventio
 <td><a href="#f-10-quality-00-index--103-kịch-bản">10.3</a></td>
 </tr>
 <tr>
-<td><strong>R1…R27</strong></td>
+<td><strong>R1…R28</strong></td>
 <td>Rủi ro</td>
 <td><a href="#f-11-risks-00-index">11.1</a></td>
 </tr>
@@ -15456,6 +15646,11 @@ theo chính sách tài liệu (<a href="#f-02-constraints-00-index--24-conventio
 <td><strong>N1…N5 / E1…E3 / I1…I3 / K1…K5</strong></td>
 <td>Phương án nền L7 / engine WAF / cách L7 gọi WAF / tổ hợp cho spike</td>
 <td><a href="#f-09-adr-0031-edge-l7-and-waf-engine-options">ADR-0031</a></td>
+</tr>
+<tr>
+<td><strong>IA1…IA12</strong></td>
+<td>Điểm còn mở của hợp đồng Inspection API</td>
+<td><a href="#f-05-building-blocks-05-contracts--inspection-api-l7--waf">5.5</a></td>
 </tr>
 <tr>
 <td><strong>C1…C4</strong></td>

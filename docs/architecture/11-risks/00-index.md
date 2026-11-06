@@ -30,6 +30,7 @@
 | R25 | Giá băng thông thuê cao hơn giả định (nhất là quốc tế) làm phần phân phối lỗ | Cao | Cao | Tính phí theo GB, đơn giá vượt có biên; ưu tiên PoP trong nước và peering tại IX; hybrid/on-prem cho khách lớn; đàm phán với nhà mạng | Chi phí băng thông thật trên mỗi GB lệch > 30% so với 8.18 |
 | R26 | Sai số đo usage gây tranh chấp hoá đơn | Trung bình | Cao | `UsageCounter` không lấy mẫu, số thứ tự, đối soát 24 giờ, bộ đếm cục bộ 7 ngày (QS-35); khách xem usage theo zone trong kỳ | Khiếu nại hoá đơn; chênh lệch đối soát > 0,1% |
 | R27 | Thêm runtime thứ ba (Elixir) làm khó tuyển người và vận hành | Trung bình | Trung bình | Giới hạn Elixir ở hai thành phần có hợp đồng rõ (realtime gateway, notifier); nếu không đủ người thì dự phòng Centrifugo + Go ([ADR-0044](../09-adr/0044-realtime-gateway-and-notifier-runtime.md)) | Thiếu người đọc được Elixir; sự cố gateway kéo dài |
+| R28 | L7 và WAF hiểu cùng một request khác nhau (chuẩn hoá lệch), kẻ tấn công lách qua WAF | Trung bình | Cao | Một bên chuẩn hoá, gửi cả bản gốc và bản đã chuẩn hoá; bộ test evasion trong CI (IA2) | Payload bị chặn ở WAF test nhưng lọt qua edge thật |
 | R9 | Đội nhỏ dàn trải 4 plane | Cao | Cao | Mua/dùng mã nguồn mở cho phần không khác biệt; làm đúng thứ tự giai đoạn | Trễ MVP |
 
 ## 11.2 Chênh lệch với code demo hiện tại
@@ -66,6 +67,7 @@ Elixir + Phoenix cho realtime gateway và notifier ([ADR-0044](../09-adr/0044-re
 | Đối tác L3/L4 và hạ tầng PoP đầu tiên | Chọn đối tác, region đầu tiên | [ADR-0005](../09-adr/0005-edge-on-own-and-existing-infra.md) |
 | Challenge tương tác | Tự xây (đề xuất, không gửi dữ liệu ra ngoài, chạy on-prem) hay mặc định dùng dịch vụ CAPTCHA bên thứ ba | [ADR-0038](../09-adr/0038-bot-management-layered-scoring.md) |
 | Chính sách crawler AI mặc định | Allow, block, hay theo `robots.txt` cho zone mới | [8.16](../08-cross-cutting/16-bot-management.md#4-policy-của-khách) |
+| **Hợp đồng Inspection API (L7 ↔ WAF) v1** | Mô hình stream, ai chuẩn hoá request, version lệch, chọn instance, retry, backpressure, mức tin dữ liệu (IA1–IA12) | [5.5](../05-building-blocks/05-contracts.md#inspection-api-l7--waf); nghiên cứu trong spike của [ADR-0031](../09-adr/0031-edge-l7-and-waf-engine-options.md) |
 | **Cell và cách đặt zone** | Cell theo VIP (đề xuất), không cell, hash theo SNI, hay cell theo PoP; số cell ban đầu | [ADR-0041](../09-adr/0041-cells-and-zone-placement.md); phụ thuộc mô hình mạng và số dải IP có được |
 | **Chiến lược CDN và DNS** | Tự xây theo giai đoạn + chế độ đứng sau CDN khách (đề xuất), hay đứng sau CDN, bán lại CDN đối tác, hoặc không CDN | [ADR-0035](../09-adr/0035-cdn-and-dns-strategy.md); kéo theo tiêu chí cache khi chọn nền L7 |
 | **Nền tầng L7 và engine tầng WAF** | Chọn sau spike 3 tuần: shortlist K2 (Pingora + Coraza), K3 (Go + Coraza), K1 (Envoy + Coraza); mốc K5 (NGINX, cho cache) và K4 (HAProxy + SPOE); đo thêm libmodsecurity ở tầng WAF; kèm HTTP/3 | [ADR-0031](../09-adr/0031-edge-l7-and-waf-engine-options.md); kéo theo ngôn ngữ L7, replay, `edge-verify`, [ADR-0032](../09-adr/0032-cel-checked-at-control-ir-at-edge.md) |

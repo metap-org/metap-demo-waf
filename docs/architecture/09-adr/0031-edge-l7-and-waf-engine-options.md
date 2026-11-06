@@ -71,7 +71,7 @@ Vì tầng WAF đã tách process, nhược điểm lớn nhất của E1 (GC) v
 | Ưu | Độc lập nền L7; đúng thứ mình cần (verdict sớm, ngân sách thời gian) | Không phải viết client | Không phải viết client; có `coraza-spoa` |
 | Nhược | Phải viết client ở L7 | Gắn với Envoy | Gắn với HAProxy; giới hạn kích thước body |
 
-Đề xuất: **I1 là hợp đồng chuẩn**. Nếu chọn N2 hoặc N4, viết adapter nhỏ ở phía WAF nhận `ext_proc`
+Đề xuất: **I1 là hợp đồng chuẩn**; chi tiết hợp đồng còn mở (IA1–IA12 ở [5.5](../05-building-blocks/05-contracts.md#inspection-api-l7--waf)) và được nghiên cứu trong spike này. Nếu chọn N2 hoặc N4, viết adapter nhỏ ở phía WAF nhận `ext_proc`
 hoặc SPOE rồi chuyển sang I1, để tầng WAF chỉ có một giao diện.
 
 ## 6. Tổ hợp và shortlist
