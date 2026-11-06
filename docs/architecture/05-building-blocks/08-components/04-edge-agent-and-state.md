@@ -55,7 +55,7 @@ flowchart LR
 
 | Component | Trách nhiệm | Thiết kế |
 |---|---|---|
-| **Enrollment** | Danh tính node | Lần đầu: bootstrap token một lần dùng + CSR → OpenBao PKI cấp cert ngắn hạn (24 h); tự gia hạn ở 2/3 thời hạn; cert chứa node ID, nơi chạy, region |
+| **Enrollment** | Danh tính node | Lần đầu: bootstrap token một lần dùng + CSR → node identity service (Control) kiểm registry rồi nhờ OpenBao PKI ký cert 24 h, kèm re-enroll credential; tự gia hạn ở 2/3 thời hạn với cặp khoá mới; cert hết hạn do offline thì tự xin lại bằng re-enroll credential ([8.19](../../08-cross-cutting/19-node-identity-and-mtls.md)) |
 | **Control client** | Kênh điều khiển | gRPC stream hai chiều có mTLS; nhận `DesiredState{manifest_digest, nonce, urgent}`; trả `Ack{nonce}` hoặc `Nack{nonce, error}`; heartbeat 10 s kèm `NodeStatus` |
 | **Fetcher** | Lấy cấu hình | Theo dõi top manifest version; cập nhật **routing index** (delta theo bucket); bundle zone lấy **khi cần** từ PoP config store theo digest (nếu PoP store chưa có thì từ regional relay); kiểm SHA-256 từng bundle, chữ ký Ed25519 của top manifest ([ADR-0040](../../09-adr/0040-config-distribution-at-scale.md)) |
 | **Loader** | Biến bundle thành runtime | Giải nén zstd, decode protobuf, kiểm schema version; dựng trie IP, evaluator IR của custom rule, instance engine WAF, template; chạy **self-test** (vài request mẫu đi qua pipeline) trước khi chấp nhận |

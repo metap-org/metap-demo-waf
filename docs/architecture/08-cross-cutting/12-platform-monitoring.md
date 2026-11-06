@@ -146,7 +146,7 @@ Dùng khi điều tra sau khi cảnh báo SLO bắn; tên metrics theo quy ướ
 | ClickHouse | Lỗi insert, số part, merge chậm, dung lượng theo volume, truy vấn chậm |
 | Compiler, orchestrator | Job tồn, thời gian biên dịch, rollout bị dừng, gate hỏng |
 | Distribution, fleet | Số stream, node mất heartbeat, độ phủ version |
-| Cert | Cert hết hạn < 14 ngày, lỗi gia hạn liên tiếp |
+| Cert | Cert khách hết hạn < 14 ngày, lỗi gia hạn liên tiếp; cert node còn < 6 h, tỉ lệ gia hạn của node identity service, số lần re-enroll ([8.19 §6](19-node-identity-and-mtls.md#6-giám-sát)) |
 | Notifier, exporter | Như [33](../05-building-blocks/08-components/11-notification-fanout.md) và [31](../05-building-blocks/08-components/09-query-detection-export-replay.md) |
 | OpenBao, PostgreSQL, Valkey, RabbitMQ | Trạng thái HA, độ trễ, kết nối, dung lượng |
 

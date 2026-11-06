@@ -8,7 +8,7 @@
 | R2 | Chặn nhầm làm mất niềm tin khách | Cao | Cao | Log-only 7 ngày khi onboarding; replay trước khi enforce; xử lý chặn nhầm tự phục vụ; tỉ lệ FP theo rule | Tỉ lệ FP của một rule > ngưỡng; ticket support về chặn nhầm tăng |
 | R3 | Chi phí log vượt doanh thu | Trung bình | Cao | Entitlements, lấy mẫu access log, tách store theo chi phí | Chi phí log / doanh thu theo tenant > ngưỡng |
 | R4 | Config hỏng ra toàn fleet | Thấp | Rất cao | Compiler kiểm tra, chữ ký, canary có gate, rollback tức thì | Lỗi nạp snapshot ở canary |
-| R5 | Node trên hạ tầng đối tác bị chiếm | Thấp | Cao | Danh tính node, mTLS, thu hồi node, key cert chỉ trong RAM, keyless sau này | Hành vi bất thường từ một node |
+| R5 | Node trên hạ tầng đối tác bị chiếm | Thấp | Cao | Danh tính node, mTLS cert 24 h, thu hồi trong vài phút ([8.19](../08-cross-cutting/19-node-identity-and-mtls.md)), key cert chỉ trong RAM, keyless sau này | Hành vi bất thường từ một node |
 | R6 | Phụ thuộc đối tác cho L3/L4 | Trung bình | Trung bình | Nhiều đối tác; hợp đồng có SLA | Đối tác không đáp ứng tấn công lớn |
 | R7 | On-prem làm phức tạp mọi quyết định công nghệ | Trung bình | Trung bình | Ràng buộc "không dịch vụ độc quyền một cloud" từ đầu; chưa xây on-prem tới giai đoạn 3 | Khách lớn đòi on-prem sớm |
 | R8 | Rate limit xấp xỉ không đạt kỳ vọng khách | Trung bình | Thấp | Ghi rõ trong tài liệu; chu kỳ gộp ngắn ở PoP lớn | Khiếu nại ngưỡng nhỏ không chính xác |

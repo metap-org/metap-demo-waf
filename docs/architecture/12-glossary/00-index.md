@@ -256,6 +256,14 @@ theo chính sách tài liệu ([2.4](../02-constraints/00-index.md#24-convention
 |---|---|
 | **mTLS** | TLS hai chiều: cả hai bên trình cert; dùng giữa node và Control, L7 và WAF, edge và origin |
 | **PKI** | Hạ tầng cấp và thu hồi cert (CA cho node) |
+| **Node identity service** | Dịch vụ ở Control cấp, gia hạn cert node sau khi kiểm fleet registry; node không gọi OpenBao trực tiếp ([8.19](../08-cross-cutting/19-node-identity-and-mtls.md)) |
+| **Bootstrap token** | Token một lần dùng để node enroll lần đầu |
+| **Re-enroll credential** | Khoá riêng của node chỉ dùng để xin lại cert khi cert đã hết hạn do offline (≤ 30 ngày) |
+| **Trust bundle** | Danh sách CA được tin, phát xuống node và dịch vụ; chứa CA hiện tại và CA kế tiếp khi xoay |
+| **Origin CA** | CA của NCC cấp cert client cho edge khi xác thực với origin; khách cấu hình tin CA này |
+| **CRL / OCSP** | Hai cách thu hồi cert truyền thống (danh sách thu hồi / hỏi trạng thái); không dùng cho cert node, thay bằng thời hạn ngắn |
+| **TPM** | Chip bảo mật trên máy chủ, giữ private key không đọc ra được |
+| **SPIFFE / SPIRE** | Chuẩn danh tính workload ngắn hạn / bản cài đặt của nó; SAN của cert node theo dạng SPIFFE ID |
 | **Keyless** | Private key cert ở lại hạ tầng khách; edge gọi sang để ký khi bắt tay TLS |
 | **BYOIP** | Bring your own IP: khách đưa dải IP của mình để edge quảng bá |
 | **HMAC** | Mã xác thực thông điệp bằng khoá bí mật; dùng ký webhook |
@@ -285,6 +293,7 @@ Lựa chọn và lý do ở [5.7](../05-building-blocks/07-technology-map.md) v�
 | **CoreDNS** | DNS server Go, mở rộng bằng plugin; dùng cho DNS điều hướng |
 | **Valkey** | Kho key-value tương thích Redis, license BSD; đồng bộ counter hot key |
 | **OpenBao** | Quản lý bí mật, PKI, ký (nhánh mã nguồn mở của Vault) |
+| **cert-manager** | Controller Kubernetes tự cấp và gia hạn cert cho dịch vụ trung tâm |
 | **Vector** | Log shipper trên node và ingest gateway |
 | **Elixir / BEAM / OTP** | Ngôn ngữ chạy trên máy ảo Erlang (BEAM), mỗi thực thể là một process nhẹ, OTP supervisor tự khởi động lại khi lỗi; dùng cho realtime gateway và notifier ([ADR-0044](../09-adr/0044-realtime-gateway-and-notifier-runtime.md)) |
 | **Phoenix Channels / PubSub / Presence** | Thư viện Elixir: kênh WebSocket theo topic / phát message trong cụm / theo dõi ai đang kết nối |
@@ -340,7 +349,7 @@ Mỗi tiền tố chỉ có một nghĩa trong toàn bộ tài liệu.
 | Mã | Nghĩa | Ở đâu |
 |---|---|---|
 | **Q1–Q6** | Mục tiêu chất lượng | [1.3](../01-introduction/00-index.md#13-mục-tiêu-chất-lượng) |
-| **QS-1…QS-38** | Kịch bản chất lượng đo được | [10.3](../10-quality/00-index.md#103-kịch-bản) |
+| **QS-1…QS-40** | Kịch bản chất lượng đo được | [10.3](../10-quality/00-index.md#103-kịch-bản) |
 | **R1…R27** | Rủi ro | [11.1](../11-risks/00-index.md) |
 | **A1…A17 / B1…B10** | Tình huống vận hành tự xảy ra / thao tác của người vận hành, mỗi cái có runbook | [8.13](../08-cross-cutting/13-operational-behaviors.md) |
 | **S1…S12** | SLI của nền tảng | [8.12](../08-cross-cutting/12-platform-monitoring.md) |

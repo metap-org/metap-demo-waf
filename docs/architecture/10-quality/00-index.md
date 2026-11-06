@@ -94,6 +94,8 @@ flowchart LR
 | QS-36 | Thương mại | Zone có trần cứng vượt trần | Hành động của trần được áp trên ≥ 95% node trong ≤ 10 phút; pre-filter và chống DDoS không bị tắt |
 | QS-37 | Realtime | Security event của một zone đang được xem trên portal | Hiện trên màn hình ≤ 5 s p95 kể từ khi edge xử lý request |
 | QS-38 | Realtime | 100.000 phiên đồng thời, trong đó 30.000 phiên mới mở trong 5 phút khi có tấn công lớn | QS-37 giữ được; không node gateway nào hết RAM; luồng ghi log và Query API không bị ảnh hưởng |
+| QS-39 | Bảo mật vận hành | Node offline 3 ngày rồi nối lại | Tự có cert mới và nhận config trong ≤ 5 phút, không cần người làm; traffic không bị gián đoạn trong suốt thời gian offline |
+| QS-40 | Bảo mật vận hành | Thu hồi một node nghi bị chiếm | Mọi bên nhận từ chối kết nối mới của node trong ≤ 5 phút, kết nối đang mở bị cắt trong ≤ 1 h; node không gia hạn hay re-enroll được nữa |
 
 ## 10.4 Quy mô thiết kế
 

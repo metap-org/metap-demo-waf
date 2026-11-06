@@ -49,5 +49,6 @@ cân nhắc. Quyết định bị thay thế giữ lại với trạng thái "B�
 | [0042](0042-plan-tiers-drive-placement-and-isolation.md) | Gói quyết định pool cell, tài nguyên, thứ tự hy sinh khi quá tải, thứ tự rollout | Chấp nhận (giá chờ business) |
 | [0043](0043-usage-based-pricing-and-metering.md) | Giá theo phí nền + hạn mức + phí vượt; đo usage không lấy mẫu; trần cứng ở edge; chưa mở Free khi ra mắt | Chấp nhận (giá chờ business) |
 | [0044](0044-realtime-gateway-and-notifier-runtime.md) | Realtime gateway cho hàng chục nghìn phiên portal và runtime của notifier: Go, Centrifugo, Elixir/Phoenix, managed; chọn Elixir + Phoenix | Chấp nhận |
+| [0045](0045-short-lived-node-certs-and-reenroll.md) | Cert node 24 h tự gia hạn qua node identity service, re-enroll credential cho node offline, thu hồi bằng thời hạn ngắn + danh sách chặn, cert-manager cho dịch vụ, Origin CA cho edge → origin | Chấp nhận |
 
 Quyết định đang chờ: xem [11. Risks and Technical Debt](../11-risks/00-index.md#113-quyết-định-còn-mở).

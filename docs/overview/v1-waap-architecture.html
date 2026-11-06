@@ -130,6 +130,7 @@ blockquote { margin: 0 0 14px; padding: 8px 16px; border-left: 3px solid var(--l
 <a class="sub" href="#f-08-cross-cutting-16-bot-management">8.16 Bot management</a>
 <a class="sub" href="#f-08-cross-cutting-17-api-security">8.17 API security</a>
 <a class="sub" href="#f-08-cross-cutting-18-segments-and-plans">8.18 Phân khúc khách, gói giá và kiến trúc theo gói</a>
+<a class="sub" href="#f-08-cross-cutting-19-node-identity-and-mtls">8.19 Danh tính node và mTLS tự gia hạn</a>
 <a class="top" href="#f-09-adr-00-index">9. Architecture Decisions</a>
 <a class="sub" href="#f-09-adr-0001-four-planes">ADR-0001: Bốn plane, edge độc lập runtime</a>
 <a class="sub" href="#f-09-adr-0002-central-compile-signed-snapshots">ADR-0002: Compile tập trung, edge nhận snapshot bất biến có chữ ký</a>
@@ -175,6 +176,7 @@ blockquote { margin: 0 0 14px; padding: 8px 16px; border-left: 3px solid var(--l
 <a class="sub" href="#f-09-adr-0042-plan-tiers-drive-placement-and-isolation">ADR-0042: Gói quyết định chỗ đặt zone, tài nguyên và thứ tự hy sinh</a>
 <a class="sub" href="#f-09-adr-0043-usage-based-pricing-and-metering">ADR-0043: Giá theo phí nền + hạn mức + phí vượt, đo usage không lấy mẫu, trần cứng ở edge</a>
 <a class="sub" href="#f-09-adr-0044-realtime-gateway-and-notifier-runtime">ADR-0044: Realtime gateway cho portal và runtime của notifier</a>
+<a class="sub" href="#f-09-adr-0045-short-lived-node-certs-and-reenroll">ADR-0045: Cert node ngắn hạn tự gia hạn, re-enroll credential, thu hồi không dùng CRL</a>
 <a class="top" href="#f-10-quality-00-index">10. Quality Requirements</a>
 <a class="top" href="#f-11-risks-00-index">11. Risks and Technical Debt</a>
 <a class="top" href="#f-12-glossary-00-index">12. Glossary</a>
@@ -221,6 +223,7 @@ blockquote { margin: 0 0 14px; padding: 8px 16px; border-left: 3px solid var(--l
 <a class="sub" href="#f-08-cross-cutting-16-bot-management">8.16 Bot management</a>
 <a class="sub" href="#f-08-cross-cutting-17-api-security">8.17 API security</a>
 <a class="sub" href="#f-08-cross-cutting-18-segments-and-plans">8.18 Phân khúc khách, gói giá và kiến trúc theo gói</a>
+<a class="sub" href="#f-08-cross-cutting-19-node-identity-and-mtls">8.19 Danh tính node và mTLS tự gia hạn</a>
 <a class="top" href="#f-09-adr-00-index">9. Architecture Decisions</a>
 <a class="sub" href="#f-09-adr-0001-four-planes">ADR-0001: Bốn plane, edge độc lập runtime</a>
 <a class="sub" href="#f-09-adr-0002-central-compile-signed-snapshots">ADR-0002: Compile tập trung, edge nhận snapshot bất biến có chữ ký</a>
@@ -266,6 +269,7 @@ blockquote { margin: 0 0 14px; padding: 8px 16px; border-left: 3px solid var(--l
 <a class="sub" href="#f-09-adr-0042-plan-tiers-drive-placement-and-isolation">ADR-0042: Gói quyết định chỗ đặt zone, tài nguyên và thứ tự hy sinh</a>
 <a class="sub" href="#f-09-adr-0043-usage-based-pricing-and-metering">ADR-0043: Giá theo phí nền + hạn mức + phí vượt, đo usage không lấy mẫu, trần cứng ở edge</a>
 <a class="sub" href="#f-09-adr-0044-realtime-gateway-and-notifier-runtime">ADR-0044: Realtime gateway cho portal và runtime của notifier</a>
+<a class="sub" href="#f-09-adr-0045-short-lived-node-certs-and-reenroll">ADR-0045: Cert node ngắn hạn tự gia hạn, re-enroll credential, thu hồi không dùng CRL</a>
 <a class="top" href="#f-10-quality-00-index">10. Quality Requirements</a>
 <a class="top" href="#f-11-risks-00-index">11. Risks and Technical Debt</a>
 <a class="top" href="#f-12-glossary-00-index">12. Glossary</a>
@@ -1181,6 +1185,10 @@ nào&quot;. Không có UI cho khách; người vận hành NCC dùng console ri�
 <td>Danh tính node, nơi chạy (PoP riêng / hạ tầng đối tác / on-prem của khách), region, phiên bản phần mềm, version snapshot đang chạy theo zone, nhịp heartbeat. Trả lời &quot;bao nhiêu % fleet đang ở v42&quot;.</td>
 </tr>
 <tr>
+<td><strong>Node identity service</strong></td>
+<td>Cấp và gia hạn cert node 24 h sau khi kiểm registry, xử lý re-enroll của node offline, phát danh sách node bị chặn qua fast lane (<a href="#f-08-cross-cutting-19-node-identity-and-mtls">8.19</a>)</td>
+</tr>
+<tr>
 <td><strong>Cert &amp; key manager</strong></td>
 <td>Xác minh domain, ACME, gia hạn, nhận cert khách tải lên; giữ private key như bí mật cấp cao nhất; đưa vào snapshot dạng đã mã hoá cho node được phép.</td>
 </tr>
@@ -1999,6 +2007,18 @@ trong phần phát hành cho khách; không dịch vụ managed độc quyền m
 <td>OpenBao (transit, PKI)</td>
 <td>MPL-2.0</td>
 <td><a href="#f-09-adr-0017-openbao-for-signing-keys-and-node-pki">0017</a></td>
+</tr>
+<tr>
+<td>Node identity service</td>
+<td>Go service trước OpenBao PKI: kiểm registry, ký cert node 24 h, re-enroll</td>
+<td>—</td>
+<td><a href="#f-09-adr-0045-short-lived-node-certs-and-reenroll">0045</a></td>
+</tr>
+<tr>
+<td>Cert cho dịch vụ trung tâm</td>
+<td>cert-manager với issuer OpenBao</td>
+<td>Apache-2.0</td>
+<td><a href="#f-09-adr-0045-short-lived-node-certs-and-reenroll">0045</a></td>
 </tr>
 <tr>
 <td>ACME</td>
@@ -3071,7 +3091,7 @@ chỉ nạp phần bundle của mình từ cùng một manifest, nên hai tầng
 <tr>
 <td><strong>Enrollment</strong></td>
 <td>Danh tính node</td>
-<td>Lần đầu: bootstrap token một lần dùng + CSR → OpenBao PKI cấp cert ngắn hạn (24 h); tự gia hạn ở 2/3 thời hạn; cert chứa node ID, nơi chạy, region</td>
+<td>Lần đầu: bootstrap token một lần dùng + CSR → node identity service (Control) kiểm registry rồi nhờ OpenBao PKI ký cert 24 h, kèm re-enroll credential; tự gia hạn ở 2/3 thời hạn với cặp khoá mới; cert hết hạn do offline thì tự xin lại bằng re-enroll credential (<a href="#f-08-cross-cutting-19-node-identity-and-mtls">8.19</a>)</td>
 </tr>
 <tr>
 <td><strong>Control client</strong></td>
@@ -6893,6 +6913,10 @@ profile chuẩn cùng danh sách rule tắt, gắn cờ <code>waf_profile_fallba
 <td><a href="#f-08-cross-cutting-18-segments-and-plans">18-segments-and-plans.md</a></td>
 <td>8.18 Phân khúc khách, tải theo phân khúc, chi phí phục vụ, gói giá và entitlements, kiến trúc theo gói, thứ tự hy sinh khi quá tải</td>
 </tr>
+<tr>
+<td><a href="#f-08-cross-cutting-19-node-identity-and-mtls">19-node-identity-and-mtls.md</a></td>
+<td>8.19 Danh tính node, mTLS tự gia hạn: vòng đời cert 24 h, node offline lâu, thu hồi, xoay CA, mTLS tới origin</td>
+</tr>
 </tbody>
 </table>
 <h2 id="f-08-cross-cutting-00-index--81-multi-tenancy-và-cô-lập">8.1 Multi-tenancy và cô lập</h2>
@@ -6929,7 +6953,8 @@ profile chuẩn cùng danh sách rule tắt, gắn cờ <code>waf_profile_fallba
 <h2 id="f-08-cross-cutting-00-index--82-bảo-mật-của-chính-nền-tảng">8.2 Bảo mật của chính nền tảng</h2>
 <ul>
 <li><strong>Danh tính node:</strong> node enrollment một lần, nhận danh tính riêng; mọi kết nối node ↔ Control
-dùng mTLS; thu hồi được từng node.</li>
+dùng mTLS bằng cert 24 h tự gia hạn; thu hồi được từng node trong vài phút
+(<a href="#f-08-cross-cutting-19-node-identity-and-mtls">8.19</a>).</li>
 <li><strong>Snapshot có chữ ký:</strong> khoá ký nằm ở Control, node chỉ có khoá công khai; node bị chiếm không
 tạo được snapshot cho node khác.</li>
 <li><strong>Private key cert của khách:</strong> lưu mã hoá, giải mã ở node chỉ trong RAM; hướng mở rộng là
@@ -7400,7 +7425,7 @@ chắn, ngắn để tắt nhanh khi đã hết lỗi):</p>
 </tr>
 <tr>
 <td>Cert</td>
-<td>Cert hết hạn &lt; 14 ngày, lỗi gia hạn liên tiếp</td>
+<td>Cert khách hết hạn &lt; 14 ngày, lỗi gia hạn liên tiếp; cert node còn &lt; 6 h, tỉ lệ gia hạn của node identity service, số lần re-enroll (<a href="#f-08-cross-cutting-19-node-identity-and-mtls--6-giám-sát">8.19 §6</a>)</td>
 </tr>
 <tr>
 <td>Notifier, exporter</td>
@@ -7515,7 +7540,7 @@ ticket trong giờ làm việc.</p>
 </tr>
 <tr>
 <td>Runbook</td>
-<td>Kiểm relay của region, kết nối tới distribution, cert node còn hạn; nếu cert node hết hạn do mất kết nối kéo dài → enroll lại</td>
+<td>Kiểm relay của region, kết nối tới distribution, cert node còn hạn; cert hết hạn do mất kết nối thì node tự xin lại bằng re-enroll credential (offline ≤ 30 ngày); quá 30 ngày hoặc re-enroll bị từ chối → enroll lại theo B4 (<a href="#f-08-cross-cutting-19-node-identity-and-mtls--3-node-mất-kết-nối-lâu-hơn-thời-hạn-cert">8.19</a>)</td>
 </tr>
 </tbody>
 </table>
@@ -8095,9 +8120,9 @@ ticket trong giờ làm việc.</p>
 <td>Thêm khoá mới làm khoá cấp, giữ khoá cũ để kiểm trong thời hạn token dài nhất, rồi bỏ</td>
 </tr>
 <tr>
-<td>CA cho node</td>
-<td>24 tháng</td>
-<td>CA trung gian mới, node gia hạn dần theo vòng đời cert 24 h; bỏ CA cũ khi không còn cert nào</td>
+<td>CA trung gian cho node và dịch vụ</td>
+<td>12 tháng</td>
+<td>Thêm CA mới vào trust bundle, chờ 100% ack → ký bằng CA mới, node tự chuyển trong ≤ 24 h theo vòng gia hạn → bỏ CA cũ khi không còn cert nào (<a href="#f-08-cross-cutting-19-node-identity-and-mtls--5-xoay-ca-và-trust-bundle">8.19 §5</a>)</td>
 </tr>
 <tr>
 <td>Mã hoá key cert khách (transit)</td>
@@ -8962,7 +8987,7 @@ zone nào đều chạy cấu hình ≤ V.</p>
 <td>Node</td>
 <td>Agent</td>
 <td>A</td>
-<td>Tự gia hạn, không cần thao tác</td>
+<td>Tự gia hạn mỗi ≈ 16 h, không cần thao tác (<a href="#f-08-cross-cutting-19-node-identity-and-mtls">8.19</a>)</td>
 </tr>
 </tbody>
 </table>
@@ -10701,6 +10726,225 @@ gói). Quyết định: <a href="#f-09-adr-0043-usage-based-pricing-and-metering
 </tbody>
 </table>
 </section>
+<section class="doc" id="f-08-cross-cutting-19-node-identity-and-mtls"><div class="path">08-cross-cutting/19-node-identity-and-mtls.md</div><h1 id="f-08-cross-cutting-19-node-identity-and-mtls--819-danh-tính-node-và-mtls-tự-gia-hạn">8.19 Danh tính node và mTLS tự gia hạn</h1>
+<p>Mọi kết nối nội bộ của nền tảng dùng mTLS bằng cert ngắn hạn do CA nội bộ (OpenBao PKI,
+<a href="#f-09-adr-0017-openbao-for-signing-keys-and-node-pki">ADR-0017</a>) cấp, và <strong>không có bước gia hạn nào
+cần người làm</strong>. Quyết định: <a href="#f-09-adr-0045-short-lived-node-certs-and-reenroll">ADR-0045</a>.</p>
+<h2 id="f-08-cross-cutting-19-node-identity-and-mtls--1-các-loại-mtls-và-ai-lo-gia-hạn">1. Các loại mTLS và ai lo gia hạn</h2>
+<table>
+<thead>
+<tr>
+<th>Kết nối</th>
+<th>Bên trình cert</th>
+<th>Cert</th>
+<th>Gia hạn</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Node → Control (desired state, ACK), node → regional relay, node → ingest gateway</td>
+<td>Edge node (L7, WAF)</td>
+<td>Cert node, 24 h</td>
+<td>Policy agent tự gia hạn (mục 2)</td>
+</tr>
+<tr>
+<td>L7 ↔ WAF inspection (PoP lớn, qua mạng)</td>
+<td>Cả hai phía, đều là node</td>
+<td>Cert node, 24 h, SAN ghi vai trò <code>l7</code> / <code>waf</code></td>
+<td>Như trên; hai phía chỉ chấp nhận vai trò đối diện trong cùng PoP</td>
+</tr>
+<tr>
+<td>Dịch vụ trung tâm (Control, relay, ingest gateway, realtime gateway, Kafka, ClickHouse…)</td>
+<td>Pod trên Kubernetes</td>
+<td>Cert dịch vụ, 7 ngày</td>
+<td>cert-manager với issuer OpenBao, gia hạn ở 2/3 thời hạn, nạp lại không cần khởi động lại</td>
+</tr>
+<tr>
+<td>Edge → origin (khách bật &quot;xác thực edge với origin&quot;)</td>
+<td>L7</td>
+<td>Cert client theo zone, do <strong>Origin CA</strong> của NCC cấp, 90 ngày</td>
+<td>Cert service tự gia hạn ở 30 ngày cuối, phát xuống edge qua bundle (lớp A); khách tin <strong>CA</strong>, không ghim cert lá, nên gia hạn không cần khách làm gì</td>
+</tr>
+<tr>
+<td>Edge → origin bằng cert client khách tự tải lên</td>
+<td>L7</td>
+<td>Của khách</td>
+<td>Khách lo; cảnh báo từ 30 ngày trước khi hết hạn (<a href="#f-08-cross-cutting-13-operational-behaviors--a10-cert-của-khách-sắp-hết-hạn-hoặc-gia-hạn-lỗi">8.13 A10</a>)</td>
+</tr>
+<tr>
+<td>Client của khách → edge (API security, <a href="#f-08-cross-cutting-17-api-security">8.17</a>)</td>
+<td>Client của khách</td>
+<td>Do CA của khách cấp</td>
+<td>Khách lo; edge chỉ kiểm theo CA khách tải lên, cảnh báo khi CA sắp hết hạn</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-08-cross-cutting-19-node-identity-and-mtls--2-vòng-đời-cert-node">2. Vòng đời cert node</h2>
+<div class="diagram"><pre class="mermaid">sequenceDiagram
+    participant A as Policy agent (node)
+    participant I as Node identity service (Control)
+    participant R as Fleet registry
+    participant P as OpenBao PKI
+    Note over A: lần đầu: bootstrap token một lần dùng (B4)
+    A-&gt;&gt;A: sinh cặp khoá mới (TPM nếu có), private key không rời node
+    A-&gt;&gt;I: CSR + bootstrap token
+    I-&gt;&gt;R: node hợp lệ, chưa bị thu hồi?
+    I-&gt;&gt;P: ký cert 24 h (node ID, PoP, vai trò, region)
+    I--&gt;&gt;A: cert node + re-enroll credential
+    loop mỗi lần tới 2/3 thời hạn (≈ 16 h), jitter ± 10%
+        A-&gt;&gt;A: sinh cặp khoá mới
+        A-&gt;&gt;I: CSR qua mTLS bằng cert hiện tại
+        I-&gt;&gt;R: kiểm trạng thái node
+        I-&gt;&gt;P: ký cert mới
+        I--&gt;&gt;A: cert mới
+        A-&gt;&gt;A: swap nguyên khối, kết nối mới dùng cert mới
+    end
+</pre></div>
+<table>
+<thead>
+<tr>
+<th>Bước</th>
+<th>Thiết kế</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Nội dung cert</strong></td>
+<td>Node ID, PoP, region, vai trò (<code>l7</code>, <code>waf</code>), nơi chạy; SAN theo dạng SPIFFE ID (<code>spiffe://&lt;ncc&gt;/node/&lt;id&gt;</code>) để có thể chuyển sang SPIFFE/SPIRE sau này</td>
+</tr>
+<tr>
+<td><strong>Ai ký</strong></td>
+<td>Node không nói chuyện trực tiếp với OpenBao: gọi <strong>node identity service</strong> ở Control, dịch vụ này kiểm fleet registry (node tồn tại, đang hoạt động, chưa bị thu hồi, PoP và vai trò đúng) rồi mới nhờ OpenBao ký. OpenBao không lộ ra mạng của edge</td>
+</tr>
+<tr>
+<td><strong>Khoá</strong></td>
+<td>Mỗi lần gia hạn sinh cặp khoá mới (ECDSA P-256 hoặc Ed25519); private key nằm trong TPM nếu phần cứng có, nếu không thì chỉ trong RAM và file quyền <code>0600</code></td>
+</tr>
+<tr>
+<td><strong>Khi nào</strong></td>
+<td>Bắt đầu ở 2/3 thời hạn, cộng jitter để hàng nghìn node không gia hạn cùng lúc; lỗi thì thử lại với backoff tới khi còn 1 h</td>
+</tr>
+<tr>
+<td><strong>Nạp cert mới</strong></td>
+<td>Cert nằm sau một con trỏ nguyên tử; TLS lấy cert qua callback ở mỗi handshake mới. Kết nối đang mở giữ cert cũ cho tới khi đóng; mọi kết nối dài (gRPC tới Control, L7 ↔ WAF, Vector) có <strong>tuổi tối đa 1 h</strong> rồi tự mở lại, để cert mới và danh sách thu hồi có hiệu lực mà không cắt traffic</td>
+</tr>
+<tr>
+<td><strong>Vector</strong></td>
+<td>Đọc cert từ file agent ghi; agent báo Vector nạp lại cấu hình sau mỗi lần gia hạn</td>
+</tr>
+<tr>
+<td><strong>Lỗi gia hạn không ảnh hưởng traffic</strong></td>
+<td>Cert node chỉ dùng cho kênh điều khiển và log. Hết hạn thì node vẫn phục vụ traffic bằng snapshot đang có (last-good); chỉ mất cập nhật config và gửi log (log nằm chờ trong buffer đĩa)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-08-cross-cutting-19-node-identity-and-mtls--3-node-mất-kết-nối-lâu-hơn-thời-hạn-cert">3. Node mất kết nối lâu hơn thời hạn cert</h2>
+<p>Cert 24 h mà node offline 2 ngày (sự cố mạng, PoP đối tác bảo trì) thì cert đã hết hạn khi nối lại.
+Không bắt người vận hành enroll lại bằng tay, mà dùng <strong>re-enroll credential</strong>:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Thiết kế</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Là gì</td>
+<td>Khoá riêng thứ hai cấp lúc enroll, chỉ dùng được cho một endpoint: xin cấp lại cert node</td>
+</tr>
+<tr>
+<td>Lưu ở đâu</td>
+<td>TPM nếu có; nếu không, file mã hoá trên đĩa node</td>
+</tr>
+<tr>
+<td>Xoay</td>
+<td>Đổi mỗi 7 ngày khi node đang online (cùng luồng gia hạn)</td>
+</tr>
+<tr>
+<td>Điều kiện dùng được</td>
+<td>Node trong registry, chưa bị thu hồi, offline ≤ 30 ngày, kết nối tới từ dải mạng của PoP đã đăng ký</td>
+</tr>
+<tr>
+<td>Quá điều kiện</td>
+<td>Offline &gt; 30 ngày, hoặc node trên hạ tầng của khách ở chế độ hybrid mà khách yêu cầu duyệt: cần người vận hành duyệt (hoặc bootstrap token mới) theo <a href="#f-08-cross-cutting-13-operational-behaviors--b4-thêm-pop-enroll-node-ngừng-node">8.13 B4</a></td>
+</tr>
+<tr>
+<td>Ghi nhận</td>
+<td>Mỗi lần re-enroll ghi audit và sự kiện trong fleet registry; tần suất bất thường của một node là tín hiệu node bị chiếm</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-08-cross-cutting-19-node-identity-and-mtls--4-thu-hồi">4. Thu hồi</h2>
+<p>Không dùng CRL hay OCSP cho cert node:</p>
+<ul>
+<li><strong>Thời hạn ngắn là cơ chế thu hồi chính:</strong> node bị thu hồi trong registry thì không gia hạn được, cert
+cũ hết hạn trong ≤ 24 h.</li>
+<li><strong>Thu hồi ngay:</strong> danh sách node ID bị chặn phát qua fast lane tới mọi bên nhận kết nối của node
+(Control, relay, ingest gateway, WAF pool trong PoP); bên nhận từ chối handshake mới, và tuổi tối đa 1
+h của kết nối dài cắt nốt kết nối đang mở. Mục tiêu ≤ 5 phút (QS-40).</li>
+<li>Thu hồi cũng vô hiệu re-enroll credential của node đó.</li>
+</ul>
+<h2 id="f-08-cross-cutting-19-node-identity-and-mtls--5-xoay-ca-và-trust-bundle">5. Xoay CA và trust bundle</h2>
+<table>
+<thead>
+<tr>
+<th>Bước</th>
+<th>Thiết kế</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cấu trúc</td>
+<td>Root CA offline (giữ ngoài OpenBao, dùng khi tạo CA trung gian); CA trung gian trong OpenBao ký cert node và cert dịch vụ</td>
+</tr>
+<tr>
+<td>Trust bundle</td>
+<td>Danh sách CA được tin, phát qua bundle chung (lớp A) và cert-manager; luôn chứa CA hiện tại và CA kế tiếp trong giai đoạn xoay</td>
+</tr>
+<tr>
+<td>Xoay CA trung gian (mỗi 12 tháng, <a href="#f-08-cross-cutting-13-operational-behaviors--b5-xoay-khoá">8.13 B5</a>)</td>
+<td>(1) Thêm CA mới vào trust bundle, chờ 100% node và dịch vụ ack; (2) bắt đầu ký bằng CA mới, node tự chuyển sau ≤ 24 h theo vòng gia hạn; (3) khi không còn cert nào ký bằng CA cũ, bỏ CA cũ khỏi bundle</td>
+</tr>
+<tr>
+<td>Origin CA (cho edge → origin)</td>
+<td>Thời hạn dài (10 năm), công bố công khai để khách cấu hình tin; xoay theo kế hoạch có báo trước nhiều tháng, hai CA song song</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-08-cross-cutting-19-node-identity-and-mtls--6-giám-sát">6. Giám sát</h2>
+<table>
+<thead>
+<tr>
+<th>Tín hiệu</th>
+<th>Cảnh báo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>waap_agent_cert_expiry_seconds</code> theo node</td>
+<td>P3: một node còn &lt; 6 h mà chưa gia hạn được. P1: &gt; 1% node của một region còn &lt; 6 h (thường do node identity service hoặc OpenBao)</td>
+</tr>
+<tr>
+<td>Tỉ lệ gia hạn thành công của node identity service</td>
+<td>P2: lỗi &gt; 5% trong 15 phút</td>
+</tr>
+<tr>
+<td>Số lần re-enroll theo node</td>
+<td>P3: một node re-enroll &gt; 3 lần/tuần</td>
+</tr>
+<tr>
+<td>Cert dịch vụ trung tâm (cert-manager)</td>
+<td>P2: cert còn &lt; 2 ngày</td>
+</tr>
+<tr>
+<td>Hạn CA trung gian, Origin CA</td>
+<td>P2: còn &lt; 90 ngày mà chưa có CA kế tiếp trong trust bundle</td>
+</tr>
+</tbody>
+</table>
+<p>Kịch bản đo được: QS-39, QS-40 (<a href="#f-10-quality-00-index--103-kịch-bản">10.3</a>).</p>
+</section>
 <section class="doc" id="f-09-adr-00-index"><div class="path">09-adr/00-index.md</div><h1 id="f-09-adr-00-index--9-architecture-decisions">9. Architecture Decisions</h1>
 <p>Mỗi quyết định một file, định dạng: trạng thái, ngày, bối cảnh, quyết định, hệ quả, phương án đã
 cân nhắc. Quyết định bị thay thế giữ lại với trạng thái &quot;Bị thay thế bởi ADR-xxxx&quot;.</p>
@@ -10931,6 +11175,11 @@ cân nhắc. Quyết định bị thay thế giữ lại với trạng thái &qu
 <tr>
 <td><a href="#f-09-adr-0044-realtime-gateway-and-notifier-runtime">0044</a></td>
 <td>Realtime gateway cho hàng chục nghìn phiên portal và runtime của notifier: Go, Centrifugo, Elixir/Phoenix, managed; chọn Elixir + Phoenix</td>
+<td>Chấp nhận</td>
+</tr>
+<tr>
+<td><a href="#f-09-adr-0045-short-lived-node-certs-and-reenroll">0045</a></td>
+<td>Cert node 24 h tự gia hạn qua node identity service, re-enroll credential cho node offline, thu hồi bằng thời hạn ngắn + danh sách chặn, cert-manager cho dịch vụ, Origin CA cho edge → origin</td>
 <td>Chấp nhận</td>
 </tr>
 </tbody>
@@ -11418,7 +11667,7 @@ vụ S3-compatible bất kỳ; tự host và on-prem dùng <strong>SeaweedFS</st
 </section>
 <section class="doc" id="f-09-adr-0017-openbao-for-signing-keys-and-node-pki"><div class="path">09-adr/0017-openbao-for-signing-keys-and-node-pki.md</div><h1 id="f-09-adr-0017-openbao-for-signing-keys-and-node-pki--adr-0017-openbao-cho-khoá-ký-mã-hoá-key-cert-và-ca-của-node">ADR-0017: OpenBao cho khoá ký, mã hoá key cert và CA của node</h1>
 <ul>
-<li>Trạng thái: Chấp nhận</li>
+<li>Trạng thái: Chấp nhận; vòng đời cert node, gia hạn, thu hồi chi tiết ở <a href="#f-09-adr-0045-short-lived-node-certs-and-reenroll">ADR-0045</a></li>
 <li>Ngày: 2026-11-06</li>
 </ul>
 <h2 id="f-09-adr-0017-openbao-for-signing-keys-and-node-pki--quyết-định">Quyết định</h2>
@@ -13084,6 +13333,55 @@ các sự kiện từ detection.</li>
 <li>Enricher thêm live tap (Go) để đầu vào của gateway tỉ lệ với số zone đang xem.</li>
 </ul>
 </section>
+<section class="doc" id="f-09-adr-0045-short-lived-node-certs-and-reenroll"><div class="path">09-adr/0045-short-lived-node-certs-and-reenroll.md</div><h1 id="f-09-adr-0045-short-lived-node-certs-and-reenroll--adr-0045-cert-node-ngắn-hạn-tự-gia-hạn-re-enroll-credential-thu-hồi-không-dùng-crl">ADR-0045: Cert node ngắn hạn tự gia hạn, re-enroll credential, thu hồi không dùng CRL</h1>
+<ul>
+<li>Trạng thái: Chấp nhận</li>
+<li>Ngày: 2026-11-06</li>
+<li>Liên quan: <a href="#f-09-adr-0017-openbao-for-signing-keys-and-node-pki">ADR-0017</a>, <a href="#f-08-cross-cutting-19-node-identity-and-mtls">8.19</a></li>
+</ul>
+<h2 id="f-09-adr-0045-short-lived-node-certs-and-reenroll--bối-cảnh">Bối cảnh</h2>
+<p>Hàng trăm tới hàng nghìn edge node chạy trên PoP riêng, hạ tầng đối tác và hạ tầng của khách; mọi kênh
+điều khiển và log dùng mTLS. Cần:</p>
+<ul>
+<li>không có bước gia hạn bằng tay nào ở quy mô này;</li>
+<li>thu hồi nhanh một node bị chiếm;</li>
+<li>node mất mạng lâu vẫn tự quay lại được;</li>
+<li>cert hết hạn không bao giờ làm mất traffic của khách.</li>
+</ul>
+<h2 id="f-09-adr-0045-short-lived-node-certs-and-reenroll--quyết-định">Quyết định</h2>
+<ol>
+<li><strong>Cert node 24 h</strong>, gia hạn ở 2/3 thời hạn có jitter, mỗi lần một cặp khoá mới, private key không
+rời node (TPM nếu có).</li>
+<li><strong>Node identity service</strong> ở Control là bên duy nhất node gọi để xin cert; dịch vụ này kiểm fleet
+registry rồi mới nhờ OpenBao ký. OpenBao không lộ ra mạng edge.</li>
+<li><strong>Re-enroll credential</strong> riêng, chỉ để xin cấp lại cert khi cert đã hết hạn, dùng được khi node
+offline ≤ 30 ngày và chưa bị thu hồi; quá điều kiện thì cần người duyệt.</li>
+<li><strong>Thu hồi</strong> bằng thời hạn ngắn cộng danh sách chặn phát qua fast lane; kết nối dài có tuổi tối đa 1 h.
+Không CRL, không OCSP.</li>
+<li><strong>Dịch vụ trung tâm</strong> dùng cert-manager với issuer OpenBao, cert 7 ngày.</li>
+<li><strong>Edge → origin</strong> dùng cert client theo zone do Origin CA của NCC cấp, 90 ngày, tự gia hạn; khách
+tin CA chứ không ghim cert lá.</li>
+</ol>
+<h2 id="f-09-adr-0045-short-lived-node-certs-and-reenroll--hệ-quả">Hệ quả</h2>
+<ul>
+<li>Không có cert node nào sống quá 24 h; lộ khoá của một node chỉ có giá trị tới lần hết hạn kế tiếp.</li>
+<li>Node identity service và OpenBao nằm trên đường gia hạn của cả fleet: chạy HA; nếu cả hai sập lâu hơn
+≈ 8 h (phần còn lại của thời hạn sau khi bắt đầu gia hạn), node mất kênh điều khiển và log, nhưng traffic
+vẫn được phục vụ bằng snapshot đang có.</li>
+<li>Tải ký: 1.000 node gia hạn mỗi 16 h là chưa tới 0,02 lần ký/giây, không đáng kể; jitter tránh dồn.</li>
+<li>Cần TPM hoặc file mã hoá trên node cho re-enroll credential; node không có TPM có rủi ro lộ credential
+cao hơn, bù bằng điều kiện dải mạng và giám sát tần suất re-enroll.</li>
+</ul>
+<h2 id="f-09-adr-0045-short-lived-node-certs-and-reenroll--phương-án-đã-cân-nhắc">Phương án đã cân nhắc</h2>
+<ul>
+<li><strong>Cert dài hạn (1 năm) + CRL/OCSP:</strong> ít lần ký, nhưng thu hồi phụ thuộc phân phối CRL tới mọi bên
+nhận, và một khoá bị lộ có giá trị cả năm.</li>
+<li><strong>SPIFFE/SPIRE:</strong> đúng mô hình danh tính workload ngắn hạn, nhưng thêm một hệ thống nữa trên mọi node
+của đối tác và khách; giữ làm hướng tương thích (định dạng SAN theo SPIFFE ID) để có thể chuyển sau.</li>
+<li><strong>Bắt enroll lại bằng tay khi cert hết hạn:</strong> an toàn nhất nhưng không chịu nổi khi một sự cố mạng
+làm hàng trăm node offline quá 24 h cùng lúc.</li>
+</ul>
+</section>
 <section class="doc" id="f-10-quality-00-index"><div class="path">10-quality/00-index.md</div><h1 id="f-10-quality-00-index--10-quality-requirements">10. Quality Requirements</h1>
 <p>Các con số là <strong>mục tiêu đề xuất</strong>, cần chốt cùng product trước khi thiết kế chi tiết. Mỗi kịch
 bản phải đo được bằng chỉ số nền tảng ở <a href="#f-08-cross-cutting-00-index--811-quan-sát-chính-nền-tảng">08 §8.11</a>.</p>
@@ -13446,6 +13744,18 @@ kịch bản đo được (§10.3) và cơ chế kiến trúc đáp ứng nó.</
 <td>100.000 phiên đồng thời, trong đó 30.000 phiên mới mở trong 5 phút khi có tấn công lớn</td>
 <td>QS-37 giữ được; không node gateway nào hết RAM; luồng ghi log và Query API không bị ảnh hưởng</td>
 </tr>
+<tr>
+<td>QS-39</td>
+<td>Bảo mật vận hành</td>
+<td>Node offline 3 ngày rồi nối lại</td>
+<td>Tự có cert mới và nhận config trong ≤ 5 phút, không cần người làm; traffic không bị gián đoạn trong suốt thời gian offline</td>
+</tr>
+<tr>
+<td>QS-40</td>
+<td>Bảo mật vận hành</td>
+<td>Thu hồi một node nghi bị chiếm</td>
+<td>Mọi bên nhận từ chối kết nối mới của node trong ≤ 5 phút, kết nối đang mở bị cắt trong ≤ 1 h; node không gia hạn hay re-enroll được nữa</td>
+</tr>
 </tbody>
 </table>
 <h2 id="f-10-quality-00-index--104-quy-mô-thiết-kế">10.4 Quy mô thiết kế</h2>
@@ -13556,7 +13866,7 @@ kịch bản đo được (§10.3) và cơ chế kiến trúc đáp ứng nó.</
 <td>Node trên hạ tầng đối tác bị chiếm</td>
 <td>Thấp</td>
 <td>Cao</td>
-<td>Danh tính node, mTLS, thu hồi node, key cert chỉ trong RAM, keyless sau này</td>
+<td>Danh tính node, mTLS cert 24 h, thu hồi trong vài phút (<a href="#f-08-cross-cutting-19-node-identity-and-mtls">8.19</a>), key cert chỉ trong RAM, keyless sau này</td>
 <td>Hành vi bất thường từ một node</td>
 </tr>
 <tr>
@@ -14755,6 +15065,38 @@ theo chính sách tài liệu (<a href="#f-02-constraints-00-index--24-conventio
 <td>Hạ tầng cấp và thu hồi cert (CA cho node)</td>
 </tr>
 <tr>
+<td><strong>Node identity service</strong></td>
+<td>Dịch vụ ở Control cấp, gia hạn cert node sau khi kiểm fleet registry; node không gọi OpenBao trực tiếp (<a href="#f-08-cross-cutting-19-node-identity-and-mtls">8.19</a>)</td>
+</tr>
+<tr>
+<td><strong>Bootstrap token</strong></td>
+<td>Token một lần dùng để node enroll lần đầu</td>
+</tr>
+<tr>
+<td><strong>Re-enroll credential</strong></td>
+<td>Khoá riêng của node chỉ dùng để xin lại cert khi cert đã hết hạn do offline (≤ 30 ngày)</td>
+</tr>
+<tr>
+<td><strong>Trust bundle</strong></td>
+<td>Danh sách CA được tin, phát xuống node và dịch vụ; chứa CA hiện tại và CA kế tiếp khi xoay</td>
+</tr>
+<tr>
+<td><strong>Origin CA</strong></td>
+<td>CA của NCC cấp cert client cho edge khi xác thực với origin; khách cấu hình tin CA này</td>
+</tr>
+<tr>
+<td><strong>CRL / OCSP</strong></td>
+<td>Hai cách thu hồi cert truyền thống (danh sách thu hồi / hỏi trạng thái); không dùng cho cert node, thay bằng thời hạn ngắn</td>
+</tr>
+<tr>
+<td><strong>TPM</strong></td>
+<td>Chip bảo mật trên máy chủ, giữ private key không đọc ra được</td>
+</tr>
+<tr>
+<td><strong>SPIFFE / SPIRE</strong></td>
+<td>Chuẩn danh tính workload ngắn hạn / bản cài đặt của nó; SAN của cert node theo dạng SPIFFE ID</td>
+</tr>
+<tr>
 <td><strong>Keyless</strong></td>
 <td>Private key cert ở lại hạ tầng khách; edge gọi sang để ký khi bắt tay TLS</td>
 </tr>
@@ -14853,6 +15195,10 @@ theo chính sách tài liệu (<a href="#f-02-constraints-00-index--24-conventio
 <tr>
 <td><strong>OpenBao</strong></td>
 <td>Quản lý bí mật, PKI, ký (nhánh mã nguồn mở của Vault)</td>
+</tr>
+<tr>
+<td><strong>cert-manager</strong></td>
+<td>Controller Kubernetes tự cấp và gia hạn cert cho dịch vụ trung tâm</td>
 </tr>
 <tr>
 <td><strong>Vector</strong></td>
@@ -15052,7 +15398,7 @@ theo chính sách tài liệu (<a href="#f-02-constraints-00-index--24-conventio
 <td><a href="#f-01-introduction-00-index--13-mục-tiêu-chất-lượng">1.3</a></td>
 </tr>
 <tr>
-<td><strong>QS-1…QS-38</strong></td>
+<td><strong>QS-1…QS-40</strong></td>
 <td>Kịch bản chất lượng đo được</td>
 <td><a href="#f-10-quality-00-index--103-kịch-bản">10.3</a></td>
 </tr>
