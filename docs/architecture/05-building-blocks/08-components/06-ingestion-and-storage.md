@@ -1,4 +1,4 @@
-# C3 · Ingestion, xử lý luồng, lưu trữ (Analytics plane)
+# 5.8.6 Ingestion, xử lý luồng, lưu trữ (Analytics plane)
 
 ## Component diagram
 

@@ -48,4 +48,4 @@ Coraza), công nghệ từng plane ([05 · bản đồ công nghệ](../05-build
 | Cấp phép và cập nhật on-prem | Cách phát hành, cách cập nhật ruleset cho khách offline | [ADR-0006](../09-adr/0006-saas-first-on-prem-capable.md) |
 | Nhà cung cấp geo/ASN | MaxMind hay IPinfo, theo giá và điều khoản phân phối lại | [ADR-0025](../09-adr/0025-geo-asn-data-commercial-license.md) |
 | Đối tác L3/L4 và hạ tầng PoP đầu tiên | Chọn đối tác, region đầu tiên | [ADR-0005](../09-adr/0005-edge-on-own-and-existing-infra.md) |
-| Phân công zone cho node | MVP mọi node phục vụ mọi zone; khi nào chia shard | [level-3/21](../05-building-blocks/level-3/21-rollout-distribution-fleet.md) |
+| Phân công zone cho node | MVP mọi node phục vụ mọi zone; khi nào chia shard | [5.8.4](../05-building-blocks/08-components/04-rollout-distribution-fleet.md) |

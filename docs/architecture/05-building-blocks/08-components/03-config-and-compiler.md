@@ -1,4 +1,4 @@
-# C3 · Config service và compiler (Control plane)
+# 5.8.3 Config service và compiler (Control plane)
 
 Nhận ý định từ Management, lưu thành bản bất biến, biên dịch ra snapshot đã ký.
 

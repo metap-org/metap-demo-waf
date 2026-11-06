@@ -13,7 +13,7 @@ Các kịch bản chính, mỗi kịch bản là một luồng xuyên plane.
 | 6.7 | [Phát hành CRS hoặc system ruleset mới](#67-phát-hành-crs-hoặc-system-ruleset-mới) |
 | 6.8 | [Edge node khởi động, mất kết nối, phục hồi](#68-edge-node-khởi-động-mất-kết-nối-phục-hồi) |
 | 6.9 | [Đổi gói subscription](#69-đổi-gói-subscription) |
-| 6.10 | [Luồng Analytics](01-analytics-flows.md): đường ghi, ngân sách độ trễ, dashboard, điều tra, cảnh báo, export, replay, gate, metering, retention, lỗi theo chặng |
+| 6.10 | [Luồng Analytics](10-analytics-flows.md): đường ghi, ngân sách độ trễ, dashboard, điều tra, cảnh báo, export, replay, gate, metering, retention, lỗi theo chặng |
 
 ## 6.1 Một request qua edge
 

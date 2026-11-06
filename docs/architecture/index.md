@@ -7,7 +7,7 @@ chênh lệch so với kiến trúc đích được ghi ở [11. Risks and Techn
 
 Trạng thái: **bản nháp có quyết định** (2026-11-06). Mục 1–4 và level 1–2 của mục 5 mô tả *vai trò*,
 không gắn sản phẩm. Lựa chọn công nghệ nằm ở [05 · bản đồ công nghệ](05-building-blocks/07-technology-map.md)
-và ADR-0012 trở đi; detail design mức C3 ở [05 · level-3](05-building-blocks/level-3/00-index.md).
+và ADR-0012 trở đi; detail design mức C3 ở [5.8](05-building-blocks/08-components/00-index.md).
 
 ## Cách tổ chức
 
@@ -21,6 +21,15 @@ Cùng cách `metap-docs/docs/architectures` đang làm, ba framework bổ trợ 
   Process/Scenarios → [06](06-runtime/00-index.md), Physical → [07](07-deployment/00-index.md).
 
 Diagram viết bằng Mermaid để GitHub render trực tiếp và diff được trong PR.
+
+**Quy ước đánh số:** số đầu tên thư mục/file trùng số mục arc42.
+
+- Thư mục `NN-…` là mục `N`; `00-index.md` là trang của chính mục đó.
+- File `MM-…` trong thư mục `NN` là mục `N.M`; ví dụ `06-runtime/10-analytics-flows.md` là mục 6.10,
+  vì 6.1–6.9 nằm ngay trong `06-runtime/00-index.md`.
+- Thư mục con lặp lại quy tắc một cấp nữa: `05-building-blocks/08-components/03-config-and-compiler.md`
+  là mục 5.8.3.
+- ADR đánh số riêng, liên tục `0001`, `0002`, … và không bao giờ đánh lại.
 
 ## Các mục
 

@@ -2,7 +2,7 @@
 
 Mỗi hành vi được phân tích theo cùng khung: **mục tiêu** (SLO hoặc điều kiện thành công), **tín hiệu**
 (đo bằng gì), **cảnh báo** (điều kiện cụ thể, mức), **tự phản ứng** (hệ thống tự làm gì), **runbook**
-(người trực làm gì). SLO, probe và thuật toán burn rate ở [01-platform-monitoring.md](01-platform-monitoring.md).
+(người trực làm gì). SLO, probe và thuật toán burn rate ở [12-platform-monitoring.md](12-platform-monitoring.md).
 
 Mức cảnh báo: **P1** gọi on-call ngay; **P2** gọi on-call trong giờ, ngoài giờ trong 30 phút; **P3**
 ticket trong giờ làm việc.
@@ -114,7 +114,7 @@ ticket trong giờ làm việc.
 | | |
 |---|---|
 | Mục tiêu | Khách tự xử lý được bằng công cụ có sẵn; nền tảng không bị kéo sập; khách khác không bị ảnh hưởng |
-| Tín hiệu | Cảnh báo D1–D5 của khách ([32](../05-building-blocks/level-3/32-alerting-rules-and-algorithms.md)); rps theo PoP so với năng lực; tỉ lệ request bị DDoS L7 giảm thiểu |
+| Tín hiệu | Cảnh báo D1–D5 của khách ([32](../05-building-blocks/08-components/08-alerting-rules-and-algorithms.md)); rps theo PoP so với năng lực; tỉ lệ request bị DDoS L7 giảm thiểu |
 | Cảnh báo | NOC P2: một zone chiếm > 20% rps của một PoP. P1: PoP vượt 80% năng lực |
 | Tự phản ứng | DDoS L7 và rate limit của zone; Under Attack mode nếu khách đã bật tự động (chưa chốt); L3/L4 của hạ tầng/đối tác |
 | Runbook | Liên hệ khách (gói Business+), đề xuất Under Attack mode, rule chặn theo top nguồn; nếu PoP quá tải → bật scrubbing của đối tác cho dải IP bị tấn công, phân tán qua nhiều PoP; ghi sự cố, báo cáo sau tấn công cho khách |
@@ -146,7 +146,7 @@ ticket trong giờ làm việc.
 | | |
 |---|---|
 | Mục tiêu | Không tăng chặn nhầm; không giảm khả năng phát hiện; không tăng độ trễ quá ngưỡng |
-| Cách làm | Pipeline release ([22](../05-building-blocks/level-3/22-cert-ruleset-release.md)) → log-only song song toàn fleet ≥ 24 h → chuyển mặc định cho zone "tự nhận bản mới" |
+| Cách làm | Pipeline release ([22](../05-building-blocks/08-components/05-cert-ruleset-release.md)) → log-only song song toàn fleet ≥ 24 h → chuyển mặc định cho zone "tự nhận bản mới" |
 | Gate | Chênh lệch tỉ lệ chặn bản mới vs bản cũ trên traffic thật theo rule; W5 (nghi chặn nhầm) trên dữ liệu log-only |
 | Tự phản ứng | Dừng chuyển mặc định nếu gate hỏng |
 | Runbook | Rule mới gây chênh lệch lớn → tắt rule đó trong release, phát hành lại; thông báo thay đổi cho khách cố định version |

@@ -1,4 +1,4 @@
-# C3 · Policy agent, state sync, log shipping trên node
+# 5.8.2 Policy agent, state sync, log shipping trên node
 
 Ba thành phần chạy cạnh gateway trên mỗi node. Policy agent và state sync là module trong cùng
 binary Go; Vector là process riêng.

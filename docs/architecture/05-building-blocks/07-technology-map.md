@@ -1,7 +1,7 @@
 # 5.7 Bản đồ công nghệ
 
 Lựa chọn công nghệ cho từng thành phần ở level 2. Mỗi dòng có ADR giải thích lý do và phương án đã
-cân nhắc. Detail design mức C3 ở [level-3/](level-3/00-index.md).
+cân nhắc. Detail design mức C3 ở [08-components/](08-components/00-index.md).
 
 Hai tiêu chí chạy xuyên suốt:
 

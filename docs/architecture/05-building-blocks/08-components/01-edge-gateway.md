@@ -1,9 +1,9 @@
-# C3 · Edge gateway
+# 5.8.1 Edge gateway
 
 Một binary Go chạy trên mỗi edge node, chứa gateway, policy agent và state sync
 ([ADR-0013](../../09-adr/0013-edge-gateway-custom-go-with-coraza.md),
 [ADR-0015](../../09-adr/0015-snapshot-format-and-distribution.md)). File này mô tả phần gateway;
-agent và state sync ở [11-edge-agent-and-state.md](11-edge-agent-and-state.md).
+agent và state sync ở [02-edge-agent-and-state.md](02-edge-agent-and-state.md).
 
 ## Component diagram
 

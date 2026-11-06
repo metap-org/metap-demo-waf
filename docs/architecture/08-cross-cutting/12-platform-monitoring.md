@@ -1,7 +1,7 @@
 # 8.12 Giám sát nền tảng
 
 Giám sát chính hệ thống WAAP (của NCC), tách khỏi telemetry của khách. Phân tích theo từng hành vi
-vận hành ở [02-operational-behaviors.md](02-operational-behaviors.md). Quyết định nền:
+vận hành ở [13-operational-behaviors.md](13-operational-behaviors.md). Quyết định nền:
 [ADR-0029](../09-adr/0029-independent-platform-observability.md).
 
 ## 1. Nguyên tắc
@@ -142,7 +142,7 @@ Dùng khi điều tra sau khi cảnh báo SLO bắn; tên metrics theo quy ướ
 | Compiler, orchestrator | Job tồn, thời gian biên dịch, rollout bị dừng, gate hỏng |
 | Distribution, fleet | Số stream, node mất heartbeat, độ phủ version |
 | Cert | Cert hết hạn < 14 ngày, lỗi gia hạn liên tiếp |
-| Notifier, exporter | Như [33](../05-building-blocks/level-3/33-notification-fanout.md) và [31](../05-building-blocks/level-3/31-query-detection-export-replay.md) |
+| Notifier, exporter | Như [33](../05-building-blocks/08-components/09-notification-fanout.md) và [31](../05-building-blocks/08-components/07-query-detection-export-replay.md) |
 | OpenBao, PostgreSQL, Valkey, RabbitMQ | Trạng thái HA, độ trễ, kết nối, dung lượng |
 
 ## 7. Đối soát mất dữ liệu (S7)

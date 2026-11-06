@@ -1,4 +1,4 @@
-# C3 · Management plane
+# 5.8.10 Management plane
 
 Một **modular monolith** trên `metap-go`, không tách microservice như demo. Đội nhỏ, các context
 dùng chung tenant, quyền, audit; tách service khi có lý do scale cụ thể.

@@ -3,14 +3,14 @@
 | File | Nội dung |
 |---|---|
 | [00-index.md](00-index.md) | Level 1: bốn plane và quan hệ giữa chúng (C4 Container) |
-| [01-management-plane.md](01-management-plane.md) | Level 2: bounded context của Management |
-| [02-control-plane.md](02-control-plane.md) | Level 2: từ bản đã duyệt tới snapshot trên node |
-| [03-edge-plane.md](03-edge-plane.md) | Level 2: bên trong một edge node, pipeline request |
-| [04-analytics-plane.md](04-analytics-plane.md) | Level 2: luồng log, store, truy vấn, phát hiện |
-| [05-contracts.md](05-contracts.md) | Hợp đồng giữa các plane: thông điệp, đảm bảo giao nhận, version |
-| [06-data-model.md](06-data-model.md) | Mô hình dữ liệu logic của Management và mô hình rule |
-| [07-technology-map.md](07-technology-map.md) | Công nghệ cho từng thành phần, license, ADR |
-| [level-3/](level-3/00-index.md) | Level 3: detail design (C4 Component) cho từng container |
+| [01-management-plane.md](01-management-plane.md) | 5.1 Level 2: bounded context của Management |
+| [02-control-plane.md](02-control-plane.md) | 5.2 Level 2: từ bản đã duyệt tới snapshot trên node |
+| [03-edge-plane.md](03-edge-plane.md) | 5.3 Level 2: bên trong một edge node, pipeline request |
+| [04-analytics-plane.md](04-analytics-plane.md) | 5.4 Level 2: luồng log, store, truy vấn, phát hiện |
+| [05-contracts.md](05-contracts.md) | 5.5 Hợp đồng giữa các plane: thông điệp, đảm bảo giao nhận, version |
+| [06-data-model.md](06-data-model.md) | 5.6 Mô hình dữ liệu logic của Management và mô hình rule |
+| [07-technology-map.md](07-technology-map.md) | 5.7 Công nghệ cho từng thành phần, license, ADR |
+| [08-components/](08-components/00-index.md) | 5.8 Level 3: detail design (C4 Component) cho từng container |
 
 ## Level 1: bốn plane
 
