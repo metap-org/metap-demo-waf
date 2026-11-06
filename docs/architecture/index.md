@@ -48,6 +48,7 @@ Diagram viết bằng Mermaid để GitHub render trực tiếp và diff đượ
 
 ## Quan hệ với tài liệu khác trong repo
 
+- `docs/overview/`: bản HTML để đọc và trình bày (xem `README.md` trong đó), prefix `v1-`; bản hiện hành sinh từ thư mục này.
 - `data-plane/docs/`: spec nghiệp vụ và màn hình của portal demo. Phần nghiệp vụ (persona, domain,
   gói cước) vẫn dùng được làm đầu vào; phần ranh giới kiến trúc ở đó được thay bằng tài liệu này.
 - Tên gọi: thư mục `data-plane/` của repo tương ứng **Management plane** ở đây. Theo nghĩa chuẩn
