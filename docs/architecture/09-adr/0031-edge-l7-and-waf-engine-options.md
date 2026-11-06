@@ -65,13 +65,34 @@ Vì tầng WAF đã tách process, nhược điểm lớn nhất của E1 (GC) v
 
 ## 5. Cách L7 gọi WAF
 
+### WAF là callout, không phải một chặng (đã chốt)
+
+L7 gửi request sang WAF và chỉ nhận lại **verdict**; WAF không nằm trên đường đi của traffic tới origin.
+Phương án "WAF làm reverse proxy nối tiếp" (L7 → WAF → origin) đã bị loại ở
+[ADR-0033](0033-two-tier-edge-proxy-and-waf.md). Lý do:
+
+| | WAF là một chặng (forward HTTP) | WAF là callout, chỉ trả verdict |
+|---|---|---|
+| Response của origin | Đi qua WAF (response ≈ 25 KB so với request ≈ 1 KB): nhiều lần băng thông nội bộ PoP và RAM ở tầng WAF | Không đi qua WAF |
+| Tài nguyên tầng WAF | Giữ kết nối, đệm response, TLS tới origin: lại thành proxy tốn RAM | Thuần CPU |
+| WAF chết hoặc quá tải | Đường đi của request đứt; fail-open cần L7 tự đi vòng | L7 vẫn giữ request, áp fail mode ngay |
+| Verdict sớm | WAF tự trả trang chặn, tự đóng kết nối | WAF trả `BLOCK` giữa body, L7 dừng gửi |
+| Ngữ cảnh từ L7 (bot, consumer, deadline, version) | Nhét vào header, phải lọc header giả từ client | Trường có kiểu trong message |
+| Thực thi hành động, ghi log | Cả hai tầng cùng làm | Chỉ L7 |
+
+Dạng lai kiểu `auth_request` (gửi bản copy request, lấy status code làm verdict) vẫn là callout; chỉ khác
+giao thức, thuộc câu hỏi transport bên dưới.
+
+### Giao thức callout (còn mở)
+
+
 | | I1. Inspection API riêng (gRPC stream) | I2. Envoy `ext_proc` | I3. HAProxy SPOE |
 |---|---|---|---|
 | Mô tả | Proto của mình ([5.5](../05-building-blocks/05-contracts.md#inspection-api-l7--waf)) | Giao thức có sẵn của Envoy | Giao thức có sẵn của HAProxy |
 | Ưu | Độc lập nền L7; đúng thứ mình cần (verdict sớm, ngân sách thời gian) | Không phải viết client | Không phải viết client; có `coraza-spoa` |
 | Nhược | Phải viết client ở L7 | Gắn với Envoy | Gắn với HAProxy; giới hạn kích thước body |
 
-Đề xuất: **I1 là hợp đồng chuẩn**. Nếu chọn N2 hoặc N4, viết adapter nhỏ ở phía WAF nhận `ext_proc`
+Hướng hiện tại: **I1 là hợp đồng chuẩn**, chạy trên gRPC; transport còn mở (IA13); chi tiết hợp đồng còn mở (IA1–IA13 ở [5.5](../05-building-blocks/05-contracts.md#inspection-api-l7--waf)) và được nghiên cứu trong spike này. Nếu chọn N2 hoặc N4, viết adapter nhỏ ở phía WAF nhận `ext_proc`
 hoặc SPOE rồi chuyển sang I1, để tầng WAF chỉ có một giao diện.
 
 ## 6. Tổ hợp và shortlist

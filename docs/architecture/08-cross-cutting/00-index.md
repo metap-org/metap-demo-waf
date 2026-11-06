@@ -10,6 +10,7 @@
 | [16-bot-management.md](16-bot-management.md) | 8.16 Bot management: tín hiệu nhiều lớp, điểm và lớp, policy, challenge, vòng học, quyền riêng tư, chống chiếm tài khoản |
 | [17-api-security.md](17-api-security.md) | 8.17 API security: discovery, kho API, kiểm schema, JWT/mTLS, danh tính consumer, GraphQL, BOLA, dữ liệu nhạy cảm |
 | [18-segments-and-plans.md](18-segments-and-plans.md) | 8.18 Phân khúc khách, tải theo phân khúc, chi phí phục vụ, gói giá và entitlements, kiến trúc theo gói, thứ tự hy sinh khi quá tải |
+| [19-node-identity-and-mtls.md](19-node-identity-and-mtls.md) | 8.19 Danh tính node, mTLS tự gia hạn: vòng đời cert 24 h, node offline lâu, thu hồi, xoay CA, mTLS tới origin |
 
 ## 8.1 Multi-tenancy và cô lập
 
@@ -24,7 +25,8 @@
 ## 8.2 Bảo mật của chính nền tảng
 
 - **Danh tính node:** node enrollment một lần, nhận danh tính riêng; mọi kết nối node ↔ Control
-  dùng mTLS; thu hồi được từng node.
+  dùng mTLS bằng cert 24 h tự gia hạn; thu hồi được từng node trong vài phút
+  ([8.19](19-node-identity-and-mtls.md)).
 - **Snapshot có chữ ký:** khoá ký nằm ở Control, node chỉ có khoá công khai; node bị chiếm không
   tạo được snapshot cho node khác.
 - **Private key cert của khách:** lưu mã hoá, giải mã ở node chỉ trong RAM; hướng mở rộng là

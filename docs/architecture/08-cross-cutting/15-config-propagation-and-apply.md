@@ -100,7 +100,7 @@ zone nào đều chạy cấu hình ≤ V.
 | **Node profile**: cổng nghe, số worker, giới hạn RAM, kích thước cache đĩa, tham số HTTP/2/3 toàn cục, kích thước pool WAF, địa chỉ relay | Node / PoP | Cả hai | **C** | Bundle riêng có chữ ký, rollout như phần mềm |
 | Cấu hình Vector (đích, buffer) | Node | Vector | C (chỉ Vector) | Vector hot reload; không ảnh hưởng traffic |
 | Binary L7, WAF, agent | Node | Cả hai | **D** | |
-| Cert mTLS của node | Node | Agent | A | Tự gia hạn, không cần thao tác |
+| Cert mTLS của node | Node | Agent | A | Tự gia hạn mỗi ≈ 16 h, không cần thao tác ([8.19](19-node-identity-and-mtls.md)) |
 
 Nguyên tắc phân lớp: mọi thứ thuộc **zone hoặc tenant** phải là lớp A, vì khách đổi thường xuyên và
 phải có hiệu lực trong vài giây. Lớp B chỉ dành cho dữ liệu lớn dùng chung do NCC phát hành. Lớp C/D chỉ

@@ -43,6 +43,8 @@ Hai tiêu chí chạy xuyên suốt:
 | Snapshot | Protobuf + zstd, content-addressed (SHA-256), ký Ed25519 | — | [0015](../09-adr/0015-snapshot-format-and-distribution.md) |
 | Kênh Control ↔ node | gRPC stream hai chiều kiểu xDS (desired state, ACK/NACK) + HTTPS pull qua regional relay | Apache-2.0 | [0015](../09-adr/0015-snapshot-format-and-distribution.md) |
 | Khoá ký, mã hoá key cert, CA cho node | OpenBao (transit, PKI) | MPL-2.0 | [0017](../09-adr/0017-openbao-for-signing-keys-and-node-pki.md) |
+| Node identity service | Go service trước OpenBao PKI: kiểm registry, ký cert node 24 h, re-enroll | — | [0045](../09-adr/0045-short-lived-node-certs-and-reenroll.md) |
+| Cert cho dịch vụ trung tâm | cert-manager với issuer OpenBao | Apache-2.0 | [0045](../09-adr/0045-short-lived-node-certs-and-reenroll.md) |
 | ACME | `lego` | MIT | [0017](../09-adr/0017-openbao-for-signing-keys-and-node-pki.md) |
 | Regression ruleset, self-test snapshot | `go-ftw` + corpus traffic tốt/xấu; `edge-verify` (cùng code với edge) | Apache-2.0 | [0031](../09-adr/0031-edge-l7-and-waf-engine-options.md) |
 | Nhận sự kiện từ Management | RabbitMQ (outbox của `metap`) | MPL-2.0 | [0022](../09-adr/0022-rabbitmq-for-control-events-kafka-for-telemetry.md) |

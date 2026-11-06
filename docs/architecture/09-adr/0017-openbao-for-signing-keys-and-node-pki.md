@@ -1,6 +1,6 @@
 # ADR-0017: OpenBao cho khoá ký, mã hoá key cert và CA của node
 
-- Trạng thái: Chấp nhận
+- Trạng thái: Chấp nhận; vòng đời cert node, gia hạn, thu hồi chi tiết ở [ADR-0045](0045-short-lived-node-certs-and-reenroll.md)
 - Ngày: 2026-11-06
 
 ## Quyết định

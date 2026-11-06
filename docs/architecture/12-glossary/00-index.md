@@ -256,6 +256,14 @@ theo chính sách tài liệu ([2.4](../02-constraints/00-index.md#24-convention
 |---|---|
 | **mTLS** | TLS hai chiều: cả hai bên trình cert; dùng giữa node và Control, L7 và WAF, edge và origin |
 | **PKI** | Hạ tầng cấp và thu hồi cert (CA cho node) |
+| **Node identity service** | Dịch vụ ở Control cấp, gia hạn cert node sau khi kiểm fleet registry; node không gọi OpenBao trực tiếp ([8.19](../08-cross-cutting/19-node-identity-and-mtls.md)) |
+| **Bootstrap token** | Token một lần dùng để node enroll lần đầu |
+| **Re-enroll credential** | Khoá riêng của node chỉ dùng để xin lại cert khi cert đã hết hạn do offline (≤ 30 ngày) |
+| **Trust bundle** | Danh sách CA được tin, phát xuống node và dịch vụ; chứa CA hiện tại và CA kế tiếp khi xoay |
+| **Origin CA** | CA của NCC cấp cert client cho edge khi xác thực với origin; khách cấu hình tin CA này |
+| **CRL / OCSP** | Hai cách thu hồi cert truyền thống (danh sách thu hồi / hỏi trạng thái); không dùng cho cert node, thay bằng thời hạn ngắn |
+| **TPM** | Chip bảo mật trên máy chủ, giữ private key không đọc ra được |
+| **SPIFFE / SPIRE** | Chuẩn danh tính workload ngắn hạn / bản cài đặt của nó; SAN của cert node theo dạng SPIFFE ID |
 | **Keyless** | Private key cert ở lại hạ tầng khách; edge gọi sang để ký khi bắt tay TLS |
 | **BYOIP** | Bring your own IP: khách đưa dải IP của mình để edge quảng bá |
 | **HMAC** | Mã xác thực thông điệp bằng khoá bí mật; dùng ký webhook |
@@ -285,6 +293,7 @@ Lựa chọn và lý do ở [5.7](../05-building-blocks/07-technology-map.md) v�
 | **CoreDNS** | DNS server Go, mở rộng bằng plugin; dùng cho DNS điều hướng |
 | **Valkey** | Kho key-value tương thích Redis, license BSD; đồng bộ counter hot key |
 | **OpenBao** | Quản lý bí mật, PKI, ký (nhánh mã nguồn mở của Vault) |
+| **cert-manager** | Controller Kubernetes tự cấp và gia hạn cert cho dịch vụ trung tâm |
 | **Vector** | Log shipper trên node và ingest gateway |
 | **Elixir / BEAM / OTP** | Ngôn ngữ chạy trên máy ảo Erlang (BEAM), mỗi thực thể là một process nhẹ, OTP supervisor tự khởi động lại khi lỗi; dùng cho realtime gateway và notifier ([ADR-0044](../09-adr/0044-realtime-gateway-and-notifier-runtime.md)) |
 | **Phoenix Channels / PubSub / Presence** | Thư viện Elixir: kênh WebSocket theo topic / phát message trong cụm / theo dõi ai đang kết nối |
@@ -340,8 +349,8 @@ Mỗi tiền tố chỉ có một nghĩa trong toàn bộ tài liệu.
 | Mã | Nghĩa | Ở đâu |
 |---|---|---|
 | **Q1–Q6** | Mục tiêu chất lượng | [1.3](../01-introduction/00-index.md#13-mục-tiêu-chất-lượng) |
-| **QS-1…QS-38** | Kịch bản chất lượng đo được | [10.3](../10-quality/00-index.md#103-kịch-bản) |
-| **R1…R27** | Rủi ro | [11.1](../11-risks/00-index.md) |
+| **QS-1…QS-40** | Kịch bản chất lượng đo được | [10.3](../10-quality/00-index.md#103-kịch-bản) |
+| **R1…R28** | Rủi ro | [11.1](../11-risks/00-index.md) |
 | **A1…A17 / B1…B10** | Tình huống vận hành tự xảy ra / thao tác của người vận hành, mỗi cái có runbook | [8.13](../08-cross-cutting/13-operational-behaviors.md) |
 | **S1…S12** | SLI của nền tảng | [8.12](../08-cross-cutting/12-platform-monitoring.md) |
 | **PR1…PR8** | Probe tổng hợp | [8.12 §4](../08-cross-cutting/12-platform-monitoring.md#4-probe-tổng-hợp-theo-hành-vi) |
@@ -352,6 +361,7 @@ Mỗi tiền tố chỉ có một nghĩa trong toàn bộ tài liệu.
 | **L1…L4** (sharding) | Bốn lớp sharding: routing index, PoP store, runtime node, cell | [7.5 §4](../07-deployment/05-capacity-and-sharding.md#4-sharding-bốn-lớp) |
 | **T1…T13** | Tiêu chí chọn nền L7 và engine WAF | [ADR-0031](../09-adr/0031-edge-l7-and-waf-engine-options.md) |
 | **N1…N5 / E1…E3 / I1…I3 / K1…K5** | Phương án nền L7 / engine WAF / cách L7 gọi WAF / tổ hợp cho spike | [ADR-0031](../09-adr/0031-edge-l7-and-waf-engine-options.md) |
+| **IA1…IA13** | Điểm còn mở của hợp đồng Inspection API | [5.5](../05-building-blocks/05-contracts.md#inspection-api-l7--waf) |
 | **C1…C4** | Phương án cell | [ADR-0041](../09-adr/0041-cells-and-zone-placement.md) |
 | **Lớp A/B/C/D** | Lớp áp dụng cấu hình trên edge | [8.15](../08-cross-cutting/15-config-propagation-and-apply.md) |
 | **SEV1, SEV2, SEV3** | Mức sự cố | [8.13](../08-cross-cutting/13-operational-behaviors.md) |

@@ -37,7 +37,7 @@ ticket trong giờ làm việc.
 | Tín hiệu | `waap_agent_control_connected`; độ lệch giữa manifest node đang chạy và manifest đích; tuổi của snapshot (`last_good_age`) |
 | Cảnh báo | P3: node lệch version > 10 phút. P2: > 5% node một region lệch > 10 phút (thường là sự cố mạng tới Control/relay) |
 | Tự phản ứng | Agent thử lại với backoff, chuyển relay dự phòng; node lệch quá 24 h tự rút khỏi health check của PoP (để không phục vụ bằng config quá cũ) |
-| Runbook | Kiểm relay của region, kết nối tới distribution, cert node còn hạn; nếu cert node hết hạn do mất kết nối kéo dài → enroll lại |
+| Runbook | Kiểm relay của region, kết nối tới distribution, cert node còn hạn; cert hết hạn do mất kết nối thì node tự xin lại bằng re-enroll credential (offline ≤ 30 ngày); quá 30 ngày hoặc re-enroll bị từ chối → enroll lại theo B4 ([8.19](19-node-identity-and-mtls.md#3-node-mất-kết-nối-lâu-hơn-thời-hạn-cert)) |
 
 ### A4. Độ trễ thêm tại edge tăng
 
@@ -226,7 +226,7 @@ ticket trong giờ làm việc.
 |---|---|---|
 | Ký manifest (Ed25519, OpenBao) | 12 tháng hoặc khi nghi lộ | Phát khoá công khai mới trong bundle chung (node chấp nhận cả cũ và mới) → chờ 100% node ack → ký bằng khoá mới → bỏ khoá cũ khỏi danh sách sau 7 ngày |
 | HMAC clearance token | 30 ngày | Thêm khoá mới làm khoá cấp, giữ khoá cũ để kiểm trong thời hạn token dài nhất, rồi bỏ |
-| CA cho node | 24 tháng | CA trung gian mới, node gia hạn dần theo vòng đời cert 24 h; bỏ CA cũ khi không còn cert nào |
+| CA trung gian cho node và dịch vụ | 12 tháng | Thêm CA mới vào trust bundle, chờ 100% ack → ký bằng CA mới, node tự chuyển trong ≤ 24 h theo vòng gia hạn → bỏ CA cũ khi không còn cert nào ([8.19 §5](19-node-identity-and-mtls.md#5-xoay-ca-và-trust-bundle)) |
 | Mã hoá key cert khách (transit) | 12 tháng | Xoay version khoá trong OpenBao, rewrap dần ciphertext |
 
 Tín hiệu: tỉ lệ node đã có khoá mới, lỗi kiểm chữ ký/token sau xoay. Cảnh báo P1 nếu lỗi kiểm chữ ký
