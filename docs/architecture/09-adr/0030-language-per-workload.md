@@ -45,4 +45,6 @@ Nếu edge không viết bằng Go, ranh giới ngôn ngữ trùng ranh giới p
   lý thừa sức với thiết kế ở [5.8.11](../05-building-blocks/08-components/11-notification-fanout.md),
   còn thêm runtime thứ ba thì tốn vận hành và tuyển người. Xem lại khi: (a) cần đẩy event realtime tới
   hàng chục nghìn phiên portal cùng lúc (Phoenix Channels là lựa chọn mạnh), hoặc (b) số tin thông báo
-  vượt mức một cụm Go nhỏ xử lý được.
+  vượt mức một cụm Go nhỏ xử lý được. **Điều kiện (a) đã xảy ra** theo ước lượng ở quy mô 1 triệu zone
+  (2026-11-06): xem [ADR-0044](0044-realtime-gateway-and-notifier-runtime.md), đề xuất Elixir cho
+  realtime gateway và notifier.

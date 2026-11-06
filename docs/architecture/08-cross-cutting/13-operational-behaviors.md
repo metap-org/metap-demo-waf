@@ -169,6 +169,16 @@ ticket trong giờ làm việc.
 | Tự phản ứng | Chuyển zone chiếm tải bất thường sang cell cách ly (đổi `cell_id` trong routing index và câu trả lời DNS); cân bằng lại cell theo tải hằng ngày |
 | Runbook | Xác nhận zone bị chuyển và lý do (tấn công hay tăng trưởng thật); tăng trưởng thật thì chuyển zone sang cell riêng hoặc thêm node cho cell; theo dõi tỉ lệ nạp zone nguội sau mỗi lần chuyển |
 
+### A17. Realtime gateway quá tải hoặc dữ liệu live trễ
+
+| | |
+|---|---|
+| Mục tiêu | QS-37, QS-38 |
+| Tín hiệu | Số phiên theo node và region, tốc độ kết nối mới, độ dài hàng đợi gửi theo phiên, RAM node, số zone đang xem, độ trễ từ edge tới message live (theo timestamp trong message), lag consumer topic `live` |
+| Cảnh báo | P2: độ trễ live p95 > 10 s trong 5 phút, hoặc RAM node > 80%. P3: tỉ lệ phiên bị hạ xuống chế độ chỉ số liệu > 5% |
+| Tự phản ứng | Giới hạn tốc độ kết nối mới theo tenant; giảm event mẫu rồi giãn số liệu Free/Pro theo thứ tự ở [5.8.13](../05-building-blocks/08-components/13-realtime-gateway.md#lỗi-và-hành-vi); autoscale node gateway theo số phiên |
+| Runbook | Xác định do số phiên tăng (tấn công, sự kiện) hay do enricher/Kafka trễ; thêm node; nếu một tenant mở quá nhiều phiên thì áp hạn mức của gói |
+
 ## B. Thao tác của người vận hành
 
 ### B1. Rollout phần mềm edge

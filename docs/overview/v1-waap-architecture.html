@@ -117,6 +117,7 @@ blockquote { margin: 0 0 14px; padding: 8px 16px; border-left: 3px solid var(--l
 <a class="sub2" href="#f-05-building-blocks-08-components-10-alerting-rules-and-algorithms">5.8.10 Cảnh báo WAF và DDoS: cấu hình ngưỡng và thuật toán</a>
 <a class="sub2" href="#f-05-building-blocks-08-components-11-notification-fanout">5.8.11 Notification: fan-out nhiều kênh, khách tự tích hợp, mở kênh theo gói</a>
 <a class="sub2" href="#f-05-building-blocks-08-components-12-management">5.8.12 Management plane</a>
+<a class="sub2" href="#f-05-building-blocks-08-components-13-realtime-gateway">5.8.13 Realtime gateway (Analytics plane)</a>
 <a class="top" href="#f-06-runtime-00-index">6. Runtime View</a>
 <a class="sub" href="#f-06-runtime-10-analytics-flows">6.10 Luồng Analytics</a>
 <a class="top" href="#f-07-deployment-00-index">7. Deployment View</a>
@@ -173,6 +174,7 @@ blockquote { margin: 0 0 14px; padding: 8px 16px; border-left: 3px solid var(--l
 <a class="sub" href="#f-09-adr-0041-cells-and-zone-placement">ADR-0041: Cell và cách đặt zone</a>
 <a class="sub" href="#f-09-adr-0042-plan-tiers-drive-placement-and-isolation">ADR-0042: Gói quyết định chỗ đặt zone, tài nguyên và thứ tự hy sinh</a>
 <a class="sub" href="#f-09-adr-0043-usage-based-pricing-and-metering">ADR-0043: Giá theo phí nền + hạn mức + phí vượt, đo usage không lấy mẫu, trần cứng ở edge</a>
+<a class="sub" href="#f-09-adr-0044-realtime-gateway-and-notifier-runtime">ADR-0044: Realtime gateway cho portal và runtime của notifier</a>
 <a class="top" href="#f-10-quality-00-index">10. Quality Requirements</a>
 <a class="top" href="#f-11-risks-00-index">11. Risks and Technical Debt</a>
 <a class="top" href="#f-12-glossary-00-index">12. Glossary</a>
@@ -206,6 +208,7 @@ blockquote { margin: 0 0 14px; padding: 8px 16px; border-left: 3px solid var(--l
 <a class="sub2" href="#f-05-building-blocks-08-components-10-alerting-rules-and-algorithms">5.8.10 Cảnh báo WAF và DDoS: cấu hình ngưỡng và thuật toán</a>
 <a class="sub2" href="#f-05-building-blocks-08-components-11-notification-fanout">5.8.11 Notification: fan-out nhiều kênh, khách tự tích hợp, mở kênh theo gói</a>
 <a class="sub2" href="#f-05-building-blocks-08-components-12-management">5.8.12 Management plane</a>
+<a class="sub2" href="#f-05-building-blocks-08-components-13-realtime-gateway">5.8.13 Realtime gateway (Analytics plane)</a>
 <a class="top" href="#f-06-runtime-00-index">6. Runtime View</a>
 <a class="sub" href="#f-06-runtime-10-analytics-flows">6.10 Luồng Analytics</a>
 <a class="top" href="#f-07-deployment-00-index">7. Deployment View</a>
@@ -262,6 +265,7 @@ blockquote { margin: 0 0 14px; padding: 8px 16px; border-left: 3px solid var(--l
 <a class="sub" href="#f-09-adr-0041-cells-and-zone-placement">ADR-0041: Cell và cách đặt zone</a>
 <a class="sub" href="#f-09-adr-0042-plan-tiers-drive-placement-and-isolation">ADR-0042: Gói quyết định chỗ đặt zone, tài nguyên và thứ tự hy sinh</a>
 <a class="sub" href="#f-09-adr-0043-usage-based-pricing-and-metering">ADR-0043: Giá theo phí nền + hạn mức + phí vượt, đo usage không lấy mẫu, trần cứng ở edge</a>
+<a class="sub" href="#f-09-adr-0044-realtime-gateway-and-notifier-runtime">ADR-0044: Realtime gateway cho portal và runtime của notifier</a>
 <a class="top" href="#f-10-quality-00-index">10. Quality Requirements</a>
 <a class="top" href="#f-11-risks-00-index">11. Risks and Technical Debt</a>
 <a class="top" href="#f-12-glossary-00-index">12. Glossary</a>
@@ -1419,7 +1423,9 @@ không trả lời kịp cũng áp fail mode này.</p>
         meter[&quot;Metering&quot;]
         q[&quot;Query API&quot;]
         rp[&quot;Replay&quot;]
+        rt[&quot;Realtime gateway&quot;]
     end
+    portal[&quot;Portal&quot;]
     mgmt[&quot;Management&quot;]
     ctrl[&quot;Control · Rollout gate&quot;]
     siem[&quot;SIEM của khách&quot;]
@@ -1440,6 +1446,8 @@ không trả lời kịp cũng áp fail mode này.</p>
     det --&gt; notify
     col -.-&gt;|chỉ số theo version| ctrl
     meter --&gt;|số đo sử dụng| mgmt
+    sp --&gt;|live tap: zone đang xem| rt
+    rt &lt;--&gt;|WebSocket| portal
 </pre></div>
 <table>
 <thead>
@@ -1488,6 +1496,10 @@ không trả lời kịp cũng áp fail mode này.</p>
 <tr>
 <td><strong>Query API</strong></td>
 <td>Cửa duy nhất để đọc dữ liệu traffic: áp quyền theo tenant/zone, giới hạn khoảng thời gian và chi phí theo entitlements</td>
+</tr>
+<tr>
+<td><strong>Realtime gateway</strong></td>
+<td>Đẩy số liệu từng giây, security event mẫu, cảnh báo, tiến độ rollout tới hàng chục nghìn phiên portal qua WebSocket; chỉ gom cho zone đang có người xem (<a href="#f-05-building-blocks-08-components-13-realtime-gateway">5.8.13</a>)</td>
 </tr>
 <tr>
 <td><strong>Replay</strong></td>
@@ -2032,10 +2044,16 @@ trong phần phát hành cho khách; không dịch vụ managed độc quyền m
 <td><a href="#f-09-adr-0018-kafka-as-telemetry-bus">0018</a></td>
 </tr>
 <tr>
-<td>Stream processor, exporter, detection, notifier, query API</td>
+<td>Stream processor (kèm live tap), exporter, detection, query API</td>
 <td>Go services (<code>franz-go</code>, <code>clickhouse-go</code>)</td>
 <td>BSD-3 / Apache-2.0</td>
 <td><a href="#f-09-adr-0030-language-per-workload">0030</a></td>
+</tr>
+<tr>
+<td>Realtime gateway, notifier</td>
+<td><strong>Chờ chọn.</strong> Đề xuất Elixir + Phoenix Channels, Broadway, Oban (mã nguồn mở); dự phòng Centrifugo + Go</td>
+<td>Apache-2.0 / MIT</td>
+<td><a href="#f-09-adr-0044-realtime-gateway-and-notifier-runtime">0044</a></td>
 </tr>
 <tr>
 <td>Hàng đợi gửi cảnh báo</td>
@@ -2224,6 +2242,12 @@ thiết kế, hợp đồng hoặc schema chính, hành vi khi lỗi. Công ngh�
 <td>waap-management (metap-go), portal</td>
 <td>Management</td>
 </tr>
+<tr>
+<td>5.8.13</td>
+<td><a href="#f-05-building-blocks-08-components-13-realtime-gateway">13-realtime-gateway.md</a></td>
+<td>Realtime gateway: số liệu và event live tới portal, hàng chục nghìn phiên</td>
+<td>Analytics</td>
+</tr>
 </tbody>
 </table>
 <h2 id="f-05-building-blocks-08-components-00-index--danh-sách-deployable">Danh sách deployable</h2>
@@ -2277,8 +2301,13 @@ thiết kế, hợp đồng hoặc schema chính, hành vi khi lỗi. Công ngh�
 <td>Core region (Kubernetes)</td>
 </tr>
 <tr>
-<td><code>enricher</code>, <code>archiver</code>, <code>query-api</code>, <code>detection</code>, <code>notifier</code>, <code>exporter</code></td>
+<td><code>enricher</code> (kèm live tap), <code>archiver</code>, <code>query-api</code>, <code>detection</code>, <code>exporter</code></td>
 <td>Go</td>
+<td>Mỗi Analytics region (Kubernetes)</td>
+</tr>
+<tr>
+<td><code>realtime-gateway</code>, <code>notifier</code></td>
+<td>Chờ chọn: Elixir + Phoenix/Oban (đề xuất) hoặc Go (<a href="#f-09-adr-0044-realtime-gateway-and-notifier-runtime">ADR-0044</a>)</td>
 <td>Mỗi Analytics region (Kubernetes)</td>
 </tr>
 <tr>
@@ -4716,6 +4745,7 @@ Cùng code thuật toán với detector (package Go dùng chung), nên kết qu�
 </table>
 </section>
 <section class="doc" id="f-05-building-blocks-08-components-11-notification-fanout"><div class="path">05-building-blocks/08-components/11-notification-fanout.md</div><h1 id="f-05-building-blocks-08-components-11-notification-fanout--5811-notification-fan-out-nhiều-kênh-khách-tự-tích-hợp-mở-kênh-theo-gói">5.8.11 Notification: fan-out nhiều kênh, khách tự tích hợp, mở kênh theo gói</h1>
+<p>Runtime chờ chọn theo <a href="#f-09-adr-0044-realtime-gateway-and-notifier-runtime">ADR-0044</a>: Go (hiện tại) hoặc Elixir + Oban (đề xuất, dùng chung runtime với realtime gateway). Thiết kế dưới đây (bảng <code>deliveries</code>, adapter theo kênh, retry, cô lập lỗi) không đổi theo lựa chọn.</p>
 <p>Nhận sự kiện cảnh báo từ alert engine (<a href="#f-05-building-blocks-08-components-10-alerting-rules-and-algorithms">32</a>) và gửi tới mọi kênh
 khách cấu hình. Quyết định nền: <a href="#f-09-adr-0028-notification-adapters-and-plan-gated-channels">ADR-0028</a>.</p>
 <p>Ba yêu cầu:</p>
@@ -4728,7 +4758,7 @@ khách cấu hình. Quyết định nền: <a href="#f-09-adr-0028-notification-
 <div class="diagram"><pre class="mermaid">flowchart LR
     ae[&quot;Alert engine&lt;br/&gt;AlertEvent: firing · escalated · resolved · renotify&quot;]
     mg[&quot;Management&lt;br/&gt;kênh · rule định tuyến · template&quot;]
-    subgraph NT[&quot;notifier (Go)&quot;]
+    subgraph NT[&quot;notifier&quot;]
         rt[&quot;Router&lt;br/&gt;khớp routing rule&quot;]
         ent[&quot;Entitlement gate&quot;]
         ren[&quot;Renderer&lt;br/&gt;template theo loại kênh&quot;]
@@ -5203,6 +5233,248 @@ sang Analytics để join vào hiệu quả rule.</p>
 </table>
 <p>ABAC giới hạn theo zone hoặc nhóm zone (tag). Duyệt 4-eyes: người duyệt khác người tạo, bật theo account.</p>
 </section>
+<section class="doc" id="f-05-building-blocks-08-components-13-realtime-gateway"><div class="path">05-building-blocks/08-components/13-realtime-gateway.md</div><h1 id="f-05-building-blocks-08-components-13-realtime-gateway--5813-realtime-gateway-analytics-plane">5.8.13 Realtime gateway (Analytics plane)</h1>
+<p>Đẩy dữ liệu gần realtime tới portal: số liệu traffic từng giây của zone đang xem, security event mới,
+cảnh báo, tiến độ lan truyền cấu hình, cập nhật case. Công nghệ chờ chọn theo
+<a href="#f-09-adr-0044-realtime-gateway-and-notifier-runtime">ADR-0044</a> (đề xuất Elixir + Phoenix
+Channels).</p>
+<h2 id="f-05-building-blocks-08-components-13-realtime-gateway--vì-sao-cần-thành-phần-riêng">Vì sao cần thành phần riêng</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Query API (<a href="#f-05-building-blocks-08-components-09-query-detection-export-replay">5.8.9</a>)</th>
+<th>Realtime gateway</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Kiểu</td>
+<td>Hỏi đáp (request/response)</td>
+<td>Đẩy (kết nối dài, WebSocket)</td>
+</tr>
+<tr>
+<td>Nguồn</td>
+<td>ClickHouse, archive</td>
+<td>Kafka (luồng đã làm giàu), RabbitMQ</td>
+</tr>
+<tr>
+<td>Độ trễ tới người xem</td>
+<td>Theo dashboard refresh (giây tới phút)</td>
+<td>≤ 5 s p95 từ edge tới màn hình</td>
+</tr>
+<tr>
+<td>Tải</td>
+<td>Theo số truy vấn</td>
+<td>Theo <strong>số phiên mở</strong> và số zone đang được xem</td>
+</tr>
+</tbody>
+</table>
+<p>Ở quy mô 1 triệu zone (<a href="#f-07-deployment-05-capacity-and-sharding">7.5</a>), số phiên portal mở cùng
+lúc ước tính:</p>
+<table>
+<thead>
+<tr>
+<th>Tình huống</th>
+<th>Phiên đồng thời</th>
+<th>Ghi chú</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Bình thường</td>
+<td>10.000–30.000</td>
+<td>Đội SOC của khách để màn hình giám sát mở cả ngày</td>
+</tr>
+<tr>
+<td>Đợt tấn công lớn hoặc sự kiện bán hàng</td>
+<td><strong>50.000–100.000</strong></td>
+<td>Mọi khách bị ảnh hưởng cùng mở dashboard; vài chục nghìn kết nối mới trong vài phút</td>
+</tr>
+</tbody>
+</table>
+<p>Polling Query API mỗi vài giây với số phiên này là hàng chục nghìn truy vấn ClickHouse mỗi giây, đúng
+lúc ClickHouse đang chịu tải ghi cao nhất vì tấn công. Vì vậy luồng realtime tách khỏi luồng truy vấn.</p>
+<h2 id="f-05-building-blocks-08-components-13-realtime-gateway--component-diagram">Component diagram</h2>
+<div class="diagram"><pre class="mermaid">flowchart LR
+    subgraph AN[&quot;Analytics region&quot;]
+        kafka[(&quot;Kafka&lt;br/&gt;security event đã làm giàu&quot;)]
+        enr[&quot;Enricher&lt;br/&gt;+ live tap&quot;]
+        live[(&quot;Topic live&lt;br/&gt;chỉ zone có người xem&quot;)]
+        subgraph RG[&quot;Realtime gateway (cụm, mỗi region)&quot;]
+            sock[&quot;Socket handler&lt;br/&gt;một process mỗi phiên&quot;]
+            ch[&quot;Channel / topic&lt;br/&gt;kiểm quyền khi join&quot;]
+            agg[&quot;Zone aggregator&lt;br/&gt;một process mỗi zone đang xem&lt;br/&gt;ring buffer 5 phút&quot;]
+            reg[&quot;Subscription registry&lt;br/&gt;zone nào đang có người xem&quot;]
+            ps[&quot;PubSub trong cụm&quot;]
+            cons[&quot;Consumer&lt;br/&gt;Kafka · RabbitMQ&quot;]
+        end
+    end
+    portal[&quot;Portal (trình duyệt)&quot;]
+    mgmt[&quot;Management&lt;br/&gt;token realtime · PermissionsChanged&quot;]
+    rmq[(&quot;RabbitMQ&lt;br/&gt;alert · case · rollout&quot;)]
+
+    portal &lt;--&gt;|WebSocket, mTLS ở LB| sock --&gt; ch
+    ch --&gt; reg
+    reg -.-&gt;|danh sách zone đang xem| enr
+    kafka --&gt; enr --&gt; live --&gt; cons --&gt; agg --&gt; ps --&gt; ch
+    rmq --&gt; cons
+    mgmt --&gt;|JWKS, sự kiện quyền| ch
+</pre></div>
+<h2 id="f-05-building-blocks-08-components-13-realtime-gateway--thành-phần">Thành phần</h2>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Thiết kế</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Socket handler</strong></td>
+<td>WebSocket (fallback long-polling); mỗi phiên là một process nhẹ, có hàng đợi gửi giới hạn; client chậm thì bỏ bớt event mẫu, chỉ giữ số liệu tổng, không để hàng đợi phình</td>
+</tr>
+<tr>
+<td><strong>Channel / topic</strong></td>
+<td><code>zone:{id}:stats</code> (số liệu mỗi giây), <code>zone:{id}:events</code> (security event mẫu), <code>tenant:{id}:alerts</code>, <code>tenant:{id}:cases</code>, <code>rollout:{version}</code> (độ phủ theo node, <a href="#f-08-cross-cutting-15-config-propagation-and-apply">8.15</a>). Join kiểm token realtime: tenant, danh sách zone được xem, vai trò</td>
+</tr>
+<tr>
+<td><strong>Token realtime</strong></td>
+<td>Management cấp cho phiên portal, JWT hạn 5 phút, làm mới qua chính kết nối; gateway kiểm bằng JWKS của Management, không gọi database. Đổi quyền hay khoá user: Management phát <code>PermissionsChanged</code>, gateway đóng channel tương ứng ngay</td>
+</tr>
+<tr>
+<td><strong>Subscription registry</strong></td>
+<td>Tập zone đang có ít nhất một người xem trong region; đồng bộ cho enricher mỗi vài giây</td>
+</tr>
+<tr>
+<td><strong>Live tap (trong enricher)</strong></td>
+<td>Enricher (Go, <a href="#f-05-building-blocks-08-components-08-ingestion-and-storage">5.8.8</a>) chỉ ghi vào topic <code>live</code> cho zone có trong registry: số liệu gộp mỗi giây và security event đã che, <strong>trần 50 event/s mỗi zone</strong> (lấy mẫu khi vượt). Đầu vào của gateway tỉ lệ với số zone đang được xem, không với tổng traffic hay cường độ tấn công</td>
+</tr>
+<tr>
+<td><strong>Zone aggregator</strong></td>
+<td>Một process cho mỗi zone đang xem: nhận số liệu giây, tính top rule, top IP (heavy hitter), top quốc gia, phân bố hành động; giữ ring buffer 5 phút để client mới join hoặc kết nối lại có ngay lịch sử gần; tự dừng khi không còn người xem</td>
+</tr>
+<tr>
+<td><strong>PubSub trong cụm</strong></td>
+<td>Một message của zone gửi một lần tới các node có phiên đang xem zone đó, rồi fan-out trong node</td>
+</tr>
+<tr>
+<td><strong>Consumer</strong></td>
+<td>Kafka (topic <code>live</code>, chia partition theo tenant cho các node) và RabbitMQ (alert, case, rollout từ Management và Control)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-05-building-blocks-08-components-13-realtime-gateway--luồng-mở-dashboard-của-một-zone">Luồng: mở dashboard của một zone</h2>
+<div class="diagram"><pre class="mermaid">sequenceDiagram
+    participant B as Portal
+    participant M as Management
+    participant G as Realtime gateway
+    participant E as Enricher (live tap)
+    B-&gt;&gt;M: lấy token realtime (tenant, zone được xem)
+    B-&gt;&gt;G: WebSocket + token, join zone:812345:stats
+    G-&gt;&gt;G: kiểm token, tạo hoặc dùng zone aggregator
+    G--&gt;&gt;B: ring buffer 5 phút gần nhất
+    G-&gt;&gt;E: registry: zone 812345 có người xem
+    loop mỗi giây
+        E-&gt;&gt;G: số liệu giây + event mẫu (topic live)
+        G--&gt;&gt;B: delta có số thứ tự
+    end
+    Note over B,G: mất kết nối → nối lại node khác, gửi số thứ tự cuối, nhận phần thiếu từ ring buffer
+</pre></div>
+<h2 id="f-05-building-blocks-08-components-13-realtime-gateway--năng-lực-và-triển-khai">Năng lực và triển khai</h2>
+<table>
+<thead>
+<tr>
+<th>Đại lượng</th>
+<th>Thiết kế</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Phiên mỗi node</td>
+<td>Mục tiêu 10.000 (bảo thủ; BEAM giữ được nhiều hơn nhiều), ≈ 100 KB RAM mỗi phiên</td>
+</tr>
+<tr>
+<td>Node mỗi region</td>
+<td>Theo đỉnh của region: 100.000 phiên toàn cầu chia 2–3 region → 4–6 node mỗi region + N+1</td>
+</tr>
+<tr>
+<td>Message ra</td>
+<td>≈ 1–3 message số liệu/s mỗi phiên + event mẫu tới 10/s → đỉnh ≈ 1 triệu message/s toàn cầu, ≈ 300 B mỗi message</td>
+</tr>
+<tr>
+<td>Đặt ở đâu</td>
+<td>Mỗi Analytics region, cạnh Kafka; portal nối vào endpoint realtime của region chứa tenant, nên dữ liệu không rời region (<a href="#f-08-cross-cutting-00-index">8.6</a>)</td>
+</tr>
+<tr>
+<td>Đặc tính tải</td>
+<td>Chủ yếu là số kết nối và RAM; CPU thấp. Không phụ thuộc cường độ tấn công nhờ live tap có trần</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-05-building-blocks-08-components-13-realtime-gateway--theo-gói">Theo gói</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Free có trần, Pro</th>
+<th>Business</th>
+<th>Enterprise</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Số liệu live</td>
+<td>Mỗi 5 s</td>
+<td>Mỗi 1 s</td>
+<td>Mỗi 1 s</td>
+</tr>
+<tr>
+<td>Event live</td>
+<td>—</td>
+<td>10 event/s mỗi zone đang xem</td>
+<td>50 event/s</td>
+</tr>
+<tr>
+<td>Phiên đồng thời mỗi tenant</td>
+<td>3</td>
+<td>25</td>
+<td>Theo hợp đồng</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-05-building-blocks-08-components-13-realtime-gateway--lỗi-và-hành-vi">Lỗi và hành vi</h2>
+<table>
+<thead>
+<tr>
+<th>Tình huống</th>
+<th>Hành vi</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Một node gateway chết</td>
+<td>Client tự nối lại node khác qua load balancer (backoff có jitter), gửi số thứ tự cuối, lấy phần thiếu từ ring buffer của zone aggregator (đã có trên node mới qua PubSub, hoặc dựng lại từ topic <code>live</code>)</td>
+</tr>
+<tr>
+<td>Kafka hoặc enricher trễ</td>
+<td>Gateway gửi trạng thái &quot;dữ liệu trễ X giây&quot; để portal hiển thị; không tự chuyển sang polling ClickHouse</td>
+</tr>
+<tr>
+<td>Hàng chục nghìn kết nối mới cùng lúc (đợt tấn công)</td>
+<td>Giới hạn tốc độ kết nối mới theo tenant và theo node; token realtime kiểm cục bộ nên không dồn tải vào Management; zone aggregator dùng chung cho mọi người xem cùng zone</td>
+</tr>
+<tr>
+<td>Quá tải</td>
+<td>Hạ cấp theo thứ tự: giảm event mẫu, giãn số liệu Free/Pro lên 10 s, từ chối phiên mới vượt hạn mức của gói; không bao giờ ảnh hưởng luồng ghi log hay Query API</td>
+</tr>
+<tr>
+<td>Management không cấp được token mới</td>
+<td>Phiên đang mở giữ tới khi token hết hạn; portal báo không thể nối lại; dashboard vẫn dùng được qua Query API</td>
+</tr>
+</tbody>
+</table>
+</section>
 <section class="doc" id="f-06-runtime-00-index"><div class="path">06-runtime/00-index.md</div><h1 id="f-06-runtime-00-index--6-runtime-view">6. Runtime View</h1>
 <p>Các kịch bản chính, mỗi kịch bản là một luồng xuyên plane.</p>
 <table>
@@ -5467,6 +5739,10 @@ tiết ở <a href="#f-05-building-blocks-08-components-08-ingestion-and-storage
 <tr>
 <td>K</td>
 <td><a href="#f-06-runtime-10-analytics-flows--k-backpressure-và-lỗi-theo-từng-chặng">Backpressure và lỗi theo từng chặng</a></td>
+</tr>
+<tr>
+<td>—</td>
+<td>Số liệu và event live tới portal: <a href="#f-05-building-blocks-08-components-13-realtime-gateway--luồng-mở-dashboard-của-một-zone">5.8.13</a></td>
 </tr>
 </tbody>
 </table>
@@ -6297,6 +6573,33 @@ Quyết định nền: <a href="#f-09-adr-0040-config-distribution-at-scale">ADR
 </table>
 <h3 id="f-07-deployment-05-capacity-and-sharding--dns-điều-hướng">DNS điều hướng</h3>
 <p>3M bản ghi; với TTL 60 s ước khoảng 300.000 truy vấn/s toàn cục, khoảng 10.000 qps mỗi PoP.</p>
+<h3 id="f-07-deployment-05-capacity-and-sharding--phiên-portal-và-realtime">Phiên portal và realtime</h3>
+<table>
+<thead>
+<tr>
+<th>Đại lượng</th>
+<th>Ước lượng</th>
+<th>Kết quả</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Phiên portal đồng thời</td>
+<td>10.000–30.000 bình thường; 50.000–100.000 trong đợt tấn công lớn</td>
+<td>Realtime gateway riêng, không polling ClickHouse (<a href="#f-05-building-blocks-08-components-13-realtime-gateway">5.8.13</a>)</td>
+</tr>
+<tr>
+<td>Zone đang được xem cùng lúc</td>
+<td>≤ 50.000</td>
+<td>Live tap chỉ ghi cho các zone này, trần 50 event/s mỗi zone</td>
+</tr>
+<tr>
+<td>Message realtime ra client</td>
+<td>≈ 1 triệu message/s ở đỉnh, ≈ 300 B mỗi message</td>
+<td>4–6 node gateway mỗi region + N+1</td>
+</tr>
+</tbody>
+</table>
 <h2 id="f-07-deployment-05-capacity-and-sharding--3-kết-luận-từ-ước-lượng">3. Kết luận từ ước lượng</h2>
 <ol start="0">
 <li>
@@ -7617,6 +7920,37 @@ ticket trong giờ làm việc.</p>
 <tr>
 <td>Runbook</td>
 <td>Xác nhận zone bị chuyển và lý do (tấn công hay tăng trưởng thật); tăng trưởng thật thì chuyển zone sang cell riêng hoặc thêm node cho cell; theo dõi tỉ lệ nạp zone nguội sau mỗi lần chuyển</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-08-cross-cutting-13-operational-behaviors--a17-realtime-gateway-quá-tải-hoặc-dữ-liệu-live-trễ">A17. Realtime gateway quá tải hoặc dữ liệu live trễ</h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mục tiêu</td>
+<td>QS-37, QS-38</td>
+</tr>
+<tr>
+<td>Tín hiệu</td>
+<td>Số phiên theo node và region, tốc độ kết nối mới, độ dài hàng đợi gửi theo phiên, RAM node, số zone đang xem, độ trễ từ edge tới message live (theo timestamp trong message), lag consumer topic <code>live</code></td>
+</tr>
+<tr>
+<td>Cảnh báo</td>
+<td>P2: độ trễ live p95 &gt; 10 s trong 5 phút, hoặc RAM node &gt; 80%. P3: tỉ lệ phiên bị hạ xuống chế độ chỉ số liệu &gt; 5%</td>
+</tr>
+<tr>
+<td>Tự phản ứng</td>
+<td>Giới hạn tốc độ kết nối mới theo tenant; giảm event mẫu rồi giãn số liệu Free/Pro theo thứ tự ở <a href="#f-05-building-blocks-08-components-13-realtime-gateway--lỗi-và-hành-vi">5.8.13</a>; autoscale node gateway theo số phiên</td>
+</tr>
+<tr>
+<td>Runbook</td>
+<td>Xác định do số phiên tăng (tấn công, sự kiện) hay do enricher/Kafka trễ; thêm node; nếu một tenant mở quá nhiều phiên thì áp hạn mức của gói</td>
 </tr>
 </tbody>
 </table>
@@ -10134,6 +10468,14 @@ không cache, trần 1 GB/ngày) trong 30 ngày, kèm thông báo để khách m
 <td>+ mọi kênh, SMS</td>
 </tr>
 <tr>
+<td><strong>Realtime</strong></td>
+<td>Số liệu live / event live / phiên đồng thời mỗi tenant</td>
+<td>5 s / — / 3</td>
+<td>5 s / — / 3</td>
+<td>1 s / 10 event/s / 25</td>
+<td>1 s / 50 event/s / theo hợp đồng</td>
+</tr>
+<tr>
 <td><strong>Tenant</strong></td>
 <td>Zone mỗi account</td>
 <td>3 (chống lạm dụng)</td>
@@ -10519,7 +10861,7 @@ cân nhắc. Quyết định bị thay thế giữ lại với trạng thái &qu
 </tr>
 <tr>
 <td><a href="#f-09-adr-0030-language-per-workload">0030</a></td>
-<td>Ngôn ngữ theo đặc tính tải: Go cho Control/Analytics/Management, edge theo 0031; Elixir đã cân nhắc</td>
+<td>Ngôn ngữ theo đặc tính tải: Go cho Control/Analytics/Management, edge theo 0031; Elixir xem lại ở 0044</td>
 <td>Chấp nhận (phần edge chờ 0031)</td>
 </tr>
 <tr>
@@ -10586,6 +10928,11 @@ cân nhắc. Quyết định bị thay thế giữ lại với trạng thái &qu
 <td><a href="#f-09-adr-0043-usage-based-pricing-and-metering">0043</a></td>
 <td>Giá theo phí nền + hạn mức + phí vượt; đo usage không lấy mẫu; trần cứng ở edge; chưa mở Free khi ra mắt</td>
 <td>Chấp nhận (giá chờ business)</td>
+</tr>
+<tr>
+<td><a href="#f-09-adr-0044-realtime-gateway-and-notifier-runtime">0044</a></td>
+<td>Realtime gateway cho hàng chục nghìn phiên portal và runtime của notifier: Go, Centrifugo, Elixir/Phoenix, managed</td>
+<td><strong>Đề xuất, chờ chọn</strong> (đề xuất Elixir)</td>
 </tr>
 </tbody>
 </table>
@@ -11512,7 +11859,9 @@ lại, retry). Không chọn vì khối lượng thông báo nhỏ (hàng nghìn
 lý thừa sức với thiết kế ở <a href="#f-05-building-blocks-08-components-11-notification-fanout">5.8.11</a>,
 còn thêm runtime thứ ba thì tốn vận hành và tuyển người. Xem lại khi: (a) cần đẩy event realtime tới
 hàng chục nghìn phiên portal cùng lúc (Phoenix Channels là lựa chọn mạnh), hoặc (b) số tin thông báo
-vượt mức một cụm Go nhỏ xử lý được.</li>
+vượt mức một cụm Go nhỏ xử lý được. <strong>Điều kiện (a) đã xảy ra</strong> theo ước lượng ở quy mô 1 triệu zone
+(2026-11-06): xem <a href="#f-09-adr-0044-realtime-gateway-and-notifier-runtime">ADR-0044</a>, đề xuất Elixir cho
+realtime gateway và notifier.</li>
 </ul>
 </section>
 <section class="doc" id="f-09-adr-0031-edge-l7-and-waf-engine-options"><div class="path">09-adr/0031-edge-l7-and-waf-engine-options.md</div><h1 id="f-09-adr-0031-edge-l7-and-waf-engine-options--adr-0031-lựa-chọn-nền-cho-tầng-l7-và-engine-cho-tầng-waf">ADR-0031: Lựa chọn nền cho tầng L7 và engine cho tầng WAF</h1>
@@ -12630,6 +12979,107 @@ mật và hoá đơn của khách nhỏ khó đoán.</li>
 hoá đơn.</li>
 </ul>
 </section>
+<section class="doc" id="f-09-adr-0044-realtime-gateway-and-notifier-runtime"><div class="path">09-adr/0044-realtime-gateway-and-notifier-runtime.md</div><h1 id="f-09-adr-0044-realtime-gateway-and-notifier-runtime--adr-0044-realtime-gateway-cho-portal-và-runtime-của-notifier">ADR-0044: Realtime gateway cho portal và runtime của notifier</h1>
+<ul>
+<li>Trạng thái: <strong>Đề xuất, chờ chọn</strong> (đề xuất R3: Elixir + Phoenix cho realtime gateway và notifier)</li>
+<li>Ngày: 2026-11-06</li>
+<li>Liên quan: <a href="#f-09-adr-0030-language-per-workload">ADR-0030</a>, <a href="#f-05-building-blocks-08-components-13-realtime-gateway">5.8.13</a>, <a href="#f-05-building-blocks-08-components-11-notification-fanout">5.8.11</a></li>
+</ul>
+<h2 id="f-09-adr-0044-realtime-gateway-and-notifier-runtime--bối-cảnh">Bối cảnh</h2>
+<p><a href="#f-09-adr-0030-language-per-workload">ADR-0030</a> không chọn Elixir cho notifier và ghi điều kiện xem lại: (a)
+cần đẩy event realtime tới hàng chục nghìn phiên portal cùng lúc. Ở quy mô thiết kế 1 triệu zone, điều
+kiện này xảy ra: 10.000–30.000 phiên lúc bình thường, 50.000–100.000 phiên trong đợt tấn công lớn, kèm
+hàng chục nghìn kết nối mới trong vài phút (<a href="#f-05-building-blocks-08-components-13-realtime-gateway">5.8.13</a>).</p>
+<p>Yêu cầu:</p>
+<ul>
+<li>Kết nối dài (WebSocket) với số lượng lớn, mỗi phiên có hàng đợi và giới hạn riêng.</li>
+<li>Gom số liệu theo zone <strong>chỉ cho zone đang có người xem</strong>, dùng chung cho mọi người xem cùng zone.</li>
+<li>Fan-out trong cụm, tự phục hồi khi một phần lỗi, nối lại có số thứ tự.</li>
+<li>License đóng gói được cho on-prem (<a href="#f-09-adr-0024-licensing-policy-for-shipped-components">ADR-0024</a>).</li>
+</ul>
+<p>Notifier (<a href="#f-05-building-blocks-08-components-11-notification-fanout">5.8.11</a>) có đặc tính gần
+giống: fan-out nhiều kênh, retry, cô lập lỗi theo kênh, theo khách.</p>
+<h2 id="f-09-adr-0044-realtime-gateway-and-notifier-runtime--phương-án">Phương án</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>R1. Go tự xây</th>
+<th>R2. Centrifugo (Go, server realtime dựng sẵn)</th>
+<th>R3. Elixir + Phoenix Channels</th>
+<th>R4. Dịch vụ managed (Pusher, Ably)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Kết nối dài số lượng lớn</td>
+<td>Làm được; tự viết hàng đợi theo phiên, nối lại, fan-out cụm</td>
+<td>Có sẵn, đã chạy ở quy mô triệu kết nối</td>
+<td>Có sẵn (process mỗi phiên, Phoenix PubSub, Presence)</td>
+<td>Có sẵn</td>
+</tr>
+<tr>
+<td>Gom số liệu theo zone đang xem</td>
+<td>Tự viết (goroutine + map + khoá)</td>
+<td>Phải đặt ở dịch vụ khác rồi publish vào Centrifugo</td>
+<td>Tự nhiên: một process mỗi zone, supervisor quản lý vòng đời</td>
+<td>Phải đặt ở dịch vụ khác</td>
+</tr>
+<tr>
+<td>Tự phục hồi</td>
+<td>Tự viết</td>
+<td>Có cho phần kết nối</td>
+<td>OTP supervisor cho cả kết nối lẫn aggregator</td>
+<td>Có</td>
+</tr>
+<tr>
+<td>Dùng lại cho notifier</td>
+<td>Notifier Go hiện tại</td>
+<td>Không</td>
+<td>Có: process mỗi kênh, retry, Oban (job queue trên PostgreSQL, giữ nguyên bảng <code>deliveries</code>)</td>
+<td>Không</td>
+</tr>
+<tr>
+<td>Ngôn ngữ, vận hành</td>
+<td>Không thêm runtime</td>
+<td>Không thêm runtime; thêm một sản phẩm cần vận hành</td>
+<td><strong>Thêm runtime thứ ba</strong> (BEAM): tuyển người, CI, quan sát</td>
+<td>Không vận hành</td>
+</tr>
+<tr>
+<td>License, on-prem</td>
+<td>Tốt</td>
+<td>Apache-2.0 (bản PRO là thương mại, không dùng)</td>
+<td>Apache-2.0 / MIT (Elixir, Phoenix, Broadway, Oban bản mã nguồn mở)</td>
+<td><strong>Loại</strong>: không on-prem, dữ liệu ra ngoài region</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-09-adr-0044-realtime-gateway-and-notifier-runtime--đề-xuất">Đề xuất</h2>
+<p><strong>R3</strong> cho cả realtime gateway và notifier:</p>
+<ul>
+<li>Hai thành phần có cùng đặc tính (nhiều thực thể sống lâu, fan-out, retry, cô lập lỗi), đúng thế mạnh
+của BEAM; gom vào một runtime giúp chi phí thêm runtime được chia cho hai việc.</li>
+<li>Phần khó nhất của realtime gateway là gom số liệu theo zone đang xem và nối lại không mất dữ liệu;
+với R3 đó là vài GenServer có supervisor, với R1/R2 là code đồng bộ tự viết.</li>
+<li>Ranh giới ngôn ngữ trùng ranh giới thành phần: gateway và notifier chỉ đọc Kafka, RabbitMQ,
+PostgreSQL (<code>deliveries</code>) qua hợp đồng có sẵn; Go vẫn là ngôn ngữ của enricher, Query API, detection.</li>
+</ul>
+<p><strong>R2</strong> là phương án dự phòng nếu không muốn thêm runtime: Centrifugo giữ kết nối, một dịch vụ Go nhỏ
+làm zone aggregator rồi publish vào Centrifugo; notifier giữ Go.</p>
+<p>Quyết định trước khi xây realtime gateway (Mở rộng); MVP dùng Query API với refresh vài giây cho số ít
+phiên đầu tiên.</p>
+<h2 id="f-09-adr-0044-realtime-gateway-and-notifier-runtime--hệ-quả-nếu-chọn-đề-xuất">Hệ quả nếu chọn đề xuất</h2>
+<ul>
+<li>Thêm Elixir vào danh sách ngôn ngữ của <a href="#f-09-adr-0030-language-per-workload">ADR-0030</a>: Go cho Control,
+Analytics (phần xử lý dữ liệu), Management; edge theo ADR-0031; Elixir cho realtime gateway và notifier.</li>
+<li>Cần ít nhất hai người đọc được Elixir; CI, image, quan sát (metrics Prometheus, trace OpenTelemetry)
+cho runtime BEAM.</li>
+<li>Notifier chuyển sang Elixir không đổi hợp đồng: vẫn bảng <code>deliveries</code>, vẫn adapter theo kênh, vẫn
+các sự kiện từ detection.</li>
+<li>Enricher thêm live tap (Go) để đầu vào của gateway tỉ lệ với số zone đang xem.</li>
+</ul>
+</section>
 <section class="doc" id="f-10-quality-00-index"><div class="path">10-quality/00-index.md</div><h1 id="f-10-quality-00-index--10-quality-requirements">10. Quality Requirements</h1>
 <p>Các con số là <strong>mục tiêu đề xuất</strong>, cần chốt cùng product trước khi thiết kế chi tiết. Mỗi kịch
 bản phải đo được bằng chỉ số nền tảng ở <a href="#f-08-cross-cutting-00-index--811-quan-sát-chính-nền-tảng">08 §8.11</a>.</p>
@@ -12980,6 +13430,18 @@ kịch bản đo được (§10.3) và cơ chế kiến trúc đáp ứng nó.</
 <td>Zone có trần cứng vượt trần</td>
 <td>Hành động của trần được áp trên ≥ 95% node trong ≤ 10 phút; pre-filter và chống DDoS không bị tắt</td>
 </tr>
+<tr>
+<td>QS-37</td>
+<td>Realtime</td>
+<td>Security event của một zone đang được xem trên portal</td>
+<td>Hiện trên màn hình ≤ 5 s p95 kể từ khi edge xử lý request</td>
+</tr>
+<tr>
+<td>QS-38</td>
+<td>Realtime</td>
+<td>100.000 phiên đồng thời, trong đó 30.000 phiên mới mở trong 5 phút khi có tấn công lớn</td>
+<td>QS-37 giữ được; không node gateway nào hết RAM; luồng ghi log và Query API không bị ảnh hưởng</td>
+</tr>
 </tbody>
 </table>
 <h2 id="f-10-quality-00-index--104-quy-mô-thiết-kế">10.4 Quy mô thiết kế</h2>
@@ -13254,6 +13716,14 @@ kịch bản đo được (§10.3) và cơ chế kiến trúc đáp ứng nó.</
 <td>Khiếu nại hoá đơn; chênh lệch đối soát &gt; 0,1%</td>
 </tr>
 <tr>
+<td>R27</td>
+<td>Thêm runtime thứ ba (Elixir) làm khó tuyển người và vận hành</td>
+<td>Trung bình</td>
+<td>Trung bình</td>
+<td>Giới hạn Elixir ở hai thành phần có hợp đồng rõ (realtime gateway, notifier); dự phòng Centrifugo + Go (<a href="#f-09-adr-0044-realtime-gateway-and-notifier-runtime">ADR-0044</a>)</td>
+<td>Thiếu người đọc được Elixir; sự cố gateway kéo dài</td>
+</tr>
+<tr>
 <td>R9</td>
 <td>Đội nhỏ dàn trải 4 plane</td>
 <td>Cao</td>
@@ -13369,6 +13839,11 @@ CEL), công nghệ của Control, Analytics, Management (<a href="#f-05-building
 <td>Chính sách crawler AI mặc định</td>
 <td>Allow, block, hay theo <code>robots.txt</code> cho zone mới</td>
 <td><a href="#f-08-cross-cutting-16-bot-management--4-policy-của-khách">8.16</a></td>
+</tr>
+<tr>
+<td><strong>Runtime của realtime gateway và notifier</strong></td>
+<td>Elixir + Phoenix (đề xuất), Centrifugo + Go, hay Go tự xây</td>
+<td><a href="#f-09-adr-0044-realtime-gateway-and-notifier-runtime">ADR-0044</a>; quyết trước giai đoạn Mở rộng</td>
 </tr>
 <tr>
 <td><strong>Cell và cách đặt zone</strong></td>
@@ -14137,6 +14612,22 @@ theo chính sách tài liệu (<a href="#f-02-constraints-00-index--24-conventio
 <td><strong>RUM</strong></td>
 <td>Real user monitoring: đo trải nghiệm thật trên trình duyệt người dùng</td>
 </tr>
+<tr>
+<td><strong>Realtime gateway</strong></td>
+<td>Thành phần đẩy số liệu từng giây, event mẫu, cảnh báo tới portal qua WebSocket (<a href="#f-05-building-blocks-08-components-13-realtime-gateway">5.8.13</a>)</td>
+</tr>
+<tr>
+<td><strong>Live tap</strong></td>
+<td>Phần của enricher chỉ ghi số liệu và event (có trần) của zone đang có người xem vào topic <code>live</code></td>
+</tr>
+<tr>
+<td><strong>Zone aggregator</strong></td>
+<td>Process gom số liệu của một zone đang được xem, giữ ring buffer 5 phút, dừng khi hết người xem</td>
+</tr>
+<tr>
+<td><strong>Token realtime</strong></td>
+<td>JWT hạn 5 phút Management cấp cho phiên portal, ghi tenant và zone được xem</td>
+</tr>
 </tbody>
 </table>
 <h2 id="f-12-glossary-00-index--129-thương-mại-và-gói-giá">12.9 Thương mại và gói giá</h2>
@@ -14368,6 +14859,22 @@ theo chính sách tài liệu (<a href="#f-02-constraints-00-index--24-conventio
 <td>Log shipper trên node và ingest gateway</td>
 </tr>
 <tr>
+<td><strong>Elixir / BEAM / OTP</strong></td>
+<td>Ngôn ngữ chạy trên máy ảo Erlang (BEAM), mỗi thực thể là một process nhẹ, OTP supervisor tự khởi động lại khi lỗi; đề xuất cho realtime gateway và notifier (<a href="#f-09-adr-0044-realtime-gateway-and-notifier-runtime">ADR-0044</a>)</td>
+</tr>
+<tr>
+<td><strong>Phoenix Channels / PubSub / Presence</strong></td>
+<td>Thư viện Elixir: kênh WebSocket theo topic / phát message trong cụm / theo dõi ai đang kết nối</td>
+</tr>
+<tr>
+<td><strong>Broadway / Oban</strong></td>
+<td>Thư viện Elixir: consumer Kafka có backpressure / job queue trên PostgreSQL (dùng bản mã nguồn mở)</td>
+</tr>
+<tr>
+<td><strong>Centrifugo</strong></td>
+<td>Server realtime viết bằng Go, phương án dự phòng cho realtime gateway</td>
+</tr>
+<tr>
 <td><strong>Apache Kafka (KRaft) / Strimzi</strong></td>
 <td>Bus telemetry / operator chạy Kafka trên Kubernetes</td>
 </tr>
@@ -14545,17 +15052,17 @@ theo chính sách tài liệu (<a href="#f-02-constraints-00-index--24-conventio
 <td><a href="#f-01-introduction-00-index--13-mục-tiêu-chất-lượng">1.3</a></td>
 </tr>
 <tr>
-<td><strong>QS-1…QS-36</strong></td>
+<td><strong>QS-1…QS-38</strong></td>
 <td>Kịch bản chất lượng đo được</td>
 <td><a href="#f-10-quality-00-index--103-kịch-bản">10.3</a></td>
 </tr>
 <tr>
-<td><strong>R1…R26</strong></td>
+<td><strong>R1…R27</strong></td>
 <td>Rủi ro</td>
 <td><a href="#f-11-risks-00-index">11.1</a></td>
 </tr>
 <tr>
-<td><strong>A1…A16 / B1…B10</strong></td>
+<td><strong>A1…A17 / B1…B10</strong></td>
 <td>Tình huống vận hành tự xảy ra / thao tác của người vận hành, mỗi cái có runbook</td>
 <td><a href="#f-08-cross-cutting-13-operational-behaviors">8.13</a></td>
 </tr>

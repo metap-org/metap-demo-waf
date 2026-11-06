@@ -1,5 +1,7 @@
 # 5.8.11 Notification: fan-out nhiều kênh, khách tự tích hợp, mở kênh theo gói
 
+Runtime chờ chọn theo [ADR-0044](../../09-adr/0044-realtime-gateway-and-notifier-runtime.md): Go (hiện tại) hoặc Elixir + Oban (đề xuất, dùng chung runtime với realtime gateway). Thiết kế dưới đây (bảng `deliveries`, adapter theo kênh, retry, cô lập lỗi) không đổi theo lựa chọn.
+
 Nhận sự kiện cảnh báo từ alert engine ([32](10-alerting-rules-and-algorithms.md)) và gửi tới mọi kênh
 khách cấu hình. Quyết định nền: [ADR-0028](../../09-adr/0028-notification-adapters-and-plan-gated-channels.md).
 
@@ -15,7 +17,7 @@ Ba yêu cầu:
 flowchart LR
     ae["Alert engine<br/>AlertEvent: firing · escalated · resolved · renotify"]
     mg["Management<br/>kênh · rule định tuyến · template"]
-    subgraph NT["notifier (Go)"]
+    subgraph NT["notifier"]
         rt["Router<br/>khớp routing rule"]
         ent["Entitlement gate"]
         ren["Renderer<br/>template theo loại kênh"]

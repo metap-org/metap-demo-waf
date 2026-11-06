@@ -92,6 +92,8 @@ flowchart LR
 | QS-34 | Thương mại | Khách nâng gói Free → Business | Entitlements mới ≤ 5 phút; zone sang pool cell mới không có request lỗi trong thời gian chuyển |
 | QS-35 | Thương mại | Usage của một kỳ thanh toán | Sai lệch giữa `UsageCounter` đã gộp và tổng đếm trên các node ≤ 0,1%; không mất bản ghi nào sau đối soát |
 | QS-36 | Thương mại | Zone có trần cứng vượt trần | Hành động của trần được áp trên ≥ 95% node trong ≤ 10 phút; pre-filter và chống DDoS không bị tắt |
+| QS-37 | Realtime | Security event của một zone đang được xem trên portal | Hiện trên màn hình ≤ 5 s p95 kể từ khi edge xử lý request |
+| QS-38 | Realtime | 100.000 phiên đồng thời, trong đó 30.000 phiên mới mở trong 5 phút khi có tấn công lớn | QS-37 giữ được; không node gateway nào hết RAM; luồng ghi log và Query API không bị ảnh hưởng |
 
 ## 10.4 Quy mô thiết kế
 

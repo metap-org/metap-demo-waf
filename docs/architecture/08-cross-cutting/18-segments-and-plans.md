@@ -220,6 +220,7 @@ không cache, trần 1 GB/ngày) trong 30 ngày, kèm thông báo để khách m
 | | Export / SIEM | — | — | 1 đích | 10 đích |
 | | Mẫu request cho replay | — | — | Có | Có |
 | **Cảnh báo** | Kênh | Email | Email, webhook | + Slack, Teams, PagerDuty | + mọi kênh, SMS |
+| **Realtime** | Số liệu live / event live / phiên đồng thời mỗi tenant | 5 s / — / 3 | 5 s / — / 3 | 1 s / 10 event/s / 25 | 1 s / 50 event/s / theo hợp đồng |
 | **Tenant** | Zone mỗi account | 3 (chống lạm dụng) | Theo zone mua | Theo zone mua | Không giới hạn |
 | | SSO / SCIM / 4-eyes / audit | — / — / — / 7 ngày | — / — / — / 30 ngày | SSO / — / Có / 1 năm | Có / Có / Có / theo hợp đồng |
 | **SLA, support** | Uptime edge | Không | 99,9% (không bồi hoàn) | 100%, bồi hoàn | 100%, bồi hoàn theo hợp đồng |

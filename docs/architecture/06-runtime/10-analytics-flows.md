@@ -17,6 +17,7 @@ tiết ở [5.8.8](../05-building-blocks/08-components/08-ingestion-and-storage.
 | I | [Metering và billing](#i-metering-và-billing) |
 | J | [Retention và xoá dữ liệu](#j-retention-và-xoá-dữ-liệu) |
 | K | [Backpressure và lỗi theo từng chặng](#k-backpressure-và-lỗi-theo-từng-chặng) |
+| — | Số liệu và event live tới portal: [5.8.13](../05-building-blocks/08-components/13-realtime-gateway.md#luồng-mở-dashboard-của-một-zone) |
 
 ## A. Toàn cảnh
 

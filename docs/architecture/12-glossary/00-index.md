@@ -216,6 +216,10 @@ theo chính sách tài liệu ([2.4](../02-constraints/00-index.md#24-convention
 | **Page / ticket** | Cảnh báo gọi người trực ngay / tạo việc xử lý trong giờ |
 | **Runbook** | Các bước xử lý cụ thể cho một tình huống vận hành ([8.13](../08-cross-cutting/13-operational-behaviors.md)) |
 | **RUM** | Real user monitoring: đo trải nghiệm thật trên trình duyệt người dùng |
+| **Realtime gateway** | Thành phần đẩy số liệu từng giây, event mẫu, cảnh báo tới portal qua WebSocket ([5.8.13](../05-building-blocks/08-components/13-realtime-gateway.md)) |
+| **Live tap** | Phần của enricher chỉ ghi số liệu và event (có trần) của zone đang có người xem vào topic `live` |
+| **Zone aggregator** | Process gom số liệu của một zone đang được xem, giữ ring buffer 5 phút, dừng khi hết người xem |
+| **Token realtime** | JWT hạn 5 phút Management cấp cho phiên portal, ghi tenant và zone được xem |
 
 ## 12.9 Thương mại và gói giá
 
@@ -282,6 +286,10 @@ Lựa chọn và lý do ở [5.7](../05-building-blocks/07-technology-map.md) v�
 | **Valkey** | Kho key-value tương thích Redis, license BSD; đồng bộ counter hot key |
 | **OpenBao** | Quản lý bí mật, PKI, ký (nhánh mã nguồn mở của Vault) |
 | **Vector** | Log shipper trên node và ingest gateway |
+| **Elixir / BEAM / OTP** | Ngôn ngữ chạy trên máy ảo Erlang (BEAM), mỗi thực thể là một process nhẹ, OTP supervisor tự khởi động lại khi lỗi; đề xuất cho realtime gateway và notifier ([ADR-0044](../09-adr/0044-realtime-gateway-and-notifier-runtime.md)) |
+| **Phoenix Channels / PubSub / Presence** | Thư viện Elixir: kênh WebSocket theo topic / phát message trong cụm / theo dõi ai đang kết nối |
+| **Broadway / Oban** | Thư viện Elixir: consumer Kafka có backpressure / job queue trên PostgreSQL (dùng bản mã nguồn mở) |
+| **Centrifugo** | Server realtime viết bằng Go, phương án dự phòng cho realtime gateway |
 | **Apache Kafka (KRaft) / Strimzi** | Bus telemetry / operator chạy Kafka trên Kubernetes |
 | **ClickHouse** | Cơ sở dữ liệu cột cho hot search và số liệu gộp |
 | **Parquet** | Định dạng file cột, dùng cho archive và mẫu request |
@@ -332,9 +340,9 @@ Mỗi tiền tố chỉ có một nghĩa trong toàn bộ tài liệu.
 | Mã | Nghĩa | Ở đâu |
 |---|---|---|
 | **Q1–Q6** | Mục tiêu chất lượng | [1.3](../01-introduction/00-index.md#13-mục-tiêu-chất-lượng) |
-| **QS-1…QS-36** | Kịch bản chất lượng đo được | [10.3](../10-quality/00-index.md#103-kịch-bản) |
-| **R1…R26** | Rủi ro | [11.1](../11-risks/00-index.md) |
-| **A1…A16 / B1…B10** | Tình huống vận hành tự xảy ra / thao tác của người vận hành, mỗi cái có runbook | [8.13](../08-cross-cutting/13-operational-behaviors.md) |
+| **QS-1…QS-38** | Kịch bản chất lượng đo được | [10.3](../10-quality/00-index.md#103-kịch-bản) |
+| **R1…R27** | Rủi ro | [11.1](../11-risks/00-index.md) |
+| **A1…A17 / B1…B10** | Tình huống vận hành tự xảy ra / thao tác của người vận hành, mỗi cái có runbook | [8.13](../08-cross-cutting/13-operational-behaviors.md) |
 | **S1…S12** | SLI của nền tảng | [8.12](../08-cross-cutting/12-platform-monitoring.md) |
 | **PR1…PR8** | Probe tổng hợp | [8.12 §4](../08-cross-cutting/12-platform-monitoring.md#4-probe-tổng-hợp-theo-hành-vi) |
 | **P1 / P2 / P3** | Mức cảnh báo cho NOC | [8.13](../08-cross-cutting/13-operational-behaviors.md) |
