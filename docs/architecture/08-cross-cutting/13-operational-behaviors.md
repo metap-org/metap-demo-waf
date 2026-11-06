@@ -27,7 +27,7 @@ ticket trong giờ làm việc.
 | Tín hiệu | `waap_agent_nack_total{stage}`; tỉ lệ NACK theo manifest trong fleet registry |
 | Cảnh báo | P2: một manifest bị NACK ở > 1% node đích. P3: một node NACK lặp lại > 3 manifest liên tiếp |
 | Tự phản ứng | Orchestrator dừng đợt khi NACK vượt ngưỡng gate, rollback các node đã nhận |
-| Runbook | Đọc `stage` + lỗi trong NACK (chữ ký, schema, dựng CEL/Coraza, self-test); nếu lỗi theo nhóm node → kiểm phiên bản phần mềm edge của nhóm đó; nếu lỗi theo manifest → chặn manifest, báo đội compiler |
+| Runbook | Đọc `stage` + lỗi trong NACK (chữ ký, schema, dựng IR custom rule / engine WAF, self-test); nếu lỗi theo nhóm node → kiểm phiên bản phần mềm edge của nhóm đó; nếu lỗi theo manifest → chặn manifest, báo đội compiler |
 
 ### A3. Node mất kết nối Control lâu
 

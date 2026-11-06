@@ -1,0 +1,26 @@
+# ADR-0032: CEL được kiểm tra ở Control, edge thực thi IR đã biên dịch
+
+- Trạng thái: Chấp nhận (sửa đổi [ADR-0014](0014-cel-as-rule-language.md))
+- Ngày: 2026-11-06
+
+## Bối cảnh
+
+ADR-0014 chọn CEL vì `cel-go` có kiểm tra kiểu và ước lượng chi phí. Edge giờ viết bằng Rust
+([ADR-0031](0031-edge-in-rust-on-pingora.md)); các thư viện CEL cho Rust kém trưởng thành hơn `cel-go`,
+và để hai implementation CEL tự diễn giải cùng một text thì rủi ro lệch ngữ nghĩa.
+
+## Quyết định
+
+- Khách vẫn viết CEL (builder ↔ text không đổi).
+- **Control** (Go, `cel-go`) parse, check kiểu, ước lượng chi phí, rồi **hạ checked AST xuống IR** của
+  riêng mình: cây biểu thức có kiểu gồm hằng, tham chiếu field, phép so sánh và logic, `in`, các hàm
+  trong danh sách cho phép (chuỗi, IP/CIDR, geo, ASN, regex). IR nằm trong bundle zone dạng protobuf.
+- **Edge** (Rust) chỉ thực thi IR, không parse CEL. Regex dùng crate `regex` (ngữ nghĩa kiểu RE2,
+  thời gian tuyến tính), cùng họ ngữ nghĩa với RE2 mà `cel-go` dùng.
+- **Bộ test đối chiếu chung:** tập vector `(biểu thức, input, kết quả mong đợi)` chạy trên cả `cel-go`
+  lẫn evaluator Rust trong CI; lệch là lỗi chặn merge ở cả hai repo.
+
+## Hệ quả
+
+- Một nguồn ngữ nghĩa (Control); edge đơn giản và nhanh hơn vì không có giai đoạn parse.
+- Thêm một hàm vào ngôn ngữ rule phải làm ở cả hai phía và thêm vector test.

@@ -8,7 +8,7 @@ cân nhắc. Quyết định bị thay thế giữ lại với trạng thái "B�
 | [0001](0001-four-planes.md) | Bốn plane, edge độc lập runtime | Chấp nhận |
 | [0002](0002-central-compile-signed-snapshots.md) | Compile tập trung, snapshot bất biến có chữ ký, rollout theo đợt | Chấp nhận |
 | [0003](0003-rule-language-existing-syntax-with-builder.md) | Ngôn ngữ rule dùng cú pháp có sẵn, builder ↔ text qua AST | Chấp nhận |
-| [0004](0004-managed-ruleset-crs-on-seclang.md) | Managed ruleset: OWASP CRS trên Coraza/ModSecurity + system ruleset riêng | Chấp nhận |
+| [0004](0004-managed-ruleset-crs-on-seclang.md) | Managed ruleset: OWASP CRS trên engine SecLang + system ruleset riêng | Chấp nhận |
 | [0005](0005-edge-on-own-and-existing-infra.md) | Edge chạy trên PoP riêng và hạ tầng có sẵn | Chấp nhận |
 | [0006](0006-saas-first-on-prem-capable.md) | SaaS trước, giữ đường hybrid và on-prem | Chấp nhận |
 | [0007](0007-log-by-subscription-entitlements.md) | Log và giới hạn theo subscription qua entitlements | Chấp nhận |
@@ -16,9 +16,9 @@ cân nhắc. Quyết định bị thay thế giữ lại với trạng thái "B�
 | [0009](0009-metap-for-management-plane-only.md) | `metap` chỉ cho Management plane | Chấp nhận |
 | [0010](0010-analytics-one-write-path-many-stores.md) | Analytics: một luồng ghi, nhiều store | Chấp nhận |
 | [0011](0011-approximate-fleet-rate-limiting.md) | Rate limit toàn fleet là xấp xỉ | Chấp nhận |
-| [0012](0012-go-as-primary-language.md) | Go là ngôn ngữ chính cho mọi plane | Chấp nhận |
-| [0013](0013-edge-gateway-custom-go-with-coraza.md) | Edge gateway tự xây bằng Go, nhúng Coraza + CRS v4 | Chấp nhận |
-| [0014](0014-cel-as-rule-language.md) | CEL là ngôn ngữ custom rule | Chấp nhận |
+| [0012](0012-go-as-primary-language.md) | Go là ngôn ngữ chính cho mọi plane | Bị thay thế bởi 0030 |
+| [0013](0013-edge-gateway-custom-go-with-coraza.md) | Edge gateway tự xây bằng Go, nhúng Coraza + CRS v4 | Bị thay thế bởi 0031 |
+| [0014](0014-cel-as-rule-language.md) | CEL là ngôn ngữ custom rule | Chấp nhận, sửa bởi 0032 |
 | [0015](0015-snapshot-format-and-distribution.md) | Snapshot protobuf + zstd ký Ed25519; gRPC desired state + HTTPS pull qua relay | Chấp nhận |
 | [0016](0016-postgres-and-s3-compatible-storage.md) | PostgreSQL cho trạng thái điều khiển, object storage chuẩn S3 (SeaweedFS khi tự host) | Chấp nhận |
 | [0017](0017-openbao-for-signing-keys-and-node-pki.md) | OpenBao cho khoá ký, mã hoá key cert, CA của node | Chấp nhận |
@@ -34,5 +34,8 @@ cân nhắc. Quyết định bị thay thế giữ lại với trạng thái "B�
 | [0027](0027-explicit-alert-formulas.md) | Cảnh báo theo template có công thức tường minh, baseline median/MAD theo phút trong tuần | Chấp nhận |
 | [0028](0028-notification-adapters-and-plan-gated-channels.md) | Notification: adapter theo kênh, webhook CloudEvents ký HMAC, email luôn có, kênh khác theo gói | Chấp nhận |
 | [0029](0029-independent-platform-observability.md) | Giám sát nền tảng độc lập với Analytics, SLO + burn rate, probe theo hành vi | Chấp nhận |
+| [0030](0030-language-per-workload.md) | Ngôn ngữ theo đặc tính tải: Rust cho edge và replay, Go cho Control/Analytics/Management; Elixir đã cân nhắc | Chấp nhận |
+| [0031](0031-edge-in-rust-on-pingora.md) | Edge Rust trên Pingora; engine WAF sau trait, MVP libmodsecurity v3 | Chấp nhận |
+| [0032](0032-cel-checked-at-control-ir-at-edge.md) | CEL kiểm tra ở Control, edge thực thi IR | Chấp nhận |
 
 Quyết định đang chờ: xem [11. Risks and Technical Debt](../11-risks/00-index.md#113-quyết-định-còn-mở).

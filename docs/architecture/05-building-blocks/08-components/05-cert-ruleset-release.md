@@ -53,7 +53,7 @@ flowchart LR
     sys["Repo system ruleset<br/>SecLang"]
     geo["Dữ liệu geo/ASN<br/>hàng tuần"]
     subgraph RR["ruleset-release pipeline"]
-        lint["Lint SecLang<br/>nạp thử bằng Coraza"]
+        lint["Lint SecLang<br/>nạp thử bằng edge-verify"]
         ftw["go-ftw<br/>test CRS + test riêng"]
         corp["Corpus traffic<br/>tốt / tấn công"]
         perf["Benchmark<br/>độ trễ theo paranoia"]
@@ -70,7 +70,7 @@ flowchart LR
 
 | Bước | Điều kiện qua |
 |---|---|
-| Lint | Mọi rule nạp được bằng Coraza; không trùng rule ID giữa CRS và system ruleset (system ruleset dùng dải ID riêng) |
+| Lint | Mọi rule nạp được bằng engine WAF đang dùng ở edge (qua `edge-verify`); không trùng rule ID giữa CRS và system ruleset (system ruleset dùng dải ID riêng) |
 | go-ftw | 100% test CRS chính thức pass ở các paranoia level hỗ trợ; test riêng của system ruleset pass |
 | Corpus | Traffic tốt: tỉ lệ chặn không tăng quá ngưỡng so với release trước; traffic tấn công: tỉ lệ phát hiện không giảm |
 | Benchmark | p99 theo paranoia không tăng quá ngưỡng |

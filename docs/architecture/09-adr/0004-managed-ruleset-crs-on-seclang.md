@@ -1,6 +1,6 @@
 # ADR-0004: Managed ruleset là OWASP CRS trên engine SecLang, cộng system ruleset riêng
 
-- Trạng thái: Chấp nhận
+- Trạng thái: Chấp nhận; engine cụ thể chốt ở [ADR-0031](0031-edge-in-rust-on-pingora.md) (libmodsecurity v3 sau trait `WafEngine`)
 - Ngày: 2026-11-05
 
 ## Bối cảnh

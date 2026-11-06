@@ -19,7 +19,8 @@
 | **Managed ruleset** | Bộ rule do NCC duy trì: OWASP CRS + system ruleset |
 | **System ruleset** | Bộ rule SecLang riêng của NCC |
 | **CRS** | OWASP Core Rule Set |
-| **SecLang** | Ngôn ngữ rule của ModSecurity, Coraza cũng hỗ trợ |
+| **SecLang** | Ngôn ngữ rule của ModSecurity; Coraza và một số engine thuần Rust cũng hỗ trợ |
+| **IR (custom rule)** | Dạng trung gian Control biên dịch từ CEL, edge thực thi |
 | **Paranoia level** | Mức độ chặt của CRS (1–4); càng cao càng bắt nhiều, càng dễ chặn nhầm |
 | **Anomaly scoring** | CRS cộng điểm từ nhiều rule rồi so với ngưỡng thay vì chặn ngay ở rule đầu tiên |
 | **Exception / exclusion** | Bỏ qua một rule cho một phạm vi cụ thể (path, tham số, header) |

@@ -1,6 +1,6 @@
 # ADR-0013: Edge gateway tự xây bằng Go, nhúng Coraza
 
-- Trạng thái: Chấp nhận (chốt phần còn mở của [ADR-0004](0004-managed-ruleset-crs-on-seclang.md))
+- Trạng thái: Bị thay thế bởi [ADR-0031](0031-edge-in-rust-on-pingora.md)
 - Ngày: 2026-11-06
 
 ## Bối cảnh

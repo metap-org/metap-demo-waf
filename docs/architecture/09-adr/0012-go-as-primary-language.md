@@ -1,6 +1,6 @@
 # ADR-0012: Go là ngôn ngữ chính cho mọi plane
 
-- Trạng thái: Chấp nhận
+- Trạng thái: Bị thay thế bởi [ADR-0030](0030-language-per-workload.md)
 - Ngày: 2026-11-06
 
 ## Bối cảnh

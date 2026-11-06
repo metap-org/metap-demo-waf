@@ -4,9 +4,10 @@
 
 | Ràng buộc | Lý do / nguồn |
 |---|---|
+| Edge viết bằng Rust; Control, Analytics, Management viết bằng Go | [ADR-0030](../09-adr/0030-language-per-workload.md) |
 | Management plane xây trên `metap` (Go) | Tận dụng entity CRUD, workflow, RBAC/ABAC, audit, outbox có sẵn ([ADR-0009](../09-adr/0009-metap-for-management-plane-only.md)) |
 | Edge, Control engine, Analytics **không** phụ thuộc `metap` | Yêu cầu độ trễ, khối lượng và chu kỳ deploy khác hẳn entity CRUD |
-| Managed ruleset là OWASP CRS chạy trên engine tương thích SecLang (Coraza hoặc ModSecurity) | [ADR-0004](../09-adr/0004-managed-ruleset-crs-on-seclang.md) |
+| Managed ruleset là OWASP CRS chạy trên engine tương thích SecLang (MVP: libmodsecurity v3) | [ADR-0004](../09-adr/0004-managed-ruleset-crs-on-seclang.md), [ADR-0031](../09-adr/0031-edge-in-rust-on-pingora.md) |
 | Ngôn ngữ rule cho khách dùng cú pháp biểu thức đã có trên thị trường, không tự phát minh | [ADR-0003](../09-adr/0003-rule-language-existing-syntax-with-builder.md) |
 | Không plane nào phụ thuộc dịch vụ managed chỉ có trên một cloud | Giữ được on-prem và hybrid ([ADR-0006](../09-adr/0006-saas-first-on-prem-capable.md)) |
 | Edge chạy được trên bare metal, VM và container với cùng một bản build | Chạy được trên PoP riêng lẫn hạ tầng đối tác ([ADR-0005](../09-adr/0005-edge-on-own-and-existing-infra.md)) |

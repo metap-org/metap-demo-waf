@@ -131,7 +131,7 @@ Dùng khi điều tra sau khi cảnh báo SLO bắn; tên metrics theo quy ướ
 
 | Thành phần | Tín hiệu chính |
 |---|---|
-| Edge gateway | `waap_edge_requests_total{zone,phase,verdict,error_source}`, `waap_edge_phase_duration_seconds{phase}`, `waap_edge_phase_timeout_total`, `waap_edge_failmode_triggered_total`, `waap_edge_governor_throttled_total{tenant}`, `waap_edge_upstream_errors_total{origin}`, `go_gc_duration_seconds` |
+| Edge gateway | `waap_edge_requests_total{zone,phase,verdict,error_source}`, `waap_edge_phase_duration_seconds{phase}`, `waap_edge_phase_timeout_total`, `waap_edge_failmode_triggered_total`, `waap_edge_governor_throttled_total{tenant}`, `waap_edge_upstream_errors_total{origin}`, `waap_edge_waf_ffi_duration_seconds`, `waap_edge_worker_restarts_total` |
 | Policy agent | `waap_agent_manifest_version{}` (info), `waap_agent_load_duration_seconds`, `waap_agent_nack_total{stage}`, `waap_agent_last_good_age_seconds`, `waap_agent_control_connected` |
 | State sync | `waap_ratelimit_sync_degraded`, `waap_ratelimit_hot_keys` |
 | Vector (edge) | buffer đĩa đã dùng, sự kiện bị bỏ, độ trễ gửi tới ingest gateway |

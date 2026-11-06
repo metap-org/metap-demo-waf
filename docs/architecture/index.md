@@ -7,7 +7,7 @@ chênh lệch so với kiến trúc đích được ghi ở [11. Risks and Techn
 
 Trạng thái: **bản nháp có quyết định** (2026-11-06). Mục 1–4 và level 1–2 của mục 5 mô tả *vai trò*,
 không gắn sản phẩm. Lựa chọn công nghệ nằm ở [05 · bản đồ công nghệ](05-building-blocks/07-technology-map.md)
-và ADR-0012 trở đi; detail design mức C3 ở [5.8](05-building-blocks/08-components/00-index.md).
+và ADR-0014 trở đi (ADR-0030 cho ngôn ngữ từng plane); detail design mức C3 ở [5.8](05-building-blocks/08-components/00-index.md).
 
 ## Cách tổ chức
 

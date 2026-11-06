@@ -1,6 +1,6 @@
 # ADR-0014: CEL là ngôn ngữ custom rule
 
-- Trạng thái: Chấp nhận (chốt biến thể cú pháp của [ADR-0003](0003-rule-language-existing-syntax-with-builder.md))
+- Trạng thái: Chấp nhận (chốt biến thể cú pháp của [ADR-0003](0003-rule-language-existing-syntax-with-builder.md)); cách thực thi ở edge sửa bởi [ADR-0032](0032-cel-checked-at-control-ir-at-edge.md)
 - Ngày: 2026-11-06
 
 ## Bối cảnh
