@@ -506,7 +506,7 @@ không tốn độ trễ, và băng thông tiết kiệm ở origin bù chi phí
 </thead>
 <tbody>
 <tr>
-<td>Control, Analytics, Management viết bằng Go; ngôn ngữ edge chọn theo hiệu năng</td>
+<td>Control, Analytics, Management viết bằng Go; realtime gateway và notifier bằng Elixir; ngôn ngữ edge chọn theo hiệu năng</td>
 <td><a href="#f-09-adr-0030-language-per-workload">ADR-0030</a>, <a href="#f-09-adr-0031-edge-l7-and-waf-engine-options">ADR-0031</a></td>
 </tr>
 <tr>
@@ -1833,7 +1833,7 @@ cân nhắc. Detail design mức C3 ở <a href="#f-05-building-blocks-08-compon
 <p>Hai tiêu chí chạy xuyên suốt:</p>
 <ol>
 <li><strong>Ngôn ngữ theo đặc tính tải</strong> (<a href="#f-09-adr-0030-language-per-workload">ADR-0030</a>): Go cho Control,
-Analytics, Management; edge (cùng replay và <code>edge-verify</code>) <strong>chờ chọn</strong> theo <a href="#f-09-adr-0031-edge-l7-and-waf-engine-options">ADR-0031</a>.</li>
+Analytics, Management; Elixir cho realtime gateway và notifier (<a href="#f-09-adr-0044-realtime-gateway-and-notifier-runtime">ADR-0044</a>); edge (cùng replay và <code>edge-verify</code>) <strong>chờ chọn</strong> theo <a href="#f-09-adr-0031-edge-l7-and-waf-engine-options">ADR-0031</a>.</li>
 <li><strong>Mọi thứ phải đóng gói được cho on-prem mà không vướng license</strong>
 (<a href="#f-09-adr-0024-licensing-policy-for-shipped-components">ADR-0024</a>). Không BSL, SSPL, AGPL
 trong phần phát hành cho khách; không dịch vụ managed độc quyền một cloud.</li>
@@ -2051,7 +2051,7 @@ trong phần phát hành cho khách; không dịch vụ managed độc quyền m
 </tr>
 <tr>
 <td>Realtime gateway, notifier</td>
-<td><strong>Chờ chọn.</strong> Đề xuất Elixir + Phoenix Channels, Broadway, Oban (mã nguồn mở); dự phòng Centrifugo + Go</td>
+<td>Elixir: Phoenix Channels, Phoenix PubSub, Broadway, Oban (bản mã nguồn mở)</td>
 <td>Apache-2.0 / MIT</td>
 <td><a href="#f-09-adr-0044-realtime-gateway-and-notifier-runtime">0044</a></td>
 </tr>
@@ -2307,7 +2307,7 @@ thiết kế, hợp đồng hoặc schema chính, hành vi khi lỗi. Công ngh�
 </tr>
 <tr>
 <td><code>realtime-gateway</code>, <code>notifier</code></td>
-<td>Chờ chọn: Elixir + Phoenix/Oban (đề xuất) hoặc Go (<a href="#f-09-adr-0044-realtime-gateway-and-notifier-runtime">ADR-0044</a>)</td>
+<td>Elixir: Phoenix, Broadway, Oban (<a href="#f-09-adr-0044-realtime-gateway-and-notifier-runtime">ADR-0044</a>)</td>
 <td>Mỗi Analytics region (Kubernetes)</td>
 </tr>
 <tr>
@@ -4745,7 +4745,7 @@ Cùng code thuật toán với detector (package Go dùng chung), nên kết qu�
 </table>
 </section>
 <section class="doc" id="f-05-building-blocks-08-components-11-notification-fanout"><div class="path">05-building-blocks/08-components/11-notification-fanout.md</div><h1 id="f-05-building-blocks-08-components-11-notification-fanout--5811-notification-fan-out-nhiều-kênh-khách-tự-tích-hợp-mở-kênh-theo-gói">5.8.11 Notification: fan-out nhiều kênh, khách tự tích hợp, mở kênh theo gói</h1>
-<p>Runtime chờ chọn theo <a href="#f-09-adr-0044-realtime-gateway-and-notifier-runtime">ADR-0044</a>: Go (hiện tại) hoặc Elixir + Oban (đề xuất, dùng chung runtime với realtime gateway). Thiết kế dưới đây (bảng <code>deliveries</code>, adapter theo kênh, retry, cô lập lỗi) không đổi theo lựa chọn.</p>
+<p>Viết bằng Elixir + Oban, dùng chung runtime với realtime gateway (<a href="#f-09-adr-0044-realtime-gateway-and-notifier-runtime">ADR-0044</a>). Bảng <code>deliveries</code> trên PostgreSQL là bảng job của Oban; adapter theo kênh, retry, cô lập lỗi như dưới đây.</p>
 <p>Nhận sự kiện cảnh báo từ alert engine (<a href="#f-05-building-blocks-08-components-10-alerting-rules-and-algorithms">32</a>) và gửi tới mọi kênh
 khách cấu hình. Quyết định nền: <a href="#f-09-adr-0028-notification-adapters-and-plan-gated-channels">ADR-0028</a>.</p>
 <p>Ba yêu cầu:</p>
@@ -5235,9 +5235,8 @@ sang Analytics để join vào hiệu quả rule.</p>
 </section>
 <section class="doc" id="f-05-building-blocks-08-components-13-realtime-gateway"><div class="path">05-building-blocks/08-components/13-realtime-gateway.md</div><h1 id="f-05-building-blocks-08-components-13-realtime-gateway--5813-realtime-gateway-analytics-plane">5.8.13 Realtime gateway (Analytics plane)</h1>
 <p>Đẩy dữ liệu gần realtime tới portal: số liệu traffic từng giây của zone đang xem, security event mới,
-cảnh báo, tiến độ lan truyền cấu hình, cập nhật case. Công nghệ chờ chọn theo
-<a href="#f-09-adr-0044-realtime-gateway-and-notifier-runtime">ADR-0044</a> (đề xuất Elixir + Phoenix
-Channels).</p>
+cảnh báo, tiến độ lan truyền cấu hình, cập nhật case. Viết bằng Elixir + Phoenix Channels
+(<a href="#f-09-adr-0044-realtime-gateway-and-notifier-runtime">ADR-0044</a>); xây ở giai đoạn Mở rộng.</p>
 <h2 id="f-05-building-blocks-08-components-13-realtime-gateway--vì-sao-cần-thành-phần-riêng">Vì sao cần thành phần riêng</h2>
 <table>
 <thead>
@@ -10861,7 +10860,7 @@ cân nhắc. Quyết định bị thay thế giữ lại với trạng thái &qu
 </tr>
 <tr>
 <td><a href="#f-09-adr-0030-language-per-workload">0030</a></td>
-<td>Ngôn ngữ theo đặc tính tải: Go cho Control/Analytics/Management, edge theo 0031; Elixir xem lại ở 0044</td>
+<td>Ngôn ngữ theo đặc tính tải: Go cho Control/Analytics/Management, edge theo 0031; Elixir cho realtime gateway, notifier (0044)</td>
 <td>Chấp nhận (phần edge chờ 0031)</td>
 </tr>
 <tr>
@@ -10931,8 +10930,8 @@ cân nhắc. Quyết định bị thay thế giữ lại với trạng thái &qu
 </tr>
 <tr>
 <td><a href="#f-09-adr-0044-realtime-gateway-and-notifier-runtime">0044</a></td>
-<td>Realtime gateway cho hàng chục nghìn phiên portal và runtime của notifier: Go, Centrifugo, Elixir/Phoenix, managed</td>
-<td><strong>Đề xuất, chờ chọn</strong> (đề xuất Elixir)</td>
+<td>Realtime gateway cho hàng chục nghìn phiên portal và runtime của notifier: Go, Centrifugo, Elixir/Phoenix, managed; chọn Elixir + Phoenix</td>
+<td>Chấp nhận</td>
 </tr>
 </tbody>
 </table>
@@ -11827,7 +11826,7 @@ nghiệp vụ, khối lượng vừa phải; ở đó tốc độ phát triển 
 <td>Logic điều phối, khối lượng nhỏ; <code>cel-go</code> cho kiểm tra rule (<a href="#f-09-adr-0032-cel-checked-at-control-ir-at-edge">ADR-0032</a>)</td>
 </tr>
 <tr>
-<td><strong>Analytics services</strong> (enricher, query, detection, notifier, exporter)</td>
+<td><strong>Analytics services</strong> (enricher, query, detection, exporter)</td>
 <td>Go</td>
 <td>I/O-bound, scale ngang; enricher chuyển sang Rust chỉ khi profiling cho thấy chi phí CPU chiếm phần lớn</td>
 </tr>
@@ -11835,6 +11834,11 @@ nghiệp vụ, khối lượng vừa phải; ở đó tốc độ phát triển 
 <td><strong>Management</strong></td>
 <td>Go (<code>metap-go</code>)</td>
 <td><a href="#f-09-adr-0009-metap-for-management-plane-only">ADR-0009</a></td>
+</tr>
+<tr>
+<td><strong>Realtime gateway, notifier</strong></td>
+<td>Elixir (Phoenix, Broadway, Oban)</td>
+<td>Nhiều thực thể sống lâu, fan-out, retry, cô lập lỗi (<a href="#f-09-adr-0044-realtime-gateway-and-notifier-runtime">ADR-0044</a>)</td>
 </tr>
 </tbody>
 </table>
@@ -11860,7 +11864,7 @@ lý thừa sức với thiết kế ở <a href="#f-05-building-blocks-08-compon
 còn thêm runtime thứ ba thì tốn vận hành và tuyển người. Xem lại khi: (a) cần đẩy event realtime tới
 hàng chục nghìn phiên portal cùng lúc (Phoenix Channels là lựa chọn mạnh), hoặc (b) số tin thông báo
 vượt mức một cụm Go nhỏ xử lý được. <strong>Điều kiện (a) đã xảy ra</strong> theo ước lượng ở quy mô 1 triệu zone
-(2026-11-06): xem <a href="#f-09-adr-0044-realtime-gateway-and-notifier-runtime">ADR-0044</a>, đề xuất Elixir cho
+(2026-11-06): xem <a href="#f-09-adr-0044-realtime-gateway-and-notifier-runtime">ADR-0044</a>, đã chọn Elixir cho
 realtime gateway và notifier.</li>
 </ul>
 </section>
@@ -12981,7 +12985,7 @@ hoá đơn.</li>
 </section>
 <section class="doc" id="f-09-adr-0044-realtime-gateway-and-notifier-runtime"><div class="path">09-adr/0044-realtime-gateway-and-notifier-runtime.md</div><h1 id="f-09-adr-0044-realtime-gateway-and-notifier-runtime--adr-0044-realtime-gateway-cho-portal-và-runtime-của-notifier">ADR-0044: Realtime gateway cho portal và runtime của notifier</h1>
 <ul>
-<li>Trạng thái: <strong>Đề xuất, chờ chọn</strong> (đề xuất R3: Elixir + Phoenix cho realtime gateway và notifier)</li>
+<li>Trạng thái: Chấp nhận (2026-11-06): <strong>R3</strong>, Elixir + Phoenix cho realtime gateway và notifier</li>
 <li>Ngày: 2026-11-06</li>
 <li>Liên quan: <a href="#f-09-adr-0030-language-per-workload">ADR-0030</a>, <a href="#f-05-building-blocks-08-components-13-realtime-gateway">5.8.13</a>, <a href="#f-05-building-blocks-08-components-11-notification-fanout">5.8.11</a></li>
 </ul>
@@ -13055,8 +13059,8 @@ giống: fan-out nhiều kênh, retry, cô lập lỗi theo kênh, theo khách.<
 </tr>
 </tbody>
 </table>
-<h2 id="f-09-adr-0044-realtime-gateway-and-notifier-runtime--đề-xuất">Đề xuất</h2>
-<p><strong>R3</strong> cho cả realtime gateway và notifier:</p>
+<h2 id="f-09-adr-0044-realtime-gateway-and-notifier-runtime--quyết-định">Quyết định</h2>
+<p>Chọn <strong>R3</strong> cho cả realtime gateway và notifier:</p>
 <ul>
 <li>Hai thành phần có cùng đặc tính (nhiều thực thể sống lâu, fan-out, retry, cô lập lỗi), đúng thế mạnh
 của BEAM; gom vào một runtime giúp chi phí thêm runtime được chia cho hai việc.</li>
@@ -13067,9 +13071,9 @@ PostgreSQL (<code>deliveries</code>) qua hợp đồng có sẵn; Go vẫn là n
 </ul>
 <p><strong>R2</strong> là phương án dự phòng nếu không muốn thêm runtime: Centrifugo giữ kết nối, một dịch vụ Go nhỏ
 làm zone aggregator rồi publish vào Centrifugo; notifier giữ Go.</p>
-<p>Quyết định trước khi xây realtime gateway (Mở rộng); MVP dùng Query API với refresh vài giây cho số ít
-phiên đầu tiên.</p>
-<h2 id="f-09-adr-0044-realtime-gateway-and-notifier-runtime--hệ-quả-nếu-chọn-đề-xuất">Hệ quả nếu chọn đề xuất</h2>
+<p>Realtime gateway xây ở giai đoạn Mở rộng; MVP dùng Query API với refresh vài giây cho số ít phiên đầu
+tiên. Notifier viết bằng Elixir ngay từ MVP để không phải viết hai lần.</p>
+<h2 id="f-09-adr-0044-realtime-gateway-and-notifier-runtime--hệ-quả">Hệ quả</h2>
 <ul>
 <li>Thêm Elixir vào danh sách ngôn ngữ của <a href="#f-09-adr-0030-language-per-workload">ADR-0030</a>: Go cho Control,
 Analytics (phần xử lý dữ liệu), Management; edge theo ADR-0031; Elixir cho realtime gateway và notifier.</li>
@@ -13720,7 +13724,7 @@ kịch bản đo được (§10.3) và cơ chế kiến trúc đáp ứng nó.</
 <td>Thêm runtime thứ ba (Elixir) làm khó tuyển người và vận hành</td>
 <td>Trung bình</td>
 <td>Trung bình</td>
-<td>Giới hạn Elixir ở hai thành phần có hợp đồng rõ (realtime gateway, notifier); dự phòng Centrifugo + Go (<a href="#f-09-adr-0044-realtime-gateway-and-notifier-runtime">ADR-0044</a>)</td>
+<td>Giới hạn Elixir ở hai thành phần có hợp đồng rõ (realtime gateway, notifier); nếu không đủ người thì dự phòng Centrifugo + Go (<a href="#f-09-adr-0044-realtime-gateway-and-notifier-runtime">ADR-0044</a>)</td>
 <td>Thiếu người đọc được Elixir; sự cố gateway kéo dài</td>
 </tr>
 <tr>
@@ -13795,7 +13799,8 @@ kịch bản đo được (§10.3) và cơ chế kiến trúc đáp ứng nó.</
 Edge theo hợp đồng ở <a href="#f-05-building-blocks-05-contracts">05-contracts</a>; xây mới Analytics.</p>
 <h2 id="f-11-risks-00-index--113-quyết-định-còn-mở">11.3 Quyết định còn mở</h2>
 <p>Đã chốt ngày 2026-11-06: biến thể cú pháp rule (<a href="#f-09-adr-0014-cel-as-rule-language">ADR-0014</a>,
-CEL), công nghệ của Control, Analytics, Management (<a href="#f-05-building-blocks-07-technology-map">05 · bản đồ công nghệ</a>).</p>
+CEL), công nghệ của Control, Analytics, Management (<a href="#f-05-building-blocks-07-technology-map">05 · bản đồ công nghệ</a>),
+Elixir + Phoenix cho realtime gateway và notifier (<a href="#f-09-adr-0044-realtime-gateway-and-notifier-runtime">ADR-0044</a>).</p>
 <table>
 <thead>
 <tr>
@@ -13839,11 +13844,6 @@ CEL), công nghệ của Control, Analytics, Management (<a href="#f-05-building
 <td>Chính sách crawler AI mặc định</td>
 <td>Allow, block, hay theo <code>robots.txt</code> cho zone mới</td>
 <td><a href="#f-08-cross-cutting-16-bot-management--4-policy-của-khách">8.16</a></td>
-</tr>
-<tr>
-<td><strong>Runtime của realtime gateway và notifier</strong></td>
-<td>Elixir + Phoenix (đề xuất), Centrifugo + Go, hay Go tự xây</td>
-<td><a href="#f-09-adr-0044-realtime-gateway-and-notifier-runtime">ADR-0044</a>; quyết trước giai đoạn Mở rộng</td>
 </tr>
 <tr>
 <td><strong>Cell và cách đặt zone</strong></td>
@@ -14860,7 +14860,7 @@ theo chính sách tài liệu (<a href="#f-02-constraints-00-index--24-conventio
 </tr>
 <tr>
 <td><strong>Elixir / BEAM / OTP</strong></td>
-<td>Ngôn ngữ chạy trên máy ảo Erlang (BEAM), mỗi thực thể là một process nhẹ, OTP supervisor tự khởi động lại khi lỗi; đề xuất cho realtime gateway và notifier (<a href="#f-09-adr-0044-realtime-gateway-and-notifier-runtime">ADR-0044</a>)</td>
+<td>Ngôn ngữ chạy trên máy ảo Erlang (BEAM), mỗi thực thể là một process nhẹ, OTP supervisor tự khởi động lại khi lỗi; dùng cho realtime gateway và notifier (<a href="#f-09-adr-0044-realtime-gateway-and-notifier-runtime">ADR-0044</a>)</td>
 </tr>
 <tr>
 <td><strong>Phoenix Channels / PubSub / Presence</strong></td>

@@ -1,6 +1,6 @@
 # ADR-0044: Realtime gateway cho portal và runtime của notifier
 
-- Trạng thái: **Đề xuất, chờ chọn** (đề xuất R3: Elixir + Phoenix cho realtime gateway và notifier)
+- Trạng thái: Chấp nhận (2026-11-06): **R3**, Elixir + Phoenix cho realtime gateway và notifier
 - Ngày: 2026-11-06
 - Liên quan: [ADR-0030](0030-language-per-workload.md), [5.8.13](../05-building-blocks/08-components/13-realtime-gateway.md), [5.8.11](../05-building-blocks/08-components/11-notification-fanout.md)
 
@@ -32,9 +32,9 @@ giống: fan-out nhiều kênh, retry, cô lập lỗi theo kênh, theo khách.
 | Ngôn ngữ, vận hành | Không thêm runtime | Không thêm runtime; thêm một sản phẩm cần vận hành | **Thêm runtime thứ ba** (BEAM): tuyển người, CI, quan sát | Không vận hành |
 | License, on-prem | Tốt | Apache-2.0 (bản PRO là thương mại, không dùng) | Apache-2.0 / MIT (Elixir, Phoenix, Broadway, Oban bản mã nguồn mở) | **Loại**: không on-prem, dữ liệu ra ngoài region |
 
-## Đề xuất
+## Quyết định
 
-**R3** cho cả realtime gateway và notifier:
+Chọn **R3** cho cả realtime gateway và notifier:
 
 - Hai thành phần có cùng đặc tính (nhiều thực thể sống lâu, fan-out, retry, cô lập lỗi), đúng thế mạnh
   của BEAM; gom vào một runtime giúp chi phí thêm runtime được chia cho hai việc.
@@ -46,10 +46,10 @@ giống: fan-out nhiều kênh, retry, cô lập lỗi theo kênh, theo khách.
 **R2** là phương án dự phòng nếu không muốn thêm runtime: Centrifugo giữ kết nối, một dịch vụ Go nhỏ
 làm zone aggregator rồi publish vào Centrifugo; notifier giữ Go.
 
-Quyết định trước khi xây realtime gateway (Mở rộng); MVP dùng Query API với refresh vài giây cho số ít
-phiên đầu tiên.
+Realtime gateway xây ở giai đoạn Mở rộng; MVP dùng Query API với refresh vài giây cho số ít phiên đầu
+tiên. Notifier viết bằng Elixir ngay từ MVP để không phải viết hai lần.
 
-## Hệ quả nếu chọn đề xuất
+## Hệ quả
 
 - Thêm Elixir vào danh sách ngôn ngữ của [ADR-0030](0030-language-per-workload.md): Go cho Control,
   Analytics (phần xử lý dữ liệu), Management; edge theo ADR-0031; Elixir cho realtime gateway và notifier.

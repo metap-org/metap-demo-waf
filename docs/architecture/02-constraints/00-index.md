@@ -4,7 +4,7 @@
 
 | Ràng buộc | Lý do / nguồn |
 |---|---|
-| Control, Analytics, Management viết bằng Go; ngôn ngữ edge chọn theo hiệu năng | [ADR-0030](../09-adr/0030-language-per-workload.md), [ADR-0031](../09-adr/0031-edge-l7-and-waf-engine-options.md) |
+| Control, Analytics, Management viết bằng Go; realtime gateway và notifier bằng Elixir; ngôn ngữ edge chọn theo hiệu năng | [ADR-0030](../09-adr/0030-language-per-workload.md), [ADR-0031](../09-adr/0031-edge-l7-and-waf-engine-options.md) |
 | Management plane xây trên `metap` (Go) | Tận dụng entity CRUD, workflow, RBAC/ABAC, audit, outbox có sẵn ([ADR-0009](../09-adr/0009-metap-for-management-plane-only.md)) |
 | Edge, Control engine, Analytics **không** phụ thuộc `metap` | Yêu cầu độ trễ, khối lượng và chu kỳ deploy khác hẳn entity CRUD |
 | Managed ruleset là OWASP CRS chạy trên engine tương thích SecLang (engine chờ chọn) | [ADR-0004](../09-adr/0004-managed-ruleset-crs-on-seclang.md), [ADR-0031](../09-adr/0031-edge-l7-and-waf-engine-options.md) |

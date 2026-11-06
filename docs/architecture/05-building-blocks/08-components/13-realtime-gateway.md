@@ -1,9 +1,8 @@
 # 5.8.13 Realtime gateway (Analytics plane)
 
 Đẩy dữ liệu gần realtime tới portal: số liệu traffic từng giây của zone đang xem, security event mới,
-cảnh báo, tiến độ lan truyền cấu hình, cập nhật case. Công nghệ chờ chọn theo
-[ADR-0044](../../09-adr/0044-realtime-gateway-and-notifier-runtime.md) (đề xuất Elixir + Phoenix
-Channels).
+cảnh báo, tiến độ lan truyền cấu hình, cập nhật case. Viết bằng Elixir + Phoenix Channels
+([ADR-0044](../../09-adr/0044-realtime-gateway-and-notifier-runtime.md)); xây ở giai đoạn Mở rộng.
 
 ## Vì sao cần thành phần riêng
 

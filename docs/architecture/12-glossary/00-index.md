@@ -286,7 +286,7 @@ Lựa chọn và lý do ở [5.7](../05-building-blocks/07-technology-map.md) v�
 | **Valkey** | Kho key-value tương thích Redis, license BSD; đồng bộ counter hot key |
 | **OpenBao** | Quản lý bí mật, PKI, ký (nhánh mã nguồn mở của Vault) |
 | **Vector** | Log shipper trên node và ingest gateway |
-| **Elixir / BEAM / OTP** | Ngôn ngữ chạy trên máy ảo Erlang (BEAM), mỗi thực thể là một process nhẹ, OTP supervisor tự khởi động lại khi lỗi; đề xuất cho realtime gateway và notifier ([ADR-0044](../09-adr/0044-realtime-gateway-and-notifier-runtime.md)) |
+| **Elixir / BEAM / OTP** | Ngôn ngữ chạy trên máy ảo Erlang (BEAM), mỗi thực thể là một process nhẹ, OTP supervisor tự khởi động lại khi lỗi; dùng cho realtime gateway và notifier ([ADR-0044](../09-adr/0044-realtime-gateway-and-notifier-runtime.md)) |
 | **Phoenix Channels / PubSub / Presence** | Thư viện Elixir: kênh WebSocket theo topic / phát message trong cụm / theo dõi ai đang kết nối |
 | **Broadway / Oban** | Thư viện Elixir: consumer Kafka có backpressure / job queue trên PostgreSQL (dùng bản mã nguồn mở) |
 | **Centrifugo** | Server realtime viết bằng Go, phương án dự phòng cho realtime gateway |

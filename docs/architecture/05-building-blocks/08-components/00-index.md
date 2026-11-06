@@ -33,7 +33,7 @@ thiết kế, hợp đồng hoặc schema chính, hành vi khi lỗi. Công ngh�
 | `regional-relay` | Go | Mỗi region, tuỳ chọn ở PoP lớn |
 | `config-service`, `compiler`, `rollout-orchestrator`, `distribution`, `fleet-registry`, `cert-service` | Go | Core region (Kubernetes) |
 | `enricher` (kèm live tap), `archiver`, `query-api`, `detection`, `exporter` | Go | Mỗi Analytics region (Kubernetes) |
-| `realtime-gateway`, `notifier` | Chờ chọn: Elixir + Phoenix/Oban (đề xuất) hoặc Go ([ADR-0044](../../09-adr/0044-realtime-gateway-and-notifier-runtime.md)) | Mỗi Analytics region (Kubernetes) |
+| `realtime-gateway`, `notifier` | Elixir: Phoenix, Broadway, Oban ([ADR-0044](../../09-adr/0044-realtime-gateway-and-notifier-runtime.md)) | Mỗi Analytics region (Kubernetes) |
 | `replay` | Cùng ngôn ngữ và code `pipeline` với edge | Mỗi Analytics region (Kubernetes) |
 | `waap-management` | Go (`metap-go`) | Core region (Kubernetes) |
 | `portal` | React (static) | CDN / core region |
