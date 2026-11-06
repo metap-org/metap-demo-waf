@@ -105,6 +105,9 @@ CREATE TABLE security_events (
   user_agent String, node_id String, region LowCardinality(String),
   cache_status LowCardinality(String), inspected UInt8, body_truncated UInt8,
   status_source LowCardinality(String), edge_error LowCardinality(String),
+  bot_score UInt8, bot_class LowCardinality(String), bot_category LowCardinality(String), bot_signals UInt64,
+  ja4_hash UInt64, h2fp_hash UInt64, api_endpoint_id UInt32, api_consumer_hash UInt64,
+  schema_violation LowCardinality(String), jwt_status LowCardinality(String),
   -- thời gian theo chặng, micro giây (8.14)
   client_tls_us UInt32, client_rtt_us UInt32, client_retrans UInt16, req_recv_us UInt32,
   pre_us UInt32, waf_rtt_us UInt32, waf_queue_us UInt32, waf_engine_us UInt32, cache_us UInt32,
@@ -130,6 +133,8 @@ AS SELECT tenant_id, zone_id, toStartOfMinute(ts) AS minute, action, rule_id,
 | `traffic_1m`, `traffic_1h` | Dashboard traffic; tổng traffic (đã nhân ngược tỉ lệ lấy mẫu) làm mẫu số; đếm theo `status_source`, `edge_error` |
 | `latency_1m` | Quantile state (p50/p95/p99) của từng chặng theo zone, PoP, quốc gia; nguồn cho dashboard độ trễ và cảnh báo O3 |
 | `rule_efficacy_1h` | Số lần khớp, tỉ lệ chặn, số nhãn FP theo rule và policy version |
+| `bot_1h` | Phân bố `bot.class`/`bot.category` theo zone, nhóm path; top fingerprint, ASN |
+| `api_endpoint_1h` | Theo `api_endpoint_id`: traffic, lỗi, độ trễ theo chặng, vi phạm schema, lỗi JWT, số consumer khác nhau |
 | `usage_1h` | Metering cho billing |
 | `fp_labels` | Nhãn chặn nhầm từ Management, join vào `rule_efficacy` |
 

@@ -14,7 +14,7 @@ mức demo. **Mở rộng** để ngang đối thủ trong vòng đánh giá, **
 
 | Nhóm | MVP | Mở rộng | Nâng cao |
 |---|---|---|---|
-| Bảo vệ runtime | Managed ruleset (CRS + system ruleset), custom rule, rate limit toàn fleet, access list IP/geo/ASN, DDoS L7, Under Attack mode, TLS + cert tự động, bảo vệ origin | DDoS L3/L4 (qua hạ tầng/đối tác), bot management, API security (discovery, schema, JWT) | Chống chiếm tài khoản, client-side protection |
+| Bảo vệ runtime | Managed ruleset (CRS + system ruleset), custom rule, rate limit toàn fleet, access list IP/geo/ASN, DDoS L7, Under Attack mode, TLS + cert tự động, bảo vệ origin | DDoS L3/L4 (qua hạ tầng/đối tác), bot management (điểm bot, bot đã xác minh, crawler AI, challenge; [8.16](../08-cross-cutting/16-bot-management.md)), API security (discovery, schema, JWT/mTLS, rate limit theo consumer, GraphQL; [8.17](../08-cross-cutting/17-api-security.md)) | Chống chiếm tài khoản, mô hình bot học máy, phát hiện BOLA, dữ liệu nhạy cảm trong response, client-side protection |
 | Vòng đời policy | Builder + text, kiểm tra trước khi lưu, log-only theo rule/zone, exception có phạm vi, version, diff, rollback một bấm | Mô phỏng trên traffic lịch sử, canary, duyệt 4-eyes, policy-as-code (API/Terraform/GitOps), kế thừa org → nhóm zone → zone | |
 | Quan sát & vận hành bảo mật | Security event realtime, access log theo gói, tra cứu theo request ID, dashboard (traffic, bảo mật, hiệu quả rule), đánh dấu chặn nhầm + tỉ lệ FP theo rule, cảnh báo đa kênh, SIEM export | Case/sự cố, báo cáo định kỳ và tuân thủ | Phát hiện bất thường theo baseline |
 | Threat intelligence | Cập nhật ruleset có version, rule khẩn toàn fleet | IP reputation, virtual patching theo CVE | Tín hiệu chéo tenant (ẩn danh) |

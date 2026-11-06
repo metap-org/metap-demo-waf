@@ -49,6 +49,10 @@ flowchart LR
 | QS-17 | Tách tầng | Flood từ ít nguồn vào một zone | ≥ 95% request bị loại ở proxy; CPU tầng WAF của PoP tăng ≤ 20% |
 | QS-18 | Tách tầng | Tầng WAF của một PoP quá tải hoặc sập | Kết nối client không bị ảnh hưởng; zone áp fail mode trong ≤ 1 lần deadline |
 | QS-19 | Quy lỗi | Bất kỳ response 5xx nào | Có `status_source` và (nếu WAAP tự sinh) `edge_error`; xác định được chặng chậm nhất từ trace trong ≤ 1 phút |
+| QS-20 | Bot | Request từ bot đã xác minh (Googlebot thật) | Không bị chặn hay challenge; tính điểm bot ≤ 50 µs p99 |
+| QS-21 | Bot | Người dùng thật trên zone bật bot management ở mức mặc định | Tỉ lệ bị challenge tương tác ≤ 1% |
+| QS-22 | API | Request tới endpoint có schema | Kiểm ở proxy ≤ 20 µs, kiểm body JSON 10 KB ở WAF ≤ 300 µs p99 |
+| QS-23 | API | Khách xoay khoá JWKS | Edge chấp nhận token ký bằng khoá mới trong ≤ 60 s |
 
 ## 10.3 Quy mô thiết kế
 

@@ -47,6 +47,14 @@
 | **edge_error** | Mã chi tiết khi WAAP tự sinh response thay cho origin (ví dụ `origin_connect_timeout`) |
 | **edge_us** | Thời gian do WAAP gây ra cho một request, không gồm chờ origin và client |
 | **RUM** | Real user monitoring: đo trải nghiệm thật trên trình duyệt người dùng |
+| **bot.score / bot.class** | Điểm 1–99 (thấp là tự động) và lớp `verified_bot`, `likely_human`, `likely_automated`, `automated` |
+| **Bot đã xác minh** | Bot tốt được xác nhận qua dải IP công bố, rDNS hoặc chữ ký của agent |
+| **JA4** | Fingerprint của TLS ClientHello, dùng nhận diện client |
+| **API discovery** | Học danh sách endpoint từ traffic thật |
+| **Shadow / zombie API** | Endpoint có traffic nhưng không khai báo / đã deprecated mà vẫn được gọi |
+| **api.consumer** | Danh tính đã băm của client API (từ JWT `sub`, API key, cert), khoá cho rate limit và analytics |
+| **BOLA** | Broken Object Level Authorization: truy cập đối tượng của người khác bằng cách đổi ID |
+| **JWKS** | Tập khoá công khai để kiểm chữ ký JWT |
 | **Request ID** | Định danh duy nhất của request, in trên trang chặn, khoá tra cứu và bỏ trùng |
 | **Replay** | Chạy policy nháp trên traffic lịch sử để mô phỏng tác động |
 | **SIEM export** | Đẩy log liên tục sang hệ thống SIEM của khách |

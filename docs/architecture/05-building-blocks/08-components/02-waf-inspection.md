@@ -39,7 +39,7 @@ flowchart LR
 | **Ruleset selector** | Map `zone → instance engine`; instance dựng sẵn theo `(ruleset release, cấu hình CRS)`, dùng chung giữa các zone cùng cấu hình |
 | **WafEngine** | Interface; engine chờ chọn: Coraza (Go), libmodsecurity v3 (C++), SecLang thuần Rust (dài hạn). CRS anomaly scoring, paranoia level, rule tắt, exclusion của khách |
 | **Custom rule phần inspect** | Rule cần body, tham số đã parse, JSON path; và mọi rule đứng sau rule đầu tiên cần body theo thứ tự priority ([ADR-0034](../../09-adr/0034-pre-filter-and-rule-split-across-tiers.md)) |
-| **API schema** | Mở rộng: kiểm request theo OpenAPI của khách |
+| **API schema** | Mở rộng: kiểm body JSON theo JSON Schema của endpoint (endpoint đã được proxy khớp, gửi kèm `api.endpoint_id`); GraphQL: parse, độ sâu, độ phức tạp, introspection, batch ([8.17](../../08-cross-cutting/17-api-security.md)) |
 | **Verdict builder** | `{action, rule_ids, anomaly_score, matched_fields (đã che), phase, engine_time_us}` |
 | **Policy agent** | Cùng cơ chế với proxy ([5.8.4](04-edge-agent-and-state.md)); chỉ nạp phần snapshot của tầng WAF |
 

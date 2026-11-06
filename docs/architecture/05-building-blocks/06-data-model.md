@@ -23,6 +23,10 @@ erDiagram
     POLICY_VERSION ||--o{ CACHE_RULE : contains
     ZONE ||--o{ PURGE_REQUEST : requests
     ZONE ||--o{ DNS_RECORD : "has (Mở rộng)"
+    POLICY_VERSION ||--|| BOT_POLICY : contains
+    POLICY_VERSION ||--o{ API_SCHEMA : contains
+    ZONE ||--o{ API_ENDPOINT : inventories
+    ZONE ||--o| API_AUTH_CONFIG : configures
     CHANGE_REQUEST }o--|| POLICY_VERSION : proposes
     CHANGE_REQUEST ||--o{ APPROVAL : needs
     ACCOUNT ||--o{ ALERT_POLICY : configures
@@ -41,6 +45,10 @@ erDiagram
 | **CacheRule** | Điều kiện (path, đuôi file, header), TTL, cache key tuỳ biến, bỏ qua cache, miễn WAF cho tài nguyên tĩnh ([ADR-0035](../09-adr/0035-cdn-and-dns-strategy.md)) |
 | **PurgeRequest** | Theo URL, prefix, tag (Mở rộng); đi fast lane; trạng thái hoàn tất theo % node |
 | **DnsRecord** | Mở rộng, khi khách chuyển DNS authoritative sang NCC: loại, tên, giá trị, TTL, proxied (trả IP edge thay vì IP origin) |
+| **BotPolicy** | Hành động theo `bot.class`, `bot.category` và nhóm path; bot đã xác minh bỏ qua những gì; danh sách bot của khách; bật/tắt JS thu tín hiệu ([8.16](../08-cross-cutting/16-bot-management.md)) |
+| **ApiEndpoint** | Kho API: `(host, method, path template)`, nguồn (schema / discovery), trạng thái (đã xác nhận, shadow, zombie, không dùng), nhãn nhạy cảm, chế độ kiểm (tắt / log-only / enforce) |
+| **ApiSchema** | OpenAPI 3.x khách tải hoặc sinh từ discovery, có version |
+| **ApiAuthConfig** | JWT (issuer, audience, URL JWKS), CA client cho mTLS, header API key, nguồn danh tính consumer ([8.17](../08-cross-cutting/17-api-security.md)) |
 | **AuditEntry** | Chỉ ghi thêm; gồm diff, người làm, kênh (UI/API/IaC), IP, change request liên quan |
 
 ## Mô hình rule

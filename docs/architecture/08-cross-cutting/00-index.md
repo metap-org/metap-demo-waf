@@ -7,6 +7,8 @@
 | [13-operational-behaviors.md](13-operational-behaviors.md) | 8.13 Hành vi vận hành: từng tình huống và thao tác với tín hiệu, cảnh báo, tự phản ứng, runbook |
 | [14-latency-and-error-attribution.md](14-latency-and-error-attribution.md) | 8.14 Đo độ trễ theo tầng, đo chặng tới client, quy mỗi status code về đúng nguồn |
 | [15-config-propagation-and-apply.md](15-config-propagation-and-apply.md) | 8.15 Luồng cấu hình xuống edge; cấu hình nào đổi nóng, build nền, reload, nâng phần mềm |
+| [16-bot-management.md](16-bot-management.md) | 8.16 Bot management: tín hiệu nhiều lớp, điểm và lớp, policy, challenge, vòng học, quyền riêng tư, chống chiếm tài khoản |
+| [17-api-security.md](17-api-security.md) | 8.17 API security: discovery, kho API, kiểm schema, JWT/mTLS, danh tính consumer, GraphQL, BOLA, dữ liệu nhạy cảm |
 
 ## 8.1 Multi-tenancy và cô lập
 

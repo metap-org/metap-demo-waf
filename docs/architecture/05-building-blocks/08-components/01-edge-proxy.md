@@ -19,10 +19,11 @@ flowchart TB
         rid["Request ID · zone router"]
         subgraph PRE["Pre-filter (rẻ, chạy trước)"]
             acl["Access list<br/>allow · deny · reputation"]
+            bot["Bot scoring<br/>verified · fingerprint · hành vi"]
             uam["Challenge & clearance<br/>Under Attack mode"]
+            api["API: endpoint · JWT/mTLS<br/>consumer · schema rẻ"]
             rl["Rate limit · DDoS L7"]
-            bot["Bot tín hiệu rẻ<br/>(Mở rộng)"]
-            crp["Custom rule phần pre"]
+            crp["Policy bot · custom rule pre"]
         end
         gate["Inspect gate<br/>có cần gọi WAF không"]
         buf["Body buffer<br/>tới giới hạn của gói"]
@@ -37,7 +38,7 @@ flowchart TB
     origin["Origin"]
     vec["Vector"]
 
-    l4 --> lst --> lim --> rid --> acl --> uam --> rl --> bot --> crp --> gate
+    l4 --> lst --> lim --> rid --> acl --> bot --> uam --> api --> rl --> crp --> gate
     gate -->|không cần| dec
     gate -->|cần| buf --> ic <--> waf
     ic --> dec
@@ -53,20 +54,21 @@ flowchart TB
 | # | Bước | Ở tầng | Chi phí | Kết quả có thể |
 |---|---|---|---|---|
 | 1 | L3/L4 | Hạ tầng / đối tác | — | Rớt gói |
-| 2 | TLS, HTTP | Proxy | RAM, CPU TLS | Đóng kết nối |
+| 2 | TLS, HTTP; ghi fingerprint JA4, HTTP/2 | Proxy | RAM, CPU TLS | Đóng kết nối |
 | 3 | Giới hạn giao thức, chuẩn hoá | Proxy | Rất thấp | 400/413/431 |
 | 4 | Access list (allow, deny, reputation) | Proxy | Rất thấp (trie) | Block; allow bỏ qua bước 5–11 theo phạm vi cấu hình |
-| 5 | Under Attack mode, challenge | Proxy | Thấp | Challenge |
-| 6 | Rate limit, DDoS L7 | Proxy | Thấp | Block / challenge |
-| 7 | Bot (tín hiệu rẻ: TLS fingerprint, header) | Proxy | Thấp | Challenge / chấm điểm |
-| 8 | Custom rule **phần pre** | Proxy | Thấp | Theo hành động của rule |
-| 9 | Inspect gate | Proxy | Rất thấp | Gọi hay không gọi WAF |
-| 10 | Managed ruleset, custom rule **phần inspect**, API schema | **WAF** | **Cao** | Verdict |
-| 11 | Quyết định | Proxy | Rất thấp | allow / log / challenge / block |
-| 12 | Cache lookup | Proxy | RAM / đĩa | Phục vụ từ cache |
-| 13 | Proxy tới origin (hoặc origin shield) | Proxy | Mạng | Response |
+| 5 | Bot scoring (chỉ tính, chưa hành động) | Proxy | Thấp | `bot.score`, `bot.class`, `bot.category` ([8.16](../../08-cross-cutting/16-bot-management.md)) |
+| 6 | Under Attack mode, challenge | Proxy | Thấp | Challenge; bot đã xác minh bỏ qua theo cấu hình |
+| 7 | API: khớp endpoint, xác thực (JWT, mTLS, API key), danh tính consumer, kiểm schema không cần body | Proxy | Thấp | 401/403/404/400 ([8.17](../../08-cross-cutting/17-api-security.md)) |
+| 8 | Rate limit, DDoS L7 | Proxy | Thấp | Block / challenge; khoá theo IP, phiên hoặc consumer API |
+| 9 | Policy bot, custom rule **phần pre** | Proxy | Thấp | Theo hành động của policy/rule (dùng được `bot.*`, `jwt.*`, `api.*`) |
+| 10 | Inspect gate | Proxy | Rất thấp | Gọi hay không gọi WAF |
+| 11 | Managed ruleset, custom rule **phần inspect**, schema body API, GraphQL | **WAF** | **Cao** | Verdict |
+| 12 | Quyết định | Proxy | Rất thấp | allow / log / challenge / block |
+| 13 | Cache lookup | Proxy | RAM / đĩa | Phục vụ từ cache |
+| 14 | Proxy tới origin (hoặc origin shield) | Proxy | Mạng | Response |
 
-Mục tiêu của thứ tự này: khi bị tấn công, phần lớn lưu lượng bị loại ở bước 4–8 với chi phí gần như
+Mục tiêu của thứ tự này: khi bị tấn công, phần lớn lưu lượng bị loại ở bước 4–9 với chi phí gần như
 không đáng kể, tầng WAF chỉ thấy phần còn lại.
 
 **WAF đứng trước cache theo mặc định**, để payload tấn công trong query của một URL đã cache vẫn bị phát
@@ -81,6 +83,8 @@ không body) để giảm tải WAF cho site nhiều static.
 | **Protocol limits + normalizer** | Giới hạn header, URL, số tham số, độ sâu JSON; từ chối request sai chuẩn (smuggling: `Content-Length` + `Transfer-Encoding` mâu thuẫn); chuẩn hoá path cho pre-filter, giữ bản gốc gửi WAF |
 | **Access list** | Trie IPv4/IPv6; geo/ASN từ MMDB; danh sách reputation của NCC trong bundle chung; `allow` có phạm vi (bỏ qua rate limit, challenge, WAF, hoặc tất cả) |
 | **Challenge & clearance** | JS proof-of-work và challenge tương tác; clearance token HMAC (zone, hạn, IP prefix, UA hash), kiểm cục bộ; WAF tier trả verdict `challenge` thì proxy thực thi tại đây |
+| **Bot scoring** | Tính `bot.score/class/category/signals` từ bot đã xác minh, danh sách khách, JA4 + fingerprint HTTP/2 + độ nhất quán với User-Agent, reputation, hành vi ngắn hạn, clearance token; chỉ tính, hành động ở bước 9 ([8.16](../../08-cross-cutting/16-bot-management.md)) |
+| **API** | Route table từ schema của khách; JWT kiểm bằng JWKS trong snapshot, mTLS client cert, có mặt API key; băm danh tính consumer thành `api.consumer`; kiểm tham số path/query/header, content-type, kích thước ([8.17](../../08-cross-cutting/17-api-security.md)) |
 | **Rate limit · DDoS L7** | Sliding window, hot key đồng bộ qua Valkey region ([ADR-0021](../../09-adr/0021-valkey-for-hot-key-rate-limit-sync.md)); ngưỡng thích ứng theo baseline zone |
 | **Custom rule phần pre** | Rule chỉ dùng trường rẻ (IP, geo, ASN, method, host, path, query, header, cookie, bot score), thực thi IR ([ADR-0034](../../09-adr/0034-pre-filter-and-rule-split-across-tiers.md)) |
 | **Inspect gate** | Không gọi WAF khi: đã bị chặn/challenge, nằm trong allow có phạm vi bỏ WAF, zone tắt WAF, tài nguyên tĩnh được miễn |
@@ -94,7 +98,7 @@ không body) để giảm tải WAF cho site nhiều static.
 
 | Phần | p99 |
 |---|---|
-| Xử lý của proxy (bước 2–9, 11) | ≤ 0,5 ms |
+| Xử lý của proxy (bước 2–10, 12) | ≤ 0,5 ms |
 | Gọi WAF trong PoP (mạng + kiểm tra ở PL1) | ≤ 1,5 ms |
 | **Tổng độ trễ thêm (QS-1)** | **≤ 2 ms** |
 | Request không cần WAF (bị chặn sớm, cache hit tĩnh được miễn) | ≤ 0,5 ms |

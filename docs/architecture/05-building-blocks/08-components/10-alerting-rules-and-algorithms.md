@@ -10,7 +10,7 @@ người nhận tự kiểm lại phép tính.
 
 | Trường | Ý nghĩa | Giá trị cho phép |
 |---|---|---|
-| `template` | Loại cảnh báo trong danh mục §3 | `W1`…`W6`, `D1`…`D6`, `O1`…`O3` |
+| `template` | Loại cảnh báo trong danh mục §3 | `W1`…`W6`, `D1`…`D6`, `O1`…`O3`, `BOT1`…`BOT3`, `API1`…`API3` |
 | `scope` | Áp cho zone nào | một zone, nhiều zone, nhóm zone (tag), cả account |
 | `window` | Cửa sổ tính tín hiệu | `1m`, `5m`, `15m`, `1h` (tuỳ template) |
 | `evaluate_every` | Chu kỳ đánh giá | `10s` (streaming) hoặc `1m` (theo lịch) |
@@ -109,6 +109,19 @@ Dựa trên `status_source` và `edge_error` ([8.14](../../08-cross-cutting/14-l
 | **O1** | Không kết nối được origin | `x = R(status_source = origin_unreachable) / R`, kèm phân bố `edge_error` | zone, edge_error | static, warning 1%, critical 5%, `min_volume` 200, window 5m |
 | **O2** | Lỗi do nền tảng trong zone | `x = R(status_source = edge_platform) / R` | zone | static, warning 0,1%, critical 1%, `min_volume` 1.000, window 5m; luôn gửi kèm cho NOC |
 | **O3** | Origin chậm | `x = p95(origin_ttfb_us)` | zone | relative, warning `k=2`, critical `k=4`, floor 500 ms, window 15m |
+
+### Bot và API
+
+| ID | Tên | Công thức tín hiệu `x` | `group_by` | Mặc định |
+|---|---|---|---|---|
+| **BOT1** | Lưu lượng tự động tăng | `x = R(bot.class ∈ {likely_automated, automated}) / R` | zone, nhóm path | relative, warning `k=2`, critical `k=4`, floor 5%, `min_volume` 1.000, window 15m |
+| **BOT2** | Nghi credential stuffing | Trên endpoint đăng nhập khách khai báo: `x = số lần đăng nhập thất bại` (theo status/response origin) theo IP, ASN hoặc fingerprint | zone, asn | static, warning 50, critical 500, window 5m |
+| **BOT3** | Bot giả danh | `x = R(bot.signals ∋ impersonation)` | zone | static, warning 100, critical 1.000, window 15m |
+| **API1** | Vi phạm schema tăng | `x = R(vi phạm schema) / R(endpoint)` | zone, endpoint | relative, warning `k=3`, critical `k=10`, floor 1%, `min_volume` 200, window 15m |
+| **API2** | Lỗi xác thực tăng | `x = R(JWT không hợp lệ hoặc 401/403 từ origin) / R` trên endpoint có xác thực | zone, endpoint | relative, warning `k=3`, critical `k=6`, floor 2%, window 5m |
+| **API3** | Nghi duyệt đối tượng (BOLA, Nâng cao) | `x = số ID khác nhau theo (endpoint, consumer)` so với baseline | zone, endpoint, consumer | statistical, warning `z=6`, critical `z=12`, window 15m |
+
+Endpoint mới hoặc shadow do discovery tìm thấy là **thông báo** (không phải cảnh báo), gửi theo lịch.
 
 L3/L4 (khi hạ tầng hoặc đối tác cung cấp telemetry): template `D7` cùng mô hình, tín hiệu là gói/giây
 và băng thông, để ở giai đoạn Mở rộng.
@@ -235,8 +248,8 @@ xuất: người dùng chấp nhận thì thành ChangeRequest (kênh khẩn cho
 
 | Template | Detector | Lý do |
 |---|---|---|
-| D1, D2, W3, W4 | Streaming (bucket 10 s trên Kafka enriched) | Cần phản ứng trong vài chục giây |
-| W1, W2, W5, D3, D4, D6, O1, O2, O3 | Scheduled (mỗi phút trên MV) | Cửa sổ 5–15 phút, cần baseline hoặc đếm IP khác nhau |
+| D1, D2, W3, W4, BOT2 | Streaming (bucket 10 s trên Kafka enriched) | Cần phản ứng trong vài chục giây |
+| W1, W2, W5, D3, D4, D6, O1, O2, O3, BOT1, BOT3, API1, API2 | Scheduled (mỗi phút trên MV) | Cửa sổ 5–15 phút, cần baseline hoặc đếm IP khác nhau |
 | W6 | Scheduled, kích hoạt khi có version mới đạt 100% node | Gắn với rollout |
 | D5 | Alert engine, tổ hợp kết quả các template khác | Không có tín hiệu riêng |
 

@@ -74,6 +74,12 @@ Thời gian quan sát canary (mặc định vài phút) nằm ngoài ngân sách
 | Chế độ đứng sau CDN (dải IP tin cậy, header IP client) | Zone | Proxy | A | |
 | Entitlements áp ở edge | Tenant | Cả hai | A | Tỉ lệ lấy mẫu áp qua cấu hình Vector (reload Vector, không ảnh hưởng traffic) |
 | Zone data DNS điều hướng | Toàn cục | DNS | A | Plugin CoreDNS đọc snapshot, swap tại chỗ |
+| Policy bot, danh sách bot của khách | Zone | Proxy | A | |
+| API: route table, kiểm tham số, cấu hình JWT/mTLS, nguồn danh tính consumer | Zone | Proxy | A | |
+| API: validator body JSON, giới hạn GraphQL | Zone | WAF | A | Schema rất lớn dựng ở nền, vẫn trong ngân sách lớp A |
+| JWKS của khách | Zone | Proxy | A | Fast lane khi khách xoay khoá; giữ khoá cũ tới khi hết hạn token dài nhất |
+| Danh sách bot đã xác minh | Toàn cục | Proxy | A | |
+| Reputation fingerprint/ASN/IP, mô hình bot | Toàn cục | Proxy | B (A nếu mô hình nhỏ) | Qua đánh giá và log-only song song |
 | **Ruleset release** (CRS upstream, system ruleset) | Toàn cục | WAF | **B** | Build hàng nghìn rule mất vài giây, RAM gấp đôi; so le theo node trong PoP |
 | **Rule khẩn của NCC** | Toàn cục | WAF (và proxy nếu là rule pre) | A | Tách thành **lớp rule khẩn nhỏ** riêng, không build lại cả CRS, nên đi fast lane được (§4) |
 | **Dữ liệu geo/ASN (MMDB)**, reputation list lớn | Toàn cục | Proxy | **B** | Hàng trăm MB; nạp vào vùng nhớ mới rồi swap |

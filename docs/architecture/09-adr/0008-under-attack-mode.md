@@ -14,7 +14,7 @@ viết rule. Đối thủ (Cloudflare) đã định hình kỳ vọng này.
 - Bật/tắt đi **fast lane**, không qua duyệt, có audit; mục tiêu ≤ 5 s toàn fleet.
 - Khi bật, request không có clearance token hợp lệ nhận challenge; token có MAC (HMAC), kiểm cục bộ
   ở mọi node ([08 §8.8](../08-cross-cutting/00-index.md#88-challenge-và-clearance)).
-- Đứng ở bước 5 của pipeline: sau access list (allowlist vẫn qua), trước rate limit.
+- Đứng ở bước 6 của pipeline: sau access list (allowlist vẫn qua) và bot scoring (bot đã xác minh bỏ qua theo cấu hình), trước rate limit.
 - Detection **chỉ cảnh báo và gợi ý bật** ở MVP; tự bật có hẹn giờ tắt là tuỳ chọn chưa chốt.
 
 ## Hệ quả

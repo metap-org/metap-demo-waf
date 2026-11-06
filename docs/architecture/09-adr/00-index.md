@@ -42,5 +42,7 @@ cân nhắc. Quyết định bị thay thế giữ lại với trạng thái "B�
 | [0035](0035-cdn-and-dns-strategy.md) | Chiến lược CDN và DNS: tự xây theo giai đoạn + chế độ đứng sau CDN khách | **Đề xuất, chờ chọn** |
 | [0036](0036-request-timing-and-error-attribution.md) | Đo thời gian theo chặng; mỗi response có `status_source`, mã `edge_error`; status chuẩn + header | Chấp nhận |
 | [0037](0037-config-apply-classes.md) | Phân lớp cấu hình A/B/C/D theo cách áp dụng; fast lane chỉ lớp A; rule khẩn là lớp riêng | Chấp nhận |
+| [0038](0038-bot-management-layered-scoring.md) | Bot management chấm điểm nhiều lớp ở proxy; challenge tự phát; dữ liệu bot phát hành như ruleset | Chấp nhận |
+| [0039](0039-api-security-positive-model.md) | API security: discovery, schema chia proxy/WAF, JWT/mTLS ở edge, danh tính consumer | Chấp nhận |
 
 Quyết định đang chờ: xem [11. Risks and Technical Debt](../11-risks/00-index.md#113-quyết-định-còn-mở).

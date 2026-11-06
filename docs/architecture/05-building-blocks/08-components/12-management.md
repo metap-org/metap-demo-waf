@@ -58,6 +58,8 @@ flowchart TB
 | **policy** | PolicyDraft, CustomRule, AccessList, RateLimitRule, ManagedRulesetConfig, Exception, ZoneSettings, PolicyVersion | — | Validate CEL (gọi cùng thư viện checker với Control), tạo PolicyVersion bất biến, rollback |
 | **change** | ChangeRequest, Approval | `draft → simulating → pending_approval → approved → publishing → enforced` / `rejected` / `rolled_back` | Gửi replay, duyệt 4-eyes, publish (ghi outbox), kênh khẩn (Under Attack mode, rule tạm) |
 | **case** | Case, CaseLink, Mitigation | `open → acknowledged → mitigating → resolved` | Chấp nhận đề xuất từ `CaseProposed` thành ChangeRequest khẩn có hạn |
+| **bot** | BotPolicy, danh sách bot của khách, phản hồi phân loại | — | Bật log-only, xem phân bố bot, đánh dấu "đây là người / đây là bot" gửi Analytics |
+| **api** | ApiEndpoint, ApiSchema, ApiAuthConfig | Endpoint: `discovered → confirmed`, `shadow`, `zombie`, `unused` | Duyệt endpoint từ discovery, tải OpenAPI, sinh schema nháp, chuyển log-only/enforce theo endpoint |
 | **alerting** | AlertPolicy, NotificationChannel, ExportDestination | — | Thử kênh, phát cấu hình sang Analytics |
 | **reporting** | SavedSearch, ReportDefinition, ReportRun | — | Chạy báo cáo theo lịch (`metap-cron`), xuất PDF/CSV |
 | **billing** | Plan, Subscription, Entitlements, Invoice, UsageRecord | `trial → active → past_due → suspended` | Phát `EntitlementsChanged`, nhận `UsageReport`, gọi cổng thanh toán |
