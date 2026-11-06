@@ -1,6 +1,6 @@
 # ADR-0013: Edge gateway tự xây bằng Go, nhúng Coraza
 
-- Trạng thái: Bị thay thế bởi thiết kế hai tầng ([ADR-0033](0033-two-tier-edge-proxy-and-waf.md)); Go + Coraza nằm trong tổ hợp **S3** của [ADR-0031](0031-edge-l7-and-waf-engine-options.md) (chờ chọn)
+- Trạng thái: Bị thay thế bởi thiết kế hai tầng ([ADR-0033](0033-two-tier-edge-proxy-and-waf.md)); Go + Coraza nằm trong tổ hợp **K3** của [ADR-0031](0031-edge-l7-and-waf-engine-options.md) (chờ chọn)
 - Ngày: 2026-11-06
 
 ## Bối cảnh

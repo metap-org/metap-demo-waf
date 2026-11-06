@@ -35,7 +35,7 @@ cân nhắc. Quyết định bị thay thế giữ lại với trạng thái "B�
 | [0028](0028-notification-adapters-and-plan-gated-channels.md) | Notification: adapter theo kênh, webhook CloudEvents ký HMAC, email luôn có, kênh khác theo gói | Chấp nhận |
 | [0029](0029-independent-platform-observability.md) | Giám sát nền tảng độc lập với Analytics, SLO + burn rate, probe theo hành vi | Chấp nhận |
 | [0030](0030-language-per-workload.md) | Ngôn ngữ theo đặc tính tải: Go cho Control/Analytics/Management, edge theo 0031; Elixir đã cân nhắc | Chấp nhận (phần edge chờ 0031) |
-| [0031](0031-edge-l7-and-waf-engine-options.md) | Nền tầng L7 × engine tầng WAF × cách gọi; shortlist S2 / S3 / S1, spike để chọn | **Đề xuất, chờ chọn** |
+| [0031](0031-edge-l7-and-waf-engine-options.md) | Nền tầng L7 × engine tầng WAF × cách gọi; shortlist K2 / K3 / K1, spike để chọn | **Đề xuất, chờ chọn** |
 | [0032](0032-cel-checked-at-control-ir-at-edge.md) | CEL kiểm tra ở Control, edge thực thi IR | Đề xuất, theo 0031 |
 | [0033](0033-two-tier-edge-proxy-and-waf.md) | Edge hai tầng: L7 (RAM) và WAF inspection (CPU) | Chấp nhận |
 | [0034](0034-pre-filter-and-rule-split-across-tiers.md) | Pre-filter và challenge ở L7; custom rule chia tầng giữ first-match | Chấp nhận |
@@ -47,5 +47,6 @@ cân nhắc. Quyết định bị thay thế giữ lại với trạng thái "B�
 | [0040](0040-config-distribution-at-scale.md) | Phân phối cấu hình ở 1 triệu zone: manifest theo bucket, routing index, PoP store, nạp khi cần, ACK theo version tổng | Chấp nhận |
 | [0041](0041-cells-and-zone-placement.md) | Cell và cách đặt zone: so sánh 4 phương án, đề xuất cell theo VIP | **Đề xuất, chờ chọn** |
 | [0042](0042-plan-tiers-drive-placement-and-isolation.md) | Gói quyết định pool cell, tài nguyên, thứ tự hy sinh khi quá tải, thứ tự rollout | Chấp nhận (giá chờ business) |
+| [0043](0043-usage-based-pricing-and-metering.md) | Giá theo phí nền + hạn mức + phí vượt; đo usage không lấy mẫu; trần cứng ở edge; chưa mở Free khi ra mắt | Chấp nhận (giá chờ business) |
 
 Quyết định đang chờ: xem [11. Risks and Technical Debt](../11-risks/00-index.md#113-quyết-định-còn-mở).

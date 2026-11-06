@@ -20,7 +20,7 @@ flowchart LR
         zdb[("Zone data<br/>trong bundle chung")]
     end
     fleet["Control · Fleet registry<br/>health theo PoP"]
-    probe["Prober<br/>P1 theo PoP"]
+    probe["Prober<br/>PR1 theo PoP"]
     mgmt["Management<br/>bản ghi DNS của khách (Mở rộng)"]
     cfg["Control · Config"]
 

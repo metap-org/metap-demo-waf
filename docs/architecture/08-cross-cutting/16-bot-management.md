@@ -27,13 +27,13 @@ rẻ, không cần đọc body, và phải có kết quả trước rate limit v
 
 | # | Lớp | Tín hiệu | Chi phí | Dữ liệu cần |
 |---|---|---|---|---|
-| S1 | **Bot đã xác minh** | IP thuộc dải công bố của bot (Google, Bing…), hoặc đã xác minh bằng reverse DNS + forward DNS; chữ ký HTTP Message Signatures của agent (chuẩn đang hình thành cho bot tự định danh) | Rất thấp (tra bảng) | Danh sách bot đã xác minh trong bundle chung |
-| S2 | **Danh sách của khách** | Đối tác, công cụ giám sát theo IP, header, API key | Rất thấp | Bundle zone |
-| S3 | **Fingerprint tĩnh** | JA4 (TLS ClientHello), fingerprint HTTP/2 (SETTINGS, thứ tự pseudo-header), thứ tự và tập header; **độ nhất quán** giữa các tín hiệu với User-Agent tự khai (UA nói Chrome nhưng TLS là thư viện Python) | Thấp | Bảng reputation fingerprint trong bundle chung |
-| S4 | **Reputation mạng** | ASN datacenter/hosting, proxy dân cư đã biết, Tor, lịch sử lạm dụng gộp từ toàn fleet (ẩn danh) | Rất thấp | Danh sách reputation trong bundle chung |
-| S5 | **Hành vi ngắn hạn** | Theo IP, phiên (cookie), consumer API: tốc độ theo path, độ đều của nhịp gửi, tỉ lệ trang HTML/tài nguyên phụ, tỉ lệ lỗi 4xx, số path khác nhau | Thấp (counter cục bộ) | State trong L7, hot key qua Valkey |
-| S6 | **Tín hiệu từ trình duyệt** | Kết quả JS challenge: proof-of-work, kiểm môi trường (dấu hiệu headless, automation, API trình duyệt mâu thuẫn); tuỳ chọn đoạn JS thu tín hiệu chạy ngầm trên trang | Chỉ khi challenge hoặc khi zone bật JS ngầm | Clearance token mang kết quả |
-| S7 | **Mô hình** | Mô hình cây quyết định (gradient boosted trees) nhận đặc trưng từ S3–S6, trả điểm | Thấp (µs) | Mô hình trong bundle chung, huấn luyện ở Analytics |
+| BS1 | **Bot đã xác minh** | IP thuộc dải công bố của bot (Google, Bing…), hoặc đã xác minh bằng reverse DNS + forward DNS; chữ ký HTTP Message Signatures của agent (chuẩn đang hình thành cho bot tự định danh) | Rất thấp (tra bảng) | Danh sách bot đã xác minh trong bundle chung |
+| BS2 | **Danh sách của khách** | Đối tác, công cụ giám sát theo IP, header, API key | Rất thấp | Bundle zone |
+| BS3 | **Fingerprint tĩnh** | JA4 (TLS ClientHello), fingerprint HTTP/2 (SETTINGS, thứ tự pseudo-header), thứ tự và tập header; **độ nhất quán** giữa các tín hiệu với User-Agent tự khai (UA nói Chrome nhưng TLS là thư viện Python) | Thấp | Bảng reputation fingerprint trong bundle chung |
+| BS4 | **Reputation mạng** | ASN datacenter/hosting, proxy dân cư đã biết, Tor, lịch sử lạm dụng gộp từ toàn fleet (ẩn danh) | Rất thấp | Danh sách reputation trong bundle chung |
+| BS5 | **Hành vi ngắn hạn** | Theo IP, phiên (cookie), consumer API: tốc độ theo path, độ đều của nhịp gửi, tỉ lệ trang HTML/tài nguyên phụ, tỉ lệ lỗi 4xx, số path khác nhau | Thấp (counter cục bộ) | State trong L7, hot key qua Valkey |
+| BS6 | **Tín hiệu từ trình duyệt** | Kết quả JS challenge: proof-of-work, kiểm môi trường (dấu hiệu headless, automation, API trình duyệt mâu thuẫn); tuỳ chọn đoạn JS thu tín hiệu chạy ngầm trên trang | Chỉ khi challenge hoặc khi zone bật JS ngầm | Clearance token mang kết quả |
+| BS7 | **Mô hình** | Mô hình cây quyết định (gradient boosted trees) nhận đặc trưng từ BS3–BS6, trả điểm | Thấp (µs) | Mô hình trong bundle chung, huấn luyện ở Analytics |
 
 ## 3. Kết quả: điểm và lớp
 
@@ -49,11 +49,11 @@ Mỗi request có:
 Cách tính, theo thứ tự:
 
 ```text
-nếu S2 khớp (khách cho phép)            → class = verified_bot (category = partner), score = 99 về mặt policy
-nếu S1 khớp và UA khớp bot đó           → class = verified_bot, category theo danh sách
-nếu UA tự xưng bot tốt mà S1 không khớp → class = automated, signal = impersonation
+nếu BS2 khớp (khách cho phép)            → class = verified_bot (category = partner), score = 99 về mặt policy
+nếu BS1 khớp và UA khớp bot đó           → class = verified_bot, category theo danh sách
+nếu UA tự xưng bot tốt mà BS1 không khớp → class = automated, signal = impersonation
 ngược lại:
-    score = mô hình(S3, S4, S5, S6)      # Mở rộng: luật trọng số cố định; Nâng cao: mô hình
+    score = mô hình(BS3, BS4, BS5, BS6)      # Mở rộng: luật trọng số cố định; Nâng cao: mô hình
     class = likely_human     nếu score ≥ 50
             likely_automated nếu 10 ≤ score < 50
             automated        nếu score < 10

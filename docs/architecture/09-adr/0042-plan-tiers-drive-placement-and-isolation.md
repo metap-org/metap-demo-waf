@@ -16,13 +16,14 @@ Nếu mọi zone được phục vụ như nhau:
 - RAM và cache của node bị chia cho hàng trăm nghìn zone Free nguội, zone trả tiền chịu tỉ lệ trúng
   thấp hơn;
 - một đợt flood vào nhiều zone Free có thể đẩy p99 của khách Business, Enterprise trên cùng node;
-- không giữ được chi phí Free gần bằng 0, nên không bán được gói Free.
+- không giữ được chi phí của các zone không trả phí (dùng thử, Free có trần, chế độ chuyển tiếp tối giản)
+  ở mức nhỏ.
 
 ## Quyết định
 
 Gói (qua entitlements) là đầu vào của bốn quyết định kiến trúc, không chỉ của danh sách tính năng:
 
-1. **Pool cell theo gói:** Free → pool mật độ cao; Pro, Business → pool chuẩn; Enterprise → pool
+1. **Pool cell theo gói:** Free có trần, dùng thử, chế độ chuyển tiếp tối giản → pool mật độ cao; Pro, Business → pool chuẩn; Enterprise → pool
    enterprise hoặc cell riêng; mọi gói → cell cách ly khi bị tấn công. Trong pool vẫn theo
    [ADR-0041](0041-cells-and-zone-placement.md).
 2. **Tài nguyên theo gói:** profile WAF (lite / PL1 / PL1–4 / tuỳ chỉnh), trọng số fair share CPU WAF
@@ -37,8 +38,8 @@ Gói (qua entitlements) là đầu vào của bốn quyết định kiến trúc
 
 ## Hệ quả
 
-- Chi phí phục vụ zone Free giữ ở khoảng 0,18 USD/tháng; zone p99 của mỗi gói trả phí vẫn có lãi ở giá
-  tham chiếu (QS-33).
+- Zone không trả phí bị gom vào pool mật độ cao với tài nguyên nhỏ nhất; cách tính tiền theo usage ở
+  [ADR-0043](0043-usage-based-pricing-and-metering.md) bảo đảm zone dùng nhiều thì trả nhiều (QS-33).
 - Khách trả tiền không có láng giềng là 650.000 site miễn phí (QS-32).
 - Phải vận hành ba pool cell và công cụ chuyển zone giữa pool khi đổi gói (QS-34, [8.13 A16](../08-cross-cutting/13-operational-behaviors.md#a16-cell-quá-tải-hoặc-zone-cần-cách-ly)).
 - Pool Free có thể thiếu năng lực trước các pool khác; đó là chủ đích, có event và báo cáo riêng.

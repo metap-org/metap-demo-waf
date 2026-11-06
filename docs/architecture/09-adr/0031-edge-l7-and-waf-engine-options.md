@@ -35,7 +35,7 @@ có thể viết bằng ngôn ngữ khác.
 
 ## 3. Nền cho tầng L7
 
-| | P1. Rust + Pingora | P2. Envoy | P3. NGINX / OpenResty | P4. HAProxy | P5. Go tự xây |
+| | N1. Rust + Pingora | N2. Envoy | N3. NGINX / OpenResty | N4. HAProxy | N5. Go tự xây |
 |---|---|---|---|---|---|
 | T1 | Tốt, không GC | Tốt | Rất tốt | Rất tốt | Tốt; GC ít ảnh hưởng hơn trước vì CRS đã ra khỏi process |
 | T3 | Cao | Lõi C++ đã kiểm chứng; logic của mình trong wasm/Lua | Lõi C đã kiểm chứng; logic Lua | Lõi C đã kiểm chứng | Cao |
@@ -46,46 +46,46 @@ có thể viết bằng ngôn ngữ khác.
 | T8 | Cần người Rust | C++ / wasm | Lua | Cấu hình + Lua | Có sẵn |
 | T10 | Chưa xác nhận | Có | Có | Có | Có (`quic-go`) |
 
-Nhận xét: không nền nào mạnh cả về cache lẫn gọi WAF sẵn. P3 mạnh nhất về cache nhưng yếu về gọi dịch
-vụ kiểm tra; P2/P4 ngược lại. P1 và P5 phải tự viết cả hai nhưng kiểm soát hoàn toàn.
+Nhận xét: không nền nào mạnh cả về cache lẫn gọi WAF sẵn. N3 mạnh nhất về cache nhưng yếu về gọi dịch
+vụ kiểm tra; N2/N4 ngược lại. N1 và N5 phải tự viết cả hai nhưng kiểm soát hoàn toàn.
 
 ## 4. Engine cho tầng WAF
 
-| | W1. Coraza (Go) | W2. libmodsecurity v3 (C++) | W3. SecLang thuần Rust |
+| | E1. Coraza (Go) | E2. libmodsecurity v3 (C++) | E3. SecLang thuần Rust |
 |---|---|---|---|
 | T2 | Tương thích CRS đầy đủ, được CRS test | Engine tham chiếu của CRS | Tự công bố tương thích (`zentinel-modsec`, `sentinel-modsec`, 0.x), chưa kiểm chứng độc lập |
 | T1 | Có GC, nhưng giờ chỉ ảnh hưởng tầng WAF | Nhanh; cần wrapper (Rust/Go/C++) làm dịch vụ gRPC | Chưa có số liệu độc lập |
 | T3 | Cao | Thấp, nhưng đã cô lập trong process riêng nên crash không kéo theo L7 | Cao |
 | T7 | Trung bình–cao; có sẵn `coraza-spoa` cho HAProxy, proxy-wasm cho Envoy | Cao (dùng rộng với NGINX) | Thấp |
 | T8 | Có sẵn (Go) | Cần C++ cho wrapper hoặc FFI | Cần Rust |
-| T9 | Replay chạy cùng engine dễ | Cần wrapper chung | Như W1 nếu replay viết Rust |
+| T9 | Replay chạy cùng engine dễ | Cần wrapper chung | Như E1 nếu replay viết Rust |
 
-Vì tầng WAF đã tách process, nhược điểm lớn nhất của W1 (GC) và W2 (an toàn bộ nhớ) đều giảm nhiều.
-**W1 là mặc định hợp lý**; W2 đưa vào spike để so CPU mỗi request, vì CPU tầng WAF là chi phí hạ tầng lớn.
+Vì tầng WAF đã tách process, nhược điểm lớn nhất của E1 (GC) và E2 (an toàn bộ nhớ) đều giảm nhiều.
+**E1 là mặc định hợp lý**; E2 đưa vào spike để so CPU mỗi request, vì CPU tầng WAF là chi phí hạ tầng lớn.
 
 ## 5. Cách L7 gọi WAF
 
-| | G1. Inspection API riêng (gRPC stream) | G2. Envoy `ext_proc` | G3. HAProxy SPOE |
+| | I1. Inspection API riêng (gRPC stream) | I2. Envoy `ext_proc` | I3. HAProxy SPOE |
 |---|---|---|---|
 | Mô tả | Proto của mình ([5.5](../05-building-blocks/05-contracts.md#inspection-api-l7--waf)) | Giao thức có sẵn của Envoy | Giao thức có sẵn của HAProxy |
 | Ưu | Độc lập nền L7; đúng thứ mình cần (verdict sớm, ngân sách thời gian) | Không phải viết client | Không phải viết client; có `coraza-spoa` |
 | Nhược | Phải viết client ở L7 | Gắn với Envoy | Gắn với HAProxy; giới hạn kích thước body |
 
-Đề xuất: **G1 là hợp đồng chuẩn**. Nếu chọn P2 hoặc P4, viết adapter nhỏ ở phía WAF nhận `ext_proc`
-hoặc SPOE rồi chuyển sang G1, để tầng WAF chỉ có một giao diện.
+Đề xuất: **I1 là hợp đồng chuẩn**. Nếu chọn N2 hoặc N4, viết adapter nhỏ ở phía WAF nhận `ext_proc`
+hoặc SPOE rồi chuyển sang I1, để tầng WAF chỉ có một giao diện.
 
 ## 6. Tổ hợp và shortlist
 
 | Tổ hợp | L7 | WAF | Gọi | Mạnh | Yếu |
 |---|---|---|---|---|---|
-| **S1** | P2 Envoy | W1 Coraza | G2 → G1 | L7 rất chín, tích hợp kiểm tra sẵn, HTTP/3 | Cache yếu: cần thêm tầng cache (ví dụ Varnish) hoặc chờ CDN tự xây |
-| **S2** | P1 Pingora | W1 Coraza (hoặc W2) | G1 | Kiểm soát cao, không GC ở L7, có nền cache | Cần người Rust; tự viết client, purge, cache đĩa |
-| **S3** | P5 Go | W1 Coraza | G1 | Đội làm được ngay; replay dùng chung code cả hai tầng | Tự viết cache và L7 |
-| **S4** | P4 HAProxy | W1 Coraza | G3 (`coraza-spoa`) | L7 rất nhanh và chín, tích hợp WAF có sẵn | Cache yếu; pre-filter phải viết bằng Lua/cấu hình |
-| **S5** | P3 NGINX | W1 Coraza | Module/njs tự viết → G1 | Cache mạnh nhất, phổ biến nhất | Gọi WAF kèm body không có sẵn; pre-filter bằng Lua |
+| **K1** | N2 Envoy | E1 Coraza | I2 → I1 | L7 rất chín, tích hợp kiểm tra sẵn, HTTP/3 | Cache yếu: cần thêm tầng cache (ví dụ Varnish) hoặc chờ CDN tự xây |
+| **K2** | N1 Pingora | E1 Coraza (hoặc E2) | I1 | Kiểm soát cao, không GC ở L7, có nền cache | Cần người Rust; tự viết client, purge, cache đĩa |
+| **K3** | N5 Go | E1 Coraza | I1 | Đội làm được ngay; replay dùng chung code cả hai tầng | Tự viết cache và L7 |
+| **K4** | N4 HAProxy | E1 Coraza | I3 (`coraza-spoa`) | L7 rất nhanh và chín, tích hợp WAF có sẵn | Cache yếu; pre-filter phải viết bằng Lua/cấu hình |
+| **K5** | N3 NGINX | E1 Coraza | Module/njs tự viết → I1 | Cache mạnh nhất, phổ biến nhất | Gọi WAF kèm body không có sẵn; pre-filter bằng Lua |
 
-**Shortlist cho spike:** S2, S3, S1. S5 chạy làm mốc cho phần cache, S4 làm mốc cho phần gọi WAF.
-Tầng WAF dùng W1 trong mọi tổ hợp; spike đo thêm W2 trên cùng tầng WAF để so CPU.
+**Shortlist cho spike:** K2, K3, K1. K5 chạy làm mốc cho phần cache, K4 làm mốc cho phần gọi WAF.
+Tầng WAF dùng E1 trong mọi tổ hợp; spike đo thêm E2 trên cùng tầng WAF để so CPU.
 
 ## 7. Spike
 
@@ -104,21 +104,21 @@ Thời hạn 3 tuần, 2 người. Mỗi tổ hợp dựng tối thiểu:
 | Cô lập tenant (QS-8) | p99 tenant khác tăng ≤ 10% |
 | Cache: hit ratio trên corpus static, purge theo URL tới mọi node | Đo và so sánh; purge ≤ 5 s trong PoP |
 | Bộ nhớ mỗi 10.000 kết nối giữ mở | Đo và so sánh |
-| CPU tầng WAF mỗi 1.000 request (W1 vs W2) | Đo và so sánh |
+| CPU tầng WAF mỗi 1.000 request (E1 vs E2) | Đo và so sánh |
 | Fuzz L7 24 giờ | Không crash |
 | Công sức tới đủ tính năng MVP | Ước người-tuần |
 
 Kết quả ghi thành bản sửa của ADR này, trạng thái chuyển sang "Chấp nhận".
 
-**Gợi ý nếu không làm spike:** **S3** (Go cả hai tầng) để ra MVP nhanh với đội hiện tại, giữ G1 làm
-hợp đồng để sau thay L7 bằng P1 mà không đụng tầng WAF; **S2** nếu độ trễ đuôi của L7 và hiệu quả
+**Gợi ý nếu không làm spike:** **K3** (Go cả hai tầng) để ra MVP nhanh với đội hiện tại, giữ I1 làm
+hợp đồng để sau thay L7 bằng N1 mà không đụng tầng WAF; **K2** nếu độ trễ đuôi của L7 và hiệu quả
 RAM là cam kết bán hàng ngay từ đầu.
 
 ## 8. Ảnh hưởng tới ADR khác
 
 | ADR | Phụ thuộc |
 |---|---|
-| [0030](0030-language-per-workload.md) | Ngôn ngữ L7 theo P đã chọn; tầng WAF mặc định Go (W1) |
+| [0030](0030-language-per-workload.md) | Ngôn ngữ L7 theo N đã chọn; tầng WAF mặc định Go (E1) |
 | [0032](0032-cel-checked-at-control-ir-at-edge.md) | Custom rule phần pre chạy ở L7: cần IR nếu L7 không phải Go; phần inspect chạy ở WAF (Go) có thể dùng `cel-go` |
 | [0026](0026-replay-on-request-samples-with-shared-pipeline.md) | Replay chạy code của cả hai tầng (thư viện, hoặc binary ở chế độ offline nếu khác ngôn ngữ) |
 | [0035](0035-cdn-and-dns-strategy.md) | T5 (cache) nặng hay nhẹ tuỳ chiến lược CDN được chọn |

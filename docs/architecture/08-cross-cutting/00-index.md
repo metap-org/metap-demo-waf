@@ -72,6 +72,7 @@ Gói cước là cấu hình, không phải nhánh code ([ADR-0007](../09-adr/00
 | Entitlement | Thực thi ở |
 |---|---|
 | Tỉ lệ lấy mẫu access log | Edge (log shipper), qua snapshot |
+| Hạn mức băng thông, request; trần cứng (dùng thử, Free có trần) | Analytics (đếm), Management (quyết định), Edge (áp khi chạm trần, lớp A) ([ADR-0043](../09-adr/0043-usage-based-pricing-and-metering.md)) |
 | Retention tối đa theo loại log | Analytics (stream processor, store) |
 | Khoảng thời gian truy vấn tối đa, chi phí truy vấn | Analytics (Query API) |
 | Số đích SIEM export | Management + Analytics |

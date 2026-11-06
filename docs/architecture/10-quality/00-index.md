@@ -20,7 +20,7 @@ kịch bản đo được (§10.3) và cơ chế kiến trúc đáp ứng nó.
 | **Bảo mật** | Phát hiện và chặn tấn công đúng; bảo vệ chính nền tảng | — | QS-3 (S3), QS-20, QS-21 | CRS + system ruleset, bot, API security, mTLS, chữ ký |
 | **Khả năng quan sát** | Biết chậm ở đâu, lỗi của ai, có mất dữ liệu không | Q4 | QS-10, QS-11, QS-12, QS-19 | Đo theo chặng, `status_source`, đối soát ([ADR-0036](../09-adr/0036-request-timing-and-error-attribution.md)) |
 | **Khả năng triển khai** | Chạy trên PoP riêng, hạ tầng đối tác, on-prem | Q5 | QS-13 | Một artifact, Kubernetes cho plane trung tâm |
-| **Hiệu quả chi phí** | Chi phí hạ tầng trên một đơn vị traffic và trên một zone nguội | Q6 | QS-30, QS-31, QS-33 | Lọc rẻ trước, dùng chung instance CRS, lấy mẫu log theo gói, pool cell theo gói ([8.18](../08-cross-cutting/18-segments-and-plans.md)) |
+| **Hiệu quả chi phí** | Chi phí hạ tầng trên một đơn vị traffic và trên một zone nguội | Q6 | QS-30, QS-31, QS-33, QS-35 | Lọc rẻ trước, dùng chung instance CRS, lấy mẫu log theo gói, pool cell theo gói ([8.18](../08-cross-cutting/18-segments-and-plans.md)) |
 | **Khả năng vận hành** | Đổi cấu hình, nâng cấp, xử lý sự cố với ít thao tác tay | Q2, Q4 | QS-14, QS-27 | Rollout tự động có gate, runbook ([8.13](../08-cross-cutting/13-operational-behaviors.md)) |
 
 ## 10.2 Cây chất lượng
@@ -88,8 +88,10 @@ flowchart LR
 | QS-30 | Chi phí | 1 triệu request hợp lệ, CRS PL1 | CPU tổng (L7 + WAF) ≤ mục tiêu đặt sau spike; theo dõi theo release |
 | QS-31 | Chi phí | Toàn fleet ở đỉnh 10 triệu rps | Mức sử dụng CPU trung bình node ≤ 60%, đủ dư cho tấn công theo [7.5](../07-deployment/05-capacity-and-sharding.md) |
 | QS-32 | Cô lập theo gói | Pool Free của một PoP quá tải (nhiều zone Free bị flood cùng lúc) | p99 của zone Business, Enterprise cùng PoP thay đổi ≤ 5%; thứ tự hy sinh ở [8.18 §4](../08-cross-cutting/18-segments-and-plans.md#thứ-tự-hy-sinh-khi-pop-quá-tải) chạy đúng thứ tự, mỗi bước có event |
-| QS-33 | Chi phí | Chi phí phục vụ một zone Free trung bình | ≤ 0,25 USD/tháng theo mô hình chi phí ở 8.18; zone p99 của mỗi gói trả phí vẫn có lãi ở giá tham chiếu |
+| QS-33 | Chi phí | Zone dùng gấp 10 lần hạn mức của gói trả phí | Phần vượt được tính phí theo đơn giá công bố, biên của phần vượt ≥ 0 với hồ sơ công ty phần mềm (8.18 §4) |
 | QS-34 | Thương mại | Khách nâng gói Free → Business | Entitlements mới ≤ 5 phút; zone sang pool cell mới không có request lỗi trong thời gian chuyển |
+| QS-35 | Thương mại | Usage của một kỳ thanh toán | Sai lệch giữa `UsageCounter` đã gộp và tổng đếm trên các node ≤ 0,1%; không mất bản ghi nào sau đối soát |
+| QS-36 | Thương mại | Zone có trần cứng vượt trần | Hành động của trần được áp trên ≥ 95% node trong ≤ 10 phút; pre-filter và chống DDoS không bị tắt |
 
 ## 10.4 Quy mô thiết kế
 
@@ -105,6 +107,6 @@ flowchart LR
 | Cấu hình | ≈ 8 GB bundle nén + 8 GB cert mỗi PoP store; ≈ 200 MB routing index mỗi node |
 | Thay đổi cấu hình | ≈ 1,7/s trung bình, 30/s đỉnh |
 | Telemetry | ≈ 1,15 triệu bản ghi/s trung bình; ≈ 12 TB/ngày trong ClickHouse |
-| Chi phí phục vụ (giả định đơn giá) | ≈ 0,18 / 1,05 / 3,3 / 43 USD mỗi zone mỗi tháng cho Free / Pro / Business / Enterprise |
+| Chi phí (hồ sơ công ty phần mềm) | Băng thông ≈ 520 đ/GB; chi phí cố định ≈ 170k USD/tháng khi ra mắt, ≈ 510k USD/tháng ở giai đoạn tăng trưởng ([8.18](../08-cross-cutting/18-segments-and-plans.md)) |
 | Rule / zone (tối đa theo gói cao nhất) | 1.000 custom rule |
 | Retention tối đa | 365 ngày (archive), 30 ngày (hot) |
