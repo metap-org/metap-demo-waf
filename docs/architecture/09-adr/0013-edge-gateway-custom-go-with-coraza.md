@@ -1,6 +1,6 @@
 # ADR-0013: Edge gateway tự xây bằng Go, nhúng Coraza
 
-- Trạng thái: Bị thay thế bởi [ADR-0031](0031-edge-in-rust-on-pingora.md)
+- Trạng thái: Mở lại thành phương án **D2** trong [ADR-0031](0031-edge-l7-and-waf-engine-options.md) (chờ chọn)
 - Ngày: 2026-11-06
 
 ## Bối cảnh

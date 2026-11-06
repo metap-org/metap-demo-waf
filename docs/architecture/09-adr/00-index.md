@@ -17,7 +17,7 @@ cân nhắc. Quyết định bị thay thế giữ lại với trạng thái "B�
 | [0010](0010-analytics-one-write-path-many-stores.md) | Analytics: một luồng ghi, nhiều store | Chấp nhận |
 | [0011](0011-approximate-fleet-rate-limiting.md) | Rate limit toàn fleet là xấp xỉ | Chấp nhận |
 | [0012](0012-go-as-primary-language.md) | Go là ngôn ngữ chính cho mọi plane | Bị thay thế bởi 0030 |
-| [0013](0013-edge-gateway-custom-go-with-coraza.md) | Edge gateway tự xây bằng Go, nhúng Coraza + CRS v4 | Bị thay thế bởi 0031 |
+| [0013](0013-edge-gateway-custom-go-with-coraza.md) | Edge gateway tự xây bằng Go, nhúng Coraza + CRS v4 | Mở lại thành phương án D2 của 0031 |
 | [0014](0014-cel-as-rule-language.md) | CEL là ngôn ngữ custom rule | Chấp nhận, sửa bởi 0032 |
 | [0015](0015-snapshot-format-and-distribution.md) | Snapshot protobuf + zstd ký Ed25519; gRPC desired state + HTTPS pull qua relay | Chấp nhận |
 | [0016](0016-postgres-and-s3-compatible-storage.md) | PostgreSQL cho trạng thái điều khiển, object storage chuẩn S3 (SeaweedFS khi tự host) | Chấp nhận |
@@ -34,8 +34,8 @@ cân nhắc. Quyết định bị thay thế giữ lại với trạng thái "B�
 | [0027](0027-explicit-alert-formulas.md) | Cảnh báo theo template có công thức tường minh, baseline median/MAD theo phút trong tuần | Chấp nhận |
 | [0028](0028-notification-adapters-and-plan-gated-channels.md) | Notification: adapter theo kênh, webhook CloudEvents ký HMAC, email luôn có, kênh khác theo gói | Chấp nhận |
 | [0029](0029-independent-platform-observability.md) | Giám sát nền tảng độc lập với Analytics, SLO + burn rate, probe theo hành vi | Chấp nhận |
-| [0030](0030-language-per-workload.md) | Ngôn ngữ theo đặc tính tải: Rust cho edge và replay, Go cho Control/Analytics/Management; Elixir đã cân nhắc | Chấp nhận |
-| [0031](0031-edge-in-rust-on-pingora.md) | Edge Rust trên Pingora; engine WAF sau trait, MVP libmodsecurity v3 | Chấp nhận |
-| [0032](0032-cel-checked-at-control-ir-at-edge.md) | CEL kiểm tra ở Control, edge thực thi IR | Chấp nhận |
+| [0030](0030-language-per-workload.md) | Ngôn ngữ theo đặc tính tải: Go cho Control/Analytics/Management, edge theo 0031; Elixir đã cân nhắc | Chấp nhận (phần edge chờ 0031) |
+| [0031](0031-edge-l7-and-waf-engine-options.md) | Nền L7 edge và engine WAF: so sánh 6 tổ hợp, shortlist A1 / D2 / B2, spike để chọn | **Đề xuất, chờ chọn** |
+| [0032](0032-cel-checked-at-control-ir-at-edge.md) | CEL kiểm tra ở Control, edge thực thi IR | Đề xuất, theo 0031 |
 
 Quyết định đang chờ: xem [11. Risks and Technical Debt](../11-risks/00-index.md#113-quyết-định-còn-mở).

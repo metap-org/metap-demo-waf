@@ -20,7 +20,7 @@ flowchart LR
         crs["CRS config generator<br/>SecLang directives"]
         lim["Entitlement validator"]
         bld["Bundle builder<br/>protobuf · zstd · SHA-256"]
-        st["Self-test<br/>edge-verify (Rust)"]
+        st["Self-test<br/>edge-verify (cùng code edge)"]
         sig["Manifest signer"]
     end
     bao["OpenBao transit<br/>Ed25519"]
@@ -50,7 +50,7 @@ flowchart LR
 | **CRS config generator** | Sinh cấu hình SecLang cho zone | `SecAction` cho paranoia level và ngưỡng anomaly; `SecRuleRemoveById` cho rule tắt; exception thành `SecRule ... "ctl:ruleRemoveTargetById=..."` có điều kiện path/method |
 | **Entitlement validator** | Áp giới hạn gói | Số rule, kích thước body kiểm tra, tính năng được bật |
 | **Bundle builder** | Đóng gói | Protobuf → zstd → SHA-256; bundle zone tham chiếu digest của bundle chung |
-| **Self-test** | Bảo đảm bundle chạy được | Gọi `edge-verify` (Rust, build từ cùng crate với edge, chạy sidecar cạnh compiler) để nạp bundle bằng chính loader của edge, chạy corpus request mẫu của zone (onboarding) và corpus chung; lỗi → không ký |
+| **Self-test** | Bảo đảm bundle chạy được | Gọi `edge-verify` (build từ cùng code với edge, chạy sidecar cạnh compiler) để nạp bundle bằng chính loader của edge, chạy corpus request mẫu của zone (onboarding) và corpus chung; lỗi → không ký |
 | **Manifest signer** | Ký | Gọi OpenBao transit `sign` với khoá Ed25519; manifest gồm danh sách digest, schema version, thời điểm, ID khoá |
 
 ## Dữ liệu (PostgreSQL · control)

@@ -29,9 +29,9 @@ flowchart LR
         fmt["Formatter<br/>JSON · CEF · LEEF"]
         snk["Sink<br/>HTTP · syslog TLS · S3"]
     end
-    subgraph RP["replay (Rust workers)"]
+    subgraph RP["replay (cùng ngôn ngữ edge)"]
         job["Job runner"]
-        pipe["crate pipeline (Rust)"]
+        pipe["thư viện pipeline của edge"]
         cmpr["So sánh quyết định"]
     end
     pgA[("PostgreSQL · analytics")]
@@ -93,6 +93,6 @@ Danh mục cảnh báo WAF/DDoS, cấu hình ngưỡng và công thức tính ch
 | Component | Thiết kế |
 |---|---|
 | **Job runner** | Nhận yêu cầu (zone, snapshot nháp, khoảng thời gian, cỡ mẫu); lấy snapshot nháp do compiler sinh (chưa ký, không rollout) |
-| **crate pipeline** | Replay worker viết bằng Rust, cùng code với edge ([ADR-0026](../../09-adr/0026-replay-on-request-samples-with-shared-pipeline.md)); không có I/O mạng; rate limit được mô phỏng theo thời gian trong mẫu |
+| **Thư viện pipeline** | Replay worker viết bằng ngôn ngữ của edge, cùng code với edge ([ADR-0026](../../09-adr/0026-replay-on-request-samples-with-shared-pipeline.md)); không có I/O mạng; rate limit được mô phỏng theo thời gian trong mẫu |
 | **So sánh** | Với mỗi mẫu: quyết định gốc vs quyết định mới; kết quả: số request thêm bị chặn, bớt bị chặn, theo rule, kèm ví dụ; lưu PostgreSQL, trả Management |
 | **Quy mô** | Mặc định 7 ngày, tối đa N mẫu theo gói; worker scale ngang, chia theo file Parquet |

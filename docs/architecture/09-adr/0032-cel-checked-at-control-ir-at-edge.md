@@ -1,12 +1,12 @@
 # ADR-0032: CEL được kiểm tra ở Control, edge thực thi IR đã biên dịch
 
-- Trạng thái: Chấp nhận (sửa đổi [ADR-0014](0014-cel-as-rule-language.md))
+- Trạng thái: **Đề xuất**, áp dụng theo kết quả [ADR-0031](0031-edge-l7-and-waf-engine-options.md): bắt buộc nếu edge không viết bằng Go; nếu edge là Go, IR vẫn dùng được nhưng edge cũng có thể dùng thẳng `cel-go`. Sửa đổi [ADR-0014](0014-cel-as-rule-language.md)
 - Ngày: 2026-11-06
 
 ## Bối cảnh
 
-ADR-0014 chọn CEL vì `cel-go` có kiểm tra kiểu và ước lượng chi phí. Edge giờ viết bằng Rust
-([ADR-0031](0031-edge-in-rust-on-pingora.md)); các thư viện CEL cho Rust kém trưởng thành hơn `cel-go`,
+ADR-0014 chọn CEL vì `cel-go` có kiểm tra kiểu và ước lượng chi phí. Edge có thể không viết bằng Go
+([ADR-0031](0031-edge-l7-and-waf-engine-options.md)); thư viện CEL cho Rust, C++, Lua kém trưởng thành hơn `cel-go`,
 và để hai implementation CEL tự diễn giải cùng một text thì rủi ro lệch ngữ nghĩa.
 
 ## Quyết định
@@ -15,10 +15,10 @@ và để hai implementation CEL tự diễn giải cùng một text thì rủi 
 - **Control** (Go, `cel-go`) parse, check kiểu, ước lượng chi phí, rồi **hạ checked AST xuống IR** của
   riêng mình: cây biểu thức có kiểu gồm hằng, tham chiếu field, phép so sánh và logic, `in`, các hàm
   trong danh sách cho phép (chuỗi, IP/CIDR, geo, ASN, regex). IR nằm trong bundle zone dạng protobuf.
-- **Edge** (Rust) chỉ thực thi IR, không parse CEL. Regex dùng crate `regex` (ngữ nghĩa kiểu RE2,
-  thời gian tuyến tính), cùng họ ngữ nghĩa với RE2 mà `cel-go` dùng.
+- **Edge** chỉ thực thi IR, không parse CEL. Regex dùng engine ngữ nghĩa kiểu RE2 (thời gian tuyến
+  tính) ở mọi ngôn ngữ, cùng họ với RE2 mà `cel-go` dùng.
 - **Bộ test đối chiếu chung:** tập vector `(biểu thức, input, kết quả mong đợi)` chạy trên cả `cel-go`
-  lẫn evaluator Rust trong CI; lệch là lỗi chặn merge ở cả hai repo.
+  lẫn evaluator của edge trong CI; lệch là lỗi chặn merge ở cả hai repo.
 
 ## Hệ quả
 

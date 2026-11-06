@@ -225,7 +225,7 @@ sequenceDiagram
     C-->>RP: snapshot nháp
     M->>RP: job(zone, 7 ngày, cỡ mẫu)
     RP->>S3: đọc mẫu request của zone
-    RP->>RP: chạy crate pipeline (cùng code edge) với snapshot nháp
+    RP->>RP: chạy thư viện pipeline (cùng code edge) với snapshot nháp
     RP->>RP: so với quyết định gốc trong mẫu
     RP-->>M: thêm chặn / bớt chặn theo rule, ví dụ, khoảng tin cậy
 ```

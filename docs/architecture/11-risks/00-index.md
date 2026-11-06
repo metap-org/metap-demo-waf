@@ -4,7 +4,7 @@
 
 | # | Rủi ro | Khả năng | Tác động | Giảm thiểu | Dấu hiệu cần hành động |
 |---|---|---|---|---|---|
-| R1 | Engine WAF (libmodsecurity + CRS) vượt ngân sách độ trễ QS-1 | Trung bình | Cao | Benchmark ngay đầu giai đoạn MVP; truyền dữ liệu qua FFI theo lô; giới hạn kiểm tra body theo entitlements; paranoia mặc định 1; trait `WafEngine` để thay engine ([ADR-0031](../09-adr/0031-edge-in-rust-on-pingora.md)) | p99 > 2 ms trên traffic mẫu |
+| R1 | Engine WAF + CRS vượt ngân sách độ trễ QS-1 | Trung bình | Cao | Spike so sánh trước khi chọn ([ADR-0031](../09-adr/0031-edge-l7-and-waf-engine-options.md)); giới hạn kiểm tra body theo entitlements; paranoia mặc định 1; engine sau interface `WafEngine` để thay | p99 > 2 ms trên traffic mẫu |
 | R2 | Chặn nhầm làm mất niềm tin khách | Cao | Cao | Log-only 7 ngày khi onboarding; replay trước khi enforce; xử lý chặn nhầm tự phục vụ; tỉ lệ FP theo rule | Tỉ lệ FP của một rule > ngưỡng; ticket support về chặn nhầm tăng |
 | R3 | Chi phí log vượt doanh thu | Trung bình | Cao | Entitlements, lấy mẫu access log, tách store theo chi phí | Chi phí log / doanh thu theo tenant > ngưỡng |
 | R4 | Config hỏng ra toàn fleet | Thấp | Rất cao | Compiler kiểm tra, chữ ký, canary có gate, rollback tức thì | Lỗi nạp snapshot ở canary |
@@ -14,9 +14,9 @@
 | R8 | Rate limit xấp xỉ không đạt kỳ vọng khách | Trung bình | Thấp | Ghi rõ trong tài liệu; chu kỳ gộp ngắn ở PoP lớn | Khiếu nại ngưỡng nhỏ không chính xác |
 | R10 | Hai broker (RabbitMQ, Kafka) tăng vận hành | Trung bình | Thấp | Chỉ dùng RabbitMQ cho sự kiện điều khiển khối lượng nhỏ; gộp khi `metap` có adapter Kafka ([ADR-0022](../09-adr/0022-rabbitmq-for-control-events-kafka-for-telemetry.md)) | Sự cố vận hành broker lặp lại |
 | R11 | Mẫu request đầy đủ lộ dữ liệu nhạy cảm | Thấp | Cao | Che trường bắt buộc tại edge, khách tắt được, retention ngắn, mã hoá at-rest ([ADR-0026](../09-adr/0026-replay-on-request-samples-with-shared-pipeline.md)) | Khách hoặc kiểm toán phản đối |
-| R12 | Thiếu người viết Rust cho edge (org vừa bỏ Rust ở repo khác) | Trung bình | Cao | Tuyển hoặc đào tạo sớm; edge là codebase tách biệt, ranh giới protobuf rõ ([ADR-0030](../09-adr/0030-language-per-workload.md)) | Tiến độ edge chậm hơn các plane khác |
-| R13 | Lỗi bộ nhớ trong libmodsecurity (C++) trên đường traffic | Trung bình | Cao | Pin version, vá trong 72 giờ, fuzz lớp FFI, bắt lỗi tại ranh giới; thay engine thuần Rust khi qua bộ test CRS | CVE mới của libmodsecurity |
-| R14 | Ngữ nghĩa custom rule lệch giữa `cel-go` (Control) và evaluator IR (edge) | Thấp | Cao | Bộ vector test đối chiếu chạy ở cả hai phía trong CI ([ADR-0032](../09-adr/0032-cel-checked-at-control-ir-at-edge.md)) | Vector test lệch |
+| R12 | Nếu chọn Rust cho edge: thiếu người viết Rust (org vừa bỏ Rust ở repo khác) | Trung bình | Cao | Tuyển hoặc đào tạo sớm; edge là codebase tách biệt ([ADR-0030](../09-adr/0030-language-per-workload.md)) | Tiến độ edge chậm hơn các plane khác |
+| R13 | Nếu chọn libmodsecurity: lỗi bộ nhớ (C++) trên đường traffic | Trung bình | Cao | Pin version, vá trong 72 giờ, fuzz lớp tích hợp, bắt lỗi tại ranh giới; thay engine khi có lựa chọn an toàn hơn qua bộ test CRS | CVE mới của libmodsecurity |
+| R14 | Nếu edge không phải Go: ngữ nghĩa custom rule lệch giữa `cel-go` và evaluator IR | Thấp | Cao | Bộ vector test đối chiếu chạy ở cả hai phía trong CI ([ADR-0032](../09-adr/0032-cel-checked-at-control-ir-at-edge.md)) | Vector test lệch |
 | R9 | Đội nhỏ dàn trải 4 plane | Cao | Cao | Mua/dùng mã nguồn mở cho phần không khác biệt; làm đúng thứ tự giai đoạn | Trễ MVP |
 
 ## 11.2 Chênh lệch với code demo hiện tại
@@ -41,9 +41,7 @@ Edge theo hợp đồng ở [05-contracts](../05-building-blocks/05-contracts.md
 ## 11.3 Quyết định còn mở
 
 Đã chốt ngày 2026-11-06: biến thể cú pháp rule ([ADR-0014](../09-adr/0014-cel-as-rule-language.md),
-CEL), ngôn ngữ và engine WAF của edge ([ADR-0030](../09-adr/0030-language-per-workload.md),
-[ADR-0031](../09-adr/0031-edge-in-rust-on-pingora.md): Rust, libmodsecurity v3 sau trait `WafEngine`),
-công nghệ từng plane ([05 · bản đồ công nghệ](../05-building-blocks/07-technology-map.md)).
+CEL), công nghệ của Control, Analytics, Management ([05 · bản đồ công nghệ](../05-building-blocks/07-technology-map.md)).
 
 | Chủ đề | Cần quyết | Ảnh hưởng |
 |---|---|---|
@@ -52,6 +50,5 @@ công nghệ từng plane ([05 · bản đồ công nghệ](../05-building-block
 | Cấp phép và cập nhật on-prem | Cách phát hành, cách cập nhật ruleset cho khách offline | [ADR-0006](../09-adr/0006-saas-first-on-prem-capable.md) |
 | Nhà cung cấp geo/ASN | MaxMind hay IPinfo, theo giá và điều khoản phân phối lại | [ADR-0025](../09-adr/0025-geo-asn-data-commercial-license.md) |
 | Đối tác L3/L4 và hạ tầng PoP đầu tiên | Chọn đối tác, region đầu tiên | [ADR-0005](../09-adr/0005-edge-on-own-and-existing-infra.md) |
-| HTTP/3 trên Pingora | Pingora có hỗ trợ không; nếu không thì `quinn` + `h3` hay để sau MVP | [ADR-0031](../09-adr/0031-edge-in-rust-on-pingora.md) |
-| Engine WAF thuần Rust | Khi nào đánh giá lại để thay libmodsecurity | [ADR-0031](../09-adr/0031-edge-in-rust-on-pingora.md) |
+| **Nền L7 edge và engine WAF** | Chọn tổ hợp sau spike 3 tuần: shortlist A1 (Rust + Pingora + libmodsecurity), D2 (Go + Coraza), B2 (Envoy + Coraza wasm), mốc C1 (OpenResty + ModSecurity); kèm HTTP/3 | [ADR-0031](../09-adr/0031-edge-l7-and-waf-engine-options.md); kéo theo ngôn ngữ edge, replay, `edge-verify`, [ADR-0032](../09-adr/0032-cel-checked-at-control-ir-at-edge.md) |
 | Phân công zone cho node | MVP mọi node phục vụ mọi zone; khi nào chia shard | [5.8.4](../05-building-blocks/08-components/04-rollout-distribution-fleet.md) |
