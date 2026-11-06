@@ -1,6 +1,12 @@
 """Render docs/architecture/**/*.md into one self-contained HTML page for viewing.
 
-Usage: python3 -I render_arch.py <docs/architecture dir> <out.html>
+Usage (Python >= 3.9, `pip install -r docs/overview/tools/requirements.txt`):
+
+    python3 docs/overview/tools/render_arch.py            # defaults below
+    python3 render_arch.py <docs/architecture dir> <out.html>
+
+Defaults: source = docs/architecture, output = docs/overview/v1-waap-architecture.html,
+both resolved relative to this script, so it works from any working directory.
 """
 import html
 import os
@@ -10,7 +16,14 @@ import urllib.parse
 
 from markdown_it import MarkdownIt
 
-SRC, OUT = sys.argv[1], sys.argv[2]
+_HERE = os.path.dirname(os.path.abspath(__file__))
+if len(sys.argv) == 3:
+    SRC, OUT = sys.argv[1], sys.argv[2]
+elif len(sys.argv) == 1:
+    SRC = os.path.join(_HERE, "..", "..", "architecture")
+    OUT = os.path.join(_HERE, "..", "v1-waap-architecture.html")
+else:
+    sys.exit(__doc__)
 
 
 def collect():

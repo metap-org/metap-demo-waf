@@ -20,10 +20,13 @@ Khi bản hiện hành và ảnh chụp mâu thuẫn, bản hiện hành (và Ma
 Sau khi sửa Markdown trong `../architecture/`:
 
 ```bash
-pip install markdown-it-py
-cd docs/overview
-python3 tools/render_arch.py ../architecture v1-waap-architecture.html
+pip install -r docs/overview/tools/requirements.txt
+python3 docs/overview/tools/render_arch.py
 ```
+
+Không tham số: đọc `docs/architecture/`, ghi đè `docs/overview/v1-waap-architecture.html`, chạy được từ
+thư mục nào cũng được. Muốn ghi ra file khác (ví dụ `v2-…`):
+`python3 docs/overview/tools/render_arch.py docs/architecture docs/overview/v2-waap-architecture.html`.
 
 `tools/arch_template.html` là khung trang (mục lục, giao diện sáng/tối, nạp Mermaid). Thay đổi lớn về cấu
 trúc tài liệu nên tăng prefix (`v2-…`) thay vì ghi đè, để giữ được bản đã gửi cho người khác.
