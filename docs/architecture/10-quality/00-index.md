@@ -48,6 +48,7 @@ flowchart LR
 | QS-16 | Điều hướng | Một PoP sập | DNS điều hướng ngừng trả IP PoP đó trong ≤ 60 s |
 | QS-17 | Tách tầng | Flood từ ít nguồn vào một zone | ≥ 95% request bị loại ở proxy; CPU tầng WAF của PoP tăng ≤ 20% |
 | QS-18 | Tách tầng | Tầng WAF của một PoP quá tải hoặc sập | Kết nối client không bị ảnh hưởng; zone áp fail mode trong ≤ 1 lần deadline |
+| QS-19 | Quy lỗi | Bất kỳ response 5xx nào | Có `status_source` và (nếu WAAP tự sinh) `edge_error`; xác định được chặng chậm nhất từ trace trong ≤ 1 phút |
 
 ## 10.3 Quy mô thiết kế
 

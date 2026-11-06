@@ -5,6 +5,7 @@
 | [00-index.md](00-index.md) | 8.1–8.11: multi-tenancy, bảo mật, quyền, version, fail mode, quyền riêng tư, entitlements, challenge, giao nhận, thời gian |
 | [12-platform-monitoring.md](12-platform-monitoring.md) | 8.12 Giám sát nền tảng: SLI/SLO, probe tổng hợp theo hành vi, cảnh báo theo burn rate, đối soát mất dữ liệu |
 | [13-operational-behaviors.md](13-operational-behaviors.md) | 8.13 Hành vi vận hành: từng tình huống và thao tác với tín hiệu, cảnh báo, tự phản ứng, runbook |
+| [14-latency-and-error-attribution.md](14-latency-and-error-attribution.md) | 8.14 Đo độ trễ theo tầng, đo chặng tới client, quy mỗi status code về đúng nguồn |
 
 ## 8.1 Multi-tenancy và cô lập
 

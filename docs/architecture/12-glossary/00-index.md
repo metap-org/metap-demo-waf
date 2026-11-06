@@ -40,6 +40,10 @@
 | **Fail-open / fail-closed** | Cho qua hoặc chặn khi một bước kiểm tra lỗi hoặc quá hạn |
 | **False positive (FP)** | Request hợp lệ bị chặn nhầm |
 | **Entitlements** | Giới hạn và tính năng theo gói cước, dạng cấu hình |
+| **status_source** | Ai sinh ra status code của một response: origin, cache, edge_policy, edge_request, client_abort, origin_unreachable, edge_platform |
+| **edge_error** | Mã chi tiết khi WAAP tự sinh response thay cho origin (ví dụ `origin_connect_timeout`) |
+| **edge_us** | Thời gian do WAAP gây ra cho một request, không gồm chờ origin và client |
+| **RUM** | Real user monitoring: đo trải nghiệm thật trên trình duyệt người dùng |
 | **Request ID** | Định danh duy nhất của request, in trên trang chặn, khoá tra cứu và bỏ trùng |
 | **Replay** | Chạy policy nháp trên traffic lịch sử để mô phỏng tác động |
 | **SIEM export** | Đẩy log liên tục sang hệ thống SIEM của khách |

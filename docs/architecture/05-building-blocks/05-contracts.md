@@ -13,7 +13,7 @@ và giữ trạng thái cũ, không đọc dở.
 | **SnapshotAnnouncement** | Control → Edge | "zone X có version N" hoặc "bundle chung có version M"; cờ khẩn | Push nhẹ, mất cũng không sao vì agent tự kiểm định kỳ |
 | **NodeStatus** | Edge → Control | Node ID, phần mềm, version đang chạy theo zone, lỗi nạp, chỉ số sức khoẻ | Heartbeat định kỳ + sự kiện khi đổi version |
 | **Inspection API** | Edge proxy → WAF inspection (trong PoP) | Header, body theo chunk, ngữ cảnh zone/tenant/request ID; trả verdict | gRPC stream đồng bộ, có deadline; xem mục bên dưới |
-| **TelemetryRecord** | Edge → Analytics | Loại (security event / access log), request ID, thời điểm, zone, tenant, policy version, bước pipeline, rule ID, hành động, trường request đã che | At-least-once; Analytics bỏ trùng theo request ID + loại |
+| **TelemetryRecord** | Edge → Analytics | Loại (security event / access log / mẫu request), request ID, thời điểm, zone, tenant, policy version, bước pipeline, rule ID, hành động, `status_source`, `edge_error`, thời gian theo chặng ([8.14](../08-cross-cutting/14-latency-and-error-attribution.md)), trường request đã che | At-least-once; Analytics bỏ trùng theo request ID + loại |
 | **Query** | Management → Analytics | Truy vấn có cấu trúc (không phải ngôn ngữ truy vấn tự do của store), danh tính người gọi, phạm vi zone | Đồng bộ, có giới hạn chi phí |
 | **AlertRaised / CaseProposed** | Analytics → Management | Điều kiện khớp, mẫu event, đề xuất mitigation | At-least-once, bỏ trùng theo khoá cảnh báo |
 | **RolloutSignal** | Analytics → Control | Chỉ số theo zone/policy version trong cửa sổ canary | Định kỳ trong lúc rollout |

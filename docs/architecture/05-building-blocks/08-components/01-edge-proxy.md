@@ -88,7 +88,7 @@ không body) để giảm tải WAF cho site nhiều static.
 | **Inspection client** | gRPC stream tới pool WAF trong PoP ([Inspection API](../05-contracts.md#inspection-api-edge-proxy--waf)); timeout theo zone; circuit breaker khi tầng WAF lỗi hoặc quá tải → fail mode của zone |
 | **Cache** | Khoá cache mặc định `(zone, host, path, query đã sắp xếp, header Vary)`; tôn trọng `Cache-Control`; cache rule theo zone; RAM cho object nóng, NVMe cho object lớn; purge theo URL, prefix, tag; `stale-if-error` khi origin lỗi ([ADR-0035](../../09-adr/0035-cdn-and-dns-strategy.md)) |
 | **Upstream** | Pool kết nối theo origin, mTLS tới origin, retry cho request idempotent, health check thụ động; Mở rộng: đi qua origin shield (tiered cache) |
-| **Telemetry** | Ghi thêm `cache_status`, `inspected`, `waf_latency_ms`, `body_truncated` vào bản ghi |
+| **Telemetry** | Mốc thời gian theo chặng, `status_source`, `edge_error`, `cache_status`, `inspected`, `body_truncated` cho mọi request ([8.14](../../08-cross-cutting/14-latency-and-error-attribution.md)); header `X-WAAP-Error` và mã trên trang lỗi khi WAAP tự sinh response; `Server-Timing` nếu zone bật |
 
 ## Ngân sách độ trễ
 

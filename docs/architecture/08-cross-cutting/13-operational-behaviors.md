@@ -14,7 +14,7 @@ ticket trong giờ làm việc.
 | | |
 |---|---|
 | Mục tiêu | Traffic của PoP chuyển sang PoP khác trong ≤ 60 s; S1 không vỡ |
-| Tín hiệu | Probe P1 theo PoP từ ≥ 3 điểm đo; tỉ lệ lỗi `error_source=platform` theo PoP; số node sống của PoP |
+| Tín hiệu | Probe P1 theo PoP từ ≥ 3 điểm đo; tỉ lệ lỗi `status_source=edge_platform` theo PoP; số node sống của PoP |
 | Cảnh báo | P1: P1 lỗi từ ≥ 2/3 điểm đo trong 2 chu kỳ liên tiếp. P2: một PoP mất > 30% node |
 | Tự phản ứng | Health checker rút PoP khỏi anycast (rút route) hoặc khỏi GeoDNS; trả lại khi P1 xanh 5 phút liên tục |
 | Runbook | Xác nhận đã rút; kiểm hạ tầng/đối tác của PoP; kiểm dung lượng PoP lân cận đủ gánh; không trả PoP thủ công khi P1 chưa xanh |
@@ -148,6 +148,16 @@ ticket trong giờ làm việc.
 | Cảnh báo | P3: hit ratio của một zone giảm > 30% so với baseline sau một thay đổi cache rule. P2: burn rate S12 |
 | Tự phản ứng | Không |
 | Runbook | Hit ratio giảm sau thay đổi → so sánh cache rule theo version, đề xuất rollback cho khách; purge chậm → kiểm fast lane và node chưa ack |
+
+### A15. Khách báo site chậm hoặc lỗi
+
+| | |
+|---|---|
+| Mục tiêu | Trả lời trong 15 phút: chậm/lỗi ở chặng nào, của website hay của WAAP, có bằng chứng |
+| Tín hiệu | Dashboard độ trễ theo chặng và lỗi theo `status_source` của zone; trace theo request ID ([8.14](14-latency-and-error-attribution.md)) |
+| Cảnh báo | Không (do khách báo); nếu `edge_platform` tăng thì đã có cảnh báo S1 |
+| Tự phản ứng | Không |
+| Runbook | (1) Lấy request ID hoặc khoảng thời gian, URL. (2) Lỗi: đọc `status_source` → `origin` hoặc `origin_unreachable` thì gửi khách `edge_error` và thời gian kết nối/TTFB của origin làm bằng chứng; `edge_platform` thì mở sự cố phía NCC. (3) Chậm: so p95 từng chặng với baseline của zone: `edge_us` tăng → điều tra phía WAAP (A4, A13); `origin_ttfb_us` tăng → website; `origin_connect_us` tăng → mạng tới origin hoặc origin hết kết nối; `client_rtt_us`/`client_retrans` tăng theo quốc gia/ASN → mạng phía người dùng, kiểm định tuyến PoP. (4) Gửi khách waterfall và kết luận |
 
 ## B. Thao tác của người vận hành
 

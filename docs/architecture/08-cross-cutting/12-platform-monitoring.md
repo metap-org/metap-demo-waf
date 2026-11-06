@@ -73,8 +73,8 @@ Mỗi SLI là một tỉ lệ `sự kiện tốt / tổng sự kiện` đo đư�
 
 | # | Hành vi | SLI | SLO (30 ngày) |
 |---|---|---|---|
-| S1 | Phục vụ traffic | `1 − (request lỗi do nền tảng / tổng request)`; lỗi do nền tảng là 5xx gateway tự sinh, không tính 5xx của origin (gateway gắn nhãn `error_source = platform \| origin`) | 99,99% |
-| S2 | Độ trễ thêm tại edge | Tỉ lệ request có độ trễ thêm (không tính origin) ≤ 2 ms | 99% |
+| S1 | Phục vụ traffic | `1 − (response có status_source = edge_platform / tổng request)`; lỗi của website (`origin`, `origin_unreachable`) và hành động bảo mật (`edge_policy`) không tính ([8.14](14-latency-and-error-attribution.md#3-phân-loại-lỗi-mỗi-response-có-một-nguồn)) | 99,99% |
+| S2 | Độ trễ thêm tại edge | Tỉ lệ request có `edge_us` (thời gian do WAAP gây ra, không gồm chờ origin và client) ≤ 2 ms | 99% |
 | S3 | Bảo vệ thật sự hoạt động | Tỉ lệ probe tấn công bị chặn đúng rule (probe §4 P2) | 99,99% |
 | S4 | Lan truyền config thường | Tỉ lệ thay đổi đạt 100% node sống trong ≤ 60 s | 99% |
 | S5 | Lan truyền khẩn | Tỉ lệ thay đổi khẩn đạt 95% node trong ≤ 5 s | 99% |
@@ -133,7 +133,7 @@ Dùng khi điều tra sau khi cảnh báo SLO bắn; tên metrics theo quy ướ
 
 | Thành phần | Tín hiệu chính |
 |---|---|
-| Edge proxy | `waap_edge_requests_total{zone,phase,verdict,error_source}`, `waap_edge_phase_duration_seconds{phase}`, `waap_edge_failmode_triggered_total{reason}`, `waap_edge_prefilter_dropped_total{phase}`, `waap_edge_inspect_calls_total{result}`, `waap_edge_inspect_duration_seconds`, `waap_edge_cache_requests_total{status}`, `waap_edge_cache_bytes`, `waap_edge_purge_duration_seconds`, `waap_edge_connections_open`, `waap_edge_body_buffer_bytes`, `waap_edge_upstream_errors_total{origin}` |
+| Edge proxy | `waap_edge_requests_total{zone,phase,verdict,status_source,edge_error}`, `waap_edge_stage_duration_seconds{stage}` (client_tls, pre, waf, cache, origin_connect, origin_ttfb, client_send), `waap_edge_phase_duration_seconds{phase}`, `waap_edge_failmode_triggered_total{reason}`, `waap_edge_prefilter_dropped_total{phase}`, `waap_edge_inspect_calls_total{result}`, `waap_edge_inspect_duration_seconds`, `waap_edge_cache_requests_total{status}`, `waap_edge_cache_bytes`, `waap_edge_purge_duration_seconds`, `waap_edge_connections_open`, `waap_edge_body_buffer_bytes`, `waap_edge_upstream_errors_total{origin}` |
 | WAF inspection | `waap_waf_inspect_duration_seconds{engine}`, `waap_waf_queue_depth`, `waap_waf_overloaded_total{tenant}`, `waap_waf_cpu_seconds_total{tenant}`, `waap_waf_engine_errors_total`, `waap_waf_process_restarts_total` |
 | DNS điều hướng | Truy vấn/giây theo PoP, tỉ lệ NXDOMAIN/SERVFAIL, độ trễ cập nhật trạng thái PoP |
 | Policy agent | `waap_agent_manifest_version{}` (info), `waap_agent_load_duration_seconds`, `waap_agent_nack_total{stage}`, `waap_agent_last_good_age_seconds`, `waap_agent_control_connected` |
