@@ -75,7 +75,7 @@ Mỗi SLI là một tỉ lệ `sự kiện tốt / tổng sự kiện` đo đư�
 |---|---|---|---|
 | S1 | Phục vụ traffic | `1 − (response có status_source = edge_platform / tổng request)`; lỗi của website (`origin`, `origin_unreachable`) và hành động bảo mật (`edge_policy`) không tính ([8.14](14-latency-and-error-attribution.md#3-phân-loại-lỗi-mỗi-response-có-một-nguồn)) | 99,99% |
 | S2 | Độ trễ thêm tại edge | Tỉ lệ request có `edge_us` (thời gian do WAAP gây ra, không gồm chờ origin và client) ≤ 2 ms | 99% |
-| S3 | Bảo vệ thật sự hoạt động | Tỉ lệ probe tấn công bị chặn đúng rule (probe §4 P2) | 99,99% |
+| S3 | Bảo vệ thật sự hoạt động | Tỉ lệ probe tấn công bị chặn đúng rule (probe §4 PR2) | 99,99% |
 | S4 | Lan truyền config thường | Tỉ lệ thay đổi đạt 100% node sống trong ≤ 60 s | 99% |
 | S5 | Lan truyền khẩn | Tỉ lệ thay đổi khẩn đạt 95% node trong ≤ 5 s | 99% |
 | S6 | Độ tươi log | Tỉ lệ phút mà probe log tra cứu được trong ≤ 60 s | 99,5% |
@@ -92,14 +92,14 @@ Probe chạy liên tục trên các **zone canary** của NCC (zone thật trên
 
 | # | Probe | Cách làm | Chu kỳ | Nuôi SLI |
 |---|---|---|---|---|
-| P1 | Phục vụ | Request hợp lệ tới zone canary qua từng PoP (DNS/anycast thật và trực tiếp IP PoP); kiểm mã 200, độ trễ, header request ID | 30 s / PoP / điểm đo | S1, S2 |
-| P2 | Chặn đúng | Request mang payload SQLi/XSS chuẩn của CRS, request từ IP trong access list chặn, request vượt rate limit; kiểm 403/429 và rule ID trong header debug của zone canary | 60 s / PoP | S3 |
-| P3 | Lan truyền | Mỗi 5 phút đổi một giá trị trong policy zone canary (một custom rule có hằng số đổi theo thời gian); đo (a) thời điểm 100% node ack, (b) thời điểm P2 thấy hành vi mới trên mọi PoP | 5 phút | S4 |
-| P4 | Lan truyền khẩn | Mỗi giờ bật/tắt Under Attack mode trên zone canary qua fast lane; đo thời gian tới 95% node | 1 giờ | S5 |
-| P5 | Độ tươi log | Request có request ID đánh dấu; hỏi Query API tới khi thấy bản ghi | 1 phút | S6 |
-| P6 | Cảnh báo | Zone canary có alert policy ngưỡng thấp; prober tạo đợt request vượt ngưỡng; đo thời gian tới khi webhook test của NCC nhận tin | 15 phút | S8 |
-| P7 | Export | Đích export test của NCC nhận log zone canary; đo độ trễ request → đích | 5 phút | S10 |
-| P8 | Portal | Đăng nhập, đọc dashboard, tạo bản nháp rule (không publish) | 5 phút | S9 |
+| PR1 | Phục vụ | Request hợp lệ tới zone canary qua từng PoP (DNS/anycast thật và trực tiếp IP PoP); kiểm mã 200, độ trễ, header request ID | 30 s / PoP / điểm đo | S1, S2 |
+| PR2 | Chặn đúng | Request mang payload SQLi/XSS chuẩn của CRS, request từ IP trong access list chặn, request vượt rate limit; kiểm 403/429 và rule ID trong header debug của zone canary | 60 s / PoP | S3 |
+| PR3 | Lan truyền | Mỗi 5 phút đổi một giá trị trong policy zone canary (một custom rule có hằng số đổi theo thời gian); đo (a) thời điểm 100% node ack, (b) thời điểm P2 thấy hành vi mới trên mọi PoP | 5 phút | S4 |
+| PR4 | Lan truyền khẩn | Mỗi giờ bật/tắt Under Attack mode trên zone canary qua fast lane; đo thời gian tới 95% node | 1 giờ | S5 |
+| PR5 | Độ tươi log | Request có request ID đánh dấu; hỏi Query API tới khi thấy bản ghi | 1 phút | S6 |
+| PR6 | Cảnh báo | Zone canary có alert policy ngưỡng thấp; prober tạo đợt request vượt ngưỡng; đo thời gian tới khi webhook test của NCC nhận tin | 15 phút | S8 |
+| PR7 | Export | Đích export test của NCC nhận log zone canary; đo độ trễ request → đích | 5 phút | S10 |
+| PR8 | Portal | Đăng nhập, đọc dashboard, tạo bản nháp rule (không publish) | 5 phút | S9 |
 
 P2 là điểm khác biệt chính so với giám sát thông thường: nó bắt được trường hợp mọi thứ "xanh" nhưng
 WAF thực tế không chặn (ruleset nạp sai, phase bị bỏ qua, fail-open kéo dài).

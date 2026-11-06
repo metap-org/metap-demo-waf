@@ -14,10 +14,10 @@ ticket trong giờ làm việc.
 | | |
 |---|---|
 | Mục tiêu | Traffic của PoP chuyển sang PoP khác trong ≤ 60 s; S1 không vỡ |
-| Tín hiệu | Probe P1 theo PoP từ ≥ 3 điểm đo; tỉ lệ lỗi `status_source=edge_platform` theo PoP; số node sống của PoP |
-| Cảnh báo | P1: P1 lỗi từ ≥ 2/3 điểm đo trong 2 chu kỳ liên tiếp. P2: một PoP mất > 30% node |
-| Tự phản ứng | Health checker rút PoP khỏi anycast (rút route) hoặc khỏi GeoDNS; trả lại khi P1 xanh 5 phút liên tục |
-| Runbook | Xác nhận đã rút; kiểm hạ tầng/đối tác của PoP; kiểm dung lượng PoP lân cận đủ gánh; không trả PoP thủ công khi P1 chưa xanh |
+| Tín hiệu | Probe PR1 theo PoP từ ≥ 3 điểm đo; tỉ lệ lỗi `status_source=edge_platform` theo PoP; số node sống của PoP |
+| Cảnh báo | P1: PR1 lỗi từ ≥ 2/3 điểm đo trong 2 chu kỳ liên tiếp. P2: một PoP mất > 30% node |
+| Tự phản ứng | Health checker rút PoP khỏi anycast (rút route) hoặc khỏi GeoDNS; trả lại khi PR1 xanh 5 phút liên tục |
+| Runbook | Xác nhận đã rút; kiểm hạ tầng/đối tác của PoP; kiểm dung lượng PoP lân cận đủ gánh; không trả PoP thủ công khi PR1 chưa xanh |
 
 ### A2. Node nạp snapshot lỗi (NACK)
 
@@ -54,8 +54,8 @@ ticket trong giờ làm việc.
 | | |
 |---|---|
 | Mục tiêu | Fail-open không kéo dài âm thầm (WAF không chặn mà không ai biết) |
-| Tín hiệu | `waap_edge_failmode_triggered_total{zone,phase,mode}`; probe P2 |
-| Cảnh báo | P1: probe P2 thất bại ở bất kỳ PoP nào (WAF thực tế không chặn). P2: tỉ lệ request bị fail-open của một phase > 0,1% trong 10 phút toàn fleet |
+| Tín hiệu | `waap_edge_failmode_triggered_total{zone,phase,mode}`; probe PR2 |
+| Cảnh báo | P1: probe PR2 thất bại ở bất kỳ PoP nào (WAF thực tế không chặn). P2: tỉ lệ request bị fail-open của một phase > 0,1% trong 10 phút toàn fleet |
 | Tự phản ứng | Báo khách bị ảnh hưởng qua cảnh báo hệ thống trong portal |
 | Runbook | Như A4 để tìm nguyên nhân; nếu fail-open do snapshot thiếu phase → rollback manifest; ghi sự cố, thông báo khách nếu kéo dài > 15 phút |
 
@@ -74,7 +74,7 @@ ticket trong giờ làm việc.
 | | |
 |---|---|
 | Mục tiêu | S6 (tra cứu được trong ≤ 60 s) |
-| Tín hiệu | Probe P5; consumer lag của enricher (theo giây, không theo số bản ghi); lỗi insert ClickHouse; buffer đĩa Vector trên edge |
+| Tín hiệu | Probe PR5; consumer lag của enricher (theo giây, không theo số bản ghi); lỗi insert ClickHouse; buffer đĩa Vector trên edge |
 | Cảnh báo | Burn rate S6. P2: lag enricher > 120 s trong 5 phút. P3: buffer đĩa edge > 50% ở > 5% node |
 | Tự phản ứng | HPA scale enricher theo lag; ingest gateway ưu tiên security event khi bị dồn |
 | Runbook | Lag tăng đều mọi partition → thiếu năng lực enricher hoặc ClickHouse chậm (kiểm số part, merge); lag ở một số partition → tenant đột biến (khoá partition nóng); ClickHouse lỗi → enricher tự giữ offset, ưu tiên phục hồi ClickHouse |
@@ -169,6 +169,16 @@ ticket trong giờ làm việc.
 | Tự phản ứng | Chuyển zone chiếm tải bất thường sang cell cách ly (đổi `cell_id` trong routing index và câu trả lời DNS); cân bằng lại cell theo tải hằng ngày |
 | Runbook | Xác nhận zone bị chuyển và lý do (tấn công hay tăng trưởng thật); tăng trưởng thật thì chuyển zone sang cell riêng hoặc thêm node cho cell; theo dõi tỉ lệ nạp zone nguội sau mỗi lần chuyển |
 
+### A17. Realtime gateway quá tải hoặc dữ liệu live trễ
+
+| | |
+|---|---|
+| Mục tiêu | QS-37, QS-38 |
+| Tín hiệu | Số phiên theo node và region, tốc độ kết nối mới, độ dài hàng đợi gửi theo phiên, RAM node, số zone đang xem, độ trễ từ edge tới message live (theo timestamp trong message), lag consumer topic `live` |
+| Cảnh báo | P2: độ trễ live p95 > 10 s trong 5 phút, hoặc RAM node > 80%. P3: tỉ lệ phiên bị hạ xuống chế độ chỉ số liệu > 5% |
+| Tự phản ứng | Giới hạn tốc độ kết nối mới theo tenant; giảm event mẫu rồi giãn số liệu Free/Pro theo thứ tự ở [5.8.13](../05-building-blocks/08-components/13-realtime-gateway.md#lỗi-và-hành-vi); autoscale node gateway theo số phiên |
+| Runbook | Xác định do số phiên tăng (tấn công, sự kiện) hay do enricher/Kafka trễ; thêm node; nếu một tenant mở quá nhiều phiên thì áp hạn mức của gói |
+
 ## B. Thao tác của người vận hành
 
 ### B1. Rollout phần mềm edge
@@ -177,7 +187,7 @@ ticket trong giờ làm việc.
 |---|---|
 | Mục tiêu | Không vỡ S1, S2, S3 trong và sau rollout |
 | Cách làm | Canary PoP → 10% node mỗi region → 50% → 100%; mỗi đợt quan sát ≥ 30 phút; node rút traffic (drain) trước khi khởi động lại, chờ kết nối cũ kết thúc |
-| Gate | Error rate, p99 theo phase, NACK, probe P1/P2 trên node mới so với node cũ cùng PoP |
+| Gate | Error rate, p99 theo phase, NACK, probe PR1/PR2 trên node mới so với node cũ cùng PoP |
 | Tự phản ứng | Gate hỏng → dừng, đưa node đã nâng về bản trước |
 | Runbook | Không rollout ngoài giờ có người trực; không rollout đồng thời với release ruleset; theo dõi dashboard so sánh "bản mới vs bản cũ" |
 
@@ -206,7 +216,7 @@ ticket trong giờ làm việc.
 | | |
 |---|---|
 | Mục tiêu | Node mới chỉ nhận traffic khi đã nạp snapshot và qua probe; node ngừng không làm rơi request |
-| Cách làm | Thêm: bootstrap token một lần → enroll → nạp snapshot → probe P1/P2 trực tiếp IP node → vào health check. Ngừng: rút khỏi health check → drain → thu hồi cert node |
+| Cách làm | Thêm: bootstrap token một lần → enroll → nạp snapshot → probe PR1/PR2 trực tiếp IP node → vào health check. Ngừng: rút khỏi health check → drain → thu hồi cert node |
 | Tín hiệu | Trạng thái enroll, `waap_agent_control_connected`, kết quả probe theo node |
 | Runbook | Không thêm node vào anycast/DNS trước khi probe xanh; thu hồi cert ngay khi ngừng hoặc nghi bị chiếm |
 

@@ -6,7 +6,7 @@ cân nhắc. Detail design mức C3 ở [08-components/](08-components/00-index.
 Hai tiêu chí chạy xuyên suốt:
 
 1. **Ngôn ngữ theo đặc tính tải** ([ADR-0030](../09-adr/0030-language-per-workload.md)): Go cho Control,
-   Analytics, Management; edge (cùng replay và `edge-verify`) **chờ chọn** theo [ADR-0031](../09-adr/0031-edge-l7-and-waf-engine-options.md).
+   Analytics, Management; Elixir cho realtime gateway và notifier ([ADR-0044](../09-adr/0044-realtime-gateway-and-notifier-runtime.md)); edge (cùng replay và `edge-verify`) **chờ chọn** theo [ADR-0031](../09-adr/0031-edge-l7-and-waf-engine-options.md).
 2. **Mọi thứ phải đóng gói được cho on-prem mà không vướng license**
    ([ADR-0024](../09-adr/0024-licensing-policy-for-shipped-components.md)). Không BSL, SSPL, AGPL
    trong phần phát hành cho khách; không dịch vụ managed độc quyền một cloud.
@@ -53,7 +53,8 @@ Hai tiêu chí chạy xuyên suốt:
 |---|---|---|---|
 | Ingest gateway (điểm vào log từ edge) | Vector chế độ aggregator, mTLS theo cert node | MPL-2.0 | [0019](../09-adr/0019-vector-as-node-log-shipper.md) |
 | Ingestion bus | Apache Kafka (KRaft) | Apache-2.0 | [0018](../09-adr/0018-kafka-as-telemetry-bus.md) |
-| Stream processor, exporter, detection, notifier, query API | Go services (`franz-go`, `clickhouse-go`) | BSD-3 / Apache-2.0 | [0030](../09-adr/0030-language-per-workload.md) |
+| Stream processor (kèm live tap), exporter, detection, query API | Go services (`franz-go`, `clickhouse-go`) | BSD-3 / Apache-2.0 | [0030](../09-adr/0030-language-per-workload.md) |
+| Realtime gateway, notifier | Elixir: Phoenix Channels, Phoenix PubSub, Broadway, Oban (bản mã nguồn mở) | Apache-2.0 / MIT | [0044](../09-adr/0044-realtime-gateway-and-notifier-runtime.md) |
 | Hàng đợi gửi cảnh báo | Bảng `deliveries` trên PostgreSQL (SKIP LOCKED), adapter theo kênh | — | [0028](../09-adr/0028-notification-adapters-and-plan-gated-channels.md) |
 | Hot search + số liệu gộp | ClickHouse (bảng raw + materialized view) | Apache-2.0 | [0020](../09-adr/0020-clickhouse-and-parquet-for-analytics.md) |
 | Archive, mẫu request cho replay | Parquet trên object storage | Apache-2.0 | [0020](../09-adr/0020-clickhouse-and-parquet-for-analytics.md), [0026](../09-adr/0026-replay-on-request-samples-with-shared-pipeline.md) |

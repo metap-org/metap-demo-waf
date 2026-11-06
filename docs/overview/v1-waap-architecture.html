@@ -117,6 +117,7 @@ blockquote { margin: 0 0 14px; padding: 8px 16px; border-left: 3px solid var(--l
 <a class="sub2" href="#f-05-building-blocks-08-components-10-alerting-rules-and-algorithms">5.8.10 Cảnh báo WAF và DDoS: cấu hình ngưỡng và thuật toán</a>
 <a class="sub2" href="#f-05-building-blocks-08-components-11-notification-fanout">5.8.11 Notification: fan-out nhiều kênh, khách tự tích hợp, mở kênh theo gói</a>
 <a class="sub2" href="#f-05-building-blocks-08-components-12-management">5.8.12 Management plane</a>
+<a class="sub2" href="#f-05-building-blocks-08-components-13-realtime-gateway">5.8.13 Realtime gateway (Analytics plane)</a>
 <a class="top" href="#f-06-runtime-00-index">6. Runtime View</a>
 <a class="sub" href="#f-06-runtime-10-analytics-flows">6.10 Luồng Analytics</a>
 <a class="top" href="#f-07-deployment-00-index">7. Deployment View</a>
@@ -172,6 +173,8 @@ blockquote { margin: 0 0 14px; padding: 8px 16px; border-left: 3px solid var(--l
 <a class="sub" href="#f-09-adr-0040-config-distribution-at-scale">ADR-0040: Phân phối cấu hình ở quy mô 1 triệu zone</a>
 <a class="sub" href="#f-09-adr-0041-cells-and-zone-placement">ADR-0041: Cell và cách đặt zone</a>
 <a class="sub" href="#f-09-adr-0042-plan-tiers-drive-placement-and-isolation">ADR-0042: Gói quyết định chỗ đặt zone, tài nguyên và thứ tự hy sinh</a>
+<a class="sub" href="#f-09-adr-0043-usage-based-pricing-and-metering">ADR-0043: Giá theo phí nền + hạn mức + phí vượt, đo usage không lấy mẫu, trần cứng ở edge</a>
+<a class="sub" href="#f-09-adr-0044-realtime-gateway-and-notifier-runtime">ADR-0044: Realtime gateway cho portal và runtime của notifier</a>
 <a class="top" href="#f-10-quality-00-index">10. Quality Requirements</a>
 <a class="top" href="#f-11-risks-00-index">11. Risks and Technical Debt</a>
 <a class="top" href="#f-12-glossary-00-index">12. Glossary</a>
@@ -205,6 +208,7 @@ blockquote { margin: 0 0 14px; padding: 8px 16px; border-left: 3px solid var(--l
 <a class="sub2" href="#f-05-building-blocks-08-components-10-alerting-rules-and-algorithms">5.8.10 Cảnh báo WAF và DDoS: cấu hình ngưỡng và thuật toán</a>
 <a class="sub2" href="#f-05-building-blocks-08-components-11-notification-fanout">5.8.11 Notification: fan-out nhiều kênh, khách tự tích hợp, mở kênh theo gói</a>
 <a class="sub2" href="#f-05-building-blocks-08-components-12-management">5.8.12 Management plane</a>
+<a class="sub2" href="#f-05-building-blocks-08-components-13-realtime-gateway">5.8.13 Realtime gateway (Analytics plane)</a>
 <a class="top" href="#f-06-runtime-00-index">6. Runtime View</a>
 <a class="sub" href="#f-06-runtime-10-analytics-flows">6.10 Luồng Analytics</a>
 <a class="top" href="#f-07-deployment-00-index">7. Deployment View</a>
@@ -260,6 +264,8 @@ blockquote { margin: 0 0 14px; padding: 8px 16px; border-left: 3px solid var(--l
 <a class="sub" href="#f-09-adr-0040-config-distribution-at-scale">ADR-0040: Phân phối cấu hình ở quy mô 1 triệu zone</a>
 <a class="sub" href="#f-09-adr-0041-cells-and-zone-placement">ADR-0041: Cell và cách đặt zone</a>
 <a class="sub" href="#f-09-adr-0042-plan-tiers-drive-placement-and-isolation">ADR-0042: Gói quyết định chỗ đặt zone, tài nguyên và thứ tự hy sinh</a>
+<a class="sub" href="#f-09-adr-0043-usage-based-pricing-and-metering">ADR-0043: Giá theo phí nền + hạn mức + phí vượt, đo usage không lấy mẫu, trần cứng ở edge</a>
+<a class="sub" href="#f-09-adr-0044-realtime-gateway-and-notifier-runtime">ADR-0044: Realtime gateway cho portal và runtime của notifier</a>
 <a class="top" href="#f-10-quality-00-index">10. Quality Requirements</a>
 <a class="top" href="#f-11-risks-00-index">11. Risks and Technical Debt</a>
 <a class="top" href="#f-12-glossary-00-index">12. Glossary</a>
@@ -500,7 +506,7 @@ không tốn độ trễ, và băng thông tiết kiệm ở origin bù chi phí
 </thead>
 <tbody>
 <tr>
-<td>Control, Analytics, Management viết bằng Go; ngôn ngữ edge chọn theo hiệu năng</td>
+<td>Control, Analytics, Management viết bằng Go; realtime gateway và notifier bằng Elixir; ngôn ngữ edge chọn theo hiệu năng</td>
 <td><a href="#f-09-adr-0030-language-per-workload">ADR-0030</a>, <a href="#f-09-adr-0031-edge-l7-and-waf-engine-options">ADR-0031</a></td>
 </tr>
 <tr>
@@ -1417,7 +1423,9 @@ không trả lời kịp cũng áp fail mode này.</p>
         meter[&quot;Metering&quot;]
         q[&quot;Query API&quot;]
         rp[&quot;Replay&quot;]
+        rt[&quot;Realtime gateway&quot;]
     end
+    portal[&quot;Portal&quot;]
     mgmt[&quot;Management&quot;]
     ctrl[&quot;Control · Rollout gate&quot;]
     siem[&quot;SIEM của khách&quot;]
@@ -1438,6 +1446,8 @@ không trả lời kịp cũng áp fail mode này.</p>
     det --&gt; notify
     col -.-&gt;|chỉ số theo version| ctrl
     meter --&gt;|số đo sử dụng| mgmt
+    sp --&gt;|live tap: zone đang xem| rt
+    rt &lt;--&gt;|WebSocket| portal
 </pre></div>
 <table>
 <thead>
@@ -1486,6 +1496,10 @@ không trả lời kịp cũng áp fail mode này.</p>
 <tr>
 <td><strong>Query API</strong></td>
 <td>Cửa duy nhất để đọc dữ liệu traffic: áp quyền theo tenant/zone, giới hạn khoảng thời gian và chi phí theo entitlements</td>
+</tr>
+<tr>
+<td><strong>Realtime gateway</strong></td>
+<td>Đẩy số liệu từng giây, security event mẫu, cảnh báo, tiến độ rollout tới hàng chục nghìn phiên portal qua WebSocket; chỉ gom cho zone đang có người xem (<a href="#f-05-building-blocks-08-components-13-realtime-gateway">5.8.13</a>)</td>
 </tr>
 <tr>
 <td><strong>Replay</strong></td>
@@ -1566,8 +1580,14 @@ và giữ trạng thái cũ, không đọc dở.</p>
 <tr>
 <td><strong>TelemetryRecord</strong></td>
 <td>Edge → Analytics</td>
-<td>Loại (security event / access log / mẫu request), request ID, thời điểm, zone, tenant, policy version, bước pipeline, rule ID, hành động, <code>status_source</code>, <code>edge_error</code>, <code>bot.score/class/category/signals</code>, JA4 và fingerprint HTTP/2 (đã băm), <code>api.endpoint_id</code>, <code>api.consumer</code> (đã băm), mã vi phạm schema, trạng thái JWT, thời gian theo chặng (<a href="#f-08-cross-cutting-14-latency-and-error-attribution">8.14</a>), trường request đã che</td>
+<td>Loại (security event / access log / mẫu request / usage counter), request ID, thời điểm, zone, tenant, policy version, bước pipeline, rule ID, hành động, <code>status_source</code>, <code>edge_error</code>, <code>bot.score/class/category/signals</code>, JA4 và fingerprint HTTP/2 (đã băm), <code>api.endpoint_id</code>, <code>api.consumer</code> (đã băm), mã vi phạm schema, trạng thái JWT, thời gian theo chặng (<a href="#f-08-cross-cutting-14-latency-and-error-attribution">8.14</a>), trường request đã che</td>
 <td>At-least-once; Analytics bỏ trùng theo request ID + loại</td>
+</tr>
+<tr>
+<td><strong>UsageCounter</strong></td>
+<td>Edge → Analytics (loại của TelemetryRecord)</td>
+<td>Mỗi phút, mỗi zone có traffic trên node: request sạch, request bị chặn/challenge, byte ra client của traffic sạch, byte vào, đơn vị CPU WAF, byte trúng cache; <code>node_id</code>, số thứ tự</td>
+<td>Không lấy mẫu; buffer riêng không bị bỏ khi đầy; bỏ trùng theo <code>(node, zone, phút)</code> (<a href="#f-09-adr-0043-usage-based-pricing-and-metering">ADR-0043</a>)</td>
 </tr>
 <tr>
 <td><strong>Query</strong></td>
@@ -1813,7 +1833,7 @@ cân nhắc. Detail design mức C3 ở <a href="#f-05-building-blocks-08-compon
 <p>Hai tiêu chí chạy xuyên suốt:</p>
 <ol>
 <li><strong>Ngôn ngữ theo đặc tính tải</strong> (<a href="#f-09-adr-0030-language-per-workload">ADR-0030</a>): Go cho Control,
-Analytics, Management; edge (cùng replay và <code>edge-verify</code>) <strong>chờ chọn</strong> theo <a href="#f-09-adr-0031-edge-l7-and-waf-engine-options">ADR-0031</a>.</li>
+Analytics, Management; Elixir cho realtime gateway và notifier (<a href="#f-09-adr-0044-realtime-gateway-and-notifier-runtime">ADR-0044</a>); edge (cùng replay và <code>edge-verify</code>) <strong>chờ chọn</strong> theo <a href="#f-09-adr-0031-edge-l7-and-waf-engine-options">ADR-0031</a>.</li>
 <li><strong>Mọi thứ phải đóng gói được cho on-prem mà không vướng license</strong>
 (<a href="#f-09-adr-0024-licensing-policy-for-shipped-components">ADR-0024</a>). Không BSL, SSPL, AGPL
 trong phần phát hành cho khách; không dịch vụ managed độc quyền một cloud.</li>
@@ -2024,10 +2044,16 @@ trong phần phát hành cho khách; không dịch vụ managed độc quyền m
 <td><a href="#f-09-adr-0018-kafka-as-telemetry-bus">0018</a></td>
 </tr>
 <tr>
-<td>Stream processor, exporter, detection, notifier, query API</td>
+<td>Stream processor (kèm live tap), exporter, detection, query API</td>
 <td>Go services (<code>franz-go</code>, <code>clickhouse-go</code>)</td>
 <td>BSD-3 / Apache-2.0</td>
 <td><a href="#f-09-adr-0030-language-per-workload">0030</a></td>
+</tr>
+<tr>
+<td>Realtime gateway, notifier</td>
+<td>Elixir: Phoenix Channels, Phoenix PubSub, Broadway, Oban (bản mã nguồn mở)</td>
+<td>Apache-2.0 / MIT</td>
+<td><a href="#f-09-adr-0044-realtime-gateway-and-notifier-runtime">0044</a></td>
 </tr>
 <tr>
 <td>Hàng đợi gửi cảnh báo</td>
@@ -2216,6 +2242,12 @@ thiết kế, hợp đồng hoặc schema chính, hành vi khi lỗi. Công ngh�
 <td>waap-management (metap-go), portal</td>
 <td>Management</td>
 </tr>
+<tr>
+<td>5.8.13</td>
+<td><a href="#f-05-building-blocks-08-components-13-realtime-gateway">13-realtime-gateway.md</a></td>
+<td>Realtime gateway: số liệu và event live tới portal, hàng chục nghìn phiên</td>
+<td>Analytics</td>
+</tr>
 </tbody>
 </table>
 <h2 id="f-05-building-blocks-08-components-00-index--danh-sách-deployable">Danh sách deployable</h2>
@@ -2269,8 +2301,13 @@ thiết kế, hợp đồng hoặc schema chính, hành vi khi lỗi. Công ngh�
 <td>Core region (Kubernetes)</td>
 </tr>
 <tr>
-<td><code>enricher</code>, <code>archiver</code>, <code>query-api</code>, <code>detection</code>, <code>notifier</code>, <code>exporter</code></td>
+<td><code>enricher</code> (kèm live tap), <code>archiver</code>, <code>query-api</code>, <code>detection</code>, <code>exporter</code></td>
 <td>Go</td>
+<td>Mỗi Analytics region (Kubernetes)</td>
+</tr>
+<tr>
+<td><code>realtime-gateway</code>, <code>notifier</code></td>
+<td>Elixir: Phoenix, Broadway, Oban (<a href="#f-09-adr-0044-realtime-gateway-and-notifier-runtime">ADR-0044</a>)</td>
 <td>Mỗi Analytics region (Kubernetes)</td>
 </tr>
 <tr>
@@ -2881,7 +2918,7 @@ kéo theo L7 và kết nối của client; process WAF chết thì L7 chuyển s
         zdb[(&quot;Zone data&lt;br/&gt;trong bundle chung&quot;)]
     end
     fleet[&quot;Control · Fleet registry&lt;br/&gt;health theo PoP&quot;]
-    probe[&quot;Prober&lt;br/&gt;P1 theo PoP&quot;]
+    probe[&quot;Prober&lt;br/&gt;PR1 theo PoP&quot;]
     mgmt[&quot;Management&lt;br/&gt;bản ghi DNS của khách (Mở rộng)&quot;]
     cfg[&quot;Control · Config&quot;]
 
@@ -3140,11 +3177,11 @@ chỉ nạp phần bundle của mình từ cùng một manifest, nên hai tầng
 </tr>
 <tr>
 <td>Biến đổi</td>
-<td>Lấy mẫu access log theo zone (security event không lấy mẫu); che trường theo cấu hình khách bằng VRL; gắn <code>node_id</code>, <code>region</code></td>
+<td>Lấy mẫu access log theo zone (security event và <code>UsageCounter</code> không lấy mẫu); che trường theo cấu hình khách bằng VRL; gắn <code>node_id</code>, <code>region</code></td>
 </tr>
 <tr>
 <td>Buffer</td>
-<td>Disk buffer có giới hạn dung lượng; khi đầy, nguồn access log bị chặn trước, security event dùng buffer riêng</td>
+<td>Disk buffer có giới hạn dung lượng; khi đầy, nguồn access log bị chặn trước, security event và <code>UsageCounter</code> dùng buffer riêng. Bộ đếm usage còn được giữ cục bộ 7 ngày để đối soát nếu thiếu số thứ tự (<a href="#f-08-cross-cutting-18-segments-and-plans--6-đo-usage-hạn-mức-và-trần-cứng">8.18 §6</a>)</td>
 </tr>
 <tr>
 <td>Sink</td>
@@ -3826,8 +3863,8 @@ AS SELECT tenant_id, zone_id, toStartOfMinute(ts) AS minute, action, rule_id,
 <td>Theo <code>api_endpoint_id</code>: traffic, lỗi, độ trễ theo chặng, vi phạm schema, lỗi JWT, số consumer khác nhau</td>
 </tr>
 <tr>
-<td><code>usage_1h</code></td>
-<td>Metering cho billing</td>
+<td><code>usage_1m</code>, <code>usage_1h</code></td>
+<td>Metering cho billing, cộng chính xác từ <code>UsageCounter</code> (SummingMergeTree, khoá <code>(node, zone, phút)</code>); mẫu 5 phút cho p95 băng thông</td>
 </tr>
 <tr>
 <td><code>fp_labels</code></td>
@@ -4708,6 +4745,7 @@ Cùng code thuật toán với detector (package Go dùng chung), nên kết qu�
 </table>
 </section>
 <section class="doc" id="f-05-building-blocks-08-components-11-notification-fanout"><div class="path">05-building-blocks/08-components/11-notification-fanout.md</div><h1 id="f-05-building-blocks-08-components-11-notification-fanout--5811-notification-fan-out-nhiều-kênh-khách-tự-tích-hợp-mở-kênh-theo-gói">5.8.11 Notification: fan-out nhiều kênh, khách tự tích hợp, mở kênh theo gói</h1>
+<p>Viết bằng Elixir + Oban, dùng chung runtime với realtime gateway (<a href="#f-09-adr-0044-realtime-gateway-and-notifier-runtime">ADR-0044</a>). Bảng <code>deliveries</code> trên PostgreSQL là bảng job của Oban; adapter theo kênh, retry, cô lập lỗi như dưới đây.</p>
 <p>Nhận sự kiện cảnh báo từ alert engine (<a href="#f-05-building-blocks-08-components-10-alerting-rules-and-algorithms">32</a>) và gửi tới mọi kênh
 khách cấu hình. Quyết định nền: <a href="#f-09-adr-0028-notification-adapters-and-plan-gated-channels">ADR-0028</a>.</p>
 <p>Ba yêu cầu:</p>
@@ -4720,7 +4758,7 @@ khách cấu hình. Quyết định nền: <a href="#f-09-adr-0028-notification-
 <div class="diagram"><pre class="mermaid">flowchart LR
     ae[&quot;Alert engine&lt;br/&gt;AlertEvent: firing · escalated · resolved · renotify&quot;]
     mg[&quot;Management&lt;br/&gt;kênh · rule định tuyến · template&quot;]
-    subgraph NT[&quot;notifier (Go)&quot;]
+    subgraph NT[&quot;notifier&quot;]
         rt[&quot;Router&lt;br/&gt;khớp routing rule&quot;]
         ent[&quot;Entitlement gate&quot;]
         ren[&quot;Renderer&lt;br/&gt;template theo loại kênh&quot;]
@@ -5195,6 +5233,247 @@ sang Analytics để join vào hiệu quả rule.</p>
 </table>
 <p>ABAC giới hạn theo zone hoặc nhóm zone (tag). Duyệt 4-eyes: người duyệt khác người tạo, bật theo account.</p>
 </section>
+<section class="doc" id="f-05-building-blocks-08-components-13-realtime-gateway"><div class="path">05-building-blocks/08-components/13-realtime-gateway.md</div><h1 id="f-05-building-blocks-08-components-13-realtime-gateway--5813-realtime-gateway-analytics-plane">5.8.13 Realtime gateway (Analytics plane)</h1>
+<p>Đẩy dữ liệu gần realtime tới portal: số liệu traffic từng giây của zone đang xem, security event mới,
+cảnh báo, tiến độ lan truyền cấu hình, cập nhật case. Viết bằng Elixir + Phoenix Channels
+(<a href="#f-09-adr-0044-realtime-gateway-and-notifier-runtime">ADR-0044</a>); xây ở giai đoạn Mở rộng.</p>
+<h2 id="f-05-building-blocks-08-components-13-realtime-gateway--vì-sao-cần-thành-phần-riêng">Vì sao cần thành phần riêng</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Query API (<a href="#f-05-building-blocks-08-components-09-query-detection-export-replay">5.8.9</a>)</th>
+<th>Realtime gateway</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Kiểu</td>
+<td>Hỏi đáp (request/response)</td>
+<td>Đẩy (kết nối dài, WebSocket)</td>
+</tr>
+<tr>
+<td>Nguồn</td>
+<td>ClickHouse, archive</td>
+<td>Kafka (luồng đã làm giàu), RabbitMQ</td>
+</tr>
+<tr>
+<td>Độ trễ tới người xem</td>
+<td>Theo dashboard refresh (giây tới phút)</td>
+<td>≤ 5 s p95 từ edge tới màn hình</td>
+</tr>
+<tr>
+<td>Tải</td>
+<td>Theo số truy vấn</td>
+<td>Theo <strong>số phiên mở</strong> và số zone đang được xem</td>
+</tr>
+</tbody>
+</table>
+<p>Ở quy mô 1 triệu zone (<a href="#f-07-deployment-05-capacity-and-sharding">7.5</a>), số phiên portal mở cùng
+lúc ước tính:</p>
+<table>
+<thead>
+<tr>
+<th>Tình huống</th>
+<th>Phiên đồng thời</th>
+<th>Ghi chú</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Bình thường</td>
+<td>10.000–30.000</td>
+<td>Đội SOC của khách để màn hình giám sát mở cả ngày</td>
+</tr>
+<tr>
+<td>Đợt tấn công lớn hoặc sự kiện bán hàng</td>
+<td><strong>50.000–100.000</strong></td>
+<td>Mọi khách bị ảnh hưởng cùng mở dashboard; vài chục nghìn kết nối mới trong vài phút</td>
+</tr>
+</tbody>
+</table>
+<p>Polling Query API mỗi vài giây với số phiên này là hàng chục nghìn truy vấn ClickHouse mỗi giây, đúng
+lúc ClickHouse đang chịu tải ghi cao nhất vì tấn công. Vì vậy luồng realtime tách khỏi luồng truy vấn.</p>
+<h2 id="f-05-building-blocks-08-components-13-realtime-gateway--component-diagram">Component diagram</h2>
+<div class="diagram"><pre class="mermaid">flowchart LR
+    subgraph AN[&quot;Analytics region&quot;]
+        kafka[(&quot;Kafka&lt;br/&gt;security event đã làm giàu&quot;)]
+        enr[&quot;Enricher&lt;br/&gt;+ live tap&quot;]
+        live[(&quot;Topic live&lt;br/&gt;chỉ zone có người xem&quot;)]
+        subgraph RG[&quot;Realtime gateway (cụm, mỗi region)&quot;]
+            sock[&quot;Socket handler&lt;br/&gt;một process mỗi phiên&quot;]
+            ch[&quot;Channel / topic&lt;br/&gt;kiểm quyền khi join&quot;]
+            agg[&quot;Zone aggregator&lt;br/&gt;một process mỗi zone đang xem&lt;br/&gt;ring buffer 5 phút&quot;]
+            reg[&quot;Subscription registry&lt;br/&gt;zone nào đang có người xem&quot;]
+            ps[&quot;PubSub trong cụm&quot;]
+            cons[&quot;Consumer&lt;br/&gt;Kafka · RabbitMQ&quot;]
+        end
+    end
+    portal[&quot;Portal (trình duyệt)&quot;]
+    mgmt[&quot;Management&lt;br/&gt;token realtime · PermissionsChanged&quot;]
+    rmq[(&quot;RabbitMQ&lt;br/&gt;alert · case · rollout&quot;)]
+
+    portal &lt;--&gt;|WebSocket, mTLS ở LB| sock --&gt; ch
+    ch --&gt; reg
+    reg -.-&gt;|danh sách zone đang xem| enr
+    kafka --&gt; enr --&gt; live --&gt; cons --&gt; agg --&gt; ps --&gt; ch
+    rmq --&gt; cons
+    mgmt --&gt;|JWKS, sự kiện quyền| ch
+</pre></div>
+<h2 id="f-05-building-blocks-08-components-13-realtime-gateway--thành-phần">Thành phần</h2>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Thiết kế</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Socket handler</strong></td>
+<td>WebSocket (fallback long-polling); mỗi phiên là một process nhẹ, có hàng đợi gửi giới hạn; client chậm thì bỏ bớt event mẫu, chỉ giữ số liệu tổng, không để hàng đợi phình</td>
+</tr>
+<tr>
+<td><strong>Channel / topic</strong></td>
+<td><code>zone:{id}:stats</code> (số liệu mỗi giây), <code>zone:{id}:events</code> (security event mẫu), <code>tenant:{id}:alerts</code>, <code>tenant:{id}:cases</code>, <code>rollout:{version}</code> (độ phủ theo node, <a href="#f-08-cross-cutting-15-config-propagation-and-apply">8.15</a>). Join kiểm token realtime: tenant, danh sách zone được xem, vai trò</td>
+</tr>
+<tr>
+<td><strong>Token realtime</strong></td>
+<td>Management cấp cho phiên portal, JWT hạn 5 phút, làm mới qua chính kết nối; gateway kiểm bằng JWKS của Management, không gọi database. Đổi quyền hay khoá user: Management phát <code>PermissionsChanged</code>, gateway đóng channel tương ứng ngay</td>
+</tr>
+<tr>
+<td><strong>Subscription registry</strong></td>
+<td>Tập zone đang có ít nhất một người xem trong region; đồng bộ cho enricher mỗi vài giây</td>
+</tr>
+<tr>
+<td><strong>Live tap (trong enricher)</strong></td>
+<td>Enricher (Go, <a href="#f-05-building-blocks-08-components-08-ingestion-and-storage">5.8.8</a>) chỉ ghi vào topic <code>live</code> cho zone có trong registry: số liệu gộp mỗi giây và security event đã che, <strong>trần 50 event/s mỗi zone</strong> (lấy mẫu khi vượt). Đầu vào của gateway tỉ lệ với số zone đang được xem, không với tổng traffic hay cường độ tấn công</td>
+</tr>
+<tr>
+<td><strong>Zone aggregator</strong></td>
+<td>Một process cho mỗi zone đang xem: nhận số liệu giây, tính top rule, top IP (heavy hitter), top quốc gia, phân bố hành động; giữ ring buffer 5 phút để client mới join hoặc kết nối lại có ngay lịch sử gần; tự dừng khi không còn người xem</td>
+</tr>
+<tr>
+<td><strong>PubSub trong cụm</strong></td>
+<td>Một message của zone gửi một lần tới các node có phiên đang xem zone đó, rồi fan-out trong node</td>
+</tr>
+<tr>
+<td><strong>Consumer</strong></td>
+<td>Kafka (topic <code>live</code>, chia partition theo tenant cho các node) và RabbitMQ (alert, case, rollout từ Management và Control)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-05-building-blocks-08-components-13-realtime-gateway--luồng-mở-dashboard-của-một-zone">Luồng: mở dashboard của một zone</h2>
+<div class="diagram"><pre class="mermaid">sequenceDiagram
+    participant B as Portal
+    participant M as Management
+    participant G as Realtime gateway
+    participant E as Enricher (live tap)
+    B-&gt;&gt;M: lấy token realtime (tenant, zone được xem)
+    B-&gt;&gt;G: WebSocket + token, join zone:812345:stats
+    G-&gt;&gt;G: kiểm token, tạo hoặc dùng zone aggregator
+    G--&gt;&gt;B: ring buffer 5 phút gần nhất
+    G-&gt;&gt;E: registry: zone 812345 có người xem
+    loop mỗi giây
+        E-&gt;&gt;G: số liệu giây + event mẫu (topic live)
+        G--&gt;&gt;B: delta có số thứ tự
+    end
+    Note over B,G: mất kết nối → nối lại node khác, gửi số thứ tự cuối, nhận phần thiếu từ ring buffer
+</pre></div>
+<h2 id="f-05-building-blocks-08-components-13-realtime-gateway--năng-lực-và-triển-khai">Năng lực và triển khai</h2>
+<table>
+<thead>
+<tr>
+<th>Đại lượng</th>
+<th>Thiết kế</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Phiên mỗi node</td>
+<td>Mục tiêu 10.000 (bảo thủ; BEAM giữ được nhiều hơn nhiều), ≈ 100 KB RAM mỗi phiên</td>
+</tr>
+<tr>
+<td>Node mỗi region</td>
+<td>Theo đỉnh của region: 100.000 phiên toàn cầu chia 2–3 region → 4–6 node mỗi region + N+1</td>
+</tr>
+<tr>
+<td>Message ra</td>
+<td>≈ 1–3 message số liệu/s mỗi phiên + event mẫu tới 10/s → đỉnh ≈ 1 triệu message/s toàn cầu, ≈ 300 B mỗi message</td>
+</tr>
+<tr>
+<td>Đặt ở đâu</td>
+<td>Mỗi Analytics region, cạnh Kafka; portal nối vào endpoint realtime của region chứa tenant, nên dữ liệu không rời region (<a href="#f-08-cross-cutting-00-index">8.6</a>)</td>
+</tr>
+<tr>
+<td>Đặc tính tải</td>
+<td>Chủ yếu là số kết nối và RAM; CPU thấp. Không phụ thuộc cường độ tấn công nhờ live tap có trần</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-05-building-blocks-08-components-13-realtime-gateway--theo-gói">Theo gói</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Free có trần, Pro</th>
+<th>Business</th>
+<th>Enterprise</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Số liệu live</td>
+<td>Mỗi 5 s</td>
+<td>Mỗi 1 s</td>
+<td>Mỗi 1 s</td>
+</tr>
+<tr>
+<td>Event live</td>
+<td>—</td>
+<td>10 event/s mỗi zone đang xem</td>
+<td>50 event/s</td>
+</tr>
+<tr>
+<td>Phiên đồng thời mỗi tenant</td>
+<td>3</td>
+<td>25</td>
+<td>Theo hợp đồng</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-05-building-blocks-08-components-13-realtime-gateway--lỗi-và-hành-vi">Lỗi và hành vi</h2>
+<table>
+<thead>
+<tr>
+<th>Tình huống</th>
+<th>Hành vi</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Một node gateway chết</td>
+<td>Client tự nối lại node khác qua load balancer (backoff có jitter), gửi số thứ tự cuối, lấy phần thiếu từ ring buffer của zone aggregator (đã có trên node mới qua PubSub, hoặc dựng lại từ topic <code>live</code>)</td>
+</tr>
+<tr>
+<td>Kafka hoặc enricher trễ</td>
+<td>Gateway gửi trạng thái &quot;dữ liệu trễ X giây&quot; để portal hiển thị; không tự chuyển sang polling ClickHouse</td>
+</tr>
+<tr>
+<td>Hàng chục nghìn kết nối mới cùng lúc (đợt tấn công)</td>
+<td>Giới hạn tốc độ kết nối mới theo tenant và theo node; token realtime kiểm cục bộ nên không dồn tải vào Management; zone aggregator dùng chung cho mọi người xem cùng zone</td>
+</tr>
+<tr>
+<td>Quá tải</td>
+<td>Hạ cấp theo thứ tự: giảm event mẫu, giãn số liệu Free/Pro lên 10 s, từ chối phiên mới vượt hạn mức của gói; không bao giờ ảnh hưởng luồng ghi log hay Query API</td>
+</tr>
+<tr>
+<td>Management không cấp được token mới</td>
+<td>Phiên đang mở giữ tới khi token hết hạn; portal báo không thể nối lại; dashboard vẫn dùng được qua Query API</td>
+</tr>
+</tbody>
+</table>
+</section>
 <section class="doc" id="f-06-runtime-00-index"><div class="path">06-runtime/00-index.md</div><h1 id="f-06-runtime-00-index--6-runtime-view">6. Runtime View</h1>
 <p>Các kịch bản chính, mỗi kịch bản là một luồng xuyên plane.</p>
 <table>
@@ -5459,6 +5738,10 @@ tiết ở <a href="#f-05-building-blocks-08-components-08-ingestion-and-storage
 <tr>
 <td>K</td>
 <td><a href="#f-06-runtime-10-analytics-flows--k-backpressure-và-lỗi-theo-từng-chặng">Backpressure và lỗi theo từng chặng</a></td>
+</tr>
+<tr>
+<td>—</td>
+<td>Số liệu và event live tới portal: <a href="#f-05-building-blocks-08-components-13-realtime-gateway--luồng-mở-dashboard-của-một-zone">5.8.13</a></td>
 </tr>
 </tbody>
 </table>
@@ -5742,13 +6025,16 @@ tách theo <code>policy_version_id</code>:</p>
     participant ME as Metering job
     participant M as Management billing
     loop mỗi giờ
-        ME-&gt;&gt;C: request, băng thông, dung lượng log theo tenant
-        ME-&gt;&gt;M: UsageReport(tenant, kỳ, số đo) qua RabbitMQ
+        ME-&gt;&gt;C: request sạch, băng thông sạch, đơn vị WAF, dung lượng log theo zone (từ UsageCounter)
+        ME-&gt;&gt;M: UsageReport(tenant, zone, giờ, số đo) qua RabbitMQ
     end
-    M-&gt;&gt;M: cộng dồn theo kỳ thanh toán, so với quota
-    M-&gt;&gt;M: cuối kỳ: hoá đơn
+    loop mỗi 5 phút
+        ME-&gt;&gt;M: QuotaStateChanged(zone, 80% / 100% / trần cứng)
+    end
+    M-&gt;&gt;M: thông báo khách, trần cứng → entitlements mới qua fast lane
+    M-&gt;&gt;M: cuối kỳ: đối soát (cửa sổ trễ 24 giờ), hoá đơn = phí nền + phí vượt
 </pre></div>
-<p><code>UsageReport</code> idempotent theo <code>(tenant, giờ)</code>: chạy lại một giờ ghi đè chứ không cộng thêm.</p>
+<p><code>UsageReport</code> idempotent theo <code>(tenant, zone, giờ)</code>: chạy lại một giờ ghi đè chứ không cộng thêm. Nguồn là <code>UsageCounter</code> không lấy mẫu, không phải access log (<a href="#f-09-adr-0043-usage-based-pricing-and-metering">ADR-0043</a>).</p>
 <h2 id="f-06-runtime-10-analytics-flows--j-retention-và-xoá-dữ-liệu">J. Retention và xoá dữ liệu</h2>
 <table>
 <thead>
@@ -6286,6 +6572,33 @@ Quyết định nền: <a href="#f-09-adr-0040-config-distribution-at-scale">ADR
 </table>
 <h3 id="f-07-deployment-05-capacity-and-sharding--dns-điều-hướng">DNS điều hướng</h3>
 <p>3M bản ghi; với TTL 60 s ước khoảng 300.000 truy vấn/s toàn cục, khoảng 10.000 qps mỗi PoP.</p>
+<h3 id="f-07-deployment-05-capacity-and-sharding--phiên-portal-và-realtime">Phiên portal và realtime</h3>
+<table>
+<thead>
+<tr>
+<th>Đại lượng</th>
+<th>Ước lượng</th>
+<th>Kết quả</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Phiên portal đồng thời</td>
+<td>10.000–30.000 bình thường; 50.000–100.000 trong đợt tấn công lớn</td>
+<td>Realtime gateway riêng, không polling ClickHouse (<a href="#f-05-building-blocks-08-components-13-realtime-gateway">5.8.13</a>)</td>
+</tr>
+<tr>
+<td>Zone đang được xem cùng lúc</td>
+<td>≤ 50.000</td>
+<td>Live tap chỉ ghi cho các zone này, trần 50 event/s mỗi zone</td>
+</tr>
+<tr>
+<td>Message realtime ra client</td>
+<td>≈ 1 triệu message/s ở đỉnh, ≈ 300 B mỗi message</td>
+<td>4–6 node gateway mỗi region + N+1</td>
+</tr>
+</tbody>
+</table>
 <h2 id="f-07-deployment-05-capacity-and-sharding--3-kết-luận-từ-ước-lượng">3. Kết luận từ ước lượng</h2>
 <ol start="0">
 <li>
@@ -6671,6 +6984,10 @@ danh sách trường do khách cấu hình thêm.</li>
 <td>Edge (log shipper), qua snapshot</td>
 </tr>
 <tr>
+<td>Hạn mức băng thông, request; trần cứng (dùng thử, Free có trần)</td>
+<td>Analytics (đếm), Management (quyết định), Edge (áp khi chạm trần, lớp A) (<a href="#f-09-adr-0043-usage-based-pricing-and-metering">ADR-0043</a>)</td>
+</tr>
+<tr>
 <td>Retention tối đa theo loại log</td>
 <td>Analytics (stream processor, store)</td>
 </tr>
@@ -6848,7 +7165,7 @@ cảnh báo đã hỏng.</li>
 <tr>
 <td>S3</td>
 <td>Bảo vệ thật sự hoạt động</td>
-<td>Tỉ lệ probe tấn công bị chặn đúng rule (probe §4 P2)</td>
+<td>Tỉ lệ probe tấn công bị chặn đúng rule (probe §4 PR2)</td>
 <td>99,99%</td>
 </tr>
 <tr>
@@ -6921,56 +7238,56 @@ cảnh báo đã hỏng.</li>
 </thead>
 <tbody>
 <tr>
-<td>P1</td>
+<td>PR1</td>
 <td>Phục vụ</td>
 <td>Request hợp lệ tới zone canary qua từng PoP (DNS/anycast thật và trực tiếp IP PoP); kiểm mã 200, độ trễ, header request ID</td>
 <td>30 s / PoP / điểm đo</td>
 <td>S1, S2</td>
 </tr>
 <tr>
-<td>P2</td>
+<td>PR2</td>
 <td>Chặn đúng</td>
 <td>Request mang payload SQLi/XSS chuẩn của CRS, request từ IP trong access list chặn, request vượt rate limit; kiểm 403/429 và rule ID trong header debug của zone canary</td>
 <td>60 s / PoP</td>
 <td>S3</td>
 </tr>
 <tr>
-<td>P3</td>
+<td>PR3</td>
 <td>Lan truyền</td>
 <td>Mỗi 5 phút đổi một giá trị trong policy zone canary (một custom rule có hằng số đổi theo thời gian); đo (a) thời điểm 100% node ack, (b) thời điểm P2 thấy hành vi mới trên mọi PoP</td>
 <td>5 phút</td>
 <td>S4</td>
 </tr>
 <tr>
-<td>P4</td>
+<td>PR4</td>
 <td>Lan truyền khẩn</td>
 <td>Mỗi giờ bật/tắt Under Attack mode trên zone canary qua fast lane; đo thời gian tới 95% node</td>
 <td>1 giờ</td>
 <td>S5</td>
 </tr>
 <tr>
-<td>P5</td>
+<td>PR5</td>
 <td>Độ tươi log</td>
 <td>Request có request ID đánh dấu; hỏi Query API tới khi thấy bản ghi</td>
 <td>1 phút</td>
 <td>S6</td>
 </tr>
 <tr>
-<td>P6</td>
+<td>PR6</td>
 <td>Cảnh báo</td>
 <td>Zone canary có alert policy ngưỡng thấp; prober tạo đợt request vượt ngưỡng; đo thời gian tới khi webhook test của NCC nhận tin</td>
 <td>15 phút</td>
 <td>S8</td>
 </tr>
 <tr>
-<td>P7</td>
+<td>PR7</td>
 <td>Export</td>
 <td>Đích export test của NCC nhận log zone canary; đo độ trễ request → đích</td>
 <td>5 phút</td>
 <td>S10</td>
 </tr>
 <tr>
-<td>P8</td>
+<td>PR8</td>
 <td>Portal</td>
 <td>Đăng nhập, đọc dashboard, tạo bản nháp rule (không publish)</td>
 <td>5 phút</td>
@@ -7124,19 +7441,19 @@ ticket trong giờ làm việc.</p>
 </tr>
 <tr>
 <td>Tín hiệu</td>
-<td>Probe P1 theo PoP từ ≥ 3 điểm đo; tỉ lệ lỗi <code>status_source=edge_platform</code> theo PoP; số node sống của PoP</td>
+<td>Probe PR1 theo PoP từ ≥ 3 điểm đo; tỉ lệ lỗi <code>status_source=edge_platform</code> theo PoP; số node sống của PoP</td>
 </tr>
 <tr>
 <td>Cảnh báo</td>
-<td>P1: P1 lỗi từ ≥ 2/3 điểm đo trong 2 chu kỳ liên tiếp. P2: một PoP mất &gt; 30% node</td>
+<td>P1: PR1 lỗi từ ≥ 2/3 điểm đo trong 2 chu kỳ liên tiếp. P2: một PoP mất &gt; 30% node</td>
 </tr>
 <tr>
 <td>Tự phản ứng</td>
-<td>Health checker rút PoP khỏi anycast (rút route) hoặc khỏi GeoDNS; trả lại khi P1 xanh 5 phút liên tục</td>
+<td>Health checker rút PoP khỏi anycast (rút route) hoặc khỏi GeoDNS; trả lại khi PR1 xanh 5 phút liên tục</td>
 </tr>
 <tr>
 <td>Runbook</td>
-<td>Xác nhận đã rút; kiểm hạ tầng/đối tác của PoP; kiểm dung lượng PoP lân cận đủ gánh; không trả PoP thủ công khi P1 chưa xanh</td>
+<td>Xác nhận đã rút; kiểm hạ tầng/đối tác của PoP; kiểm dung lượng PoP lân cận đủ gánh; không trả PoP thủ công khi PR1 chưa xanh</td>
 </tr>
 </tbody>
 </table>
@@ -7248,11 +7565,11 @@ ticket trong giờ làm việc.</p>
 </tr>
 <tr>
 <td>Tín hiệu</td>
-<td><code>waap_edge_failmode_triggered_total{zone,phase,mode}</code>; probe P2</td>
+<td><code>waap_edge_failmode_triggered_total{zone,phase,mode}</code>; probe PR2</td>
 </tr>
 <tr>
 <td>Cảnh báo</td>
-<td>P1: probe P2 thất bại ở bất kỳ PoP nào (WAF thực tế không chặn). P2: tỉ lệ request bị fail-open của một phase &gt; 0,1% trong 10 phút toàn fleet</td>
+<td>P1: probe PR2 thất bại ở bất kỳ PoP nào (WAF thực tế không chặn). P2: tỉ lệ request bị fail-open của một phase &gt; 0,1% trong 10 phút toàn fleet</td>
 </tr>
 <tr>
 <td>Tự phản ứng</td>
@@ -7310,7 +7627,7 @@ ticket trong giờ làm việc.</p>
 </tr>
 <tr>
 <td>Tín hiệu</td>
-<td>Probe P5; consumer lag của enricher (theo giây, không theo số bản ghi); lỗi insert ClickHouse; buffer đĩa Vector trên edge</td>
+<td>Probe PR5; consumer lag của enricher (theo giây, không theo số bản ghi); lỗi insert ClickHouse; buffer đĩa Vector trên edge</td>
 </tr>
 <tr>
 <td>Cảnh báo</td>
@@ -7605,6 +7922,37 @@ ticket trong giờ làm việc.</p>
 </tr>
 </tbody>
 </table>
+<h3 id="f-08-cross-cutting-13-operational-behaviors--a17-realtime-gateway-quá-tải-hoặc-dữ-liệu-live-trễ">A17. Realtime gateway quá tải hoặc dữ liệu live trễ</h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mục tiêu</td>
+<td>QS-37, QS-38</td>
+</tr>
+<tr>
+<td>Tín hiệu</td>
+<td>Số phiên theo node và region, tốc độ kết nối mới, độ dài hàng đợi gửi theo phiên, RAM node, số zone đang xem, độ trễ từ edge tới message live (theo timestamp trong message), lag consumer topic <code>live</code></td>
+</tr>
+<tr>
+<td>Cảnh báo</td>
+<td>P2: độ trễ live p95 &gt; 10 s trong 5 phút, hoặc RAM node &gt; 80%. P3: tỉ lệ phiên bị hạ xuống chế độ chỉ số liệu &gt; 5%</td>
+</tr>
+<tr>
+<td>Tự phản ứng</td>
+<td>Giới hạn tốc độ kết nối mới theo tenant; giảm event mẫu rồi giãn số liệu Free/Pro theo thứ tự ở <a href="#f-05-building-blocks-08-components-13-realtime-gateway--lỗi-và-hành-vi">5.8.13</a>; autoscale node gateway theo số phiên</td>
+</tr>
+<tr>
+<td>Runbook</td>
+<td>Xác định do số phiên tăng (tấn công, sự kiện) hay do enricher/Kafka trễ; thêm node; nếu một tenant mở quá nhiều phiên thì áp hạn mức của gói</td>
+</tr>
+</tbody>
+</table>
 <h2 id="f-08-cross-cutting-13-operational-behaviors--b-thao-tác-của-người-vận-hành">B. Thao tác của người vận hành</h2>
 <h3 id="f-08-cross-cutting-13-operational-behaviors--b1-rollout-phần-mềm-edge">B1. Rollout phần mềm edge</h3>
 <table>
@@ -7625,7 +7973,7 @@ ticket trong giờ làm việc.</p>
 </tr>
 <tr>
 <td>Gate</td>
-<td>Error rate, p99 theo phase, NACK, probe P1/P2 trên node mới so với node cũ cùng PoP</td>
+<td>Error rate, p99 theo phase, NACK, probe PR1/PR2 trên node mới so với node cũ cùng PoP</td>
 </tr>
 <tr>
 <td>Tự phản ứng</td>
@@ -7714,7 +8062,7 @@ ticket trong giờ làm việc.</p>
 </tr>
 <tr>
 <td>Cách làm</td>
-<td>Thêm: bootstrap token một lần → enroll → nạp snapshot → probe P1/P2 trực tiếp IP node → vào health check. Ngừng: rút khỏi health check → drain → thu hồi cert node</td>
+<td>Thêm: bootstrap token một lần → enroll → nạp snapshot → probe PR1/PR2 trực tiếp IP node → vào health check. Ngừng: rút khỏi health check → drain → thu hồi cert node</td>
 </tr>
 <tr>
 <td>Tín hiệu</td>
@@ -8810,51 +9158,51 @@ rẻ, không cần đọc body, và phải có kết quả trước rate limit v
 </thead>
 <tbody>
 <tr>
-<td>S1</td>
+<td>BS1</td>
 <td><strong>Bot đã xác minh</strong></td>
 <td>IP thuộc dải công bố của bot (Google, Bing…), hoặc đã xác minh bằng reverse DNS + forward DNS; chữ ký HTTP Message Signatures của agent (chuẩn đang hình thành cho bot tự định danh)</td>
 <td>Rất thấp (tra bảng)</td>
 <td>Danh sách bot đã xác minh trong bundle chung</td>
 </tr>
 <tr>
-<td>S2</td>
+<td>BS2</td>
 <td><strong>Danh sách của khách</strong></td>
 <td>Đối tác, công cụ giám sát theo IP, header, API key</td>
 <td>Rất thấp</td>
 <td>Bundle zone</td>
 </tr>
 <tr>
-<td>S3</td>
+<td>BS3</td>
 <td><strong>Fingerprint tĩnh</strong></td>
 <td>JA4 (TLS ClientHello), fingerprint HTTP/2 (SETTINGS, thứ tự pseudo-header), thứ tự và tập header; <strong>độ nhất quán</strong> giữa các tín hiệu với User-Agent tự khai (UA nói Chrome nhưng TLS là thư viện Python)</td>
 <td>Thấp</td>
 <td>Bảng reputation fingerprint trong bundle chung</td>
 </tr>
 <tr>
-<td>S4</td>
+<td>BS4</td>
 <td><strong>Reputation mạng</strong></td>
 <td>ASN datacenter/hosting, proxy dân cư đã biết, Tor, lịch sử lạm dụng gộp từ toàn fleet (ẩn danh)</td>
 <td>Rất thấp</td>
 <td>Danh sách reputation trong bundle chung</td>
 </tr>
 <tr>
-<td>S5</td>
+<td>BS5</td>
 <td><strong>Hành vi ngắn hạn</strong></td>
 <td>Theo IP, phiên (cookie), consumer API: tốc độ theo path, độ đều của nhịp gửi, tỉ lệ trang HTML/tài nguyên phụ, tỉ lệ lỗi 4xx, số path khác nhau</td>
 <td>Thấp (counter cục bộ)</td>
 <td>State trong L7, hot key qua Valkey</td>
 </tr>
 <tr>
-<td>S6</td>
+<td>BS6</td>
 <td><strong>Tín hiệu từ trình duyệt</strong></td>
 <td>Kết quả JS challenge: proof-of-work, kiểm môi trường (dấu hiệu headless, automation, API trình duyệt mâu thuẫn); tuỳ chọn đoạn JS thu tín hiệu chạy ngầm trên trang</td>
 <td>Chỉ khi challenge hoặc khi zone bật JS ngầm</td>
 <td>Clearance token mang kết quả</td>
 </tr>
 <tr>
-<td>S7</td>
+<td>BS7</td>
 <td><strong>Mô hình</strong></td>
-<td>Mô hình cây quyết định (gradient boosted trees) nhận đặc trưng từ S3–S6, trả điểm</td>
+<td>Mô hình cây quyết định (gradient boosted trees) nhận đặc trưng từ BS3–BS6, trả điểm</td>
 <td>Thấp (µs)</td>
 <td>Mô hình trong bundle chung, huấn luyện ở Analytics</td>
 </tr>
@@ -8889,11 +9237,11 @@ rẻ, không cần đọc body, và phải có kết quả trước rate limit v
 </tbody>
 </table>
 <p>Cách tính, theo thứ tự:</p>
-<pre class="code"><code class="lang-text">nếu S2 khớp (khách cho phép)            → class = verified_bot (category = partner), score = 99 về mặt policy
-nếu S1 khớp và UA khớp bot đó           → class = verified_bot, category theo danh sách
-nếu UA tự xưng bot tốt mà S1 không khớp → class = automated, signal = impersonation
+<pre class="code"><code class="lang-text">nếu BS2 khớp (khách cho phép)            → class = verified_bot (category = partner), score = 99 về mặt policy
+nếu BS1 khớp và UA khớp bot đó           → class = verified_bot, category theo danh sách
+nếu UA tự xưng bot tốt mà BS1 không khớp → class = automated, signal = impersonation
 ngược lại:
-    score = mô hình(S3, S4, S5, S6)      # Mở rộng: luật trọng số cố định; Nâng cao: mô hình
+    score = mô hình(BS3, BS4, BS5, BS6)      # Mở rộng: luật trọng số cố định; Nâng cao: mô hình
     class = likely_human     nếu score ≥ 50
             likely_automated nếu 10 ≤ score &lt; 50
             automated        nếu score &lt; 10
@@ -9420,12 +9768,13 @@ nghĩa); hành động: log, che trong response, hoặc chặn.</p>
 giới hạn), và <strong>kiến trúc phục vụ họ thế nào</strong> (cell, tài nguyên, thứ tự hy sinh khi quá tải). Ước lượng
 tổng ở <a href="#f-07-deployment-05-capacity-and-sharding">7.5</a> dùng mô hình phân khúc này. Quyết định:
 <a href="#f-09-adr-0042-plan-tiers-drive-placement-and-isolation">ADR-0042</a>.</p>
-<p>Giá trong tài liệu là <strong>giá tham chiếu để kiểm tra kiến trúc có lãi ở từng gói</strong>, không phải giá bán;
+<p>Giá trong tài liệu là <strong>giá tham chiếu để kiểm tra mô hình chi phí và kiến trúc</strong>, không phải giá bán;
 business chốt giá, tiền tệ và chiết khấu. Kiến trúc chỉ cam kết: mọi giới hạn của gói là entitlement
 đổi được không cần deploy (<a href="#f-09-adr-0007-log-by-subscription-entitlements">ADR-0007</a>).</p>
 <h2 id="f-08-cross-cutting-18-segments-and-plans--1-phân-khúc">1. Phân khúc</h2>
 <p>Giả định 80% zone là site kiểu người dùng cá nhân và nhỏ (như phần lớn khách Cloudflare), 18% là doanh
-nghiệp, 2% là enterprise.</p>
+nghiệp, 2% là enterprise. Đây là <strong>mô hình tải để cỡ hạ tầng ở quy mô 1 triệu zone</strong>, không phải dự báo
+doanh thu: tỉ lệ zone trả phí thật thấp hơn nhiều và quyết định ở mục 3.</p>
 <table>
 <thead>
 <tr>
@@ -9438,28 +9787,28 @@ nghiệp, 2% là enterprise.</p>
 </thead>
 <tbody>
 <tr>
-<td><strong>S1. Cá nhân</strong></td>
+<td><strong>Cá nhân</strong></td>
 <td>Free</td>
 <td>65%</td>
 <td>650.000</td>
 <td>Blog, portfolio, landing page, site sự kiện, dự án phụ</td>
 </tr>
 <tr>
-<td><strong>S2. Nhỏ, bán chuyên</strong></td>
+<td><strong>Nhỏ, bán chuyên</strong></td>
 <td>Pro</td>
 <td>15%</td>
 <td>150.000</td>
 <td>Shop nhỏ, blog có quảng cáo, site agency làm cho khách</td>
 </tr>
 <tr>
-<td><strong>S3. Doanh nghiệp</strong></td>
+<td><strong>Doanh nghiệp</strong></td>
 <td>Business</td>
 <td>18%</td>
 <td>180.000</td>
 <td>Thương mại điện tử vừa, SaaS nhỏ, báo, site công ty có API</td>
 </tr>
 <tr>
-<td><strong>S4. Enterprise</strong></td>
+<td><strong>Enterprise</strong></td>
 <td>Enterprise</td>
 <td>2%</td>
 <td>20.000 (khoảng 1.500 tenant)</td>
@@ -9598,180 +9947,303 @@ và họ là nhóm cần SLA, cô lập, cấu hình phức tạp.</li>
 nóng. Đặt chung một cách phục vụ thì một trong hai bên chịu thiệt (RAM bị zone nguội chiếm, hoặc zone
 nóng làm nhiễu láng giềng nhỏ).</li>
 </ol>
-<h2 id="f-08-cross-cutting-18-segments-and-plans--2-chi-phí-phục-vụ-theo-gói">2. Chi phí phục vụ theo gói</h2>
-<p>Mô hình chi phí hạ tầng hằng tháng ở quy mô 1 triệu zone (đơn giá giả định, phải thay bằng báo giá thật):</p>
+<h2 id="f-08-cross-cutting-18-segments-and-plans--2-mô-hình-chi-phí">2. Mô hình chi phí</h2>
+<p>Mặc định tài liệu tính theo <strong>công ty phần mềm thuê hạ tầng</strong> (băng thông, colo hoặc server, IP, chống
+DDoS L3/L4 đều đi thuê). Kiến trúc không gắn với hồ sơ nào: chạy trên hạ tầng nhà mạng chỉ làm đơn giá
+nhỏ đi, không đổi thiết kế. Mọi đơn giá dưới đây là giả định, phải thay bằng báo giá thật; tỉ giá tham
+chiếu 1 USD ≈ 25.000 đ.</p>
+<h3 id="f-08-cross-cutting-18-segments-and-plans--đơn-giá-theo-hồ-sơ-hạ-tầng">Đơn giá theo hồ sơ hạ tầng</h3>
 <table>
 <thead>
 <tr>
 <th>Khoản</th>
-<th>Giả định</th>
-<th>Tháng</th>
+<th>Công ty phần mềm (mặc định)</th>
+<th>Nhà mạng, datacenter có sẵn</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Node L7</td>
-<td>450 × 1.500 USD (khấu hao + colo + điện)</td>
-<td>675k</td>
+<td>Băng thông, tính theo p95</td>
+<td>≈ 2,5 USD/Mbps (trong nước rẻ hơn, quốc tế đắt hơn nhiều)</td>
+<td>≈ 0,3–0,5 USD/Mbps (giá nội bộ)</td>
 </tr>
 <tr>
-<td>Node WAF</td>
-<td>210 × 1.200 USD</td>
-<td>252k</td>
+<td>Node L7 (64 core, 256 GB RAM, 2×25–100 GbE, NVMe)</td>
+<td>≈ 1.200 USD/tháng (thuê dedicated + colo)</td>
+<td>≈ 700 USD (khấu hao + colo nội bộ)</td>
 </tr>
 <tr>
-<td>Băng thông</td>
-<td>≈ 1,2 Tbps tính theo p95 × 0,5 USD/Mbps</td>
-<td>600k</td>
+<td>Node WAF (64 core, 128 GB RAM)</td>
+<td>≈ 900 USD/tháng</td>
+<td>≈ 500 USD</td>
 </tr>
 <tr>
-<td>Analytics (Kafka, ClickHouse, object storage)</td>
-<td>Theo ≈ 1,1 triệu bản ghi/s</td>
-<td>150k</td>
+<td>Chống DDoS L3/L4</td>
+<td>Đối tác scrubbing, 10–30k USD/tháng theo dung lượng</td>
+<td>Năng lực sẵn của mạng</td>
 </tr>
 <tr>
-<td>Control, Management, DNS, Ops chung</td>
-<td></td>
-<td>50k</td>
+<td>IPv4 cho VIP, cell</td>
+<td>Thuê ≈ 0,5 USD/IP/tháng</td>
+<td>Có sẵn</td>
 </tr>
 <tr>
-<td><strong>Tổng</strong></td>
-<td></td>
-<td><strong>≈ 1,73M USD</strong></td>
+<td>Plane trung tâm (Management, Control, Analytics)</td>
+<td>Cloud hoặc colo, tăng theo quy mô</td>
+<td>Như cột trái, rẻ hơn</td>
 </tr>
 </tbody>
 </table>
-<p>Phân bổ theo đơn vị gây chi phí: L7 và băng thông theo traffic; WAF theo đơn vị CPU WAF; Analytics
-theo số bản ghi log; phần chung theo số zone.</p>
-<table>
-<thead>
-<tr>
-<th>Gói</th>
-<th>L7 + băng thông</th>
-<th>WAF</th>
-<th>Analytics</th>
-<th>Chung</th>
-<th>Tổng</th>
-<th><strong>Chi phí / zone / tháng</strong></th>
-<th>Zone p99 trong gói</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Free</td>
-<td>83k</td>
-<td>2k</td>
-<td>2k</td>
-<td>33k</td>
-<td>120k</td>
-<td><strong>≈ 0,18 USD</strong></td>
-<td>≈ 2,5 USD</td>
-</tr>
-<tr>
-<td>Pro</td>
-<td>128k</td>
-<td>16k</td>
-<td>6k</td>
-<td>8k</td>
-<td>158k</td>
-<td><strong>≈ 1,05 USD</strong></td>
-<td>≈ 15 USD</td>
-</tr>
-<tr>
-<td>Business</td>
-<td>459k</td>
-<td>79k</td>
-<td>42k</td>
-<td>9k</td>
-<td>589k</td>
-<td><strong>≈ 3,3 USD</strong></td>
-<td>≈ 80 USD</td>
-</tr>
-<tr>
-<td>Enterprise</td>
-<td>600k</td>
-<td>155k</td>
-<td>100k</td>
-<td>1k</td>
-<td>856k</td>
-<td><strong>≈ 43 USD</strong> (≈ 570 USD / tenant)</td>
-<td>Tính theo hợp đồng</td>
-</tr>
-</tbody>
-</table>
-<p>Đơn giá biên dùng để định giá phần vượt mức (từ bảng trên):</p>
+<h3 id="f-08-cross-cutting-18-segments-and-plans--chi-phí-biên-trên-mỗi-đơn-vị-hồ-sơ-công-ty-phần-mềm">Chi phí biên trên mỗi đơn vị (hồ sơ công ty phần mềm)</h3>
 <table>
 <thead>
 <tr>
 <th>Đơn vị</th>
+<th>Cách tính</th>
 <th>Chi phí</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>1 rps trung bình trong tháng (≈ 2,6 triệu request) qua L7 + băng thông</td>
-<td>≈ 0,43 USD</td>
+<td><strong>1 GB băng thông sạch</strong> ra client</td>
+<td>1 Mbps p95 ≈ 0,55 Mbps trung bình ≈ 180 GB/tháng; nhân 1,5 cho dung lượng dự phòng tấn công và cam kết chưa dùng</td>
+<td><strong>≈ 0,021 USD ≈ 520 đ</strong> (nhà mạng: ≈ 80 đ)</td>
 </tr>
 <tr>
-<td>1 rps trung bình qua WAF ở PL1</td>
-<td>≈ 0,09 USD</td>
+<td>1 triệu request qua L7</td>
+<td>1.200 USD ÷ (80k rps × 25% mức dùng trung bình × 2,63 triệu giây)</td>
+<td>≈ 0,023 USD</td>
 </tr>
 <tr>
-<td>1 bản ghi log/s lưu theo retention mặc định</td>
-<td>≈ 0,14 USD</td>
+<td>1 triệu request qua WAF ở PL1</td>
+<td>900 USD ÷ (90k rps × 25% × 2,63 triệu giây); nhân trọng số profile</td>
+<td>≈ 0,015 USD × trọng số</td>
 </tr>
 <tr>
-<td>1 zone nguội (cấu hình, cert, DNS, routing index)</td>
-<td>≈ 0,05 USD</td>
+<td>1 triệu bản ghi log (giữ nóng 3 ngày)</td>
+<td>Theo chi phí Analytics</td>
+<td>≈ 0,05 USD; retention dài tính thêm theo GB-tháng archive</td>
+</tr>
+<tr>
+<td>1 zone (cấu hình, cert, DNS, routing index)</td>
+<td></td>
+<td>≈ 0,05 USD/tháng</td>
 </tr>
 </tbody>
 </table>
-<p>Ý nghĩa: <strong>Free tốn khoảng 120k USD/tháng (≈ 7% hạ tầng)</strong>, là chi phí thu hút khách và lấy dữ liệu tấn
-công cho cả fleet. Muốn giữ được Free thì kiến trúc phải giữ chi phí theo zone nguội gần bằng 0 và cấm
-Free dùng tài nguyên đắt (body inspection nặng, log đầy đủ, cache lớn).</p>
-<h2 id="f-08-cross-cutting-18-segments-and-plans--3-gói-giá">3. Gói giá</h2>
+<p>Mức dùng trung bình 25% là vì node được cỡ theo đỉnh cộng dư cho tấn công
+(<a href="#f-07-deployment-05-capacity-and-sharding">7.5</a>), không theo trung bình.</p>
+<p><strong>Hệ quả quan trọng nhất:</strong> với công ty phần mềm, <strong>băng thông là khoản lớn nhất và gần như không có
+biên</strong>: một trang 25 KB tốn ≈ 0,5 USD mỗi 1 triệu lượt về băng thông, gấp khoảng 10 lần phần xử lý L7 +
+WAF. Không cạnh tranh được với nhà mạng hay CDN lớn về giá băng thông, nên:</p>
+<ul>
+<li><strong>Tách giá làm hai phần:</strong> phí <strong>bảo mật</strong> theo zone và tính năng (biên cao, là giá trị khác biệt) và
+phí <strong>phân phối</strong> theo băng thông, request (gần giá vốn, có hạn mức đi kèm gói).</li>
+<li>Không bán &quot;băng thông không giới hạn&quot; ở bất kỳ gói nào.</li>
+<li>Hybrid và on-prem (khách tự mang băng thông) là sản phẩm có biên tốt nhất cho công ty phần mềm.</li>
+</ul>
+<h3 id="f-08-cross-cutting-18-segments-and-plans--chi-phí-cố-định-không-phụ-thuộc-số-khách">Chi phí cố định (không phụ thuộc số khách)</h3>
+<table>
+<thead>
+<tr>
+<th>Khoản</th>
+<th>Ra mắt</th>
+<th>Tăng trưởng</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Node tối thiểu (N+1 mỗi PoP)</td>
+<td>4 PoP × (3 L7 + 2 WAF) ≈ 22k USD</td>
+<td>10 PoP × (5 L7 + 3 WAF) ≈ 87k USD</td>
+</tr>
+<tr>
+<td>Cam kết băng thông</td>
+<td>10 Gbps ≈ 25k USD</td>
+<td>50 Gbps ≈ 125k USD</td>
+</tr>
+<tr>
+<td>Đối tác chống DDoS L3/L4</td>
+<td>15k USD</td>
+<td>30k USD</td>
+</tr>
+<tr>
+<td>Plane trung tâm</td>
+<td>12k USD</td>
+<td>40k USD</td>
+</tr>
+<tr>
+<td>IPv4, geo/ASN, công cụ, audit tuân thủ (phân bổ)</td>
+<td>7k USD</td>
+<td>15k USD</td>
+</tr>
+<tr>
+<td>Đội ngũ (kỹ sư, SRE/NOC, SOC và threat research, support, sales)</td>
+<td>25 người × 3.500 USD ≈ 88k USD</td>
+<td>60 người × 3.500 USD ≈ 210k USD</td>
+</tr>
+<tr>
+<td><strong>Tổng mỗi tháng</strong></td>
+<td><strong>≈ 170k USD ≈ 4,25 tỉ đ</strong></td>
+<td><strong>≈ 510k USD ≈ 12,7 tỉ đ</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Ngoài ra: phí cổng thanh toán (≈ 3% doanh thu), thuế, hoa hồng bán hàng.</p>
+<h2 id="f-08-cross-cutting-18-segments-and-plans--3-giai-đoạn-và-điểm-hoà-vốn">3. Giai đoạn và điểm hoà vốn</h2>
+<table>
+<thead>
+<tr>
+<th>Giai đoạn</th>
+<th>Hạ tầng</th>
+<th>Khách</th>
+<th>Doanh thu cần để hoà vốn (sau phí biến đổi ≈ 18%)</th>
+<th>Ví dụ cơ cấu đạt hoà vốn</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Ra mắt</strong> (năm 1)</td>
+<td>4 PoP (VN + 1 PoP khu vực)</td>
+<td>Vài trăm zone trả phí</td>
+<td>≈ 205k USD/tháng</td>
+<td>40 Enterprise × 3.000 + 300 Business × 250 + 500 Pro × 20 USD</td>
+</tr>
+<tr>
+<td><strong>Tăng trưởng</strong> (năm 2–3)</td>
+<td>10 PoP (VN + SEA)</td>
+<td>Khoảng 10.000 zone trả phí</td>
+<td>≈ 620k USD/tháng</td>
+<td>120 Enterprise × 3.500 + 700 Business × 250 + 1.500 Pro × 20 USD</td>
+</tr>
+<tr>
+<td><strong>Quy mô</strong> (1 triệu zone, <a href="#f-07-deployment-05-capacity-and-sharding">7.5</a>)</td>
+<td>30 PoP</td>
+<td>Có Free</td>
+<td>Chỉ băng thông ≈ 1,2 Tbps × 2,5 USD ≈ <strong>3 triệu USD/tháng</strong></td>
+<td>Không khả thi với hồ sơ công ty phần mềm; cần hồ sơ nhà mạng, peering tại IX hoặc đối tác CDN</td>
+</tr>
+</tbody>
+</table>
+<p>Đọc bảng:</p>
+<ol>
+<li><strong>Doanh thu đến từ Business và Enterprise.</strong> Pro gần như không đóng góp vào hoà vốn; nó là bậc thang
+để khách nhỏ lên Business.</li>
+<li><strong>Không có gói Free khi ra mắt.</strong> Mỗi zone Free không mang doanh thu nhưng mang chi phí băng thông,
+support và chống lạm dụng; với hồ sơ công ty phần mềm, Free chỉ mở khi có trần cứng (mục 4) hoặc khi
+chuyển sang hồ sơ nhà mạng, peering.</li>
+<li><strong>Thiết kế 1 triệu zone là năng lực kiến trúc</strong>, không phải kế hoạch kinh doanh của công ty phần mềm:
+kiến trúc giữ được quy mô đó khi đơn giá hạ tầng cho phép (đối tác nhà mạng, triển khai cho một nhà
+mạng, hay white-label).</li>
+<li>Mục tiêu sớm nhất cần đo là <strong>chi phí băng thông thật trên mỗi GB</strong> và <strong>tỉ lệ zone trả phí</strong>: hai số
+này quyết định gần hết lời lỗ.</li>
+</ol>
+<h2 id="f-08-cross-cutting-18-segments-and-plans--4-gói-giá">4. Gói giá</h2>
+<p>Nguyên tắc:</p>
+<ul>
+<li><strong>Phí nền + hạn mức + phí vượt.</strong> Mỗi gói có sẵn một lượng băng thông sạch và request; vượt thì tính
+theo đơn giá công bố, có cảnh báo ở 80% và 100%.</li>
+<li><strong>Traffic bị edge chặn hoặc challenge không tính tiền</strong> (traffic tấn công); chỉ traffic sạch tới
+client được tính.</li>
+<li><strong>Giá bằng VND</strong> cho thị trường trong nước; khách quốc tế dùng bảng USD riêng.</li>
+<li><strong>Zone phụ</strong> cùng account (staging, domain phụ) giá thấp hơn zone chính.</li>
+<li>Gói thấp có <strong>trần cứng</strong> do edge thực thi; gói trả phí không bị cắt traffic, chỉ tính phí vượt.</li>
+</ul>
 <div class="diagram"><pre class="mermaid">flowchart LR
-    subgraph F[&quot;Free · 0 USD&quot;]
-        f1[&quot;DDoS L3/L4/L7 không giới hạn&quot;]
-        f2[&quot;WAF lite: rule CVE nghiêm trọng&quot;]
-        f3[&quot;5 custom rule, 1 rate limit&quot;]
-        f4[&quot;CDN cơ bản, SSL tự động&quot;]
-        f5[&quot;Security event 24 giờ&quot;]
+    subgraph T[&quot;Dùng thử · 14 ngày&quot;]
+        t1[&quot;Tính năng Business&quot;]
+        t2[&quot;1 zone · trần 50 GB, 5 triệu request&quot;]
     end
-    subgraph P[&quot;Pro · ≈ 20–25 USD/zone&quot;]
-        p1[&quot;+ CRS đầy đủ PL1&quot;]
-        p2[&quot;+ 20 rule, 5 rate limit&quot;]
-        p3[&quot;+ Bot fight cơ bản&quot;]
-        p4[&quot;+ Log mẫu 10%, 3 ngày&quot;]
-        p5[&quot;+ Cảnh báo email + webhook&quot;]
+    subgraph F[&quot;Free có trần · 0 đ (mở sau)&quot;]
+        f1[&quot;DDoS L3/L4/L7, WAF lite&quot;]
+        f2[&quot;Trần 10 GB, 1 triệu request&quot;]
     end
-    subgraph B[&quot;Business · ≈ 200–250 USD/zone&quot;]
-        b1[&quot;+ PL1–4, exclusion theo trường&quot;]
-        b2[&quot;+ 100 rule, 50 rate limit&quot;]
-        b3[&quot;+ Bot score, API schema&quot;]
-        b4[&quot;+ Log 25%, 30 ngày, export&quot;]
-        b5[&quot;+ SLA 100% edge, cert tuỳ chỉnh&quot;]
+    subgraph P[&quot;Pro · 490.000 đ/zone&quot;]
+        p1[&quot;CRS PL1, 20 rule, log 10%&quot;]
+        p2[&quot;Gồm 100 GB, 10 triệu request&quot;]
+        p3[&quot;Vượt: 1.500 đ/GB, 10.000 đ/1 triệu request&quot;]
     end
-    subgraph E[&quot;Enterprise · theo hợp đồng&quot;]
-        e1[&quot;+ 1.000 rule, cell riêng&quot;]
-        e2[&quot;+ Bot, API, ATO nâng cao&quot;]
-        e3[&quot;+ Log tới 100%, 365 ngày, SIEM&quot;]
-        e4[&quot;+ SSO/SCIM, residency, 4-eyes&quot;]
-        e5[&quot;+ SLA tuỳ chỉnh, TAM, hybrid/on-prem&quot;]
+    subgraph B[&quot;Business · 5.900.000 đ/zone&quot;]
+        b1[&quot;PL1–4, bot score, API schema&quot;]
+        b2[&quot;Gồm 2 TB, 100 triệu request, SLA&quot;]
+        b3[&quot;Vượt: 1.200 đ/GB, 8.000 đ/1 triệu request&quot;]
     end
-    F --&gt; P --&gt; B --&gt; E
+    subgraph E[&quot;Enterprise · từ 75 triệu đ/tháng&quot;]
+        e1[&quot;Phí bảo mật theo tenant, gồm 5 zone&quot;]
+        e2[&quot;Băng thông cam kết theo p95 hoặc GB&quot;]
+        e3[&quot;Hybrid, on-prem: license theo node/năm&quot;]
+    end
+    T --&gt; P --&gt; B --&gt; E
+    F -.-&gt; P
 </pre></div>
-<p>Giá tham chiếu được chọn sao cho <strong>zone p99 của mỗi gói vẫn có lãi</strong> (Pro p99 ≈ 15 USD &lt; 20 USD, Business
-p99 ≈ 80 USD &lt; 200 USD); zone vượt p99 nhiều lần bị xử lý bằng fair use (mục 5), không bằng tính tiền bất
-ngờ. Enterprise định giá theo cam kết traffic (rps hoặc băng thông 95th) cộng add-on, sàn khoảng
-3.000 USD/tháng/tenant.</p>
+<h3 id="f-08-cross-cutting-18-segments-and-plans--giá-tham-chiếu-và-kiểm-tra-biên">Giá tham chiếu và kiểm tra biên</h3>
+<table>
+<thead>
+<tr>
+<th>Gói</th>
+<th>Phí nền</th>
+<th>Hạn mức đi kèm</th>
+<th>Đơn giá vượt</th>
+<th>Chi phí biến đổi của phần đi kèm</th>
+<th>Phần đóng góp vào chi phí cố định</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Dùng thử</strong></td>
+<td>0 đ, 14 ngày</td>
+<td>50 GB, 5 triệu request (trần cứng)</td>
+<td>Không, dừng ở trần</td>
+<td>≈ 1,3 USD</td>
+<td>Âm, giới hạn số lượt dùng thử mỗi khách</td>
+</tr>
+<tr>
+<td><strong>Free có trần</strong></td>
+<td>0 đ</td>
+<td>10 GB, 1 triệu request mỗi tháng (trần cứng)</td>
+<td>Không, hạ cấp khi chạm trần</td>
+<td>≈ 0,3 USD/zone</td>
+<td>Âm; chỉ mở có giới hạn số zone hoặc ở hồ sơ nhà mạng</td>
+</tr>
+<tr>
+<td><strong>Pro</strong></td>
+<td>490.000 đ (≈ 20 USD)/zone</td>
+<td>100 GB, 10 triệu request</td>
+<td>1.500 đ/GB; 10.000 đ/1 triệu request</td>
+<td>≈ 2,7 USD</td>
+<td>≈ 16 USD/zone</td>
+</tr>
+<tr>
+<td><strong>Business</strong></td>
+<td>5.900.000 đ (≈ 236 USD)/zone</td>
+<td>2 TB, 100 triệu request</td>
+<td>1.200 đ/GB; 8.000 đ/1 triệu request</td>
+<td>≈ 50 USD</td>
+<td>≈ 180 USD/zone</td>
+</tr>
+<tr>
+<td><strong>Enterprise</strong></td>
+<td>Từ 75 triệu đ (≈ 3.000 USD)/tháng: phí bảo mật gồm 5 zone + băng thông cam kết</td>
+<td>Theo hợp đồng</td>
+<td>Băng thông 700–900 đ/GB hoặc 150.000 đ/Mbps p95; zone thêm theo bảng</td>
+<td>Theo cam kết</td>
+<td>Định giá từng hợp đồng để phần bảo mật có biên ≥ 70%</td>
+</tr>
+</tbody>
+</table>
+<p>Kiểm tra phí vượt: 1 GB vượt ở Business thu 1.200 đ, tốn ≈ 520 đ; 1 triệu request vượt thu 8.000 đ, tốn
+≈ 1.500 đ (L7 + WAF + log). Zone nào dùng nhiều thì trả nhiều, không còn trường hợp một zone Business
+10.000 rps chỉ trả 236 USD như mô hình giá phẳng trước đây.</p>
+<p>Hết dùng thử hoặc quá hạn thanh toán: zone chuyển sang <strong>chế độ chuyển tiếp tối giản</strong> (không WAF,
+không cache, trần 1 GB/ngày) trong 30 ngày, kèm thông báo để khách mua gói hoặc trỏ DNS về origin; hết
+30 ngày thì tạm dừng zone. Không cắt traffic đột ngột, vì DNS của khách đang trỏ vào edge.</p>
 <h3 id="f-08-cross-cutting-18-segments-and-plans--bảng-tính-năng-và-giới-hạn-entitlements">Bảng tính năng và giới hạn (entitlements)</h3>
 <table>
 <thead>
 <tr>
 <th>Nhóm</th>
 <th>Entitlement</th>
-<th>Free</th>
+<th>Free có trần</th>
 <th>Pro</th>
 <th>Business</th>
 <th>Enterprise</th>
@@ -9779,12 +10251,36 @@ ngờ. Enterprise định giá theo cam kết traffic (rps hoặc băng thông 9
 </thead>
 <tbody>
 <tr>
+<td><strong>Giá</strong></td>
+<td>Phí nền (tham chiếu)</td>
+<td>0 đ (mở sau)</td>
+<td>490.000 đ/zone</td>
+<td>5.900.000 đ/zone</td>
+<td>Từ 75 triệu đ/tháng</td>
+</tr>
+<tr>
+<td></td>
+<td>Băng thông sạch / request đi kèm mỗi tháng</td>
+<td>10 GB / 1 triệu (trần cứng)</td>
+<td>100 GB / 10 triệu</td>
+<td>2 TB / 100 triệu</td>
+<td>Theo hợp đồng</td>
+</tr>
+<tr>
+<td></td>
+<td>Vượt hạn mức</td>
+<td>Hạ cấp, không tính phí</td>
+<td>Tính phí vượt</td>
+<td>Tính phí vượt</td>
+<td>Theo hợp đồng</td>
+</tr>
+<tr>
 <td><strong>DDoS</strong></td>
-<td>L3/L4/L7 tự động, không tính theo dung lượng tấn công</td>
+<td>L3/L4/L7 tự động; traffic tấn công không tính phí</td>
+<td>Có (L3/L4 trong giới hạn của đối tác chống DDoS)</td>
 <td>Có</td>
 <td>Có</td>
-<td>Có</td>
-<td>Có</td>
+<td>Có, kèm cam kết dung lượng theo hợp đồng</td>
 </tr>
 <tr>
 <td></td>
@@ -9971,6 +10467,14 @@ ngờ. Enterprise định giá theo cam kết traffic (rps hoặc băng thông 9
 <td>+ mọi kênh, SMS</td>
 </tr>
 <tr>
+<td><strong>Realtime</strong></td>
+<td>Số liệu live / event live / phiên đồng thời mỗi tenant</td>
+<td>5 s / — / 3</td>
+<td>5 s / — / 3</td>
+<td>1 s / 10 event/s / 25</td>
+<td>1 s / 50 event/s / theo hợp đồng</td>
+</tr>
+<tr>
 <td><strong>Tenant</strong></td>
 <td>Zone mỗi account</td>
 <td>3 (chống lạm dụng)</td>
@@ -10008,15 +10512,17 @@ ngờ. Enterprise định giá theo cam kết traffic (rps hoặc băng thông 9
 <td>SaaS</td>
 <td>SaaS</td>
 <td>SaaS</td>
-<td>SaaS, hybrid, on-prem</td>
+<td>SaaS; hybrid, on-prem tính license theo node/năm, không tính băng thông</td>
 </tr>
 </tbody>
 </table>
 <p>Add-on bán riêng cho Pro và Business: bot management đầy đủ, API security, log retention dài, thêm rule,
 DNS authoritative, load balancing origin.</p>
-<h2 id="f-08-cross-cutting-18-segments-and-plans--4-kiến-trúc-theo-gói">4. Kiến trúc theo gói</h2>
+<h2 id="f-08-cross-cutting-18-segments-and-plans--5-kiến-trúc-theo-gói">5. Kiến trúc theo gói</h2>
 <p>Gói không chỉ là danh sách tính năng: nó quyết định zone được <strong>đặt ở đâu</strong>, được <strong>bao nhiêu tài
 nguyên</strong>, và <strong>hy sinh thứ tự nào</strong> khi quá tải.</p>
+<p>Trong mục này, <strong>&quot;Free&quot; chỉ mọi zone không trả phí</strong>: Free có trần, dùng thử, và zone ở chế độ chuyển tiếp
+tối giản. Chúng dùng chung pool mật độ cao và đứng đầu thứ tự hy sinh.</p>
 <div class="diagram"><pre class="mermaid">flowchart TB
     dns[&quot;DNS điều hướng&lt;br/&gt;CNAME zone → VIP của cell&quot;]
     subgraph POP[&quot;Mỗi PoP&quot;]
@@ -10052,7 +10558,7 @@ nguyên</strong>, và <strong>hy sinh thứ tự nào</strong> khi quá tải.</
 <tr>
 <td><strong>Pool cell</strong></td>
 <td>Free → pool mật độ cao; Pro, Business → cell chuẩn; Enterprise → cell enterprise hoặc cell riêng; mọi gói → cell cách ly khi bị tấn công</td>
-<td>Tách hai đặc tính tải ngược nhau (nhiều zone nguội vs ít zone nóng); láng giềng của khách trả tiền nhiều không phải là 650.000 site miễn phí</td>
+<td>Tách hai đặc tính tải ngược nhau (nhiều zone nguội vs ít zone nóng); láng giềng của khách trả tiền nhiều không phải là hàng trăm nghìn site miễn phí hoặc dùng thử</td>
 </tr>
 <tr>
 <td><strong>Ngân sách RAM runtime</strong></td>
@@ -10115,7 +10621,40 @@ DNS để người dùng Free sang PoP gần kế tiếp.</li>
 khi mọi gói khác đã hạ.</li>
 </ol>
 <p>DDoS L3/L4 và pre-filter L7 <strong>không bao giờ</strong> bị hạ theo gói: đó là lớp bảo vệ chung của cả PoP.</p>
-<h2 id="f-08-cross-cutting-18-segments-and-plans--5-fair-use-và-lạm-dụng">5. Fair use và lạm dụng</h2>
+<h2 id="f-08-cross-cutting-18-segments-and-plans--6-đo-usage-hạn-mức-và-trần-cứng">6. Đo usage, hạn mức và trần cứng</h2>
+<p>Tính phí theo usage cần số đo <strong>chính xác</strong>, khác với log dùng cho điều tra (access log bị lấy mẫu theo
+gói). Quyết định: <a href="#f-09-adr-0043-usage-based-pricing-and-metering">ADR-0043</a>.</p>
+<table>
+<thead>
+<tr>
+<th>Thành phần</th>
+<th>Thiết kế</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Bộ đếm usage trên node</strong></td>
+<td>Policy agent giữ bộ đếm theo zone mỗi phút: request sạch, request bị chặn/challenge (không tính phí), byte ra client của traffic sạch, byte vào, đơn vị CPU WAF (số lần kiểm × trọng số profile), byte trúng cache. <strong>Không lấy mẫu</strong>; mỗi phút một bản ghi <code>UsageCounter</code> cho mỗi zone có traffic trên node, kèm số thứ tự để phát hiện mất bản ghi (<a href="#f-05-building-blocks-05-contracts">5.5</a>)</td>
+</tr>
+<tr>
+<td><strong>Gộp</strong></td>
+<td>Analytics cộng chính xác vào <code>usage_1m</code> / <code>usage_1h</code> (SummingMergeTree, khoá <code>(node, zone, phút)</code> nên gửi lại không cộng trùng); p95 băng thông cho Enterprise tính từ mẫu 5 phút theo tenant</td>
+</tr>
+<tr>
+<td><strong>Theo dõi hạn mức</strong></td>
+<td>Mỗi 5 phút tính tổng kỳ theo zone; ngưỡng 80%, 100% và trần cứng phát <code>QuotaStateChanged</code> sang Management (thông báo cho khách, ghi hoá đơn)</td>
+</tr>
+<tr>
+<td><strong>Trần cứng</strong></td>
+<td>Với Dùng thử, Free có trần, chế độ chuyển tiếp tối giản: Management phát entitlements mới (<code>cap_reached</code>), Control đẩy qua fast lane (lớp A). Edge áp hành động của gói: tắt cache và WAF lite, giới hạn tốc độ chuyển tiếp; pre-filter và chống DDoS vẫn chạy. Độ trễ từ lúc vượt tới lúc áp ≤ 10 phút; phần vượt trong khoảng đó được bỏ qua</td>
+</tr>
+<tr>
+<td><strong>Đối soát trước khi xuất hoá đơn</strong></td>
+<td>Cửa sổ trễ 24 giờ cho bản ghi đến muộn; số thứ tự thiếu của node nào thì bù từ bộ đếm cục bộ còn lưu trên đĩa node (giữ 7 ngày)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-08-cross-cutting-18-segments-and-plans--7-lạm-dụng">7. Lạm dụng</h2>
 <table>
 <thead>
 <tr>
@@ -10125,24 +10664,20 @@ khi mọi gói khác đã hạ.</li>
 </thead>
 <tbody>
 <tr>
-<td>Zone Free hoặc Pro vượt xa p99 của gói (ví dụ Free &gt; 50 rps trung bình 7 ngày)</td>
-<td>Không chặn, không tính tiền đột ngột: gửi thông báo, đề nghị nâng gói; sau 30 ngày giảm cache quota và chuyển sang pool mật độ cao nhất</td>
+<td>Zone dùng edge để phát file lớn (video, bản cài)</td>
+<td>Tính theo GB như mọi traffic; gói có trần thì chạm trần sớm; rule cache theo loại nội dung để không chiếm cache của PoP</td>
 </tr>
 <tr>
-<td>Zone dùng CDN để phát file lớn (video, bản cài) trên gói không phải Enterprise</td>
-<td>Rule cache theo loại nội dung; vượt ngưỡng băng thông thì không cache nội dung đó nữa (vẫn proxy)</td>
-</tr>
-<tr>
-<td>Đăng ký Free hàng loạt để lừa đảo, phishing</td>
-<td>Giới hạn 3 zone/account, xác minh domain, điểm rủi ro khi đăng ký; Trust and Safety có quy trình gỡ proxy và chặn tài khoản</td>
+<td>Đăng ký dùng thử, Free hàng loạt để lừa đảo, phishing</td>
+<td>1 zone/account, xác minh domain và phương thức thanh toán cho dùng thử, điểm rủi ro khi đăng ký; Trust and Safety có quy trình gỡ zone khỏi edge và khoá tài khoản</td>
 </tr>
 <tr>
 <td>Khách bị tấn công liên tục</td>
-<td>Không tính phí dung lượng tấn công ở mọi gói; chi phí được hấp thụ nhờ pre-filter rẻ và cell cách ly</td>
+<td>Traffic tấn công không tính phí; chi phí được hấp thụ nhờ pre-filter rẻ và cell cách ly; Enterprise có điều khoản dung lượng tấn công trong hợp đồng</td>
 </tr>
 </tbody>
 </table>
-<h2 id="f-08-cross-cutting-18-segments-and-plans--6-đổi-gói">6. Đổi gói</h2>
+<h2 id="f-08-cross-cutting-18-segments-and-plans--8-đổi-gói">8. Đổi gói</h2>
 <table>
 <thead>
 <tr>
@@ -10161,7 +10696,7 @@ khi mọi gói khác đã hạ.</li>
 </tr>
 <tr>
 <td>Hết hạn thanh toán</td>
-<td>Về Free sau thời gian ân hạn; không bao giờ ngừng proxy đột ngột (DNS của khách đang trỏ vào edge)</td>
+<td>Chế độ chuyển tiếp tối giản 30 ngày rồi tạm dừng zone (mục 4); không bao giờ cắt traffic đột ngột vì DNS của khách đang trỏ vào edge</td>
 </tr>
 </tbody>
 </table>
@@ -10325,12 +10860,12 @@ cân nhắc. Quyết định bị thay thế giữ lại với trạng thái &qu
 </tr>
 <tr>
 <td><a href="#f-09-adr-0030-language-per-workload">0030</a></td>
-<td>Ngôn ngữ theo đặc tính tải: Go cho Control/Analytics/Management, edge theo 0031; Elixir đã cân nhắc</td>
+<td>Ngôn ngữ theo đặc tính tải: Go cho Control/Analytics/Management, edge theo 0031; Elixir cho realtime gateway, notifier (0044)</td>
 <td>Chấp nhận (phần edge chờ 0031)</td>
 </tr>
 <tr>
 <td><a href="#f-09-adr-0031-edge-l7-and-waf-engine-options">0031</a></td>
-<td>Nền tầng L7 × engine tầng WAF × cách gọi; shortlist S2 / S3 / S1, spike để chọn</td>
+<td>Nền tầng L7 × engine tầng WAF × cách gọi; shortlist K2 / K3 / K1, spike để chọn</td>
 <td><strong>Đề xuất, chờ chọn</strong></td>
 </tr>
 <tr>
@@ -10387,6 +10922,16 @@ cân nhắc. Quyết định bị thay thế giữ lại với trạng thái &qu
 <td><a href="#f-09-adr-0042-plan-tiers-drive-placement-and-isolation">0042</a></td>
 <td>Gói quyết định pool cell, tài nguyên, thứ tự hy sinh khi quá tải, thứ tự rollout</td>
 <td>Chấp nhận (giá chờ business)</td>
+</tr>
+<tr>
+<td><a href="#f-09-adr-0043-usage-based-pricing-and-metering">0043</a></td>
+<td>Giá theo phí nền + hạn mức + phí vượt; đo usage không lấy mẫu; trần cứng ở edge; chưa mở Free khi ra mắt</td>
+<td>Chấp nhận (giá chờ business)</td>
+</tr>
+<tr>
+<td><a href="#f-09-adr-0044-realtime-gateway-and-notifier-runtime">0044</a></td>
+<td>Realtime gateway cho hàng chục nghìn phiên portal và runtime của notifier: Go, Centrifugo, Elixir/Phoenix, managed; chọn Elixir + Phoenix</td>
+<td>Chấp nhận</td>
 </tr>
 </tbody>
 </table>
@@ -10751,7 +11296,7 @@ dùng chung với replay và khó kiểm thử.</li>
 </section>
 <section class="doc" id="f-09-adr-0013-edge-gateway-custom-go-with-coraza"><div class="path">09-adr/0013-edge-gateway-custom-go-with-coraza.md</div><h1 id="f-09-adr-0013-edge-gateway-custom-go-with-coraza--adr-0013-edge-gateway-tự-xây-bằng-go-nhúng-coraza">ADR-0013: Edge gateway tự xây bằng Go, nhúng Coraza</h1>
 <ul>
-<li>Trạng thái: Bị thay thế bởi thiết kế hai tầng (<a href="#f-09-adr-0033-two-tier-edge-proxy-and-waf">ADR-0033</a>); Go + Coraza nằm trong tổ hợp <strong>S3</strong> của <a href="#f-09-adr-0031-edge-l7-and-waf-engine-options">ADR-0031</a> (chờ chọn)</li>
+<li>Trạng thái: Bị thay thế bởi thiết kế hai tầng (<a href="#f-09-adr-0033-two-tier-edge-proxy-and-waf">ADR-0033</a>); Go + Coraza nằm trong tổ hợp <strong>K3</strong> của <a href="#f-09-adr-0031-edge-l7-and-waf-engine-options">ADR-0031</a> (chờ chọn)</li>
 <li>Ngày: 2026-11-06</li>
 </ul>
 <h2 id="f-09-adr-0013-edge-gateway-custom-go-with-coraza--bối-cảnh">Bối cảnh</h2>
@@ -11281,7 +11826,7 @@ nghiệp vụ, khối lượng vừa phải; ở đó tốc độ phát triển 
 <td>Logic điều phối, khối lượng nhỏ; <code>cel-go</code> cho kiểm tra rule (<a href="#f-09-adr-0032-cel-checked-at-control-ir-at-edge">ADR-0032</a>)</td>
 </tr>
 <tr>
-<td><strong>Analytics services</strong> (enricher, query, detection, notifier, exporter)</td>
+<td><strong>Analytics services</strong> (enricher, query, detection, exporter)</td>
 <td>Go</td>
 <td>I/O-bound, scale ngang; enricher chuyển sang Rust chỉ khi profiling cho thấy chi phí CPU chiếm phần lớn</td>
 </tr>
@@ -11289,6 +11834,11 @@ nghiệp vụ, khối lượng vừa phải; ở đó tốc độ phát triển 
 <td><strong>Management</strong></td>
 <td>Go (<code>metap-go</code>)</td>
 <td><a href="#f-09-adr-0009-metap-for-management-plane-only">ADR-0009</a></td>
+</tr>
+<tr>
+<td><strong>Realtime gateway, notifier</strong></td>
+<td>Elixir (Phoenix, Broadway, Oban)</td>
+<td>Nhiều thực thể sống lâu, fan-out, retry, cô lập lỗi (<a href="#f-09-adr-0044-realtime-gateway-and-notifier-runtime">ADR-0044</a>)</td>
 </tr>
 </tbody>
 </table>
@@ -11313,7 +11863,9 @@ lại, retry). Không chọn vì khối lượng thông báo nhỏ (hàng nghìn
 lý thừa sức với thiết kế ở <a href="#f-05-building-blocks-08-components-11-notification-fanout">5.8.11</a>,
 còn thêm runtime thứ ba thì tốn vận hành và tuyển người. Xem lại khi: (a) cần đẩy event realtime tới
 hàng chục nghìn phiên portal cùng lúc (Phoenix Channels là lựa chọn mạnh), hoặc (b) số tin thông báo
-vượt mức một cụm Go nhỏ xử lý được.</li>
+vượt mức một cụm Go nhỏ xử lý được. <strong>Điều kiện (a) đã xảy ra</strong> theo ước lượng ở quy mô 1 triệu zone
+(2026-11-06): xem <a href="#f-09-adr-0044-realtime-gateway-and-notifier-runtime">ADR-0044</a>, đã chọn Elixir cho
+realtime gateway và notifier.</li>
 </ul>
 </section>
 <section class="doc" id="f-09-adr-0031-edge-l7-and-waf-engine-options"><div class="path">09-adr/0031-edge-l7-and-waf-engine-options.md</div><h1 id="f-09-adr-0031-edge-l7-and-waf-engine-options--adr-0031-lựa-chọn-nền-cho-tầng-l7-và-engine-cho-tầng-waf">ADR-0031: Lựa chọn nền cho tầng L7 và engine cho tầng WAF</h1>
@@ -11427,11 +11979,11 @@ có thể viết bằng ngôn ngữ khác.</p>
 <thead>
 <tr>
 <th></th>
-<th>P1. Rust + Pingora</th>
-<th>P2. Envoy</th>
-<th>P3. NGINX / OpenResty</th>
-<th>P4. HAProxy</th>
-<th>P5. Go tự xây</th>
+<th>N1. Rust + Pingora</th>
+<th>N2. Envoy</th>
+<th>N3. NGINX / OpenResty</th>
+<th>N4. HAProxy</th>
+<th>N5. Go tự xây</th>
 </tr>
 </thead>
 <tbody>
@@ -11501,16 +12053,16 @@ có thể viết bằng ngôn ngữ khác.</p>
 </tr>
 </tbody>
 </table>
-<p>Nhận xét: không nền nào mạnh cả về cache lẫn gọi WAF sẵn. P3 mạnh nhất về cache nhưng yếu về gọi dịch
-vụ kiểm tra; P2/P4 ngược lại. P1 và P5 phải tự viết cả hai nhưng kiểm soát hoàn toàn.</p>
+<p>Nhận xét: không nền nào mạnh cả về cache lẫn gọi WAF sẵn. N3 mạnh nhất về cache nhưng yếu về gọi dịch
+vụ kiểm tra; N2/N4 ngược lại. N1 và N5 phải tự viết cả hai nhưng kiểm soát hoàn toàn.</p>
 <h2 id="f-09-adr-0031-edge-l7-and-waf-engine-options--4-engine-cho-tầng-waf">4. Engine cho tầng WAF</h2>
 <table>
 <thead>
 <tr>
 <th></th>
-<th>W1. Coraza (Go)</th>
-<th>W2. libmodsecurity v3 (C++)</th>
-<th>W3. SecLang thuần Rust</th>
+<th>E1. Coraza (Go)</th>
+<th>E2. libmodsecurity v3 (C++)</th>
+<th>E3. SecLang thuần Rust</th>
 </tr>
 </thead>
 <tbody>
@@ -11548,20 +12100,20 @@ vụ kiểm tra; P2/P4 ngược lại. P1 và P5 phải tự viết cả hai nh�
 <td>T9</td>
 <td>Replay chạy cùng engine dễ</td>
 <td>Cần wrapper chung</td>
-<td>Như W1 nếu replay viết Rust</td>
+<td>Như E1 nếu replay viết Rust</td>
 </tr>
 </tbody>
 </table>
-<p>Vì tầng WAF đã tách process, nhược điểm lớn nhất của W1 (GC) và W2 (an toàn bộ nhớ) đều giảm nhiều.
-<strong>W1 là mặc định hợp lý</strong>; W2 đưa vào spike để so CPU mỗi request, vì CPU tầng WAF là chi phí hạ tầng lớn.</p>
+<p>Vì tầng WAF đã tách process, nhược điểm lớn nhất của E1 (GC) và E2 (an toàn bộ nhớ) đều giảm nhiều.
+<strong>E1 là mặc định hợp lý</strong>; E2 đưa vào spike để so CPU mỗi request, vì CPU tầng WAF là chi phí hạ tầng lớn.</p>
 <h2 id="f-09-adr-0031-edge-l7-and-waf-engine-options--5-cách-l7-gọi-waf">5. Cách L7 gọi WAF</h2>
 <table>
 <thead>
 <tr>
 <th></th>
-<th>G1. Inspection API riêng (gRPC stream)</th>
-<th>G2. Envoy <code>ext_proc</code></th>
-<th>G3. HAProxy SPOE</th>
+<th>I1. Inspection API riêng (gRPC stream)</th>
+<th>I2. Envoy <code>ext_proc</code></th>
+<th>I3. HAProxy SPOE</th>
 </tr>
 </thead>
 <tbody>
@@ -11585,8 +12137,8 @@ vụ kiểm tra; P2/P4 ngược lại. P1 và P5 phải tự viết cả hai nh�
 </tr>
 </tbody>
 </table>
-<p>Đề xuất: <strong>G1 là hợp đồng chuẩn</strong>. Nếu chọn P2 hoặc P4, viết adapter nhỏ ở phía WAF nhận <code>ext_proc</code>
-hoặc SPOE rồi chuyển sang G1, để tầng WAF chỉ có một giao diện.</p>
+<p>Đề xuất: <strong>I1 là hợp đồng chuẩn</strong>. Nếu chọn N2 hoặc N4, viết adapter nhỏ ở phía WAF nhận <code>ext_proc</code>
+hoặc SPOE rồi chuyển sang I1, để tầng WAF chỉ có một giao diện.</p>
 <h2 id="f-09-adr-0031-edge-l7-and-waf-engine-options--6-tổ-hợp-và-shortlist">6. Tổ hợp và shortlist</h2>
 <table>
 <thead>
@@ -11601,49 +12153,49 @@ hoặc SPOE rồi chuyển sang G1, để tầng WAF chỉ có một giao diện
 </thead>
 <tbody>
 <tr>
-<td><strong>S1</strong></td>
-<td>P2 Envoy</td>
-<td>W1 Coraza</td>
-<td>G2 → G1</td>
+<td><strong>K1</strong></td>
+<td>N2 Envoy</td>
+<td>E1 Coraza</td>
+<td>I2 → I1</td>
 <td>L7 rất chín, tích hợp kiểm tra sẵn, HTTP/3</td>
 <td>Cache yếu: cần thêm tầng cache (ví dụ Varnish) hoặc chờ CDN tự xây</td>
 </tr>
 <tr>
-<td><strong>S2</strong></td>
-<td>P1 Pingora</td>
-<td>W1 Coraza (hoặc W2)</td>
-<td>G1</td>
+<td><strong>K2</strong></td>
+<td>N1 Pingora</td>
+<td>E1 Coraza (hoặc E2)</td>
+<td>I1</td>
 <td>Kiểm soát cao, không GC ở L7, có nền cache</td>
 <td>Cần người Rust; tự viết client, purge, cache đĩa</td>
 </tr>
 <tr>
-<td><strong>S3</strong></td>
-<td>P5 Go</td>
-<td>W1 Coraza</td>
-<td>G1</td>
+<td><strong>K3</strong></td>
+<td>N5 Go</td>
+<td>E1 Coraza</td>
+<td>I1</td>
 <td>Đội làm được ngay; replay dùng chung code cả hai tầng</td>
 <td>Tự viết cache và L7</td>
 </tr>
 <tr>
-<td><strong>S4</strong></td>
-<td>P4 HAProxy</td>
-<td>W1 Coraza</td>
-<td>G3 (<code>coraza-spoa</code>)</td>
+<td><strong>K4</strong></td>
+<td>N4 HAProxy</td>
+<td>E1 Coraza</td>
+<td>I3 (<code>coraza-spoa</code>)</td>
 <td>L7 rất nhanh và chín, tích hợp WAF có sẵn</td>
 <td>Cache yếu; pre-filter phải viết bằng Lua/cấu hình</td>
 </tr>
 <tr>
-<td><strong>S5</strong></td>
-<td>P3 NGINX</td>
-<td>W1 Coraza</td>
-<td>Module/njs tự viết → G1</td>
+<td><strong>K5</strong></td>
+<td>N3 NGINX</td>
+<td>E1 Coraza</td>
+<td>Module/njs tự viết → I1</td>
 <td>Cache mạnh nhất, phổ biến nhất</td>
 <td>Gọi WAF kèm body không có sẵn; pre-filter bằng Lua</td>
 </tr>
 </tbody>
 </table>
-<p><strong>Shortlist cho spike:</strong> S2, S3, S1. S5 chạy làm mốc cho phần cache, S4 làm mốc cho phần gọi WAF.
-Tầng WAF dùng W1 trong mọi tổ hợp; spike đo thêm W2 trên cùng tầng WAF để so CPU.</p>
+<p><strong>Shortlist cho spike:</strong> K2, K3, K1. K5 chạy làm mốc cho phần cache, K4 làm mốc cho phần gọi WAF.
+Tầng WAF dùng E1 trong mọi tổ hợp; spike đo thêm E2 trên cùng tầng WAF để so CPU.</p>
 <h2 id="f-09-adr-0031-edge-l7-and-waf-engine-options--7-spike">7. Spike</h2>
 <p>Thời hạn 3 tuần, 2 người. Mỗi tổ hợp dựng tối thiểu:</p>
 <ul>
@@ -11688,7 +12240,7 @@ Tầng WAF dùng W1 trong mọi tổ hợp; spike đo thêm W2 trên cùng tần
 <td>Đo và so sánh</td>
 </tr>
 <tr>
-<td>CPU tầng WAF mỗi 1.000 request (W1 vs W2)</td>
+<td>CPU tầng WAF mỗi 1.000 request (E1 vs E2)</td>
 <td>Đo và so sánh</td>
 </tr>
 <tr>
@@ -11702,8 +12254,8 @@ Tầng WAF dùng W1 trong mọi tổ hợp; spike đo thêm W2 trên cùng tần
 </tbody>
 </table>
 <p>Kết quả ghi thành bản sửa của ADR này, trạng thái chuyển sang &quot;Chấp nhận&quot;.</p>
-<p><strong>Gợi ý nếu không làm spike:</strong> <strong>S3</strong> (Go cả hai tầng) để ra MVP nhanh với đội hiện tại, giữ G1 làm
-hợp đồng để sau thay L7 bằng P1 mà không đụng tầng WAF; <strong>S2</strong> nếu độ trễ đuôi của L7 và hiệu quả
+<p><strong>Gợi ý nếu không làm spike:</strong> <strong>K3</strong> (Go cả hai tầng) để ra MVP nhanh với đội hiện tại, giữ I1 làm
+hợp đồng để sau thay L7 bằng N1 mà không đụng tầng WAF; <strong>K2</strong> nếu độ trễ đuôi của L7 và hiệu quả
 RAM là cam kết bán hàng ngay từ đầu.</p>
 <h2 id="f-09-adr-0031-edge-l7-and-waf-engine-options--8-ảnh-hưởng-tới-adr-khác">8. Ảnh hưởng tới ADR khác</h2>
 <table>
@@ -11716,7 +12268,7 @@ RAM là cam kết bán hàng ngay từ đầu.</p>
 <tbody>
 <tr>
 <td><a href="#f-09-adr-0030-language-per-workload">0030</a></td>
-<td>Ngôn ngữ L7 theo P đã chọn; tầng WAF mặc định Go (W1)</td>
+<td>Ngôn ngữ L7 theo N đã chọn; tầng WAF mặc định Go (E1)</td>
 </tr>
 <tr>
 <td><a href="#f-09-adr-0032-cel-checked-at-control-ir-at-edge">0032</a></td>
@@ -12342,12 +12894,13 @@ chi phí theo zone, của nhóm sau là chi phí theo request.</p>
 <li>RAM và cache của node bị chia cho hàng trăm nghìn zone Free nguội, zone trả tiền chịu tỉ lệ trúng
 thấp hơn;</li>
 <li>một đợt flood vào nhiều zone Free có thể đẩy p99 của khách Business, Enterprise trên cùng node;</li>
-<li>không giữ được chi phí Free gần bằng 0, nên không bán được gói Free.</li>
+<li>không giữ được chi phí của các zone không trả phí (dùng thử, Free có trần, chế độ chuyển tiếp tối giản)
+ở mức nhỏ.</li>
 </ul>
 <h2 id="f-09-adr-0042-plan-tiers-drive-placement-and-isolation--quyết-định">Quyết định</h2>
 <p>Gói (qua entitlements) là đầu vào của bốn quyết định kiến trúc, không chỉ của danh sách tính năng:</p>
 <ol>
-<li><strong>Pool cell theo gói:</strong> Free → pool mật độ cao; Pro, Business → pool chuẩn; Enterprise → pool
+<li><strong>Pool cell theo gói:</strong> Free có trần, dùng thử, chế độ chuyển tiếp tối giản → pool mật độ cao; Pro, Business → pool chuẩn; Enterprise → pool
 enterprise hoặc cell riêng; mọi gói → cell cách ly khi bị tấn công. Trong pool vẫn theo
 <a href="#f-09-adr-0041-cells-and-zone-placement">ADR-0041</a>.</li>
 <li><strong>Tài nguyên theo gói:</strong> profile WAF (lite / PL1 / PL1–4 / tuỳ chỉnh), trọng số fair share CPU WAF
@@ -12361,8 +12914,8 @@ thường ưu tiên gói cao, thay đổi hàng loạt của Free chạy nền; 
 <p>Đổi gói chỉ là đổi entitlements và <code>cell_id</code> của zone; không deploy, không đổi phần mềm.</p>
 <h2 id="f-09-adr-0042-plan-tiers-drive-placement-and-isolation--hệ-quả">Hệ quả</h2>
 <ul>
-<li>Chi phí phục vụ zone Free giữ ở khoảng 0,18 USD/tháng; zone p99 của mỗi gói trả phí vẫn có lãi ở giá
-tham chiếu (QS-33).</li>
+<li>Zone không trả phí bị gom vào pool mật độ cao với tài nguyên nhỏ nhất; cách tính tiền theo usage ở
+<a href="#f-09-adr-0043-usage-based-pricing-and-metering">ADR-0043</a> bảo đảm zone dùng nhiều thì trả nhiều (QS-33).</li>
 <li>Khách trả tiền không có láng giềng là 650.000 site miễn phí (QS-32).</li>
 <li>Phải vận hành ba pool cell và công cụ chuyển zone giữa pool khi đổi gói (QS-34, <a href="#f-08-cross-cutting-13-operational-behaviors--a16-cell-quá-tải-hoặc-zone-cần-cách-ly">8.13 A16</a>).</li>
 <li>Pool Free có thể thiếu năng lực trước các pool khác; đó là chủ đích, có event và báo cáo riêng.</li>
@@ -12376,6 +12929,159 @@ zone nguội rơi vào RAM của node phục vụ khách lớn.</li>
 dữ liệu tấn công cho cả fleet; profile lite chỉ tốn khoảng 1% CPU WAF.</li>
 <li><strong>Tính tiền theo request cho mọi gói:</strong> công bằng về chi phí nhưng khách nhỏ không dự đoán được hoá
 đơn, và hoá đơn tăng khi bị tấn công; chọn giá cố định theo zone + fair use, Enterprise theo cam kết.</li>
+</ul>
+</section>
+<section class="doc" id="f-09-adr-0043-usage-based-pricing-and-metering"><div class="path">09-adr/0043-usage-based-pricing-and-metering.md</div><h1 id="f-09-adr-0043-usage-based-pricing-and-metering--adr-0043-giá-theo-phí-nền--hạn-mức--phí-vượt-đo-usage-không-lấy-mẫu-trần-cứng-ở-edge">ADR-0043: Giá theo phí nền + hạn mức + phí vượt, đo usage không lấy mẫu, trần cứng ở edge</h1>
+<ul>
+<li>Trạng thái: Chấp nhận (cơ chế); con số giá và hạn mức chờ business chốt</li>
+<li>Ngày: 2026-11-06</li>
+<li>Liên quan: <a href="#f-09-adr-0007-log-by-subscription-entitlements">ADR-0007</a>, <a href="#f-09-adr-0042-plan-tiers-drive-placement-and-isolation">ADR-0042</a>, <a href="#f-08-cross-cutting-18-segments-and-plans">8.18</a></li>
+</ul>
+<h2 id="f-09-adr-0043-usage-based-pricing-and-metering--bối-cảnh">Bối cảnh</h2>
+<p>Bản giá đầu tiên ở 8.18 dùng giá phẳng theo zone, băng thông không giới hạn và có gói Free từ đầu. Khi
+tính lại theo hồ sơ <strong>công ty phần mềm thuê hạ tầng</strong>:</p>
+<ul>
+<li>Băng thông là khoản lớn nhất (≈ 520 đ/GB khi thuê, gấp khoảng 10 lần phần xử lý L7 + WAF cho cùng một
+request), và không có biên để cạnh tranh với nhà mạng.</li>
+<li>Giá phẳng làm zone dùng nhiều nhất trong mỗi gói lỗ nặng (một zone Business 10.000 rps tốn hàng nghìn
+USD mỗi tháng nhưng trả 236 USD).</li>
+<li>Gói Free ở quy mô lớn chỉ khả thi với đơn giá băng thông của nhà mạng hoặc peering.</li>
+<li>Access log bị lấy mẫu theo gói nên không dùng được để tính tiền.</li>
+</ul>
+<h2 id="f-09-adr-0043-usage-based-pricing-and-metering--quyết-định">Quyết định</h2>
+<ol>
+<li><strong>Giá = phí nền + hạn mức + phí vượt.</strong> Phí nền là phần <strong>bảo mật</strong> (theo zone, theo tính năng, biên
+cao); hạn mức và phí vượt là phần <strong>phân phối</strong> (băng thông sạch, request, gần giá vốn). Không gói nào
+có băng thông không giới hạn.</li>
+<li><strong>Traffic bị edge chặn hoặc challenge không tính phí.</strong> Chỉ traffic sạch tới client được tính.</li>
+<li><strong>Đo usage bằng bộ đếm riêng, không lấy mẫu:</strong> policy agent đếm theo zone mỗi phút và gửi
+<code>UsageCounter</code> có số thứ tự; Analytics cộng chính xác, bỏ trùng theo <code>(node, zone, phút)</code>, đối soát
+trước khi xuất hoá đơn.</li>
+<li><strong>Trần cứng thực thi ở edge</strong> cho Dùng thử, Free có trần và chế độ chuyển tiếp tối giản: vượt trần
+thì Management phát entitlements mới, Control đẩy qua fast lane (lớp A); gói trả phí không bị cắt
+traffic, chỉ tính phí vượt và cảnh báo ở 80%, 100%.</li>
+<li><strong>Không mở Free khi ra mắt</strong> với hồ sơ công ty phần mềm; dùng thử 14 ngày thay thế. Free có trần chỉ
+mở khi có hồ sơ chi phí cho phép (nhà mạng, peering, đối tác CDN) hoặc với số lượng giới hạn.</li>
+</ol>
+<h2 id="f-09-adr-0043-usage-based-pricing-and-metering--hệ-quả">Hệ quả</h2>
+<ul>
+<li>Zone dùng nhiều trả nhiều; biên của từng gói không còn phụ thuộc vào việc zone nặng hiếm.</li>
+<li>Hoá đơn của khách thay đổi theo traffic: cần dashboard usage theo zone, cảnh báo ngưỡng, ước tính hoá
+đơn trong kỳ.</li>
+<li>Thêm loại bản ghi <code>UsageCounter</code> trong telemetry, buffer riêng không bị bỏ khi đầy như access log
+(<a href="#f-05-building-blocks-05-contracts">5.5</a>).</li>
+<li>Độ trễ áp trần cứng tới ≈ 10 phút; phần vượt trong khoảng đó chấp nhận bỏ qua.</li>
+<li>Hồ sơ nhà mạng chỉ đổi đơn giá đầu vào; cơ chế giữ nguyên.</li>
+</ul>
+<h2 id="f-09-adr-0043-usage-based-pricing-and-metering--phương-án-đã-cân-nhắc">Phương án đã cân nhắc</h2>
+<ul>
+<li><strong>Giá phẳng, fair use mềm</strong> (bản trước): đơn giản cho khách, nhưng lỗ ở zone nặng và không kiểm soát
+được chi phí băng thông.</li>
+<li><strong>Tính hoàn toàn theo usage, không phí nền:</strong> công bằng về chi phí, nhưng không thu được giá trị bảo
+mật và hoá đơn của khách nhỏ khó đoán.</li>
+<li><strong>Tính usage từ access log lấy mẫu rồi ngoại suy:</strong> rẻ, nhưng sai số không chấp nhận được khi đưa vào
+hoá đơn.</li>
+</ul>
+</section>
+<section class="doc" id="f-09-adr-0044-realtime-gateway-and-notifier-runtime"><div class="path">09-adr/0044-realtime-gateway-and-notifier-runtime.md</div><h1 id="f-09-adr-0044-realtime-gateway-and-notifier-runtime--adr-0044-realtime-gateway-cho-portal-và-runtime-của-notifier">ADR-0044: Realtime gateway cho portal và runtime của notifier</h1>
+<ul>
+<li>Trạng thái: Chấp nhận (2026-11-06): <strong>R3</strong>, Elixir + Phoenix cho realtime gateway và notifier</li>
+<li>Ngày: 2026-11-06</li>
+<li>Liên quan: <a href="#f-09-adr-0030-language-per-workload">ADR-0030</a>, <a href="#f-05-building-blocks-08-components-13-realtime-gateway">5.8.13</a>, <a href="#f-05-building-blocks-08-components-11-notification-fanout">5.8.11</a></li>
+</ul>
+<h2 id="f-09-adr-0044-realtime-gateway-and-notifier-runtime--bối-cảnh">Bối cảnh</h2>
+<p><a href="#f-09-adr-0030-language-per-workload">ADR-0030</a> không chọn Elixir cho notifier và ghi điều kiện xem lại: (a)
+cần đẩy event realtime tới hàng chục nghìn phiên portal cùng lúc. Ở quy mô thiết kế 1 triệu zone, điều
+kiện này xảy ra: 10.000–30.000 phiên lúc bình thường, 50.000–100.000 phiên trong đợt tấn công lớn, kèm
+hàng chục nghìn kết nối mới trong vài phút (<a href="#f-05-building-blocks-08-components-13-realtime-gateway">5.8.13</a>).</p>
+<p>Yêu cầu:</p>
+<ul>
+<li>Kết nối dài (WebSocket) với số lượng lớn, mỗi phiên có hàng đợi và giới hạn riêng.</li>
+<li>Gom số liệu theo zone <strong>chỉ cho zone đang có người xem</strong>, dùng chung cho mọi người xem cùng zone.</li>
+<li>Fan-out trong cụm, tự phục hồi khi một phần lỗi, nối lại có số thứ tự.</li>
+<li>License đóng gói được cho on-prem (<a href="#f-09-adr-0024-licensing-policy-for-shipped-components">ADR-0024</a>).</li>
+</ul>
+<p>Notifier (<a href="#f-05-building-blocks-08-components-11-notification-fanout">5.8.11</a>) có đặc tính gần
+giống: fan-out nhiều kênh, retry, cô lập lỗi theo kênh, theo khách.</p>
+<h2 id="f-09-adr-0044-realtime-gateway-and-notifier-runtime--phương-án">Phương án</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>R1. Go tự xây</th>
+<th>R2. Centrifugo (Go, server realtime dựng sẵn)</th>
+<th>R3. Elixir + Phoenix Channels</th>
+<th>R4. Dịch vụ managed (Pusher, Ably)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Kết nối dài số lượng lớn</td>
+<td>Làm được; tự viết hàng đợi theo phiên, nối lại, fan-out cụm</td>
+<td>Có sẵn, đã chạy ở quy mô triệu kết nối</td>
+<td>Có sẵn (process mỗi phiên, Phoenix PubSub, Presence)</td>
+<td>Có sẵn</td>
+</tr>
+<tr>
+<td>Gom số liệu theo zone đang xem</td>
+<td>Tự viết (goroutine + map + khoá)</td>
+<td>Phải đặt ở dịch vụ khác rồi publish vào Centrifugo</td>
+<td>Tự nhiên: một process mỗi zone, supervisor quản lý vòng đời</td>
+<td>Phải đặt ở dịch vụ khác</td>
+</tr>
+<tr>
+<td>Tự phục hồi</td>
+<td>Tự viết</td>
+<td>Có cho phần kết nối</td>
+<td>OTP supervisor cho cả kết nối lẫn aggregator</td>
+<td>Có</td>
+</tr>
+<tr>
+<td>Dùng lại cho notifier</td>
+<td>Notifier Go hiện tại</td>
+<td>Không</td>
+<td>Có: process mỗi kênh, retry, Oban (job queue trên PostgreSQL, giữ nguyên bảng <code>deliveries</code>)</td>
+<td>Không</td>
+</tr>
+<tr>
+<td>Ngôn ngữ, vận hành</td>
+<td>Không thêm runtime</td>
+<td>Không thêm runtime; thêm một sản phẩm cần vận hành</td>
+<td><strong>Thêm runtime thứ ba</strong> (BEAM): tuyển người, CI, quan sát</td>
+<td>Không vận hành</td>
+</tr>
+<tr>
+<td>License, on-prem</td>
+<td>Tốt</td>
+<td>Apache-2.0 (bản PRO là thương mại, không dùng)</td>
+<td>Apache-2.0 / MIT (Elixir, Phoenix, Broadway, Oban bản mã nguồn mở)</td>
+<td><strong>Loại</strong>: không on-prem, dữ liệu ra ngoài region</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-09-adr-0044-realtime-gateway-and-notifier-runtime--quyết-định">Quyết định</h2>
+<p>Chọn <strong>R3</strong> cho cả realtime gateway và notifier:</p>
+<ul>
+<li>Hai thành phần có cùng đặc tính (nhiều thực thể sống lâu, fan-out, retry, cô lập lỗi), đúng thế mạnh
+của BEAM; gom vào một runtime giúp chi phí thêm runtime được chia cho hai việc.</li>
+<li>Phần khó nhất của realtime gateway là gom số liệu theo zone đang xem và nối lại không mất dữ liệu;
+với R3 đó là vài GenServer có supervisor, với R1/R2 là code đồng bộ tự viết.</li>
+<li>Ranh giới ngôn ngữ trùng ranh giới thành phần: gateway và notifier chỉ đọc Kafka, RabbitMQ,
+PostgreSQL (<code>deliveries</code>) qua hợp đồng có sẵn; Go vẫn là ngôn ngữ của enricher, Query API, detection.</li>
+</ul>
+<p><strong>R2</strong> là phương án dự phòng nếu không muốn thêm runtime: Centrifugo giữ kết nối, một dịch vụ Go nhỏ
+làm zone aggregator rồi publish vào Centrifugo; notifier giữ Go.</p>
+<p>Realtime gateway xây ở giai đoạn Mở rộng; MVP dùng Query API với refresh vài giây cho số ít phiên đầu
+tiên. Notifier viết bằng Elixir ngay từ MVP để không phải viết hai lần.</p>
+<h2 id="f-09-adr-0044-realtime-gateway-and-notifier-runtime--hệ-quả">Hệ quả</h2>
+<ul>
+<li>Thêm Elixir vào danh sách ngôn ngữ của <a href="#f-09-adr-0030-language-per-workload">ADR-0030</a>: Go cho Control,
+Analytics (phần xử lý dữ liệu), Management; edge theo ADR-0031; Elixir cho realtime gateway và notifier.</li>
+<li>Cần ít nhất hai người đọc được Elixir; CI, image, quan sát (metrics Prometheus, trace OpenTelemetry)
+cho runtime BEAM.</li>
+<li>Notifier chuyển sang Elixir không đổi hợp đồng: vẫn bảng <code>deliveries</code>, vẫn adapter theo kênh, vẫn
+các sự kiện từ detection.</li>
+<li>Enricher thêm live tap (Go) để đầu vào của gateway tỉ lệ với số zone đang xem.</li>
 </ul>
 </section>
 <section class="doc" id="f-10-quality-00-index"><div class="path">10-quality/00-index.md</div><h1 id="f-10-quality-00-index--10-quality-requirements">10. Quality Requirements</h1>
@@ -12463,7 +13169,7 @@ kịch bản đo được (§10.3) và cơ chế kiến trúc đáp ứng nó.</
 <td><strong>Hiệu quả chi phí</strong></td>
 <td>Chi phí hạ tầng trên một đơn vị traffic và trên một zone nguội</td>
 <td>Q6</td>
-<td>QS-30, QS-31, QS-33</td>
+<td>QS-30, QS-31, QS-33, QS-35</td>
 <td>Lọc rẻ trước, dùng chung instance CRS, lấy mẫu log theo gói, pool cell theo gói (<a href="#f-08-cross-cutting-18-segments-and-plans">8.18</a>)</td>
 </tr>
 <tr>
@@ -12707,14 +13413,38 @@ kịch bản đo được (§10.3) và cơ chế kiến trúc đáp ứng nó.</
 <tr>
 <td>QS-33</td>
 <td>Chi phí</td>
-<td>Chi phí phục vụ một zone Free trung bình</td>
-<td>≤ 0,25 USD/tháng theo mô hình chi phí ở 8.18; zone p99 của mỗi gói trả phí vẫn có lãi ở giá tham chiếu</td>
+<td>Zone dùng gấp 10 lần hạn mức của gói trả phí</td>
+<td>Phần vượt được tính phí theo đơn giá công bố, biên của phần vượt ≥ 0 với hồ sơ công ty phần mềm (8.18 §4)</td>
 </tr>
 <tr>
 <td>QS-34</td>
 <td>Thương mại</td>
 <td>Khách nâng gói Free → Business</td>
 <td>Entitlements mới ≤ 5 phút; zone sang pool cell mới không có request lỗi trong thời gian chuyển</td>
+</tr>
+<tr>
+<td>QS-35</td>
+<td>Thương mại</td>
+<td>Usage của một kỳ thanh toán</td>
+<td>Sai lệch giữa <code>UsageCounter</code> đã gộp và tổng đếm trên các node ≤ 0,1%; không mất bản ghi nào sau đối soát</td>
+</tr>
+<tr>
+<td>QS-36</td>
+<td>Thương mại</td>
+<td>Zone có trần cứng vượt trần</td>
+<td>Hành động của trần được áp trên ≥ 95% node trong ≤ 10 phút; pre-filter và chống DDoS không bị tắt</td>
+</tr>
+<tr>
+<td>QS-37</td>
+<td>Realtime</td>
+<td>Security event của một zone đang được xem trên portal</td>
+<td>Hiện trên màn hình ≤ 5 s p95 kể từ khi edge xử lý request</td>
+</tr>
+<tr>
+<td>QS-38</td>
+<td>Realtime</td>
+<td>100.000 phiên đồng thời, trong đó 30.000 phiên mới mở trong 5 phút khi có tấn công lớn</td>
+<td>QS-37 giữ được; không node gateway nào hết RAM; luồng ghi log và Query API không bị ảnh hưởng</td>
 </tr>
 </tbody>
 </table>
@@ -12761,8 +13491,8 @@ kịch bản đo được (§10.3) và cơ chế kiến trúc đáp ứng nó.</
 <td>≈ 1,15 triệu bản ghi/s trung bình; ≈ 12 TB/ngày trong ClickHouse</td>
 </tr>
 <tr>
-<td>Chi phí phục vụ (giả định đơn giá)</td>
-<td>≈ 0,18 / 1,05 / 3,3 / 43 USD mỗi zone mỗi tháng cho Free / Pro / Business / Enterprise</td>
+<td>Chi phí (hồ sơ công ty phần mềm)</td>
+<td>Băng thông ≈ 520 đ/GB; chi phí cố định ≈ 170k USD/tháng khi ra mắt, ≈ 510k USD/tháng ở giai đoạn tăng trưởng (<a href="#f-08-cross-cutting-18-segments-and-plans">8.18</a>)</td>
 </tr>
 <tr>
 <td>Rule / zone (tối đa theo gói cao nhất)</td>
@@ -12959,11 +13689,11 @@ kịch bản đo được (§10.3) và cơ chế kiến trúc đáp ứng nó.</
 </tr>
 <tr>
 <td>R23</td>
-<td>Gói Free bị lạm dụng (phishing, phát file lớn, đăng ký hàng loạt) hoặc chi phí Free vượt mô hình</td>
+<td>Dùng thử, Free có trần bị lạm dụng (phishing, phát file lớn, đăng ký hàng loạt)</td>
 <td>Cao</td>
 <td>Trung bình</td>
-<td>Giới hạn zone mỗi account, xác minh domain, fair use, pool mật độ cao, Trust and Safety (<a href="#f-08-cross-cutting-18-segments-and-plans--5-fair-use-và-lạm-dụng">8.18 §5</a>)</td>
-<td>Chi phí Free &gt; 10% hạ tầng; khiếu nại abuse tăng</td>
+<td>1 zone/account, xác minh domain và phương thức thanh toán, trần cứng ở edge, Trust and Safety (<a href="#f-08-cross-cutting-18-segments-and-plans--7-lạm-dụng">8.18 §7</a>)</td>
+<td>Chi phí của zone không trả phí vượt ngân sách; khiếu nại abuse tăng</td>
 </tr>
 <tr>
 <td>R24</td>
@@ -12972,6 +13702,30 @@ kịch bản đo được (§10.3) và cơ chế kiến trúc đáp ứng nó.</
 <td>Cao</td>
 <td>Giá là entitlement đổi được; đo chi phí thật theo gói từ metering; xem lại hằng quý</td>
 <td>Biên lợi nhuận một gói âm 2 tháng liền</td>
+</tr>
+<tr>
+<td>R25</td>
+<td>Giá băng thông thuê cao hơn giả định (nhất là quốc tế) làm phần phân phối lỗ</td>
+<td>Cao</td>
+<td>Cao</td>
+<td>Tính phí theo GB, đơn giá vượt có biên; ưu tiên PoP trong nước và peering tại IX; hybrid/on-prem cho khách lớn; đàm phán với nhà mạng</td>
+<td>Chi phí băng thông thật trên mỗi GB lệch &gt; 30% so với 8.18</td>
+</tr>
+<tr>
+<td>R26</td>
+<td>Sai số đo usage gây tranh chấp hoá đơn</td>
+<td>Trung bình</td>
+<td>Cao</td>
+<td><code>UsageCounter</code> không lấy mẫu, số thứ tự, đối soát 24 giờ, bộ đếm cục bộ 7 ngày (QS-35); khách xem usage theo zone trong kỳ</td>
+<td>Khiếu nại hoá đơn; chênh lệch đối soát &gt; 0,1%</td>
+</tr>
+<tr>
+<td>R27</td>
+<td>Thêm runtime thứ ba (Elixir) làm khó tuyển người và vận hành</td>
+<td>Trung bình</td>
+<td>Trung bình</td>
+<td>Giới hạn Elixir ở hai thành phần có hợp đồng rõ (realtime gateway, notifier); nếu không đủ người thì dự phòng Centrifugo + Go (<a href="#f-09-adr-0044-realtime-gateway-and-notifier-runtime">ADR-0044</a>)</td>
+<td>Thiếu người đọc được Elixir; sự cố gateway kéo dài</td>
 </tr>
 <tr>
 <td>R9</td>
@@ -13045,7 +13799,8 @@ kịch bản đo được (§10.3) và cơ chế kiến trúc đáp ứng nó.</
 Edge theo hợp đồng ở <a href="#f-05-building-blocks-05-contracts">05-contracts</a>; xây mới Analytics.</p>
 <h2 id="f-11-risks-00-index--113-quyết-định-còn-mở">11.3 Quyết định còn mở</h2>
 <p>Đã chốt ngày 2026-11-06: biến thể cú pháp rule (<a href="#f-09-adr-0014-cel-as-rule-language">ADR-0014</a>,
-CEL), công nghệ của Control, Analytics, Management (<a href="#f-05-building-blocks-07-technology-map">05 · bản đồ công nghệ</a>).</p>
+CEL), công nghệ của Control, Analytics, Management (<a href="#f-05-building-blocks-07-technology-map">05 · bản đồ công nghệ</a>),
+Elixir + Phoenix cho realtime gateway và notifier (<a href="#f-09-adr-0044-realtime-gateway-and-notifier-runtime">ADR-0044</a>).</p>
 <table>
 <thead>
 <tr>
@@ -13062,8 +13817,8 @@ CEL), công nghệ của Control, Analytics, Management (<a href="#f-05-building
 </tr>
 <tr>
 <td>Giá và bảng entitlements</td>
-<td>Đã có bản nháp kèm chi phí phục vụ ở <a href="#f-08-cross-cutting-18-segments-and-plans">8.18</a>; business chốt giá, tiền tệ, giá trị từng giới hạn</td>
-<td><a href="#f-09-adr-0007-log-by-subscription-entitlements">ADR-0007</a>, <a href="#f-09-adr-0042-plan-tiers-drive-placement-and-isolation">ADR-0042</a></td>
+<td>Bản nháp theo hồ sơ công ty phần mềm ở <a href="#f-08-cross-cutting-18-segments-and-plans">8.18</a>; business chốt giá, hạn mức, đơn giá vượt, có mở Free có trần hay không</td>
+<td><a href="#f-09-adr-0043-usage-based-pricing-and-metering">ADR-0043</a>, <a href="#f-09-adr-0007-log-by-subscription-entitlements">ADR-0007</a>, <a href="#f-09-adr-0042-plan-tiers-drive-placement-and-isolation">ADR-0042</a></td>
 </tr>
 <tr>
 <td>Cấp phép và cập nhật on-prem</td>
@@ -13102,7 +13857,7 @@ CEL), công nghệ của Control, Analytics, Management (<a href="#f-05-building
 </tr>
 <tr>
 <td><strong>Nền tầng L7 và engine tầng WAF</strong></td>
-<td>Chọn sau spike 3 tuần: shortlist S2 (Pingora + Coraza), S3 (Go + Coraza), S1 (Envoy + Coraza); mốc S5 (NGINX, cho cache) và S4 (HAProxy + SPOE); đo thêm libmodsecurity ở tầng WAF; kèm HTTP/3</td>
+<td>Chọn sau spike 3 tuần: shortlist K2 (Pingora + Coraza), K3 (Go + Coraza), K1 (Envoy + Coraza); mốc K5 (NGINX, cho cache) và K4 (HAProxy + SPOE); đo thêm libmodsecurity ở tầng WAF; kèm HTTP/3</td>
 <td><a href="#f-09-adr-0031-edge-l7-and-waf-engine-options">ADR-0031</a>; kéo theo ngôn ngữ L7, replay, <code>edge-verify</code>, <a href="#f-09-adr-0032-cel-checked-at-control-ir-at-edge">ADR-0032</a></td>
 </tr>
 <tr>
@@ -13114,6 +13869,103 @@ CEL), công nghệ của Control, Analytics, Management (<a href="#f-05-building
 </table>
 </section>
 <section class="doc" id="f-12-glossary-00-index"><div class="path">12-glossary/00-index.md</div><h1 id="f-12-glossary-00-index--12-glossary">12. Glossary</h1>
+<p>Thuật ngữ, viết tắt và quy ước mã dùng trong tài liệu, chia theo nhóm. Thuật ngữ kỹ thuật giữ tiếng Anh
+theo chính sách tài liệu (<a href="#f-02-constraints-00-index--24-convention">2.4</a>).</p>
+<ul>
+<li><a href="#f-12-glossary-00-index--121-quy-ước-chung">12.1 Quy ước chung</a></li>
+<li><a href="#f-12-glossary-00-index--122-kiến-trúc-tổng-thể">12.2 Kiến trúc tổng thể</a></li>
+<li><a href="#f-12-glossary-00-index--123-edge-tầng-l7-và-tầng-waf">12.3 Edge: tầng L7 và tầng WAF</a></li>
+<li><a href="#f-12-glossary-00-index--124-rule-và-waf">12.4 Rule và WAF</a></li>
+<li><a href="#f-12-glossary-00-index--125-bot-management-và-api-security">12.5 Bot management và API security</a></li>
+<li><a href="#f-12-glossary-00-index--126-cdn-và-dns">12.6 CDN và DNS</a></li>
+<li><a href="#f-12-glossary-00-index--127-cấu-hình-phân-phối-rollout">12.7 Cấu hình, phân phối, rollout</a></li>
+<li><a href="#f-12-glossary-00-index--128-analytics-cảnh-báo-giám-sát">12.8 Analytics, cảnh báo, giám sát</a></li>
+<li><a href="#f-12-glossary-00-index--129-thương-mại-và-gói-giá">12.9 Thương mại và gói giá</a></li>
+<li><a href="#f-12-glossary-00-index--1210-bảo-mật-và-tuân-thủ">12.10 Bảo mật và tuân thủ</a></li>
+<li><a href="#f-12-glossary-00-index--1211-công-nghệ-và-sản-phẩm">12.11 Công nghệ và sản phẩm</a></li>
+<li><a href="#f-12-glossary-00-index--1212-viết-tắt">12.12 Viết tắt</a></li>
+<li><a href="#f-12-glossary-00-index--1213-quy-ước-mã-trong-tài-liệu">12.13 Quy ước mã trong tài liệu</a></li>
+</ul>
+<h2 id="f-12-glossary-00-index--121-quy-ước-chung">12.1 Quy ước chung</h2>
+<table>
+<thead>
+<tr>
+<th>Thuật ngữ</th>
+<th>Nghĩa</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>NCC</strong></td>
+<td>Nhà cung cấp: công ty xây và vận hành sản phẩm WAAP này (bên bán). Đối lập với &quot;khách&quot;</td>
+</tr>
+<tr>
+<td><strong>Khách</strong></td>
+<td>Tổ chức mua WAAP để bảo vệ website, API của mình</td>
+</tr>
+<tr>
+<td><strong>End-user</strong></td>
+<td>Người dùng (hoặc bot, kẻ tấn công) truy cập website của khách qua edge</td>
+</tr>
+<tr>
+<td><strong>Org / account</strong></td>
+<td>Cấp tổ chức của khách trong Management: org chứa nhiều account, account chứa nhiều zone, phân quyền theo cấp (<a href="#f-05-building-blocks-08-components-12-management">5.8.12</a>)</td>
+</tr>
+<tr>
+<td><strong>Tenant</strong></td>
+<td>Ranh giới cô lập dữ liệu và tài nguyên của một khách; mọi entity, log, quota đều mang tenant</td>
+</tr>
+<tr>
+<td><strong>Zone</strong></td>
+<td>Một site/domain khách bảo vệ, đơn vị cấu hình chính</td>
+</tr>
+<tr>
+<td><strong>Hostname</strong></td>
+<td>Tên miền cụ thể trong một zone (ví dụ <code>shop.example.com</code>); một zone có nhiều hostname</td>
+</tr>
+<tr>
+<td><strong>Origin</strong></td>
+<td>Máy chủ thật của khách đứng sau edge</td>
+</tr>
+<tr>
+<td><strong>MVP / Mở rộng / Nâng cao</strong></td>
+<td>Ba mức của mỗi nghiệp vụ: tối thiểu để ký hợp đồng doanh nghiệp đầu tiên / ngang đối thủ / tạo khác biệt (<a href="#f-01-introduction-00-index--12-tổng-quan-yêu-cầu">1.2</a>)</td>
+</tr>
+<tr>
+<td><strong>arc42</strong></td>
+<td>Khung tài liệu kiến trúc 12 mục mà tài liệu này theo</td>
+</tr>
+<tr>
+<td><strong>C4</strong></td>
+<td>Ký hiệu diagram 4 mức (Context, Container, Component, Code); dùng ở mục 3 và 5</td>
+</tr>
+<tr>
+<td><strong>4+1 View Model</strong></td>
+<td>Danh sách kiểm 5 góc nhìn kiến trúc (logical, development, process, physical, scenarios)</td>
+</tr>
+<tr>
+<td><strong>ADR</strong></td>
+<td>Architecture Decision Record: ghi một quyết định, bối cảnh, phương án và hệ quả (<a href="#f-09-adr-00-index">9</a>)</td>
+</tr>
+<tr>
+<td><strong>Đề xuất, chờ chọn / Chấp nhận</strong></td>
+<td>Trạng thái của ADR: chưa chốt, cần người quyết / đã chốt</td>
+</tr>
+<tr>
+<td><strong>Spike</strong></td>
+<td>Thử nghiệm ngắn có tiêu chí đo để chọn giữa các phương án (ví dụ 3 tuần cho <a href="#f-09-adr-0031-edge-l7-and-waf-engine-options">ADR-0031</a>)</td>
+</tr>
+<tr>
+<td><strong>metap / metap-go</strong></td>
+<td>Nền tảng metadata-driven của org (entity CRUD, workflow, RBAC/ABAC, audit, outbox); chỉ dùng cho Management plane (<a href="#f-09-adr-0009-metap-for-management-plane-only">ADR-0009</a>)</td>
+</tr>
+<tr>
+<td><strong>Repo demo</strong></td>
+<td>Code hiện có trong repo <code>metap-demo-waf</code>; không phải điểm xuất phát bắt buộc (<a href="#f-11-risks-00-index--112-chênh-lệch-với-code-demo-hiện-tại">11.2</a>)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-12-glossary-00-index--122-kiến-trúc-tổng-thể">12.2 Kiến trúc tổng thể</h2>
 <table>
 <thead>
 <tr>
@@ -13125,6 +13977,10 @@ CEL), công nghệ của Control, Analytics, Management (<a href="#f-05-building
 <tr>
 <td><strong>WAAP</strong></td>
 <td>Web Application &amp; API Protection: WAF, DDoS L7, bot, API security gộp thành một sản phẩm</td>
+</tr>
+<tr>
+<td><strong>Plane</strong></td>
+<td>Một phần hệ thống có chu kỳ deploy và yêu cầu riêng; có 4 plane (<a href="#f-09-adr-0001-four-planes">ADR-0001</a>)</td>
 </tr>
 <tr>
 <td><strong>Management plane</strong></td>
@@ -13140,155 +13996,178 @@ CEL), công nghệ của Control, Analytics, Management (<a href="#f-05-building
 </tr>
 <tr>
 <td><strong>Analytics plane</strong></td>
-<td>Plane nhận, lưu, truy vấn, phân tích log</td>
+<td>Plane nhận, lưu, truy vấn, phân tích log; detection, cảnh báo, export, metering</td>
+</tr>
+<tr>
+<td><strong>Data plane</strong></td>
+<td>Thuật ngữ ngành cho đường đi của traffic, tức Edge plane ở đây (không phải thư mục <code>data-plane/</code> của repo)</td>
 </tr>
 <tr>
 <td><strong>PoP</strong></td>
 <td>Point of Presence: một điểm đặt edge node</td>
 </tr>
 <tr>
+<td><strong>SaaS / Hybrid / On-prem</strong></td>
+<td>Ba mô hình triển khai: mọi plane ở NCC / Management, Control ở NCC còn edge (và có thể Analytics) ở hạ tầng khách / mọi plane ở hạ tầng khách (<a href="#f-07-deployment-00-index--71-ba-mô-hình-triển-khai">7.1</a>)</td>
+</tr>
+<tr>
+<td><strong>Core region</strong></td>
+<td>Region đặt Management và Control, active/standby qua hai availability zone</td>
+</tr>
+<tr>
+<td><strong>Outbox</strong></td>
+<td>Ghi sự kiện cùng transaction với dữ liệu nghiệp vụ, phát sau; không mất sự kiện</td>
+</tr>
+<tr>
+<td><strong>Desired state</strong></td>
+<td>Trạng thái Control muốn mỗi node đạt (version snapshot); node tự kéo về và báo ACK/NACK, kiểu xDS</td>
+</tr>
+<tr>
+<td><strong>Hợp đồng giữa plane</strong></td>
+<td>Định dạng dữ liệu có version giữa hai plane, bên nhận chấp nhận N và N-1 (<a href="#f-05-building-blocks-05-contracts">5.5</a>)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-12-glossary-00-index--123-edge-tầng-l7-và-tầng-waf">12.3 Edge: tầng L7 và tầng WAF</h2>
+<table>
+<thead>
+<tr>
+<th>Thuật ngữ</th>
+<th>Nghĩa</th>
+</tr>
+</thead>
+<tbody>
+<tr>
 <td><strong>L7</strong></td>
 <td>Tầng 1 của edge, đứng trước WAF (trước đây gọi là <em>edge proxy</em>): kết nối, TLS, pre-filter, bot, challenge, API auth, rate limit, cache, proxy tới origin. Phân biệt với <em>tấn công L7</em> / <em>DDoS L7</em> (tấn công ở tầng ứng dụng): khi viết về tầng thì dùng &quot;tầng L7&quot; hoặc &quot;L7&quot; như tên thành phần</td>
 </tr>
 <tr>
 <td><strong>WAF inspection</strong></td>
-<td>Tầng 2 của edge: dịch vụ kiểm tra nội dung (CRS, rule cần body), trả verdict</td>
+<td>Tầng 2 của edge: dịch vụ kiểm tra nội dung (CRS, rule cần body), trả verdict; tài nguyên chính là CPU</td>
 </tr>
 <tr>
 <td><strong>Pre-filter</strong></td>
-<td>Các bước lọc rẻ ở L7 trước khi gọi WAF: access list, challenge, rate limit, custom rule phần pre</td>
+<td>Các bước lọc rẻ ở L7 trước khi gọi WAF: access list, bot, challenge, rate limit, custom rule phần pre</td>
+</tr>
+<tr>
+<td><strong>Inspect gate</strong></td>
+<td>Bước ở L7 quyết định request có cần gửi WAF không (tài nguyên tĩnh, đã bị chặn, cache hit thì không)</td>
+</tr>
+<tr>
+<td><strong>Inspection API</strong></td>
+<td>Hợp đồng gRPC stream giữa L7 và WAF inspection (<a href="#f-05-building-blocks-05-contracts--inspection-api-l7--waf">5.5</a>)</td>
+</tr>
+<tr>
+<td><strong>Verdict</strong></td>
+<td>Kết luận WAF trả về cho một request: hành động, rule khớp, điểm anomaly, trường khớp (đã che)</td>
+</tr>
+<tr>
+<td><strong>Deadline</strong></td>
+<td>Thời gian tối đa L7 chờ WAF cho một request; quá hạn thì áp fail mode</td>
+</tr>
+<tr>
+<td><strong>Fail mode / fail-open / fail-closed</strong></td>
+<td>Cách xử lý khi một bước kiểm tra lỗi hoặc quá hạn: cho qua / chặn; chọn theo zone</td>
+</tr>
+<tr>
+<td><strong>Circuit breaker</strong></td>
+<td>Cơ chế ở L7 ngừng gọi WAF khi pool WAF lỗi hàng loạt, áp fail mode ngay thay vì chờ deadline</td>
+</tr>
+<tr>
+<td><strong>Admission control / fair share</strong></td>
+<td>WAF xếp hàng request theo tenant với trọng số theo gói; quá tải thì trả <code>Overloaded</code> thay vì chờ</td>
+</tr>
+<tr>
+<td><strong>Governor</strong></td>
+<td>Giới hạn tài nguyên theo tenant ở edge (CPU kiểm body, kích thước body, băng thông log)</td>
+</tr>
+<tr>
+<td><strong>Noisy neighbor</strong></td>
+<td>Tenant dùng tài nguyên chung quá mức làm chậm tenant khác</td>
+</tr>
+<tr>
+<td><strong>Blast radius</strong></td>
+<td>Phạm vi bị ảnh hưởng khi có sự cố hay cấu hình lỗi (một cell, một PoP, toàn fleet)</td>
 </tr>
 <tr>
 <td><strong>Body processor</strong></td>
 <td>Bộ phân tích body của engine WAF theo content type (form, JSON, XML, multipart) và decoder gắn thêm (GraphQL, protobuf)</td>
 </tr>
 <tr>
-<td><strong>Inspection API</strong></td>
-<td>Hợp đồng gRPC giữa L7 và WAF inspection</td>
+<td><strong>Profile CRS</strong></td>
+<td>Tổ hợp (ruleset release, paranoia, ngưỡng) dùng chung một instance engine cho nhiều zone</td>
 </tr>
 <tr>
-<td><strong>Origin shield / tiered cache</strong></td>
-<td>Một lớp cache trung gian giữa PoP và origin, giảm số request về origin</td>
+<td><strong>Profile lite</strong></td>
+<td>Profile WAF của zone không trả phí: tập con rule CVE nghiêm trọng, khoảng 1/4 chi phí CPU của CRS PL1</td>
 </tr>
 <tr>
-<td><strong>Purge</strong></td>
-<td>Xoá nội dung khỏi cache theo URL, prefix hoặc tag</td>
+<td><strong><code>waf_profile_fallback</code></strong></td>
+<td>Cờ trên request được kiểm bằng profile chuẩn trong lúc instance riêng của zone đang được dựng</td>
 </tr>
 <tr>
-<td><strong>DNS điều hướng</strong></td>
-<td>DNS của NCC trả IP của PoP gần và khoẻ cho hostname edge</td>
+<td><strong>Policy agent</strong></td>
+<td>Module trong binary của cả hai tầng: nhận snapshot, kiểm chữ ký, dựng runtime, báo ACK/NACK (<a href="#f-05-building-blocks-08-components-04-edge-agent-and-state">5.8.4</a>)</td>
 </tr>
 <tr>
-<td><strong>DNS authoritative</strong></td>
-<td>Khi khách chuyển quản lý DNS của domain sang NCC</td>
+<td><strong>State sync</strong></td>
+<td>Module ở L7 đồng bộ counter rate limit giữa các node (chỉ hot key)</td>
 </tr>
 <tr>
-<td><strong>Chế độ đứng sau CDN</strong></td>
-<td>WAAP nhận traffic đã qua CDN của khách, lấy IP client từ header tin cậy</td>
+<td><strong>Hot key</strong></td>
+<td>Khoá rate limit vượt 10% ngưỡng trong cửa sổ hiện tại; chỉ những khoá này được đồng bộ qua Valkey</td>
 </tr>
 <tr>
-<td><strong>Zone</strong></td>
-<td>Một site/domain khách bảo vệ, đơn vị cấu hình chính</td>
+<td><strong>Trie</strong></td>
+<td>Cây tra cứu IP/CIDR dùng cho access list</td>
 </tr>
 <tr>
-<td><strong>PolicyVersion</strong></td>
-<td>Bản policy bất biến của một zone, sinh ra khi được duyệt</td>
+<td><strong>Routing index</strong></td>
+<td>Bảng (hostname, cổng) → zone, cell, cert, digest; có trong RAM mọi node</td>
 </tr>
 <tr>
-<td><strong>Snapshot / bundle</strong></td>
-<td>Bản config đã biên dịch, có chữ ký, edge nạp nguyên khối</td>
+<td><strong>PoP config store</strong></td>
+<td>Bản sao đủ bundle và cert của mỗi PoP trên NVMe; node nạp từ đây khi cần</td>
 </tr>
 <tr>
-<td><strong>Lớp áp dụng A/B/C/D</strong></td>
-<td>Đổi nóng / build nền rồi đổi nóng / reload process / nâng phần mềm (<a href="#f-08-cross-cutting-15-config-propagation-and-apply">8.15</a>)</td>
+<td><strong>Nạp khi cần / LRU</strong></td>
+<td>Node chỉ dựng runtime của zone khi có request đầu tiên, bỏ zone ít dùng nhất khi hết ngân sách RAM</td>
 </tr>
 <tr>
-<td><strong>Node profile</strong></td>
-<td>Cấu hình của node hoặc PoP (cổng, worker, RAM, cache đĩa), rollout như phần mềm</td>
+<td><strong>Làm nóng trước</strong></td>
+<td>Nạp sẵn runtime của zone nóng (theo danh sách Analytics tính) sau khi node khởi động</td>
 </tr>
 <tr>
-<td><strong>Lớp rule khẩn</strong></td>
-<td>Bộ rule nhỏ của NCC chạy trước CRS, đi fast lane không cần build lại CRS</td>
+<td><strong>Zone nóng / nguội</strong></td>
+<td>Zone đang có traffic trên node (runtime trong RAM) / chưa có</td>
 </tr>
 <tr>
-<td><strong>Fast lane</strong></td>
-<td>Đường phân phối khẩn bỏ qua các đợt rollout</td>
+<td><strong>Cell</strong></td>
+<td>Nhóm node trong mỗi PoP phục vụ một tập zone, có VIP riêng (<a href="#f-09-adr-0041-cells-and-zone-placement">ADR-0041</a>)</td>
 </tr>
 <tr>
-<td><strong>Canary</strong></td>
-<td>Đợt rollout đầu tiên trên một nhóm node nhỏ hoặc ở chế độ log-only</td>
+<td><strong>Pool cell</strong></td>
+<td>Nhóm cell dành cho một hoặc vài gói: mật độ cao (zone không trả phí), chuẩn (Pro, Business), Enterprise</td>
 </tr>
 <tr>
-<td><strong>Gate</strong></td>
-<td>Điều kiện tự động để một đợt rollout đi tiếp</td>
+<td><strong>Cell cách ly</strong></td>
+<td>Cell nhận zone đang bị tấn công để không ảnh hưởng zone khác</td>
 </tr>
 <tr>
-<td><strong>Last-good</strong></td>
-<td>Snapshot gần nhất đã nạp thành công, giữ để quay về</td>
+<td><strong>VIP</strong></td>
+<td>Virtual IP: địa chỉ IP dùng chung cho một nhóm node sau load balancer L4</td>
 </tr>
 <tr>
-<td><strong>Log-only / monitor</strong></td>
-<td>Chế độ đánh giá và ghi event nhưng không thực thi hành động</td>
+<td><strong>Anycast</strong></td>
+<td>Nhiều PoP quảng bá cùng một dải IP; mạng tự đưa người dùng tới PoP gần nhất</td>
 </tr>
 <tr>
-<td><strong>Managed ruleset</strong></td>
-<td>Bộ rule do NCC duy trì: OWASP CRS + system ruleset</td>
+<td><strong>Proxy L4</strong></td>
+<td>Sản phẩm riêng (Mở rộng) cho TCP/UDP không phải HTTP: chống DDoS L3/L4, access list, không kiểm nội dung</td>
 </tr>
 <tr>
-<td><strong>System ruleset</strong></td>
-<td>Bộ rule SecLang riêng của NCC</td>
-</tr>
-<tr>
-<td><strong>CRS</strong></td>
-<td>OWASP Core Rule Set</td>
-</tr>
-<tr>
-<td><strong>SecLang</strong></td>
-<td>Ngôn ngữ rule của ModSecurity; Coraza và một số engine thuần Rust cũng hỗ trợ</td>
-</tr>
-<tr>
-<td><strong>IR (custom rule)</strong></td>
-<td>Dạng trung gian Control biên dịch từ CEL, edge thực thi</td>
-</tr>
-<tr>
-<td><strong>Paranoia level</strong></td>
-<td>Mức độ chặt của CRS (1–4); càng cao càng bắt nhiều, càng dễ chặn nhầm</td>
-</tr>
-<tr>
-<td><strong>Anomaly scoring</strong></td>
-<td>CRS cộng điểm từ nhiều rule rồi so với ngưỡng thay vì chặn ngay ở rule đầu tiên</td>
-</tr>
-<tr>
-<td><strong>Exception / exclusion</strong></td>
-<td>Bỏ qua một rule cho một phạm vi cụ thể (path, tham số, header)</td>
-</tr>
-<tr>
-<td><strong>Custom rule</strong></td>
-<td>Rule khách viết bằng biểu thức, qua builder hoặc text</td>
-</tr>
-<tr>
-<td><strong>AST</strong></td>
-<td>Cây cú pháp của biểu thức rule; dạng chung của builder và text</td>
-</tr>
-<tr>
-<td><strong>Under Attack mode (UAM)</strong></td>
-<td>Chế độ challenge mọi request chưa có clearance token</td>
-</tr>
-<tr>
-<td><strong>Clearance token</strong></td>
-<td>Token có chữ ký cấp sau khi qua challenge, kiểm được ở mọi node</td>
-</tr>
-<tr>
-<td><strong>Fail-open / fail-closed</strong></td>
-<td>Cho qua hoặc chặn khi một bước kiểm tra lỗi hoặc quá hạn</td>
-</tr>
-<tr>
-<td><strong>False positive (FP)</strong></td>
-<td>Request hợp lệ bị chặn nhầm</td>
-</tr>
-<tr>
-<td><strong>Entitlements</strong></td>
-<td>Giới hạn và tính năng theo gói cước, dạng cấu hình</td>
+<td><strong>Request ID</strong></td>
+<td>Định danh duy nhất của request, in trên trang chặn, khoá tra cứu và bỏ trùng</td>
 </tr>
 <tr>
 <td><strong>status_source</strong></td>
@@ -13303,24 +14182,170 @@ CEL), công nghệ của Control, Analytics, Management (<a href="#f-05-building
 <td>Thời gian do WAAP gây ra cho một request, không gồm chờ origin và client</td>
 </tr>
 <tr>
-<td><strong>RUM</strong></td>
-<td>Real user monitoring: đo trải nghiệm thật trên trình duyệt người dùng</td>
+<td><strong>Under Attack mode (UAM)</strong></td>
+<td>Chế độ challenge mọi request chưa có clearance token</td>
 </tr>
+<tr>
+<td><strong>Challenge</strong></td>
+<td>Thử thách edge đưa ra để phân biệt người và bot: JS (proof-of-work), tương tác (CAPTCHA tự phát)</td>
+</tr>
+<tr>
+<td><strong>Proof-of-work</strong></td>
+<td>JS challenge buộc trình duyệt tính một bài toán nhỏ, tốn chi phí cho bot chạy hàng loạt</td>
+</tr>
+<tr>
+<td><strong>Clearance token</strong></td>
+<td>Token có chữ ký cấp sau khi qua challenge, kiểm được ở mọi node</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-12-glossary-00-index--124-rule-và-waf">12.4 Rule và WAF</h2>
+<table>
+<thead>
+<tr>
+<th>Thuật ngữ</th>
+<th>Nghĩa</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Managed ruleset</strong></td>
+<td>Bộ rule do NCC duy trì: OWASP CRS + system ruleset</td>
+</tr>
+<tr>
+<td><strong>CRS</strong></td>
+<td>OWASP Core Rule Set: bộ rule WAF mã nguồn mở viết bằng SecLang</td>
+</tr>
+<tr>
+<td><strong>System ruleset</strong></td>
+<td>Bộ rule SecLang riêng của NCC</td>
+</tr>
+<tr>
+<td><strong>Lớp rule khẩn</strong></td>
+<td>Bộ rule nhỏ của NCC chạy trước CRS, đi fast lane không cần build lại CRS</td>
+</tr>
+<tr>
+<td><strong>Ruleset release</strong></td>
+<td>Quy trình phát hành CRS, system ruleset, dữ liệu bot như phần mềm: regression, canary, rollback (<a href="#f-05-building-blocks-08-components-07-cert-ruleset-release">5.8.7</a>)</td>
+</tr>
+<tr>
+<td><strong>SecLang</strong></td>
+<td>Ngôn ngữ rule của ModSecurity; Coraza và một số engine thuần Rust cũng hỗ trợ</td>
+</tr>
+<tr>
+<td><strong>CEL</strong></td>
+<td>Common Expression Language: ngôn ngữ biểu thức dùng cho custom rule (<a href="#f-09-adr-0014-cel-as-rule-language">ADR-0014</a>)</td>
+</tr>
+<tr>
+<td><strong>Custom rule</strong></td>
+<td>Rule khách viết bằng biểu thức, qua builder hoặc text</td>
+</tr>
+<tr>
+<td><strong>AST</strong></td>
+<td>Cây cú pháp của biểu thức rule; dạng chung của builder và text</td>
+</tr>
+<tr>
+<td><strong>IR (custom rule)</strong></td>
+<td>Dạng trung gian Control biên dịch từ CEL, edge thực thi</td>
+</tr>
+<tr>
+<td><strong>Phần pre / phần inspect</strong></td>
+<td>Custom rule chạy ở L7 (không cần body, đứng trước rule đầu tiên cần body) / chạy ở WAF (<a href="#f-09-adr-0034-pre-filter-and-rule-split-across-tiers">ADR-0034</a>)</td>
+</tr>
+<tr>
+<td><strong>Paranoia level (PL)</strong></td>
+<td>Mức độ chặt của CRS (1–4); càng cao càng bắt nhiều, càng dễ chặn nhầm</td>
+</tr>
+<tr>
+<td><strong>Anomaly scoring</strong></td>
+<td>CRS cộng điểm từ nhiều rule rồi so với ngưỡng thay vì chặn ngay ở rule đầu tiên</td>
+</tr>
+<tr>
+<td><strong>Exception / exclusion</strong></td>
+<td>Bỏ qua một rule cho một phạm vi cụ thể (path, tham số, header)</td>
+</tr>
+<tr>
+<td><strong>Log-only / monitor</strong></td>
+<td>Chế độ đánh giá và ghi event nhưng không thực thi hành động</td>
+</tr>
+<tr>
+<td><strong>False positive (FP)</strong></td>
+<td>Request hợp lệ bị chặn nhầm</td>
+</tr>
+<tr>
+<td><strong>Virtual patching</strong></td>
+<td>Chặn khai thác một lỗ hổng (CVE) ở WAF trong khi khách chưa vá ứng dụng</td>
+</tr>
+<tr>
+<td><strong><code>go-ftw</code></strong></td>
+<td>Framework chạy test regression cho CRS trên một engine</td>
+</tr>
+<tr>
+<td><strong><code>edge-verify</code></strong></td>
+<td>Công cụ dùng chung code với edge để tự kiểm snapshot trước khi ký (self-test)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-12-glossary-00-index--125-bot-management-và-api-security">12.5 Bot management và API security</h2>
+<table>
+<thead>
+<tr>
+<th>Thuật ngữ</th>
+<th>Nghĩa</th>
+</tr>
+</thead>
+<tbody>
 <tr>
 <td><strong>bot.score / bot.class</strong></td>
 <td>Điểm 1–99 (thấp là tự động) và lớp <code>verified_bot</code>, <code>likely_human</code>, <code>likely_automated</code>, <code>automated</code></td>
+</tr>
+<tr>
+<td><strong>bot.category / bot.signals</strong></td>
+<td>Loại bot (search engine, AI crawler, giám sát…) / danh sách tín hiệu dẫn tới điểm</td>
 </tr>
 <tr>
 <td><strong>Bot đã xác minh</strong></td>
 <td>Bot tốt được xác nhận qua dải IP công bố, rDNS hoặc chữ ký của agent</td>
 </tr>
 <tr>
+<td><strong>AI crawler</strong></td>
+<td>Bot thu thập nội dung cho huấn luyện AI; khách chọn cho phép, challenge hay chặn</td>
+</tr>
+<tr>
 <td><strong>JA4</strong></td>
 <td>Fingerprint của TLS ClientHello, dùng nhận diện client</td>
 </tr>
 <tr>
+<td><strong>Fingerprint HTTP/2</strong></td>
+<td>Dấu vết từ SETTINGS, thứ tự pseudo-header của client HTTP/2</td>
+</tr>
+<tr>
+<td><strong>rDNS</strong></td>
+<td>Reverse DNS: tra tên miền từ IP, dùng xác minh bot tìm kiếm</td>
+</tr>
+<tr>
+<td><strong>Headless browser</strong></td>
+<td>Trình duyệt chạy không giao diện, thường dùng cho bot tinh vi</td>
+</tr>
+<tr>
+<td><strong>Proxy dân cư</strong></td>
+<td>Mạng proxy dùng IP nhà dân để che bot</td>
+</tr>
+<tr>
+<td><strong>ATO</strong></td>
+<td>Account takeover: chiếm tài khoản, thường bằng credential stuffing</td>
+</tr>
+<tr>
+<td><strong>Credential stuffing</strong></td>
+<td>Thử hàng loạt cặp tài khoản/mật khẩu bị lộ từ nơi khác</td>
+</tr>
+<tr>
 <td><strong>API discovery</strong></td>
 <td>Học danh sách endpoint từ traffic thật</td>
+</tr>
+<tr>
+<td><strong>Kho API</strong></td>
+<td>Danh sách endpoint chính thức của khách trong Management (từ OpenAPI hoặc discovery đã duyệt)</td>
 </tr>
 <tr>
 <td><strong>Shadow / zombie API</strong></td>
@@ -13331,72 +14356,775 @@ CEL), công nghệ của Control, Analytics, Management (<a href="#f-05-building
 <td>Danh tính đã băm của client API (từ JWT <code>sub</code>, API key, cert), khoá cho rate limit và analytics</td>
 </tr>
 <tr>
+<td><strong>JWT / JWKS</strong></td>
+<td>JSON Web Token / tập khoá công khai để kiểm chữ ký JWT</td>
+</tr>
+<tr>
+<td><strong>OpenAPI</strong></td>
+<td>Chuẩn mô tả API REST; nguồn của schema kiểm ở edge</td>
+</tr>
+<tr>
 <td><strong>BOLA</strong></td>
 <td>Broken Object Level Authorization: truy cập đối tượng của người khác bằng cách đổi ID</td>
 </tr>
+</tbody>
+</table>
+<h2 id="f-12-glossary-00-index--126-cdn-và-dns">12.6 CDN và DNS</h2>
+<table>
+<thead>
 <tr>
-<td><strong>JWKS</strong></td>
-<td>Tập khoá công khai để kiểm chữ ký JWT</td>
+<th>Thuật ngữ</th>
+<th>Nghĩa</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>CDN</strong></td>
+<td>Content Delivery Network: phục vụ nội dung từ cache gần người dùng; ở đây nằm trong tầng L7</td>
+</tr>
+<tr>
+<td><strong>Purge</strong></td>
+<td>Xoá nội dung khỏi cache theo URL, prefix hoặc tag</td>
+</tr>
+<tr>
+<td><strong>Origin shield / tiered cache</strong></td>
+<td>Một lớp cache trung gian giữa PoP và origin, giảm số request về origin</td>
+</tr>
+<tr>
+<td><strong>Hit ratio</strong></td>
+<td>Tỉ lệ request (hoặc byte) phục vụ từ cache</td>
+</tr>
+<tr>
+<td><strong>stale-if-error / stale-while-revalidate</strong></td>
+<td>Phục vụ bản cache cũ khi origin lỗi / trong lúc làm mới ở nền</td>
+</tr>
+<tr>
+<td><strong>DNS điều hướng</strong></td>
+<td>DNS của NCC trả IP của PoP (VIP của cell) gần và khoẻ cho hostname edge</td>
+</tr>
+<tr>
+<td><strong>DNS authoritative</strong></td>
+<td>Khi khách chuyển quản lý DNS của domain sang NCC (Mở rộng)</td>
+</tr>
+<tr>
+<td><strong>Bản ghi proxied</strong></td>
+<td>Bản ghi DNS bật proxy: trả IP của edge thay vì IP origin</td>
+</tr>
+<tr>
+<td><strong>CNAME</strong></td>
+<td>Bản ghi DNS trỏ một tên sang tên khác; khách CNAME hostname tới hostname edge của NCC</td>
+</tr>
+<tr>
+<td><strong>EDNS Client Subnet (ECS)</strong></td>
+<td>Resolver gửi kèm dải IP của người dùng để DNS chọn PoP chính xác hơn</td>
+</tr>
+<tr>
+<td><strong>DNSSEC</strong></td>
+<td>Ký số bản ghi DNS để chống giả mạo</td>
+</tr>
+<tr>
+<td><strong>Chế độ đứng sau CDN</strong></td>
+<td>WAAP nhận traffic đã qua CDN của khách, lấy IP client từ header tin cậy</td>
+</tr>
+<tr>
+<td><strong>Peering / IX</strong></td>
+<td>Trao đổi traffic trực tiếp giữa các mạng tại điểm trao đổi Internet (IX), thường rẻ hơn transit</td>
+</tr>
+<tr>
+<td><strong>Transit</strong></td>
+<td>Băng thông mua từ nhà mạng để ra Internet, tính theo p95</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-12-glossary-00-index--127-cấu-hình-phân-phối-rollout">12.7 Cấu hình, phân phối, rollout</h2>
+<table>
+<thead>
+<tr>
+<th>Thuật ngữ</th>
+<th>Nghĩa</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>PolicyVersion</strong></td>
+<td>Bản policy bất biến của một zone, sinh ra khi được duyệt</td>
+</tr>
+<tr>
+<td><strong>Snapshot / bundle</strong></td>
+<td>Bản config đã biên dịch, có chữ ký, edge nạp nguyên khối; bundle là phần của một zone hoặc một tầng</td>
+</tr>
+<tr>
+<td><strong>Content-addressed / digest</strong></td>
+<td>Định danh dữ liệu bằng hash SHA-256 của chính nó; cùng nội dung thì cùng digest</td>
 </tr>
 <tr>
 <td><strong>Bucket manifest / top manifest</strong></td>
-<td>Cây digest cấu hình: 4.096 bucket theo hash zone, top manifest ký liệt kê digest các bucket</td>
+<td>Cây digest cấu hình: 4.096 bucket theo hash zone, top manifest ký liệt kê digest các bucket (<a href="#f-09-adr-0040-config-distribution-at-scale">ADR-0040</a>)</td>
 </tr>
 <tr>
-<td><strong>Routing index</strong></td>
-<td>Bảng (hostname, cổng) → zone, cell, cert, digest; có trong RAM mọi node</td>
+<td><strong>Regional relay</strong></td>
+<td>Cache theo digest đặt theo region, node và PoP store kéo bundle qua đây</td>
 </tr>
 <tr>
-<td><strong>PoP config store</strong></td>
-<td>Bản sao đủ bundle và cert của mỗi PoP trên NVMe; node nạp từ đây khi cần</td>
+<td><strong>Anti-entropy</strong></td>
+<td>So sánh định kỳ digest để phát hiện và sửa chỗ thiếu khi đồng bộ</td>
 </tr>
 <tr>
-<td><strong>Zone nóng / nguội</strong></td>
-<td>Zone đang có traffic trên node (runtime trong RAM) / chưa có</td>
+<td><strong>Lớp áp dụng A/B/C/D</strong></td>
+<td>Đổi nóng / build nền rồi đổi nóng / reload process / nâng phần mềm (<a href="#f-08-cross-cutting-15-config-propagation-and-apply">8.15</a>)</td>
 </tr>
 <tr>
-<td><strong>Cell</strong></td>
-<td>Nhóm node trong mỗi PoP phục vụ một tập zone, có VIP riêng</td>
+<td><strong>Node profile</strong></td>
+<td>Cấu hình của node hoặc PoP (cổng, worker, RAM, cache đĩa), rollout như phần mềm</td>
 </tr>
 <tr>
-<td><strong>Pool cell</strong></td>
-<td>Nhóm cell dành cho một hoặc vài gói: Free (mật độ cao), chuẩn (Pro, Business), Enterprise</td>
+<td><strong>Fast lane</strong></td>
+<td>Đường phân phối khẩn bỏ qua các đợt rollout</td>
 </tr>
 <tr>
-<td><strong>Chi phí phục vụ (cost to serve)</strong></td>
-<td>Chi phí hạ tầng phân bổ cho một zone hoặc một gói mỗi tháng</td>
+<td><strong>Canary</strong></td>
+<td>Đợt rollout đầu tiên trên một nhóm node nhỏ (hoặc một cell) hoặc ở chế độ log-only</td>
 </tr>
 <tr>
-<td><strong>Thứ tự hy sinh</strong></td>
-<td>Thứ tự cố định hạ cấp tài nguyên theo gói khi PoP quá tải, từ Free lên</td>
+<td><strong>Gate</strong></td>
+<td>Điều kiện tự động để một đợt rollout đi tiếp</td>
 </tr>
 <tr>
-<td><strong>Profile lite</strong></td>
-<td>Profile WAF của gói Free: tập con rule CVE nghiêm trọng, khoảng 1/4 chi phí CPU của CRS PL1</td>
+<td><strong>Self-test</strong></td>
+<td>Control chạy snapshot trên traffic mẫu bằng <code>edge-verify</code> trước khi ký</td>
 </tr>
 <tr>
-<td><strong>Profile CRS</strong></td>
-<td>Tổ hợp (ruleset release, paranoia, ngưỡng) dùng chung một instance engine cho nhiều zone</td>
+<td><strong>Last-good</strong></td>
+<td>Snapshot gần nhất đã nạp thành công, giữ để quay về</td>
 </tr>
 <tr>
-<td><strong>Request ID</strong></td>
-<td>Định danh duy nhất của request, in trên trang chặn, khoá tra cứu và bỏ trùng</td>
+<td><strong>ACK / NACK</strong></td>
+<td>Node báo đã nạp thành công / từ chối một version</td>
+</tr>
+<tr>
+<td><strong>Fleet registry</strong></td>
+<td>Danh sách node, danh tính, sức khoẻ, version đang chạy (<a href="#f-05-building-blocks-08-components-06-rollout-distribution-fleet">5.8.6</a>)</td>
+</tr>
+<tr>
+<td><strong>N+1</strong></td>
+<td>Dư một node so với năng lực cần, để mất một node vẫn đủ</td>
+</tr>
+<tr>
+<td><strong><code>PolicyVersionPublished</code> / <code>EntitlementsChanged</code></strong></td>
+<td>Sự kiện Management phát cho Control khi có policy mới / khi gói đổi</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-12-glossary-00-index--128-analytics-cảnh-báo-giám-sát">12.8 Analytics, cảnh báo, giám sát</h2>
+<table>
+<thead>
+<tr>
+<th>Thuật ngữ</th>
+<th>Nghĩa</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Security event / access log</strong></td>
+<td>Bản ghi request bị chặn hoặc khớp rule (không lấy mẫu) / bản ghi mọi request (lấy mẫu theo gói)</td>
+</tr>
+<tr>
+<td><strong>Mẫu request</strong></td>
+<td>Request đầy đủ (đã che) lưu cho replay</td>
+</tr>
+<tr>
+<td><strong>Enricher</strong></td>
+<td>Bước trong stream processor gắn thêm thông tin (geo, ASN, zone) vào bản ghi</td>
+</tr>
+<tr>
+<td><strong>Partition / consumer lag</strong></td>
+<td>Phần chia của topic Kafka / độ trễ giữa bản ghi mới nhất và bản ghi consumer đã xử lý</td>
+</tr>
+<tr>
+<td><strong>Materialized view (MV)</strong></td>
+<td>Bảng gộp ClickHouse tự cập nhật khi có dữ liệu mới (<code>traffic_1m</code>, <code>rule_1h</code>, <code>usage_1h</code>…)</td>
+</tr>
+<tr>
+<td><strong>SummingMergeTree</strong></td>
+<td>Kiểu bảng ClickHouse tự cộng các dòng cùng khoá; dùng cho số đo usage</td>
+</tr>
+<tr>
+<td><strong>At-least-once / idempotent</strong></td>
+<td>Bản ghi có thể đến nhiều lần / xử lý lại không làm sai kết quả (bỏ trùng theo khoá)</td>
+</tr>
+<tr>
+<td><strong>SIEM export</strong></td>
+<td>Đẩy log liên tục sang hệ thống SIEM của khách (JSON, CEF, LEEF)</td>
 </tr>
 <tr>
 <td><strong>Replay</strong></td>
 <td>Chạy policy nháp trên traffic lịch sử để mô phỏng tác động</td>
 </tr>
 <tr>
-<td><strong>SIEM export</strong></td>
-<td>Đẩy log liên tục sang hệ thống SIEM của khách</td>
+<td><strong>Baseline</strong></td>
+<td>Mức bình thường của một chỉ số, tính từ lịch sử để phát hiện bất thường</td>
 </tr>
 <tr>
-<td><strong>Outbox</strong></td>
-<td>Ghi sự kiện cùng transaction với dữ liệu nghiệp vụ, phát sau; không mất sự kiện</td>
+<td><strong>EWMA / median, MAD</strong></td>
+<td>Trung bình trượt có trọng số mũ / trung vị và độ lệch tuyệt đối trung vị; cách tính baseline và độ lệch (<a href="#f-05-building-blocks-08-components-10-alerting-rules-and-algorithms">5.8.10</a>)</td>
 </tr>
 <tr>
-<td><strong>Hybrid</strong></td>
-<td>Management/Control của NCC, edge (và có thể Analytics) trong hạ tầng khách</td>
+<td><strong>Alert template</strong></td>
+<td>Cảnh báo có công thức tường minh, khách chỉnh ngưỡng (W, D, O, BOT, API ở 12.13)</td>
+</tr>
+<tr>
+<td><strong>Deliveries</strong></td>
+<td>Hàng đợi gửi cảnh báo trên PostgreSQL, worker lấy việc bằng <code>SKIP LOCKED</code></td>
+</tr>
+<tr>
+<td><strong>SLI / SLO</strong></td>
+<td>Chỉ số mức dịch vụ / mục tiêu cho chỉ số đó (<a href="#f-08-cross-cutting-12-platform-monitoring">8.12</a>)</td>
+</tr>
+<tr>
+<td><strong>Error budget / burn rate</strong></td>
+<td>Phần lỗi cho phép trong kỳ theo SLO / tốc độ tiêu phần đó; cảnh báo theo burn rate</td>
+</tr>
+<tr>
+<td><strong>Probe tổng hợp</strong></td>
+<td>Request giả chạy liên tục trên zone canary để kiểm từng hành vi từ đầu tới cuối (PR1–PR8)</td>
+</tr>
+<tr>
+<td><strong>p95 / p99</strong></td>
+<td>Phân vị 95 / 99 của một phân bố (ví dụ độ trễ)</td>
+</tr>
+<tr>
+<td><strong>P1 / P2 / P3</strong></td>
+<td>Mức cảnh báo cho NOC: gọi on-call ngay / trong giờ (ngoài giờ trong 30 phút) / ticket</td>
+</tr>
+<tr>
+<td><strong>SEV1 / SEV2 / SEV3</strong></td>
+<td>Mức sự cố khi đã xảy ra (nhiều PoP hoặc mất dữ liệu / một PoP hoặc một plane / một thành phần), quyết định quy trình xử lý và báo khách</td>
+</tr>
+<tr>
+<td><strong>Page / ticket</strong></td>
+<td>Cảnh báo gọi người trực ngay / tạo việc xử lý trong giờ</td>
+</tr>
+<tr>
+<td><strong>Runbook</strong></td>
+<td>Các bước xử lý cụ thể cho một tình huống vận hành (<a href="#f-08-cross-cutting-13-operational-behaviors">8.13</a>)</td>
+</tr>
+<tr>
+<td><strong>RUM</strong></td>
+<td>Real user monitoring: đo trải nghiệm thật trên trình duyệt người dùng</td>
+</tr>
+<tr>
+<td><strong>Realtime gateway</strong></td>
+<td>Thành phần đẩy số liệu từng giây, event mẫu, cảnh báo tới portal qua WebSocket (<a href="#f-05-building-blocks-08-components-13-realtime-gateway">5.8.13</a>)</td>
+</tr>
+<tr>
+<td><strong>Live tap</strong></td>
+<td>Phần của enricher chỉ ghi số liệu và event (có trần) của zone đang có người xem vào topic <code>live</code></td>
+</tr>
+<tr>
+<td><strong>Zone aggregator</strong></td>
+<td>Process gom số liệu của một zone đang được xem, giữ ring buffer 5 phút, dừng khi hết người xem</td>
+</tr>
+<tr>
+<td><strong>Token realtime</strong></td>
+<td>JWT hạn 5 phút Management cấp cho phiên portal, ghi tenant và zone được xem</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-12-glossary-00-index--129-thương-mại-và-gói-giá">12.9 Thương mại và gói giá</h2>
+<table>
+<thead>
+<tr>
+<th>Thuật ngữ</th>
+<th>Nghĩa</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Gói</strong></td>
+<td>Dùng thử, Free có trần, Pro, Business, Enterprise (<a href="#f-08-cross-cutting-18-segments-and-plans">8.18</a>)</td>
+</tr>
+<tr>
+<td><strong>Dùng thử</strong></td>
+<td>14 ngày tính năng Business, 1 zone, trần cứng 50 GB / 5 triệu request</td>
+</tr>
+<tr>
+<td><strong>Free có trần</strong></td>
+<td>Gói 0 đ có trần cứng; chưa mở khi ra mắt với hồ sơ công ty phần mềm</td>
+</tr>
+<tr>
+<td><strong>Entitlements</strong></td>
+<td>Giới hạn và tính năng theo gói, dạng cấu hình (<a href="#f-09-adr-0007-log-by-subscription-entitlements">ADR-0007</a>)</td>
+</tr>
+<tr>
+<td><strong>Phí nền</strong></td>
+<td>Phần giá cố định theo zone hoặc tenant, trả cho giá trị bảo mật</td>
+</tr>
+<tr>
+<td><strong>Hạn mức</strong></td>
+<td>Lượng băng thông sạch và request đi kèm phí nền mỗi tháng</td>
+</tr>
+<tr>
+<td><strong>Phí vượt</strong></td>
+<td>Tiền tính cho phần dùng vượt hạn mức theo đơn giá công bố</td>
+</tr>
+<tr>
+<td><strong>Trần cứng</strong></td>
+<td>Giới hạn edge thực thi khi chạm (gói không trả phí); gói trả phí không có trần, chỉ tính phí vượt</td>
+</tr>
+<tr>
+<td><strong>Traffic sạch</strong></td>
+<td>Traffic tới client không bị edge chặn hay challenge; chỉ phần này được tính phí</td>
+</tr>
+<tr>
+<td><strong>Chế độ chuyển tiếp tối giản</strong></td>
+<td>Trạng thái zone hết dùng thử hoặc quá hạn thanh toán: không WAF, không cache, trần 1 GB/ngày trong 30 ngày</td>
+</tr>
+<tr>
+<td><strong>Zone phụ</strong></td>
+<td>Zone thêm trong cùng account (staging, domain phụ), giá thấp hơn zone chính</td>
+</tr>
+<tr>
+<td><strong>Metering</strong></td>
+<td>Đo usage theo zone để tính tiền</td>
+</tr>
+<tr>
+<td><strong>UsageCounter</strong></td>
+<td>Bản ghi đếm usage mỗi phút mỗi zone từ node, không lấy mẫu, có số thứ tự (<a href="#f-09-adr-0043-usage-based-pricing-and-metering">ADR-0043</a>)</td>
+</tr>
+<tr>
+<td><strong>UsageReport / QuotaStateChanged</strong></td>
+<td>Sự kiện Analytics gửi Management: usage theo giờ / zone chạm 80%, 100% hạn mức hoặc trần cứng</td>
+</tr>
+<tr>
+<td><strong>Hồ sơ hạ tầng</strong></td>
+<td>Bộ đơn giá đầu vào: công ty phần mềm (thuê băng thông, colo, IP, chống DDoS) hoặc nhà mạng, datacenter có sẵn</td>
+</tr>
+<tr>
+<td><strong>Chi phí biên</strong></td>
+<td>Chi phí thêm cho mỗi đơn vị dùng (GB, triệu request, bản ghi log)</td>
+</tr>
+<tr>
+<td><strong>Chi phí cố định</strong></td>
+<td>Chi phí không phụ thuộc số khách: node tối thiểu, cam kết băng thông, đội ngũ</td>
+</tr>
+<tr>
+<td><strong>Chi phí phục vụ (cost to serve)</strong></td>
+<td>Chi phí phân bổ cho một zone hoặc một gói mỗi tháng</td>
+</tr>
+<tr>
+<td><strong>Điểm hoà vốn</strong></td>
+<td>Doanh thu cần để bù chi phí cố định cộng biến đổi ở một giai đoạn</td>
+</tr>
+<tr>
+<td><strong>Thứ tự hy sinh</strong></td>
+<td>Thứ tự cố định hạ cấp tài nguyên theo gói khi PoP quá tải, từ zone không trả phí lên</td>
+</tr>
+<tr>
+<td><strong>White-label</strong></td>
+<td>Bán sản phẩm dưới thương hiệu của đối tác (ví dụ nhà mạng)</td>
+</tr>
+<tr>
+<td><strong>SLA</strong></td>
+<td>Cam kết mức dịch vụ trong hợp đồng, kèm bồi hoàn khi vi phạm</td>
+</tr>
+<tr>
+<td><strong>TAM</strong></td>
+<td>Technical Account Manager: người kỹ thuật phụ trách riêng một khách Enterprise</td>
+</tr>
+<tr>
+<td><strong>Trust and Safety</strong></td>
+<td>Bộ phận xử lý lạm dụng (phishing, malware) trên nền tảng</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-12-glossary-00-index--1210-bảo-mật-và-tuân-thủ">12.10 Bảo mật và tuân thủ</h2>
+<table>
+<thead>
+<tr>
+<th>Thuật ngữ</th>
+<th>Nghĩa</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>mTLS</strong></td>
+<td>TLS hai chiều: cả hai bên trình cert; dùng giữa node và Control, L7 và WAF, edge và origin</td>
+</tr>
+<tr>
+<td><strong>PKI</strong></td>
+<td>Hạ tầng cấp và thu hồi cert (CA cho node)</td>
+</tr>
+<tr>
+<td><strong>Keyless</strong></td>
+<td>Private key cert ở lại hạ tầng khách; edge gọi sang để ký khi bắt tay TLS</td>
+</tr>
+<tr>
+<td><strong>BYOIP</strong></td>
+<td>Bring your own IP: khách đưa dải IP của mình để edge quảng bá</td>
+</tr>
+<tr>
+<td><strong>HMAC</strong></td>
+<td>Mã xác thực thông điệp bằng khoá bí mật; dùng ký webhook</td>
+</tr>
+<tr>
+<td><strong>SSO / SAML / OIDC</strong></td>
+<td>Đăng nhập một lần / hai chuẩn giao thức cho SSO</td>
+</tr>
+<tr>
+<td><strong>SCIM</strong></td>
+<td>Chuẩn đồng bộ user, nhóm từ identity provider</td>
+</tr>
+<tr>
+<td><strong>RBAC / ABAC</strong></td>
+<td>Phân quyền theo vai trò / theo thuộc tính (ví dụ giới hạn theo zone)</td>
+</tr>
+<tr>
+<td><strong>4-eyes</strong></td>
+<td>Thay đổi phải có người thứ hai duyệt</td>
+</tr>
+<tr>
+<td><strong>PII</strong></td>
+<td>Dữ liệu định danh cá nhân</td>
+</tr>
+<tr>
+<td><strong>Nghị định 13/2023/NĐ-CP / GDPR</strong></td>
+<td>Quy định bảo vệ dữ liệu cá nhân của Việt Nam / EU</td>
+</tr>
+<tr>
+<td><strong>PCI DSS / SOC 2</strong></td>
+<td>Chuẩn bảo mật cho dữ liệu thẻ thanh toán / khung báo cáo kiểm soát bảo mật</td>
+</tr>
+<tr>
+<td><strong>Data residency</strong></td>
+<td>Dữ liệu của tenant phải nằm trong một region cụ thể</td>
+</tr>
+<tr>
+<td><strong>CVE</strong></td>
+<td>Mã định danh công khai của một lỗ hổng</td>
+</tr>
+<tr>
+<td><strong>XSS / SQLi / XXE / SSRF</strong></td>
+<td>Các loại tấn công web: chèn script / chèn SQL / thực thể XML ngoài / buộc server gọi tới địa chỉ kẻ tấn công chọn</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-12-glossary-00-index--1211-công-nghệ-và-sản-phẩm">12.11 Công nghệ và sản phẩm</h2>
+<p>Lựa chọn và lý do ở <a href="#f-05-building-blocks-07-technology-map">5.7</a> và các ADR liên quan.</p>
+<table>
+<thead>
+<tr>
+<th>Tên</th>
+<th>Là gì, dùng ở đâu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Pingora</strong></td>
+<td>Framework proxy viết bằng Rust (Cloudflare); phương án nền cho tầng L7</td>
+</tr>
+<tr>
+<td><strong>Envoy / <code>ext_proc</code></strong></td>
+<td>Proxy C++ / API của Envoy gửi request sang dịch vụ ngoài để xử lý; phương án nền L7</td>
+</tr>
+<tr>
+<td><strong>HAProxy / SPOE</strong></td>
+<td>Load balancer, proxy C / giao thức gửi request sang agent ngoài; phương án nền L7</td>
+</tr>
+<tr>
+<td><strong>NGINX / OpenResty</strong></td>
+<td>Web server, proxy C / bản NGINX kèm Lua; phương án nền L7, mạnh về cache</td>
+</tr>
+<tr>
+<td><strong>Coraza</strong></td>
+<td>Engine WAF viết bằng Go, chạy SecLang và CRS; engine mặc định đề xuất</td>
+</tr>
+<tr>
+<td><strong>libmodsecurity v3</strong></td>
+<td>Engine WAF C++ (ModSecurity), engine tham chiếu của CRS</td>
+</tr>
+<tr>
+<td><strong>CoreDNS</strong></td>
+<td>DNS server Go, mở rộng bằng plugin; dùng cho DNS điều hướng</td>
+</tr>
+<tr>
+<td><strong>Valkey</strong></td>
+<td>Kho key-value tương thích Redis, license BSD; đồng bộ counter hot key</td>
+</tr>
+<tr>
+<td><strong>OpenBao</strong></td>
+<td>Quản lý bí mật, PKI, ký (nhánh mã nguồn mở của Vault)</td>
+</tr>
+<tr>
+<td><strong>Vector</strong></td>
+<td>Log shipper trên node và ingest gateway</td>
+</tr>
+<tr>
+<td><strong>Elixir / BEAM / OTP</strong></td>
+<td>Ngôn ngữ chạy trên máy ảo Erlang (BEAM), mỗi thực thể là một process nhẹ, OTP supervisor tự khởi động lại khi lỗi; dùng cho realtime gateway và notifier (<a href="#f-09-adr-0044-realtime-gateway-and-notifier-runtime">ADR-0044</a>)</td>
+</tr>
+<tr>
+<td><strong>Phoenix Channels / PubSub / Presence</strong></td>
+<td>Thư viện Elixir: kênh WebSocket theo topic / phát message trong cụm / theo dõi ai đang kết nối</td>
+</tr>
+<tr>
+<td><strong>Broadway / Oban</strong></td>
+<td>Thư viện Elixir: consumer Kafka có backpressure / job queue trên PostgreSQL (dùng bản mã nguồn mở)</td>
+</tr>
+<tr>
+<td><strong>Centrifugo</strong></td>
+<td>Server realtime viết bằng Go, phương án dự phòng cho realtime gateway</td>
+</tr>
+<tr>
+<td><strong>Apache Kafka (KRaft) / Strimzi</strong></td>
+<td>Bus telemetry / operator chạy Kafka trên Kubernetes</td>
+</tr>
+<tr>
+<td><strong>ClickHouse</strong></td>
+<td>Cơ sở dữ liệu cột cho hot search và số liệu gộp</td>
+</tr>
+<tr>
+<td><strong>Parquet</strong></td>
+<td>Định dạng file cột, dùng cho archive và mẫu request</td>
+</tr>
+<tr>
+<td><strong>PostgreSQL / CloudNativePG</strong></td>
+<td>Cơ sở dữ liệu cho Management, Control / operator chạy PostgreSQL trên Kubernetes</td>
+</tr>
+<tr>
+<td><strong>RabbitMQ</strong></td>
+<td>Message broker cho sự kiện điều khiển giữa plane</td>
+</tr>
+<tr>
+<td><strong>SeaweedFS</strong></td>
+<td>Object storage chuẩn S3 tự host</td>
+</tr>
+<tr>
+<td><strong>LMDB</strong></td>
+<td>Kho key-value nhúng, đề xuất cho PoP config store</td>
+</tr>
+<tr>
+<td><strong>MMDB</strong></td>
+<td>Định dạng file dữ liệu geo/ASN</td>
+</tr>
+<tr>
+<td><strong>OpenTelemetry, VictoriaMetrics, VictoriaLogs, Jaeger, Alertmanager, Grafana</strong></td>
+<td>Bộ quan sát nền tảng nội bộ NCC</td>
+</tr>
+<tr>
+<td><strong><code>lego</code>, <code>cel-go</code>, <code>franz-go</code>, <code>quic-go</code></strong></td>
+<td>Thư viện Go: ACME / CEL / Kafka client / QUIC, HTTP/3</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-12-glossary-00-index--1212-viết-tắt">12.12 Viết tắt</h2>
+<table>
+<thead>
+<tr>
+<th>Viết tắt</th>
+<th>Nghĩa</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ACME</td>
+<td>Giao thức tự động cấp cert (Let's Encrypt và CA khác)</td>
+</tr>
+<tr>
+<td>ASN</td>
+<td>Số hiệu mạng tự trị; dùng nhận diện nhà mạng, datacenter</td>
+</tr>
+<tr>
+<td>CI</td>
+<td>Continuous integration</td>
+</tr>
+<tr>
+<td>CRUD</td>
+<td>Tạo, đọc, sửa, xoá</td>
+</tr>
+<tr>
+<td>DR</td>
+<td>Disaster recovery</td>
+</tr>
+<tr>
+<td>DSL</td>
+<td>Ngôn ngữ chuyên dụng (domain-specific language)</td>
+</tr>
+<tr>
+<td>FFI</td>
+<td>Gọi hàm giữa hai ngôn ngữ (foreign function interface)</td>
+</tr>
+<tr>
+<td>GC</td>
+<td>Garbage collection: thu gom bộ nhớ tự động, có thể gây khựng</td>
+</tr>
+<tr>
+<td>HA</td>
+<td>High availability</td>
+</tr>
+<tr>
+<td>IaC</td>
+<td>Infrastructure as code (Terraform, GitOps)</td>
+</tr>
+<tr>
+<td>ITSM, SOAR</td>
+<td>Hệ thống quản lý sự cố, ticket / nền tảng tự động hoá phản ứng bảo mật</td>
+</tr>
+<tr>
+<td>KV</td>
+<td>Key-value</td>
+</tr>
+<tr>
+<td>NIC</td>
+<td>Card mạng</td>
+</tr>
+<tr>
+<td>NOC / SOC</td>
+<td>Trung tâm vận hành mạng / trung tâm vận hành bảo mật</td>
+</tr>
+<tr>
+<td>NVMe</td>
+<td>Ổ SSD giao tiếp PCIe, dùng cho cache và PoP config store</td>
+</tr>
+<tr>
+<td>OOM</td>
+<td>Hết bộ nhớ (out of memory)</td>
+</tr>
+<tr>
+<td>QUIC</td>
+<td>Giao thức truyền tải trên UDP mà HTTP/3 dùng</td>
+</tr>
+<tr>
+<td>RE2</td>
+<td>Engine regex thời gian tuyến tính, chống ReDoS</td>
+</tr>
+<tr>
+<td>RPO / RTO</td>
+<td>Lượng dữ liệu tối đa có thể mất / thời gian tối đa để khôi phục</td>
+</tr>
+<tr>
+<td>RTT</td>
+<td>Thời gian khứ hồi mạng</td>
+</tr>
+<tr>
+<td>SAN</td>
+<td>Tên phụ trong cert, cho một cert phủ nhiều hostname</td>
+</tr>
+<tr>
+<td>SNI</td>
+<td>Tên miền client gửi trong TLS ClientHello, dùng chọn cert</td>
+</tr>
+<tr>
+<td>TTFB</td>
+<td>Thời gian tới byte đầu tiên</td>
+</tr>
+<tr>
+<td>TTL</td>
+<td>Thời gian sống của bản ghi (DNS, cache)</td>
+</tr>
+<tr>
+<td>UA</td>
+<td>User-Agent</td>
+</tr>
+<tr>
+<td>VRL</td>
+<td>Vector Remap Language: ngôn ngữ biến đổi bản ghi của Vector</td>
+</tr>
+<tr>
+<td>XDP</td>
+<td>Xử lý gói tin sớm trong kernel Linux, cho lọc L3/L4 tốc độ cao</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-12-glossary-00-index--1213-quy-ước-mã-trong-tài-liệu">12.13 Quy ước mã trong tài liệu</h2>
+<p>Mỗi tiền tố chỉ có một nghĩa trong toàn bộ tài liệu.</p>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Nghĩa</th>
+<th>Ở đâu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Q1–Q6</strong></td>
+<td>Mục tiêu chất lượng</td>
+<td><a href="#f-01-introduction-00-index--13-mục-tiêu-chất-lượng">1.3</a></td>
+</tr>
+<tr>
+<td><strong>QS-1…QS-38</strong></td>
+<td>Kịch bản chất lượng đo được</td>
+<td><a href="#f-10-quality-00-index--103-kịch-bản">10.3</a></td>
+</tr>
+<tr>
+<td><strong>R1…R27</strong></td>
+<td>Rủi ro</td>
+<td><a href="#f-11-risks-00-index">11.1</a></td>
+</tr>
+<tr>
+<td><strong>A1…A17 / B1…B10</strong></td>
+<td>Tình huống vận hành tự xảy ra / thao tác của người vận hành, mỗi cái có runbook</td>
+<td><a href="#f-08-cross-cutting-13-operational-behaviors">8.13</a></td>
+</tr>
+<tr>
+<td><strong>S1…S12</strong></td>
+<td>SLI của nền tảng</td>
+<td><a href="#f-08-cross-cutting-12-platform-monitoring">8.12</a></td>
+</tr>
+<tr>
+<td><strong>PR1…PR8</strong></td>
+<td>Probe tổng hợp</td>
+<td><a href="#f-08-cross-cutting-12-platform-monitoring--4-probe-tổng-hợp-theo-hành-vi">8.12 §4</a></td>
+</tr>
+<tr>
+<td><strong>P1 / P2 / P3</strong></td>
+<td>Mức cảnh báo cho NOC</td>
+<td><a href="#f-08-cross-cutting-13-operational-behaviors">8.13</a></td>
+</tr>
+<tr>
+<td><strong>W1…W6, D1…D6, O1…O3, BOT1…BOT3, API1…API3</strong></td>
+<td>Alert template cho khách: WAF, DDoS, origin, bot, API</td>
+<td><a href="#f-05-building-blocks-08-components-10-alerting-rules-and-algorithms">5.8.10</a></td>
+</tr>
+<tr>
+<td><strong>BS1…BS7</strong></td>
+<td>Lớp tín hiệu bot</td>
+<td><a href="#f-08-cross-cutting-16-bot-management">8.16</a></td>
+</tr>
+<tr>
+<td><strong>G1…G12</strong></td>
+<td>Giả định ước lượng tải</td>
+<td><a href="#f-07-deployment-05-capacity-and-sharding--1-giả-định">7.5</a></td>
+</tr>
+<tr>
+<td><strong>L1…L4</strong> (sharding)</td>
+<td>Bốn lớp sharding: routing index, PoP store, runtime node, cell</td>
+<td><a href="#f-07-deployment-05-capacity-and-sharding--4-sharding-bốn-lớp">7.5 §4</a></td>
+</tr>
+<tr>
+<td><strong>T1…T13</strong></td>
+<td>Tiêu chí chọn nền L7 và engine WAF</td>
+<td><a href="#f-09-adr-0031-edge-l7-and-waf-engine-options">ADR-0031</a></td>
+</tr>
+<tr>
+<td><strong>N1…N5 / E1…E3 / I1…I3 / K1…K5</strong></td>
+<td>Phương án nền L7 / engine WAF / cách L7 gọi WAF / tổ hợp cho spike</td>
+<td><a href="#f-09-adr-0031-edge-l7-and-waf-engine-options">ADR-0031</a></td>
+</tr>
+<tr>
+<td><strong>C1…C4</strong></td>
+<td>Phương án cell</td>
+<td><a href="#f-09-adr-0041-cells-and-zone-placement">ADR-0041</a></td>
+</tr>
+<tr>
+<td><strong>Lớp A/B/C/D</strong></td>
+<td>Lớp áp dụng cấu hình trên edge</td>
+<td><a href="#f-08-cross-cutting-15-config-propagation-and-apply">8.15</a></td>
+</tr>
+<tr>
+<td><strong>SEV1, SEV2, SEV3</strong></td>
+<td>Mức sự cố</td>
+<td><a href="#f-08-cross-cutting-13-operational-behaviors">8.13</a></td>
 </tr>
 </tbody>
 </table>

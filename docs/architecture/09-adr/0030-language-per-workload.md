@@ -20,8 +20,9 @@ nghiệp vụ, khối lượng vừa phải; ở đó tốc độ phát triển 
 | **Công cụ `edge-verify`** | Cùng ngôn ngữ với edge | Compiler và pipeline phát hành ruleset nạp thử snapshot bằng đúng loader của edge |
 | Log shipper, ingest gateway | Vector (Rust, có sẵn) | [ADR-0019](0019-vector-as-node-log-shipper.md) |
 | **Control** | Go | Logic điều phối, khối lượng nhỏ; `cel-go` cho kiểm tra rule ([ADR-0032](0032-cel-checked-at-control-ir-at-edge.md)) |
-| **Analytics services** (enricher, query, detection, notifier, exporter) | Go | I/O-bound, scale ngang; enricher chuyển sang Rust chỉ khi profiling cho thấy chi phí CPU chiếm phần lớn |
+| **Analytics services** (enricher, query, detection, exporter) | Go | I/O-bound, scale ngang; enricher chuyển sang Rust chỉ khi profiling cho thấy chi phí CPU chiếm phần lớn |
 | **Management** | Go (`metap-go`) | [ADR-0009](0009-metap-for-management-plane-only.md) |
+| **Realtime gateway, notifier** | Elixir (Phoenix, Broadway, Oban) | Nhiều thực thể sống lâu, fan-out, retry, cô lập lỗi ([ADR-0044](0044-realtime-gateway-and-notifier-runtime.md)) |
 
 Nếu edge không viết bằng Go, ranh giới ngôn ngữ trùng ranh giới plane, giao tiếp qua protobuf/gRPC đã có
 ([05-contracts](../05-building-blocks/05-contracts.md)); không có FFI giữa Go và Rust.
@@ -45,4 +46,6 @@ Nếu edge không viết bằng Go, ranh giới ngôn ngữ trùng ranh giới p
   lý thừa sức với thiết kế ở [5.8.11](../05-building-blocks/08-components/11-notification-fanout.md),
   còn thêm runtime thứ ba thì tốn vận hành và tuyển người. Xem lại khi: (a) cần đẩy event realtime tới
   hàng chục nghìn phiên portal cùng lúc (Phoenix Channels là lựa chọn mạnh), hoặc (b) số tin thông báo
-  vượt mức một cụm Go nhỏ xử lý được.
+  vượt mức một cụm Go nhỏ xử lý được. **Điều kiện (a) đã xảy ra** theo ước lượng ở quy mô 1 triệu zone
+  (2026-11-06): xem [ADR-0044](0044-realtime-gateway-and-notifier-runtime.md), đã chọn Elixir cho
+  realtime gateway và notifier.

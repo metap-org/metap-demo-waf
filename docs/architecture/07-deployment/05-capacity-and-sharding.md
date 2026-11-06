@@ -82,6 +82,14 @@ Năng lực một node (phải đo lại trong spike):
 
 3M bản ghi; với TTL 60 s ước khoảng 300.000 truy vấn/s toàn cục, khoảng 10.000 qps mỗi PoP.
 
+### Phiên portal và realtime
+
+| Đại lượng | Ước lượng | Kết quả |
+|---|---|---|
+| Phiên portal đồng thời | 10.000–30.000 bình thường; 50.000–100.000 trong đợt tấn công lớn | Realtime gateway riêng, không polling ClickHouse ([5.8.13](../05-building-blocks/08-components/13-realtime-gateway.md)) |
+| Zone đang được xem cùng lúc | ≤ 50.000 | Live tap chỉ ghi cho các zone này, trần 50 event/s mỗi zone |
+| Message realtime ra client | ≈ 1 triệu message/s ở đỉnh, ≈ 300 B mỗi message | 4–6 node gateway mỗi region + N+1 |
+
 ## 3. Kết luận từ ước lượng
 
 0. **Chi phí của 82% zone (Free + Pro) là chi phí theo zone, của 2% zone Enterprise là chi phí theo

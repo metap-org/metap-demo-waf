@@ -135,7 +135,7 @@ AS SELECT tenant_id, zone_id, toStartOfMinute(ts) AS minute, action, rule_id,
 | `rule_efficacy_1h` | Số lần khớp, tỉ lệ chặn, số nhãn FP theo rule và policy version |
 | `bot_1h` | Phân bố `bot.class`/`bot.category` theo zone, nhóm path; top fingerprint, ASN |
 | `api_endpoint_1h` | Theo `api_endpoint_id`: traffic, lỗi, độ trễ theo chặng, vi phạm schema, lỗi JWT, số consumer khác nhau |
-| `usage_1h` | Metering cho billing |
+| `usage_1m`, `usage_1h` | Metering cho billing, cộng chính xác từ `UsageCounter` (SummingMergeTree, khoá `(node, zone, phút)`); mẫu 5 phút cho p95 băng thông |
 | `fp_labels` | Nhãn chặn nhầm từ Management, join vào `rule_efficacy` |
 
 - **Cluster:** shard theo `tenant_id`, replica 2; Keeper cho điều phối.

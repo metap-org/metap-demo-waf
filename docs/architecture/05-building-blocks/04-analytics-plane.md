@@ -18,7 +18,9 @@ flowchart LR
         meter["Metering"]
         q["Query API"]
         rp["Replay"]
+        rt["Realtime gateway"]
     end
+    portal["Portal"]
     mgmt["Management"]
     ctrl["Control · Rollout gate"]
     siem["SIEM của khách"]
@@ -39,6 +41,8 @@ flowchart LR
     det --> notify
     col -.->|chỉ số theo version| ctrl
     meter -->|số đo sử dụng| mgmt
+    sp -->|live tap: zone đang xem| rt
+    rt <-->|WebSocket| portal
 ```
 
 | Thành phần | Trách nhiệm |
@@ -53,6 +57,7 @@ flowchart LR
 | **Log export** | Đọc thẳng từ bus, đẩy liên tục sang đích khách chọn; mỗi đích một hàng đợi riêng, đích chậm không ảnh hưởng đích khác |
 | **Metering** | Đếm request, băng thông, dung lượng log theo tenant cho billing |
 | **Query API** | Cửa duy nhất để đọc dữ liệu traffic: áp quyền theo tenant/zone, giới hạn khoảng thời gian và chi phí theo entitlements |
+| **Realtime gateway** | Đẩy số liệu từng giây, security event mẫu, cảnh báo, tiến độ rollout tới hàng chục nghìn phiên portal qua WebSocket; chỉ gom cho zone đang có người xem ([5.8.13](08-components/13-realtime-gateway.md)) |
 | **Replay** | Chạy một bản policy nháp trên traffic lịch sử (mẫu từ archive) để trả lời "áp rule này 7 ngày qua thì chặn gì" |
 
 Hai điểm thiết kế:

@@ -98,7 +98,7 @@ stateDiagram-v2
 | Giai đoạn | Thiết kế |
 |---|---|
 | Nguồn | Unix socket, bản ghi protobuf có độ dài tiền tố |
-| Biến đổi | Lấy mẫu access log theo zone (security event không lấy mẫu); che trường theo cấu hình khách bằng VRL; gắn `node_id`, `region` |
-| Buffer | Disk buffer có giới hạn dung lượng; khi đầy, nguồn access log bị chặn trước, security event dùng buffer riêng |
+| Biến đổi | Lấy mẫu access log theo zone (security event và `UsageCounter` không lấy mẫu); che trường theo cấu hình khách bằng VRL; gắn `node_id`, `region` |
+| Buffer | Disk buffer có giới hạn dung lượng; khi đầy, nguồn access log bị chặn trước, security event và `UsageCounter` dùng buffer riêng. Bộ đếm usage còn được giữ cục bộ 7 ngày để đối soát nếu thiếu số thứ tự ([8.18 §6](../../08-cross-cutting/18-segments-and-plans.md#6-đo-usage-hạn-mức-và-trần-cứng)) |
 | Sink | Ingest gateway của Analytics region được gán, qua giao thức `vector` (gRPC) có mTLS bằng cert node, nén zstd; chỉ xoá khỏi buffer đĩa khi gateway xác nhận đã ghi Kafka (end-to-end ack). Edge không biết Kafka tồn tại |
 | Quan sát | Metrics của Vector (độ trễ, mức buffer, lỗi gửi) được gom vào `/metrics` của node |

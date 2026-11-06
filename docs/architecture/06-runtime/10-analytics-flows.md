@@ -17,6 +17,7 @@ tiết ở [5.8.8](../05-building-blocks/08-components/08-ingestion-and-storage.
 | I | [Metering và billing](#i-metering-và-billing) |
 | J | [Retention và xoá dữ liệu](#j-retention-và-xoá-dữ-liệu) |
 | K | [Backpressure và lỗi theo từng chặng](#k-backpressure-và-lỗi-theo-từng-chặng) |
+| — | Số liệu và event live tới portal: [5.8.13](../05-building-blocks/08-components/13-realtime-gateway.md#luồng-mở-dashboard-của-một-zone) |
 
 ## A. Toàn cảnh
 
@@ -251,14 +252,17 @@ sequenceDiagram
     participant ME as Metering job
     participant M as Management billing
     loop mỗi giờ
-        ME->>C: request, băng thông, dung lượng log theo tenant
-        ME->>M: UsageReport(tenant, kỳ, số đo) qua RabbitMQ
+        ME->>C: request sạch, băng thông sạch, đơn vị WAF, dung lượng log theo zone (từ UsageCounter)
+        ME->>M: UsageReport(tenant, zone, giờ, số đo) qua RabbitMQ
     end
-    M->>M: cộng dồn theo kỳ thanh toán, so với quota
-    M->>M: cuối kỳ: hoá đơn
+    loop mỗi 5 phút
+        ME->>M: QuotaStateChanged(zone, 80% / 100% / trần cứng)
+    end
+    M->>M: thông báo khách, trần cứng → entitlements mới qua fast lane
+    M->>M: cuối kỳ: đối soát (cửa sổ trễ 24 giờ), hoá đơn = phí nền + phí vượt
 ```
 
-`UsageReport` idempotent theo `(tenant, giờ)`: chạy lại một giờ ghi đè chứ không cộng thêm.
+`UsageReport` idempotent theo `(tenant, zone, giờ)`: chạy lại một giờ ghi đè chứ không cộng thêm. Nguồn là `UsageCounter` không lấy mẫu, không phải access log ([ADR-0043](../09-adr/0043-usage-based-pricing-and-metering.md)).
 
 ## J. Retention và xoá dữ liệu
 
