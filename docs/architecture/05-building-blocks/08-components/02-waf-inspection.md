@@ -43,6 +43,52 @@ flowchart LR
 | **Verdict builder** | `{action, rule_ids, anomaly_score, matched_fields (đã che), phase, engine_time_us}` |
 | **Policy agent** | Cùng cơ chế với L7 ([5.8.4](04-edge-agent-and-state.md)); chỉ nạp phần snapshot của tầng WAF |
 
+## Phạm vi giao thức
+
+WAF chỉ kiểm được traffic mà tầng L7 đã giải mã TLS (cần cert của zone, kể cả kiểu keyless). Khách không
+cho giải mã thì chỉ còn bảo vệ L3/L4.
+
+### Giao thức vào edge
+
+| Giao thức | Mức bảo vệ |
+|---|---|
+| HTTP/1.1, HTTP/2 | Đầy đủ. L7 chuẩn hoá request (giải nén header, gộp cookie, chuẩn hoá path); WAF nhận cùng một dạng, không phụ thuộc bản HTTP |
+| HTTP/3 (QUIC) | Như trên; phụ thuộc nền L7 được chọn ([ADR-0031](../../09-adr/0031-edge-l7-and-waf-engine-options.md), T10) |
+
+### Nội dung body
+
+| Loại | Mức bảo vệ | Ghi chú |
+|---|---|---|
+| Query, header, cookie, form urlencoded | Đầy đủ: CRS, system ruleset, custom rule | |
+| JSON | Đầy đủ; Business trở lên kiểm thêm theo JSON Schema | [8.17](../../08-cross-cutting/17-api-security.md) |
+| XML, SOAP | CRS (gồm XXE, injection trong phần tử và thuộc tính) | Engine phải parse XML, tắt thực thể ngoài; tiêu chí T13 của [ADR-0031](../../09-adr/0031-edge-l7-and-waf-engine-options.md) |
+| multipart (upload file) | Kiểm field, tên file, loại khai báo và magic bytes, kích thước, số phần | **Không quét malware** trong nội dung file; nếu làm là tính năng riêng, chạy bất đồng bộ |
+| GraphQL | Parse, độ sâu, độ phức tạp, introspection, batch | Mở rộng, [8.17](../../08-cross-cutting/17-api-security.md) |
+| Body vượt giới hạn của gói | Chỉ kiểm phần đầu tới giới hạn (8 KB → 1 MB theo gói, [8.18](../../08-cross-cutting/18-segments-and-plans.md)) | Phần vượt: theo chính sách zone `body_overflow = pass \| block`, mặc định `pass`, có event `body_truncated` |
+| Body nén (gzip, br) từ client | L7 giải nén có giới hạn tỉ lệ và kích thước trước khi gửi WAF | Vượt giới hạn giải nén coi như body vượt giới hạn; chống zip bomb |
+
+### Kết nối dài và streaming
+
+| Giao thức | Mức bảo vệ | Giai đoạn |
+|---|---|---|
+| WebSocket | Kiểm request bắt tay (header, auth, bot, rate limit, custom rule). Sau khi nâng cấp kết nối, frame **không** đi qua CRS; chỉ có giới hạn kích thước frame, số frame/giây, thời gian sống của kết nối, số kết nối đồng thời mỗi IP | MVP |
+| WebSocket, kiểm frame | Frame text/JSON đi qua rule riêng (không dùng CRS nguyên bản), theo mẫu hoặc cứ N frame một lần | Nâng cao |
+| Server-Sent Events, response chunked | Request được kiểm; response chảy thẳng tới client, không đệm, không kiểm | MVP |
+| gRPC, gRPC-Web | Rule theo method (path `/package.Service/Method`), metadata (header), auth JWT/mTLS, rate limit theo method; giới hạn kích thước message. Body protobuf nhị phân không qua CRS | MVP (theo method), Mở rộng (rate limit theo consumer) |
+| gRPC, kiểm nội dung | Khách tải file descriptor `.proto`; WAF decode message thành cây trường và chạy rule, kiểm schema như JSON | Nâng cao |
+
+### Response
+
+Không kiểm body response ở MVP (chỉ header và status cho analytics). Phát hiện dữ liệu nhạy cảm trong
+response là giai đoạn Nâng cao ([8.17](../../08-cross-cutting/17-api-security.md)).
+
+### Ngoài phạm vi WAF
+
+| Traffic | Sản phẩm | Bảo vệ |
+|---|---|---|
+| TCP/UDP không phải HTTP (game, MQTT, SMTP, database, SSH, RDP, cổng tuỳ ý) | Proxy L4 (Mở rộng, [7.5 §7](../../07-deployment/05-capacity-and-sharding.md#7-cổng)) | DDoS L3/L4, access list IP/geo/ASN, giới hạn kết nối và băng thông; không kiểm nội dung |
+| DNS | DNS điều hướng, DNS authoritative ([5.8.3](03-dns-and-traffic-steering.md)) | Rate limit truy vấn, chống amplification |
+
 ## Triển khai trong PoP
 
 | Kích thước PoP | Cách đặt |

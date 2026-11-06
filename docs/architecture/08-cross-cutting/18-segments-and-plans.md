@@ -142,6 +142,9 @@ ngờ. Enterprise định giá theo cam kết traffic (rps hoặc băng thông 9
 | | Custom rule | 5 | 20 | 100 | 1.000 |
 | | Rate limit rule | 1 (theo IP) | 5 | 50 (theo header, consumer) | 500 |
 | | Kích thước body kiểm tra | 8 KB | 64 KB | 128 KB | Tới 1 MB |
+| | Body XML, multipart | Có | Có | Có | Có |
+| | WebSocket | Kiểm bắt tay, giới hạn cơ bản | Như Free | + giới hạn frame tuỳ chỉnh | + kiểm frame (Nâng cao) |
+| | gRPC | — | Rule theo method | + rate limit theo method, consumer | + kiểm nội dung theo `.proto` (Nâng cao) |
 | | Phần CPU WAF (trọng số fair share) | 1 | 2 | 4 | 8, hoặc pool riêng |
 | **Bot** | Mức | Chặn bot xấu rõ ràng | Bot fight (lớp, không điểm) | `bot.score`, policy theo đường dẫn | + mô hình, ATO, verified bot tuỳ chỉnh |
 | **API** | Discovery / schema / JWT | — | — | Có / 10 schema / Có | Có / không giới hạn / + mTLS, GraphQL |

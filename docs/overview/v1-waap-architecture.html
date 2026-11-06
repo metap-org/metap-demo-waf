@@ -2652,6 +2652,137 @@ trả <strong>verdict</strong>. Tài nguyên chính là <strong>CPU</strong>. En
 </tr>
 </tbody>
 </table>
+<h2 id="f-05-building-blocks-08-components-02-waf-inspection--phạm-vi-giao-thức">Phạm vi giao thức</h2>
+<p>WAF chỉ kiểm được traffic mà tầng L7 đã giải mã TLS (cần cert của zone, kể cả kiểu keyless). Khách không
+cho giải mã thì chỉ còn bảo vệ L3/L4.</p>
+<h3 id="f-05-building-blocks-08-components-02-waf-inspection--giao-thức-vào-edge">Giao thức vào edge</h3>
+<table>
+<thead>
+<tr>
+<th>Giao thức</th>
+<th>Mức bảo vệ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HTTP/1.1, HTTP/2</td>
+<td>Đầy đủ. L7 chuẩn hoá request (giải nén header, gộp cookie, chuẩn hoá path); WAF nhận cùng một dạng, không phụ thuộc bản HTTP</td>
+</tr>
+<tr>
+<td>HTTP/3 (QUIC)</td>
+<td>Như trên; phụ thuộc nền L7 được chọn (<a href="#f-09-adr-0031-edge-l7-and-waf-engine-options">ADR-0031</a>, T10)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-05-building-blocks-08-components-02-waf-inspection--nội-dung-body">Nội dung body</h3>
+<table>
+<thead>
+<tr>
+<th>Loại</th>
+<th>Mức bảo vệ</th>
+<th>Ghi chú</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Query, header, cookie, form urlencoded</td>
+<td>Đầy đủ: CRS, system ruleset, custom rule</td>
+<td></td>
+</tr>
+<tr>
+<td>JSON</td>
+<td>Đầy đủ; Business trở lên kiểm thêm theo JSON Schema</td>
+<td><a href="#f-08-cross-cutting-17-api-security">8.17</a></td>
+</tr>
+<tr>
+<td>XML, SOAP</td>
+<td>CRS (gồm XXE, injection trong phần tử và thuộc tính)</td>
+<td>Engine phải parse XML, tắt thực thể ngoài; tiêu chí T13 của <a href="#f-09-adr-0031-edge-l7-and-waf-engine-options">ADR-0031</a></td>
+</tr>
+<tr>
+<td>multipart (upload file)</td>
+<td>Kiểm field, tên file, loại khai báo và magic bytes, kích thước, số phần</td>
+<td><strong>Không quét malware</strong> trong nội dung file; nếu làm là tính năng riêng, chạy bất đồng bộ</td>
+</tr>
+<tr>
+<td>GraphQL</td>
+<td>Parse, độ sâu, độ phức tạp, introspection, batch</td>
+<td>Mở rộng, <a href="#f-08-cross-cutting-17-api-security">8.17</a></td>
+</tr>
+<tr>
+<td>Body vượt giới hạn của gói</td>
+<td>Chỉ kiểm phần đầu tới giới hạn (8 KB → 1 MB theo gói, <a href="#f-08-cross-cutting-18-segments-and-plans">8.18</a>)</td>
+<td>Phần vượt: theo chính sách zone <code>body_overflow = pass | block</code>, mặc định <code>pass</code>, có event <code>body_truncated</code></td>
+</tr>
+<tr>
+<td>Body nén (gzip, br) từ client</td>
+<td>L7 giải nén có giới hạn tỉ lệ và kích thước trước khi gửi WAF</td>
+<td>Vượt giới hạn giải nén coi như body vượt giới hạn; chống zip bomb</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-05-building-blocks-08-components-02-waf-inspection--kết-nối-dài-và-streaming">Kết nối dài và streaming</h3>
+<table>
+<thead>
+<tr>
+<th>Giao thức</th>
+<th>Mức bảo vệ</th>
+<th>Giai đoạn</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>WebSocket</td>
+<td>Kiểm request bắt tay (header, auth, bot, rate limit, custom rule). Sau khi nâng cấp kết nối, frame <strong>không</strong> đi qua CRS; chỉ có giới hạn kích thước frame, số frame/giây, thời gian sống của kết nối, số kết nối đồng thời mỗi IP</td>
+<td>MVP</td>
+</tr>
+<tr>
+<td>WebSocket, kiểm frame</td>
+<td>Frame text/JSON đi qua rule riêng (không dùng CRS nguyên bản), theo mẫu hoặc cứ N frame một lần</td>
+<td>Nâng cao</td>
+</tr>
+<tr>
+<td>Server-Sent Events, response chunked</td>
+<td>Request được kiểm; response chảy thẳng tới client, không đệm, không kiểm</td>
+<td>MVP</td>
+</tr>
+<tr>
+<td>gRPC, gRPC-Web</td>
+<td>Rule theo method (path <code>/package.Service/Method</code>), metadata (header), auth JWT/mTLS, rate limit theo method; giới hạn kích thước message. Body protobuf nhị phân không qua CRS</td>
+<td>MVP (theo method), Mở rộng (rate limit theo consumer)</td>
+</tr>
+<tr>
+<td>gRPC, kiểm nội dung</td>
+<td>Khách tải file descriptor <code>.proto</code>; WAF decode message thành cây trường và chạy rule, kiểm schema như JSON</td>
+<td>Nâng cao</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-05-building-blocks-08-components-02-waf-inspection--response">Response</h3>
+<p>Không kiểm body response ở MVP (chỉ header và status cho analytics). Phát hiện dữ liệu nhạy cảm trong
+response là giai đoạn Nâng cao (<a href="#f-08-cross-cutting-17-api-security">8.17</a>).</p>
+<h3 id="f-05-building-blocks-08-components-02-waf-inspection--ngoài-phạm-vi-waf">Ngoài phạm vi WAF</h3>
+<table>
+<thead>
+<tr>
+<th>Traffic</th>
+<th>Sản phẩm</th>
+<th>Bảo vệ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TCP/UDP không phải HTTP (game, MQTT, SMTP, database, SSH, RDP, cổng tuỳ ý)</td>
+<td>Proxy L4 (Mở rộng, <a href="#f-07-deployment-05-capacity-and-sharding--7-cổng">7.5 §7</a>)</td>
+<td>DDoS L3/L4, access list IP/geo/ASN, giới hạn kết nối và băng thông; không kiểm nội dung</td>
+</tr>
+<tr>
+<td>DNS</td>
+<td>DNS điều hướng, DNS authoritative (<a href="#f-05-building-blocks-08-components-03-dns-and-traffic-steering">5.8.3</a>)</td>
+<td>Rate limit truy vấn, chống amplification</td>
+</tr>
+</tbody>
+</table>
 <h2 id="f-05-building-blocks-08-components-02-waf-inspection--triển-khai-trong-pop">Triển khai trong PoP</h2>
 <table>
 <thead>
@@ -9713,6 +9844,30 @@ ngờ. Enterprise định giá theo cam kết traffic (rps hoặc băng thông 9
 </tr>
 <tr>
 <td></td>
+<td>Body XML, multipart</td>
+<td>Có</td>
+<td>Có</td>
+<td>Có</td>
+<td>Có</td>
+</tr>
+<tr>
+<td></td>
+<td>WebSocket</td>
+<td>Kiểm bắt tay, giới hạn cơ bản</td>
+<td>Như Free</td>
+<td>+ giới hạn frame tuỳ chỉnh</td>
+<td>+ kiểm frame (Nâng cao)</td>
+</tr>
+<tr>
+<td></td>
+<td>gRPC</td>
+<td>—</td>
+<td>Rule theo method</td>
+<td>+ rate limit theo method, consumer</td>
+<td>+ kiểm nội dung theo <code>.proto</code> (Nâng cao)</td>
+</tr>
+<tr>
+<td></td>
 <td>Phần CPU WAF (trọng số fair share)</td>
 <td>1</td>
 <td>2</td>
@@ -11251,6 +11406,12 @@ có thể viết bằng ngôn ngữ khác.</p>
 <td>T12</td>
 <td>Truy cập ClientHello và frame HTTP/2 thô (để tính JA4, fingerprint HTTP/2 cho bot management, <a href="#f-09-adr-0038-bot-management-layered-scoring">ADR-0038</a>)</td>
 <td>L7</td>
+<td>Trung bình</td>
+</tr>
+<tr>
+<td>T13</td>
+<td>Body processor: XML (tắt thực thể ngoài), multipart, JSON; khả năng gắn decoder riêng (GraphQL, protobuf theo descriptor cho gRPC)</td>
+<td>WAF</td>
 <td>Trung bình</td>
 </tr>
 <tr>
@@ -12996,6 +13157,10 @@ CEL), công nghệ của Control, Analytics, Management (<a href="#f-05-building
 <tr>
 <td><strong>Pre-filter</strong></td>
 <td>Các bước lọc rẻ ở L7 trước khi gọi WAF: access list, challenge, rate limit, custom rule phần pre</td>
+</tr>
+<tr>
+<td><strong>Body processor</strong></td>
+<td>Bộ phân tích body của engine WAF theo content type (form, JSON, XML, multipart) và decoder gắn thêm (GraphQL, protobuf)</td>
 </tr>
 <tr>
 <td><strong>Inspection API</strong></td>

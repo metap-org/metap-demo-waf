@@ -11,6 +11,7 @@
 | **L7** | Tầng 1 của edge, đứng trước WAF (trước đây gọi là *edge proxy*): kết nối, TLS, pre-filter, bot, challenge, API auth, rate limit, cache, proxy tới origin. Phân biệt với *tấn công L7* / *DDoS L7* (tấn công ở tầng ứng dụng): khi viết về tầng thì dùng "tầng L7" hoặc "L7" như tên thành phần |
 | **WAF inspection** | Tầng 2 của edge: dịch vụ kiểm tra nội dung (CRS, rule cần body), trả verdict |
 | **Pre-filter** | Các bước lọc rẻ ở L7 trước khi gọi WAF: access list, challenge, rate limit, custom rule phần pre |
+| **Body processor** | Bộ phân tích body của engine WAF theo content type (form, JSON, XML, multipart) và decoder gắn thêm (GraphQL, protobuf) |
 | **Inspection API** | Hợp đồng gRPC giữa L7 và WAF inspection |
 | **Origin shield / tiered cache** | Một lớp cache trung gian giữa PoP và origin, giảm số request về origin |
 | **Purge** | Xoá nội dung khỏi cache theo URL, prefix hoặc tag |
