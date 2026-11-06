@@ -1,8 +1,8 @@
 # 5.8.14 Database của Management plane
 
-> **Trạng thái: thiết kế v1 (2026-11-06), cần đối chiếu lại** với [bản đồ phân rã chức năng](../../01-introduction/05-functional-decomposition.md)
-> và [requirements](../../01-introduction/06-requirements.md) sau khi hai mục đó được review: đã thấy thiếu một số đối tượng dữ liệu
-> (1.5, mục "Đối chiếu với thiết kế hiện có"). Các quyết định nền tảng (DB1–DB4, MG1–MG5) không đổi.
+> **Trạng thái: thiết kế v1 (2026-11-06), cần đối chiếu lại** với [bản đồ phân rã chức năng](../../../requirements/01-functional-decomposition.md)
+> và [requirements](../../../requirements/02-requirements.md) sau khi hai mục đó được review: đã thấy thiếu một số đối tượng dữ liệu
+> (bản đồ phân rã, mục "Đối chiếu với thiết kế hiện có"). Các quyết định nền tảng (DB1–DB4, MG1–MG5) không đổi.
 > Quyết định nền:
 > [ADR-0046](../../09-adr/0046-management-database-tenancy-and-storage.md). Mô hình logic ở
 > [5.6](../06-data-model.md); module và workflow ở [5.8.12](12-management.md).

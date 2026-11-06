@@ -1,7 +1,7 @@
-# 1.5 Bản đồ phân rã chức năng
+# 1. Bản đồ phân rã chức năng
 
-> **Trạng thái: bản nháp chờ review (2026-11-06).** Đây là đầu vào cho [1.6 Requirements](06-requirements.md)
-> và cho thiết kế dữ liệu ([5.6](../05-building-blocks/06-data-model.md), [5.8.14](../05-building-blocks/08-components/14-management-database.md)).
+> **Trạng thái: bản nháp chờ review (2026-11-06).** Đây là đầu vào cho [§2 Requirements](02-requirements.md)
+> và cho thiết kế dữ liệu ([5.6](../architecture/05-building-blocks/06-data-model.md), [5.8.14](../architecture/05-building-blocks/08-components/14-management-database.md)).
 > Thiết kế database đã viết trước bản đồ này, nên phải được đối chiếu lại sau khi bản đồ và requirements chốt.
 
 Bản đồ trả lời câu hỏi **hệ thống phải làm những việc gì**. Có hai cách nhìn trên cùng một tập chức năng lá:
@@ -22,11 +22,11 @@ Quy tắc:
 
 - **Mỗi chức năng lá có đúng một plane chủ** (M = Management, C = Control, E = Edge, A = Analytics). Plane
   chủ là nơi giữ quyết định và dữ liệu gốc của chức năng; plane khác chỉ gọi tới hoặc nhận kết quả.
-- **Mức** theo [1.2](00-index.md#12-tổng-quan-yêu-cầu): **MVP**, **MR** (Mở rộng), **NC** (Nâng cao).
+- **Mức** theo [1.2](../architecture/01-introduction/00-index.md#12-tổng-quan-yêu-cầu): **MVP**, **MR** (Mở rộng), **NC** (Nâng cao).
 - Cột **Dữ liệu** ghi đối tượng dữ liệu chính mà chức năng tạo ra hoặc sửa (ghi đậm) hay chỉ đọc. Đây là
   cầu nối sang thiết kế database: một đối tượng không có chức năng nào tạo ra là thừa, một chức năng ghi
   dữ liệu mà không có đối tượng tương ứng là thiếu.
-- Persona dùng tên ở [1.4](00-index.md#14-các-bên-liên-quan).
+- Persona dùng tên ở [1.4](../architecture/01-introduction/00-index.md#14-các-bên-liên-quan).
 
 ## Tổng quan cấp 1 và cấp 2
 
@@ -135,6 +135,10 @@ Ai là khách, ai được làm gì. Persona chính: chủ tài khoản, quản 
 
 ## F2 Zone và onboarding
 
+> **Chờ onboarding.** F2.1.5–F2.1.8, F2.2.6, F2.2.7, F2.3.6, F2.6, F2.7 và plane C của F2.1.2, F2.1.4, F2.2.3 đến
+> từ bản nháp onboarding chưa duyệt; onboarding đang được phân tích lại theo nhiều kịch bản
+> ([§3.1](03-business-analysis/01-onboarding.md)). Nhóm F2 sẽ được viết lại sau khi các câu hỏi ở đó có trả lời.
+
 Đưa một site vào bảo vệ. Persona chính: DevOps, quản trị bảo mật.
 
 | Mã | Chức năng lá | Plane | Mức | Dữ liệu |
@@ -171,11 +175,11 @@ Ai là khách, ai được làm gì. Persona chính: chủ tài khoản, quản 
 | **F2.5** | **Nhóm zone** | | | |
 | F2.5.1 | Gắn tag, tạo nhóm zone để phân quyền và áp policy | M | MVP | **ZoneGroup**, **ZoneTag** |
 | F2.5.2 | Thao tác hàng loạt trên nhóm zone (bật tính năng, đổi mặc định) | M | MR | **BulkOperation** |
-| **F2.6** | **Cấu hình ban đầu và kiểm thử** ([1.7.1](07-business-analysis/01-onboarding.md) OB6, OB7) | | | |
+| **F2.6** | **Cấu hình ban đầu và kiểm thử** ([requirements §3.1](03-business-analysis/01-onboarding.md) OB6, OB7) | | | |
 | F2.6.1 | Chọn preset theo loại ứng dụng: managed ruleset log-only, DDoS L7 và lọc sớm bật chặn, exception sẵn có | M | MVP | **ZonePreset** (NCC), **PolicyDraft** |
 | F2.6.2 | Phục vụ request kiểm thử qua edge trước khi đổi DNS (`curl --resolve`, `hosts`) | E | MVP | — |
 | F2.6.3 | Checklist kiểm thử (trang, đăng nhập, upload, API, WebSocket) và kết quả | M | MR | **OnboardingProgress** |
-| **F2.7** | **Chuyển traffic và hoàn tất** ([1.7.1](07-business-analysis/01-onboarding.md) OB8–OB12) | | | |
+| **F2.7** | **Chuyển traffic và hoàn tất** ([requirements §3.1](03-business-analysis/01-onboarding.md) OB8–OB12) | | | |
 | F2.7.1 | Hướng dẫn hạ TTL, đổi DNS, kế hoạch quay lui (lưu bản ghi cũ) | M | MVP | DnsSnapshot |
 | F2.7.2 | Ghi nhận traffic thật đầu tiên qua edge theo hostname | M | MVP | **OnboardingProgress** |
 | F2.7.3 | Báo cáo hằng ngày trong log-only: request sẽ bị chặn, rule nghi chặn nhầm, mức sẵn sàng | A | MVP | Bảng tổng hợp |
@@ -426,8 +430,8 @@ Persona chính: threat research của NCC.
 
 ## F12 Vận hành NCC
 
-Persona chính: NOC/SRE, support, product. Chi tiết vận hành ở [8.12](../08-cross-cutting/12-platform-monitoring.md),
-[8.13](../08-cross-cutting/13-operational-behaviors.md).
+Persona chính: NOC/SRE, support, product. Chi tiết vận hành ở [8.12](../architecture/08-cross-cutting/12-platform-monitoring.md),
+[8.13](../architecture/08-cross-cutting/13-operational-behaviors.md).
 
 | Mã | Chức năng lá | Plane | Mức | Dữ liệu |
 |---|---|---|---|---|
@@ -443,7 +447,7 @@ Persona chính: NOC/SRE, support, product. Chi tiết vận hành ở [8.12](../
 ## Phân rã theo plane
 
 Các bảng F1–F12 ở trên chia chức năng theo **nghiệp vụ**. Mục này lấy lại đúng các chức năng lá đó và chia
-theo **plane chủ**, rồi theo **thành phần** trong plane ([5.8](../05-building-blocks/08-components/00-index.md)).
+theo **plane chủ**, rồi theo **thành phần** trong plane ([5.8](../architecture/05-building-blocks/08-components/00-index.md)).
 Không có chức năng mới: mỗi lá xuất hiện đúng một lần ở đây. Cột **Liên kết** trỏ tới bảng
 [liên kết giữa các plane](#liên-kết-giữa-các-plane) bên dưới.
 
@@ -500,10 +504,10 @@ flowchart TB
 | **PE3 Edge agent** | F6.2.3, F10.4.1; gửi telemetry do PE1, PE2 sinh ra (F3.8.3); chạy `OriginProbe` | LK-8, LK-9, LK-10, LK-27 vào; LK-12, LK-15 ra |
 | **PE4 DNS điều hướng** | F4.3.1 | LK-13 vào |
 
-Phân chia F3 giữa PE1 và PE2 theo [ADR-0033](../09-adr/0033-two-tier-edge-proxy-and-waf.md): việc rẻ, cần
+Phân chia F3 giữa PE1 và PE2 theo [ADR-0033](../architecture/09-adr/0033-two-tier-edge-proxy-and-waf.md): việc rẻ, cần
 trạng thái kết nối hoặc trạng thái toàn fleet (rate limit, DDoS, bot score, JWT) ở L7; việc tốn CPU trên
 nội dung (managed ruleset, body, schema body) ở WAF. Chi tiết chia còn phụ thuộc kết quả spike ở
-[ADR-0031](../09-adr/0031-edge-l7-and-waf-engine-options.md).
+[ADR-0031](../architecture/09-adr/0031-edge-l7-and-waf-engine-options.md).
 
 ### Analytics
 
@@ -519,14 +523,14 @@ nội dung (managed ruleset, body, schema body) ở WAF. Chi tiết chia còn ph
 | **PA8 Usage** | F10.4.2 | LK-15 vào; LK-17 ra |
 
 Chức năng F12.1.1 (giám sát SLI, probe) nằm ở **mọi plane** và gửi về hệ thống giám sát của NCC
-([8.12](../08-cross-cutting/12-platform-monitoring.md)), không đi qua liên kết giữa các plane.
+([8.12](../architecture/08-cross-cutting/12-platform-monitoring.md)), không đi qua liên kết giữa các plane.
 
 ## Liên kết giữa các plane
 
 Mỗi liên kết là một chỗ dữ liệu hoặc lệnh đi từ chức năng của plane này sang chức năng của plane khác.
-Tên hợp đồng lấy từ [5.5](../05-building-blocks/05-contracts.md). Hợp đồng đánh dấu **(tạm)** nằm ở mục
-[hợp đồng bổ sung](../05-building-blocks/05-contracts.md#hợp-đồng-bổ-sung-tạm-2026-11-06) của 5.5: bản đồ tìm ra
-liên kết, hợp đồng đã được thêm tạm và có thể đổi khi phân tích nghiệp vụ ([1.7](07-business-analysis/00-index.md)).
+Tên hợp đồng lấy từ [5.5](../architecture/05-building-blocks/05-contracts.md). Hợp đồng đánh dấu **(tạm)** nằm ở mục
+[hợp đồng bổ sung](../architecture/05-building-blocks/05-contracts.md#hợp-đồng-bổ-sung-tạm-2026-11-06) của 5.5: bản đồ tìm ra
+liên kết, hợp đồng đã được thêm tạm và có thể đổi khi phân tích nghiệp vụ ([requirements §3](03-business-analysis/00-index.md)).
 
 Kiểu giao tiếp:
 
@@ -569,8 +573,8 @@ flowchart LR
 | **Control → Edge** | | | | | |
 | LK-8 | PC1, PC2, PC6, PC7 → PE3 | F6.1.3, F6.2.1 → F6.2.3 nạp bundle, cert, ruleset | `Snapshot` | Pull | Edge chạy tiếp bằng snapshot đang có (Q1) |
 | LK-9 | PC2 → PE3 | F6.2.1, F6.2.2 → F6.2.3 | `SnapshotAnnouncement` | Đẩy nhẹ + pull | Agent tự kiểm định kỳ; chỉ chậm hơn |
-| LK-10 | PC4 → PE3 | F6.4.1 cấp, gia hạn cert node; cấu hình node | `NodeProfile`, enroll ([8.19](../08-cross-cutting/19-node-identity-and-mtls.md)) | Sync | Node giữ cert cũ tới hạn 24 giờ; QS-39 |
-| LK-11 | PC4 → mọi bên nhận | F6.4.2 thu hồi → bên nhận từ chối kết nối của node | Deny list ([8.19](../08-cross-cutting/19-node-identity-and-mtls.md)) | Pull | Node bị thu hồi còn kết nối tới khi cert hết hạn; QS-40 |
+| LK-10 | PC4 → PE3 | F6.4.1 cấp, gia hạn cert node; cấu hình node | `NodeProfile`, enroll ([8.19](../architecture/08-cross-cutting/19-node-identity-and-mtls.md)) | Sync | Node giữ cert cũ tới hạn 24 giờ; QS-39 |
+| LK-11 | PC4 → mọi bên nhận | F6.4.2 thu hồi → bên nhận từ chối kết nối của node | Deny list ([8.19](../architecture/08-cross-cutting/19-node-identity-and-mtls.md)) | Pull | Node bị thu hồi còn kết nối tới khi cert hết hạn; QS-40 |
 | LK-27 | PC6 ↔ PE3 | F2.2.3 kiểm origin → edge ở ≥ 2 PoP thử kết nối, trả kết quả | `OriginProbe` (tạm) | Sync qua kênh mTLS của agent | Không kiểm được origin; khách xác nhận bỏ qua để qua OG1 |
 | LK-13 | PC8 → PE4 | F12.2.1 trạng thái PoP → F4.3.1 | `PopState` (tạm) | Pull | DNS trả theo trạng thái cũ; QS-16 vỡ |
 | **Edge → Control** | | | | | |
@@ -582,13 +586,13 @@ flowchart LR
 | **Analytics → Control** | | | | | |
 | LK-16 | PA5 → PC3 | Chỉ số theo zone, version trong cửa sổ canary → F6.3.1 gate | `RolloutSignal` | Định kỳ | Rollout dừng ở gate, không tự tiến khi thiếu tín hiệu |
 | LK-25 | PA5 → PC5 | Phát hiện flood lớn → F3.3.4 chuyển sang cell cách ly | `IsolationRequested` (tạm) | RabbitMQ | Không tự cách ly; NOC làm tay theo runbook (8.13) |
-| LK-26 | PA5 → PC7 | Reputation, dữ liệu bot gộp từ telemetry → F11.3.1 và dữ liệu bot ([5.8.7](../05-building-blocks/08-components/07-cert-ruleset-release.md)) | `ReputationBatch` (tạm) | Theo lô | Dùng bản reputation cũ |
+| LK-26 | PA5 → PC7 | Reputation, dữ liệu bot gộp từ telemetry → F11.3.1 và dữ liệu bot ([5.8.7](../architecture/05-building-blocks/08-components/07-cert-ruleset-release.md)) | `ReputationBatch` (tạm) | Theo lô | Dùng bản reputation cũ |
 | **Analytics → Management** | | | | | |
 | LK-17 | PA8 → PM5 | F10.4.2 → F10.4.3, F10.5.1, F10.5.2, F10.6.1 | `UsageReport` | Định kỳ, chạy lại được | Cảnh báo hạn mức, trần cứng, hoá đơn trễ; không mất vì chạy lại được |
 | LK-21 | PA5 → PM4 | F8.1.1, F8.1.3 → F8.4.1 case, F7.2.2 thông báo portal | `AlertRaised`, `CaseProposed` | At-least-once | Thông báo vẫn gửi qua PA6; case không tự mở |
 | **Management → Analytics** | | | | | |
 | LK-18 | PM4, PM2 → PA3 | F7.3, F7.4, F9.1.2, F12.3.1, F2.7.2 (traffic đầu tiên), F2.7.3 → Query API | `Query` | Sync, có giới hạn chi phí | Portal không có dashboard, tìm kiếm; cấu hình vẫn sửa được |
-| LK-19 | PM1 → PA4 | Cấp token realtime, `PermissionsChanged` → F7.2.1 | Token JWT ([5.8.13](../05-building-blocks/08-components/13-realtime-gateway.md)) + `PermissionsChanged` (tạm) | Sync (token) + outbox | Phiên đang mở giữ tới hết hạn token; không mở phiên mới |
+| LK-19 | PM1 → PA4 | Cấp token realtime, `PermissionsChanged` → F7.2.1 | Token JWT ([5.8.13](../architecture/05-building-blocks/08-components/13-realtime-gateway.md)) + `PermissionsChanged` (tạm) | Sync (token) + outbox | Phiên đang mở giữ tới hết hạn token; không mở phiên mới |
 | LK-20 | PM4 → PA5, PA6 | F8.2.1–F8.2.3 alert policy, F7.6.1 đích export, F7.5.1 nhãn chặn nhầm | `AlertPolicyChanged`, `ExportDestinationChanged`, `FalsePositiveLabeled` (tạm) | Outbox | Analytics dùng cấu hình cũ; nhãn chặn nhầm chờ trong outbox |
 | LK-22 | PM3 ↔ PA7 | F5.3.1 yêu cầu mô phỏng → F5.2.3, trả kết quả | `ReplayRequested`, `ReplayCompleted` (tạm) | Outbox hai chiều, job ID | Change request không có kết quả mô phỏng; duyệt vẫn làm được nếu không bắt buộc |
 | LK-23 | PM6 → PA2 | F9.3.3 xoá dữ liệu cá nhân, F1.1.4 xoá org → xoá trong log | `DataErasureRequested`, `DataErasureCompleted` (tạm) | Outbox | Yêu cầu xoá chờ; phải có hạn hoàn tất theo Nghị định 13 |
@@ -596,7 +600,7 @@ flowchart LR
 Hai liên kết **không** tồn tại, có chủ đích:
 
 - **Edge → Management** và **Management → Edge**: không có. Edge chỉ đọc snapshot từ Control
-  ([ADR-0001](../09-adr/0001-four-planes.md)); nhờ vậy Management sập không ảnh hưởng traffic.
+  ([ADR-0001](../architecture/09-adr/0001-four-planes.md)); nhờ vậy Management sập không ảnh hưởng traffic.
 - **Analytics → Edge**: không có. Mọi phản ứng dựa trên phân tích (cách ly, rule khẩn, reputation) đi qua
   Control để vẫn có ký, canary và rollback.
 
@@ -604,20 +608,20 @@ Hai liên kết **không** tồn tại, có chủ đích:
 
 Bản đồ cho thấy bảng chính của 5.5 mới có đường cấu hình chính và telemetry. 15 hợp đồng cho các liên kết
 còn lại đã được thêm vào 5.5 ở dạng **tạm**
-([5.5, hợp đồng bổ sung](../05-building-blocks/05-contracts.md#hợp-đồng-bổ-sung-tạm-2026-11-06)); `ZoneCheckResult`
-và `OriginProbe` đến từ phân tích onboarding ([1.7.1](07-business-analysis/01-onboarding.md)). Chúng được chốt
-dần khi phân tích từng nghiệp vụ ([OQ-15](06-requirements.md#9-câu-hỏi-mở-cho-review)).
+([5.5, hợp đồng bổ sung](../architecture/05-building-blocks/05-contracts.md#hợp-đồng-bổ-sung-tạm-2026-11-06)); `ZoneCheckResult`
+và `OriginProbe` đến từ phân tích onboarding ([requirements §3.1](03-business-analysis/01-onboarding.md)). Chúng được chốt
+dần khi phân tích từng nghiệp vụ ([OQ-15](02-requirements.md#9-câu-hỏi-mở-cho-review)).
 
 ## Chức năng ngoài phạm vi
 
 Không nằm trong bản đồ, nhắc lại để không bị thêm vào thiết kế dữ liệu: vulnerability scanning (DAST, sản
-phẩm riêng nếu làm), edge compute, tối ưu ảnh, video, client-side protection. Xem [1.2](00-index.md#12-tổng-quan-yêu-cầu).
+phẩm riêng nếu làm), edge compute, tối ưu ảnh, video, client-side protection. Xem [1.2](../architecture/01-introduction/00-index.md#12-tổng-quan-yêu-cầu).
 
 ## Đối chiếu với thiết kế hiện có
 
 | Phát hiện khi phân rã | Ảnh hưởng |
 |---|---|
-| Có đối tượng dữ liệu chưa có trong [5.8.12](../05-building-blocks/08-components/12-management.md): DnsSnapshot, OnboardingProgress, ZonePreset (từ 1.7.1), Invitation, MfaFactor, SsoDomain, ServiceAccount, DomainVerification, OriginCheck, ChangeWindow, TemporaryMitigation, PolicyTemplate/PolicyBinding, GitSource, QuotaNotice, PaymentMethod, Payment, CreditNote, AddOn, TrialClaim, SupportAccessGrant, Partner, Pop | Bổ sung vào module sau khi requirements chốt |
-| F1.1.4, F9.3.3 (xoá org, xoá dữ liệu cá nhân) chưa có đường đi trong thiết kế database: audit không xoá nhưng có dữ liệu cá nhân | Câu hỏi mở OQ-6 ở [1.6](06-requirements.md#9-câu-hỏi-mở-cho-review) |
+| Có đối tượng dữ liệu chưa có trong [5.8.12](../architecture/05-building-blocks/08-components/12-management.md): DnsSnapshot, OnboardingProgress, ZonePreset (từ §3.1), Invitation, MfaFactor, SsoDomain, ServiceAccount, DomainVerification, OriginCheck, ChangeWindow, TemporaryMitigation, PolicyTemplate/PolicyBinding, GitSource, QuotaNotice, PaymentMethod, Payment, CreditNote, AddOn, TrialClaim, SupportAccessGrant, Partner, Pop | Bổ sung vào module sau khi requirements chốt |
+| F1.1.4, F9.3.3 (xoá org, xoá dữ liệu cá nhân) chưa có đường đi trong thiết kế database: audit không xoá nhưng có dữ liệu cá nhân | Câu hỏi mở OQ-6 ở [requirements §2](02-requirements.md#9-câu-hỏi-mở-cho-review) |
 | F2.3, F6.4, F11 có dữ liệu gốc ở Control, không ở Management | Database của Control cần thiết kế riêng, không gộp vào 5.8.14 |
 | F12 cần dữ liệu của NCC (Partner, Pop, gói) trong cùng database với tenant | Dùng `PLATFORM_TENANT_ID`, đã ghi ở 5.8.14 §2 |

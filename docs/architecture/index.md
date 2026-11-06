@@ -33,7 +33,7 @@ Diagram viết bằng Mermaid để GitHub render trực tiếp và diff đượ
 
 ## Các mục
 
-1. [Introduction and Goals](01-introduction/00-index.md): sản phẩm làm gì, nghiệp vụ, mục tiêu chất lượng, các bên liên quan, [bản đồ phân rã chức năng](01-introduction/05-functional-decomposition.md), [requirements](01-introduction/06-requirements.md), [phân tích nghiệp vụ](01-introduction/07-business-analysis/00-index.md)
+1. [Introduction and Goals](01-introduction/00-index.md): sản phẩm làm gì, nghiệp vụ, mục tiêu chất lượng, các bên liên quan
 2. [Architecture Constraints](02-constraints/00-index.md): ràng buộc kỹ thuật, tổ chức, pháp lý
 3. [System Scope and Context](03-context/00-index.md): bối cảnh nghiệp vụ và kỹ thuật, C4 System Context
 4. [Solution Strategy](04-strategy/00-index.md): các quyết định nền tảng và lý do
@@ -48,6 +48,9 @@ Diagram viết bằng Mermaid để GitHub render trực tiếp và diff đượ
 
 ## Quan hệ với tài liệu khác trong repo
 
+- `docs/requirements/` ([index](../requirements/index.md)): bản đồ phân rã chức năng, requirements, phân tích
+  nghiệp vụ. Tách khỏi kiến trúc: requirements nói hệ thống phải làm gì, thư mục này nói làm bằng gì. Kiến
+  trúc trỏ sang requirements khi cần lý do, không chép lại.
 - `docs/overview/`: bản HTML để đọc và trình bày (xem `README.md` trong đó), prefix `v1-`; bản hiện hành sinh từ thư mục này.
 - `data-plane/docs/`: spec nghiệp vụ và màn hình của portal demo. Phần nghiệp vụ (persona, domain,
   gói cước) vẫn dùng được làm đầu vào; phần ranh giới kiến trúc ở đó được thay bằng tài liệu này.

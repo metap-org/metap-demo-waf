@@ -36,8 +36,8 @@ flowchart LR
 
 | Component | Thiết kế |
 |---|---|
-| **Domain verifier** | Kiểm xác minh sở hữu (mặc định CNAME uỷ quyền `_acme-challenge`, hoặc TXT), trạng thái trỏ DNS, CAA, tra DNS khi thêm domain; điều phối kiểm origin từ edge (`OriginProbe`); kết quả là điều kiện để xin cert và gửi về Management qua `ZoneCheckResult` ([1.7.1](../../01-introduction/07-business-analysis/01-onboarding.md)) |
-| **ACME client** | `lego`; DNS-01 qua uỷ quyền `_acme-challenge` là mặc định, để cert đầu có trước khi khách đổi DNS; HTTP-01 (token phát xuống edge qua fast lane, edge trả lời `/.well-known/acme-challenge/`) khi khách chỉ xác minh bằng TXT; nhiều CA để dự phòng |
+| **Domain verifier** | Kiểm xác minh sở hữu (mặc định CNAME uỷ quyền `_acme-challenge`, hoặc TXT), trạng thái trỏ DNS, CAA, tra DNS khi thêm domain; điều phối kiểm origin từ edge (`OriginProbe`); kết quả là điều kiện để xin cert và gửi về Management qua `ZoneCheckResult` ([requirements §3.1](../../../requirements/03-business-analysis/01-onboarding.md)) |
+| **ACME client** | `lego`; (chờ onboarding, [requirements §3.1](../../../requirements/03-business-analysis/01-onboarding.md)) DNS-01 qua uỷ quyền `_acme-challenge` là mặc định, để cert đầu có trước khi khách đổi DNS; HTTP-01 (token phát xuống edge qua fast lane, edge trả lời `/.well-known/acme-challenge/`) khi khách chỉ xác minh bằng TXT; nhiều CA để dự phòng |
 | **Upload handler** | Cert khách tự mang: kiểm chuỗi, khớp hostname, hạn |
 | **Lưu trữ** | Private key mã hoá phong bì bằng OpenBao transit, lưu ciphertext trong PostgreSQL; cert công khai và digest đưa vào bundle zone |
 | **Renewal scheduler** | Gia hạn khi còn 30 ngày; thất bại liên tiếp → cảnh báo khách và NOC |

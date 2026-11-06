@@ -109,7 +109,11 @@ và nằm trong bundle chung.
 
 ## 6.4 Onboarding một zone
 
-Đường chính của [1.7.1](../01-introduction/07-business-analysis/01-onboarding.md): xác minh và cert xong
+> **Chờ onboarding.** Sequence này theo bản nháp chưa duyệt ở
+> [requirements §3.1](../../requirements/03-business-analysis/01-onboarding.md), chỉ cho một kịch bản (DNS đầy
+> đủ, origin có IP public, cổng chuẩn). Onboarding đang được phân tích lại theo nhiều kịch bản.
+
+Đường chính của bản nháp: xác minh và cert xong
 **trước** khi khách đổi DNS, bật chặn chỉ sau giai đoạn log-only có số liệu.
 
 ```mermaid

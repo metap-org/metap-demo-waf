@@ -24,10 +24,11 @@ và giữ trạng thái cũ, không đọc dở.
 ### Hợp đồng bổ sung (tạm, 2026-11-06)
 
 > **Trạng thái: tạm, chờ phân tích nghiệp vụ.** Các hợp đồng dưới đây lấp các liên kết giữa plane mà
-> [bản đồ phân rã chức năng](../01-introduction/05-functional-decomposition.md#liên-kết-giữa-các-plane) tìm
+> [bản đồ phân rã chức năng](../../requirements/01-functional-decomposition.md#liên-kết-giữa-các-plane) tìm
 > ra nhưng bảng trên chưa có. Tên và trường có thể đổi khi phân tích từng nghiệp vụ
-> ([1.7](../01-introduction/07-business-analysis/00-index.md)); quy tắc version N-1 ở đầu mục áp như mọi
-> hợp đồng khác. Cột **LK** trỏ về liên kết trong 1.5.
+> ([requirements §3](../../requirements/03-business-analysis/00-index.md)); quy tắc version N-1 ở đầu mục áp như mọi
+> hợp đồng khác. Cột **LK** trỏ về liên kết trong bản đồ phân rã chức năng. Hai hợp đồng ghi **chờ onboarding** đến
+> từ bản nháp onboarding chưa duyệt ([requirements §3.1](../../requirements/03-business-analysis/01-onboarding.md)).
 
 | Hợp đồng | Từ → Tới | LK | Nội dung | Giao nhận |
 |---|---|---|---|---|
@@ -35,8 +36,8 @@ và giữ trạng thái cũ, không đọc dở.
 | **CompileResult** | Control → Management | LK-7 | PolicyVersion ID hoặc change request ID, kết quả (đạt / từ chối), lỗi theo rule (vị trí, mã, thông điệp), số đo ngân sách (kích thước, độ phức tạp), digest bundle | Outbox của Control, at-least-once; Management bỏ trùng theo version ID. Biên dịch thử khi soạn (LK-6) vẫn gọi đồng bộ |
 | **RolloutProgress** | Control → Management, Analytics (realtime) | LK-7 | Version hoặc purge ID, giai đoạn (canary / wave n / toàn fleet), % node đã áp, số node lỗi, lý do dừng hoặc rollback | Khi đổi giai đoạn và tối đa mỗi 10 s khi đang chạy; mất không sao, Management đọc lại qua Control internal API |
 | **CertStatusChanged** | Control → Management | LK-24 | Hostname, cert ID, trạng thái (`pending_validation`, `issued`, `renewing`, `failed`, `expired`), ngày hết hạn, CA, nguyên nhân lỗi (CAA, DNS-01, rate limit của CA) | Outbox; bỏ trùng theo (cert ID, trạng thái, thời điểm) |
-| **ZoneCheckResult** | Control → Management | LK-28 | Zone, hostname, loại kiểm (`ownership`, `dns_routing`, `origin`, `origin_exposure`, `caa`, `dns_discovery`), kết quả, chi tiết (bản ghi thấy được, resolver, mã lỗi, thời gian phản hồi), lần kiểm kế tiếp | Outbox; Management giữ kết quả mới nhất theo (zone, hostname, loại); kiểm theo yêu cầu thì trả cả qua Control internal API (sync) |
-| **OriginProbe** | Control ↔ Edge | LK-27 | Yêu cầu: zone, origin, cổng, giao thức, SNI, Host, đường dẫn; kết quả: kết nối, TLS (chuỗi, hostname khớp, hạn), mã HTTP, thời gian theo chặng, node và PoP đã thử | Đồng bộ qua kênh mTLS của edge agent, có deadline; Control chọn node ở ≥ 2 PoP |
+| **ZoneCheckResult** (chờ onboarding) | Control → Management | LK-28 | Zone, hostname, loại kiểm (`ownership`, `dns_routing`, `origin`, `origin_exposure`, `caa`, `dns_discovery`), kết quả, chi tiết (bản ghi thấy được, resolver, mã lỗi, thời gian phản hồi), lần kiểm kế tiếp | Outbox; Management giữ kết quả mới nhất theo (zone, hostname, loại); kiểm theo yêu cầu thì trả cả qua Control internal API (sync) |
+| **OriginProbe** (chờ onboarding) | Control ↔ Edge | LK-27 | Yêu cầu: zone, origin, cổng, giao thức, SNI, Host, đường dẫn; kết quả: kết nối, TLS (chuỗi, hostname khớp, hạn), mã HTTP, thời gian theo chặng, node và PoP đã thử | Đồng bộ qua kênh mTLS của edge agent, có deadline; Control chọn node ở ≥ 2 PoP |
 | **PopState** | Control → Edge (DNS) | LK-13 | PoP ID, trạng thái (`active`, `draining`, `down`), trọng số, VIP theo cell | Nằm trong bundle chung; rút PoP đi kèm cờ khẩn. DNS dùng trạng thái cuối nếu không nhận |
 | **PermissionsChanged** | Management → Analytics (realtime gateway) | LK-19 | Tenant, chủ thể (user / API key / service account), loại (đổi vai trò, khoá, gỡ, thu hồi key), thời điểm | Outbox; gateway đóng channel liên quan; bỏ trùng theo event ID |
 | **AlertPolicyChanged** | Management → Analytics | LK-20 | Alert policy ID, version, template, điều kiện, phạm vi zone, tham chiếu kênh (không có secret), giờ im lặng, chu kỳ lặp; xoá là tombstone | Outbox; Analytics giữ version lớn nhất |

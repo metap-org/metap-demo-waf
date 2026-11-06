@@ -1,13 +1,13 @@
-# 1.6 Requirements
+# 2. Requirements
 
 > **Trạng thái: bản nháp chờ review (2026-11-06).** Mọi dòng ở đây là **đề xuất**. Các điểm cần quyết
 > nằm ở [§9](#9-câu-hỏi-mở-cho-review). Khi chốt xong, requirements là căn cứ để đối chiếu lại module
-> ([5.8.12](../05-building-blocks/08-components/12-management.md)) và database
-> ([5.8.14](../05-building-blocks/08-components/14-management-database.md)).
+> ([5.8.12](../architecture/05-building-blocks/08-components/12-management.md)) và database
+> ([5.8.14](../architecture/05-building-blocks/08-components/14-management-database.md)).
 
-Requirements viết từ [bản đồ phân rã chức năng](05-functional-decomposition.md): mỗi requirement trỏ về
+Requirements viết từ [bản đồ phân rã chức năng](01-functional-decomposition.md): mỗi requirement trỏ về
 một hay nhiều chức năng lá `F…`. Requirement chất lượng không viết lại ở đây mà trỏ về kịch bản đo được
-`QS-…` ở [10.3](../10-quality/00-index.md#103-kịch-bản).
+`QS-…` ở [10.3](../architecture/10-quality/00-index.md#103-kịch-bản).
 
 ## 1. Quy ước
 
@@ -20,11 +20,11 @@ một hay nhiều chức năng lá `F…`. Requirement chất lượng không vi
 | `IR-<số>` | Yêu cầu giao tiếp với hệ thống ngoài | IR-1 |
 | `OQ-<số>` | Câu hỏi mở cần quyết khi review | OQ-1 |
 
-- **Mức**: MVP / MR (Mở rộng) / NC (Nâng cao), như [1.2](00-index.md#12-tổng-quan-yêu-cầu). Một requirement
+- **Mức**: MVP / MR (Mở rộng) / NC (Nâng cao), như [1.2](../architecture/01-introduction/00-index.md#12-tổng-quan-yêu-cầu). Một requirement
   MVP là bắt buộc để ký hợp đồng doanh nghiệp đầu tiên.
 - **"Phải"** là bắt buộc; **"nên"** là mong muốn, có thể bỏ khi thiếu thời gian mà không đổi kiến trúc.
 - Giới hạn theo gói (số rule, retention, kênh…) lấy từ bảng entitlements ở
-  [8.18 §4](../08-cross-cutting/18-segments-and-plans.md#bảng-tính-năng-và-giới-hạn-entitlements), không
+  [8.18 §4](../architecture/08-cross-cutting/18-segments-and-plans.md#bảng-tính-năng-và-giới-hạn-entitlements), không
   lặp lại ở đây.
 
 ## 2. Tác nhân
@@ -53,7 +53,7 @@ một hay nhiều chức năng lá `F…`. Requirement chất lượng không vi
 | FR-1-03 | Owner phải yêu cầu xoá org; dữ liệu bị xoá sau thời hạn giữ ([OQ-6](#9-câu-hỏi-mở-cho-review)) | F1.1.4 | MVP | Trong thời hạn giữ có thể huỷ yêu cầu; sau đó không đăng nhập được |
 | FR-1-04 | Owner, admin phải mời thành viên qua email; lời mời hết hạn sau 7 ngày, thu hồi được | F1.2.1 | MVP | Lời mời đã hết hạn hoặc thu hồi không dùng được |
 | FR-1-05 | Vai trò phải gán được ở bốn cấp: org, account, nhóm zone, zone; quyền là hợp của mọi binding | F1.2.2 | MVP | User có vai trò ở một zone không thấy zone khác |
-| FR-1-06 | Vai trò mặc định phải gồm owner, security admin, SOC analyst, developer, viewer, billing với quyền như [5.8.12](../05-building-blocks/08-components/12-management.md#quyền-mặc-định) | F1.2.2 | MVP | Ma trận quyền kiểm bằng test tự động |
+| FR-1-06 | Vai trò mặc định phải gồm owner, security admin, SOC analyst, developer, viewer, billing với quyền như [5.8.12](../architecture/05-building-blocks/08-components/12-management.md#quyền-mặc-định) | F1.2.2 | MVP | Ma trận quyền kiểm bằng test tự động |
 | FR-1-07 | Admin nên tạo được vai trò tuỳ chỉnh từ danh mục quyền | F1.2.3 | MR | |
 | FR-1-08 | Gỡ thành viên phải thu hồi phiên và API key cá nhân của họ ([BR-15](#4-quy-tắc-nghiệp-vụ)) | F1.2.4 | MVP | Request kế tiếp bằng phiên cũ bị từ chối |
 | FR-1-09 | Hệ thống nên đồng bộ user, nhóm qua SCIM 2.0 và gán vai trò theo nhóm IdP | F1.2.5 | MR | User bị khoá ở IdP mất quyền ≤ 5 phút |
@@ -67,6 +67,9 @@ một hay nhiều chức năng lá `F…`. Requirement chất lượng không vi
 | FR-1-17 | Kiểm toán phải lọc audit theo người, đối tượng, loại hành động, thời gian, và xuất CSV/JSON | F1.5.2, F1.5.3 | MVP | Xuất 1 triệu dòng không làm chậm portal của tenant khác |
 
 ### F2 Zone và onboarding
+
+> **Chờ onboarding.** FR-2-17…FR-2-30, BR-22…BR-24 và phần sửa của FR-2-02, FR-2-06, BR-2 đến từ bản nháp
+> onboarding chưa duyệt; sẽ viết lại sau khi phân tích ở [§3.1](03-business-analysis/01-onboarding.md) có trả lời.
 
 | ID | Yêu cầu | F | Mức | Tiêu chí chấp nhận |
 |---|---|---|---|---|
@@ -86,11 +89,11 @@ một hay nhiều chức năng lá `F…`. Requirement chất lượng không vi
 | FR-2-14 | Owner nên chuyển zone giữa các account cùng org mà không gián đoạn traffic | F2.4.4 | MR | |
 | FR-2-15 | Người dùng phải gắn tag và nhóm zone; nhóm dùng được cho phân quyền và lọc | F2.5.1 | MVP | |
 | FR-2-16 | Thao tác hàng loạt trên nhóm zone nên chạy nền, có tiến độ, dừng được | F2.5.2 | MR | QS-27 |
-| FR-2-17 | Khi thêm domain, hệ thống phải tra DNS hiện tại (NS, A/AAAA/CNAME, CAA, TTL), hiện kết quả và gợi ý origin ([1.7.1](07-business-analysis/01-onboarding.md) OB2) | F2.1.5 | MVP | Kết quả ≤ 10 s; IDN lưu dạng punycode; không nhận public suffix làm domain gốc |
+| FR-2-17 | Khi thêm domain, hệ thống phải tra DNS hiện tại (NS, A/AAAA/CNAME, CAA, TTL), hiện kết quả và gợi ý origin ([requirements §3.1](03-business-analysis/01-onboarding.md) OB2) | F2.1.5 | MVP | Kết quả ≤ 10 s; IDN lưu dạng punycode; không nhận public suffix làm domain gốc |
 | FR-2-18 | Hệ thống phải phát hiện CDN hoặc WAF đang đứng trước domain, và CAA chặn CA của NCC, rồi báo trước bước xác minh | F2.1.5, F2.3.6 | MVP | Thông báo CAA nêu đúng bản ghi cần thêm |
 | FR-2-19 | Với xác minh bằng CNAME uỷ quyền, cert đầu tiên phải được cấp trước khi khách đổi DNS | F2.1.2, F2.3.1 | MVP | Không có khoảng lỗi cert lúc đổi DNS (OG2) |
 | FR-2-20 | Người onboard phải gửi được hướng dẫn tạo bản ghi DNS cho người giữ DNS qua email; người nhận không cần tài khoản | F2.1.2 | MVP | Email chứa đúng bản ghi, không chứa dữ liệu khác của tenant |
-| FR-2-21 | Portal phải hướng dẫn theo phương thức kết nối: CNAME, ALIAS cho apex, A/AAAA tĩnh cho apex ([OQ-16](07-business-analysis/01-onboarding.md#9-câu-hỏi-mở)), đứng sau CDN của khách; đổi nameserver ở mức MR | F2.1.3 | MVP | |
+| FR-2-21 | Portal phải hướng dẫn theo phương thức kết nối: CNAME, ALIAS cho apex, A/AAAA tĩnh cho apex ([OQ-16](03-business-analysis/01-onboarding.md#a9-câu-hỏi-mở)), đứng sau CDN của khách; đổi nameserver ở mức MR | F2.1.3 | MVP | |
 | FR-2-22 | Khách phải chọn preset theo loại ứng dụng; preset bật chặn DDoS L7 và lọc sớm từ request đầu, phần còn lại log-only; có lựa chọn "đang bị tấn công, chặn ngay" ([BR-24](#4-quy-tắc-nghiệp-vụ)) | F2.6.1 | MVP | Đổi preset được bất kỳ lúc nào trong giai đoạn log-only |
 | FR-2-23 | Portal phải sinh lệnh `curl --resolve` và dòng `hosts` để kiểm thử qua edge trước khi đổi DNS, và hiện event realtime của zone trong lúc kiểm thử | F2.6.2 | MVP | Request kiểm thử có trong tra cứu theo request ID |
 | FR-2-24 | Hệ thống phải hiện theo từng hostname: đã trỏ, chưa trỏ hay trỏ một phần về edge, và thời điểm edge thấy traffic thật đầu tiên | F2.1.7, F2.7.2 | MVP | Cập nhật ≤ 5 phút sau khi DNS đổi |
@@ -234,7 +237,7 @@ Phần lớn là hành vi của edge; requirement đo được đã có ở 10.3
 | ID | Quy tắc | Áp cho |
 |---|---|---|
 | BR-1 | Một domain gốc thuộc tối đa một zone chưa gỡ trên toàn nền tảng. Subdomain của domain đã có zone ở tenant khác bị từ chối ([OQ-2](#9-câu-hỏi-mở-cho-review)) | F2.1.1 |
-| BR-2 | Zone chỉ kích hoạt khi qua cổng OG1: mọi hostname đã chọn đã xác minh, có cert, có origin đã kiểm (hoặc khách xác nhận bỏ qua), đã chọn preset ([1.7.1](07-business-analysis/01-onboarding.md)) | F2.4.1 |
+| BR-2 | Zone chỉ kích hoạt khi qua cổng OG1: mọi hostname đã chọn đã xác minh, có cert, có origin đã kiểm (hoặc khách xác nhận bỏ qua), đã chọn preset ([requirements §3.1](03-business-analysis/01-onboarding.md)) | F2.4.1 |
 | BR-3 | Một zone thuộc đúng một account; entitlements tính theo zone | F2, F10 |
 | BR-4 | PolicyVersion không sửa được. Rollback tạo version mới có nội dung của version cũ | F5.3.4, F5.4.3 |
 | BR-5 | Khi bật 4-eyes: người duyệt khác người tạo và khác mọi người đã sửa bản nháp đó; người duyệt phải có quyền duyệt trên mọi zone trong change request | F5.3.2 |
@@ -256,7 +259,7 @@ Phần lớn là hành vi của edge; requirement đo được đã có ở 10.3
 | BR-21 | Exception luôn có phạm vi zone; exception tắt toàn bộ managed ruleset cho cả zone phải đi qua duyệt kể cả khi 4-eyes tắt | F5.1.4 |
 | BR-22 | Claim domain chưa xác minh hết hạn sau 14 ngày; domain được giải phóng | F2.1.8 |
 | BR-23 | Không cấp cert cho hostname chưa xác minh sở hữu | F2.3.1 |
-| BR-24 | DDoS L7 và lọc sớm chặn từ request đầu tiên, không theo log-only của onboarding. Bật chặn phần còn lại lần đầu cần ≥ 7 ngày và ≥ 10.000 request log-only ([OQ-17](07-business-analysis/01-onboarding.md#9-câu-hỏi-mở)), trừ khi khách chọn "đang bị tấn công" (có audit) | F2.6.1, F2.7.4 |
+| BR-24 | DDoS L7 và lọc sớm chặn từ request đầu tiên, không theo log-only của onboarding. Bật chặn phần còn lại lần đầu cần ≥ 7 ngày và ≥ 10.000 request log-only ([OQ-17](03-business-analysis/01-onboarding.md#a9-câu-hỏi-mở)), trừ khi khách chọn "đang bị tấn công" (có audit) | F2.6.1, F2.7.4 |
 
 ## 5. Yêu cầu dữ liệu
 
@@ -290,7 +293,7 @@ Yêu cầu chung cho dữ liệu:
 
 ## 6. Yêu cầu phi chức năng
 
-Kịch bản đo được của toàn hệ thống ở [10.3](../10-quality/00-index.md#103-kịch-bản) (QS-1…QS-41) là phần
+Kịch bản đo được của toàn hệ thống ở [10.3](../architecture/10-quality/00-index.md#103-kịch-bản) (QS-1…QS-41) là phần
 chính. Dưới đây chỉ là những điểm 10.3 chưa có, chủ yếu cho Management.
 
 | ID | Thuộc tính | Yêu cầu | Đề xuất |
@@ -323,14 +326,14 @@ chính. Dưới đây chỉ là những điểm 10.3 chưa có, chủ yếu cho 
 
 ## 8. Truy vết
 
-Phân rã theo plane, thành phần và các liên kết `LK-…` giữa plane ở [1.5](05-functional-decomposition.md#phân-rã-theo-plane).
+Phân rã theo plane, thành phần và các liên kết `LK-…` giữa plane ở [requirements §1](01-functional-decomposition.md#phân-rã-theo-plane).
 
 | Nhóm | Building block | Runtime | Database |
 |---|---|---|---|
-| F1, F2, F5, F8.4, F9, F10, F12 (phần M) | [5.1](../05-building-blocks/01-management-plane.md), [5.8.12](../05-building-blocks/08-components/12-management.md) | [6](../06-runtime/00-index.md) | [5.8.14](../05-building-blocks/08-components/14-management-database.md) |
-| F6, F11, F2.3 | [5.2](../05-building-blocks/02-control-plane.md), [5.8.5](../05-building-blocks/08-components/05-config-and-compiler.md)–[5.8.7](../05-building-blocks/08-components/07-cert-ruleset-release.md) | [8.15](../08-cross-cutting/15-config-propagation-and-apply.md) | Chưa thiết kế |
-| F3, F4 | [5.3](../05-building-blocks/03-edge-plane.md), [5.8.1](../05-building-blocks/08-components/01-l7.md)–[5.8.4](../05-building-blocks/08-components/04-edge-agent-and-state.md) | [6](../06-runtime/00-index.md) | Không có database (PoP store) |
-| F7, F8.1–F8.3 | [5.4](../05-building-blocks/04-analytics-plane.md), [5.8.8](../05-building-blocks/08-components/08-ingestion-and-storage.md)–[5.8.11](../05-building-blocks/08-components/11-notification-fanout.md), [5.8.13](../05-building-blocks/08-components/13-realtime-gateway.md) | [6.10](../06-runtime/10-analytics-flows.md) | ClickHouse ([5.8.8](../05-building-blocks/08-components/08-ingestion-and-storage.md)) |
+| F1, F2, F5, F8.4, F9, F10, F12 (phần M) | [5.1](../architecture/05-building-blocks/01-management-plane.md), [5.8.12](../architecture/05-building-blocks/08-components/12-management.md) | [6](../architecture/06-runtime/00-index.md) | [5.8.14](../architecture/05-building-blocks/08-components/14-management-database.md) |
+| F6, F11, F2.3 | [5.2](../architecture/05-building-blocks/02-control-plane.md), [5.8.5](../architecture/05-building-blocks/08-components/05-config-and-compiler.md)–[5.8.7](../architecture/05-building-blocks/08-components/07-cert-ruleset-release.md) | [8.15](../architecture/08-cross-cutting/15-config-propagation-and-apply.md) | Chưa thiết kế |
+| F3, F4 | [5.3](../architecture/05-building-blocks/03-edge-plane.md), [5.8.1](../architecture/05-building-blocks/08-components/01-l7.md)–[5.8.4](../architecture/05-building-blocks/08-components/04-edge-agent-and-state.md) | [6](../architecture/06-runtime/00-index.md) | Không có database (PoP store) |
+| F7, F8.1–F8.3 | [5.4](../architecture/05-building-blocks/04-analytics-plane.md), [5.8.8](../architecture/05-building-blocks/08-components/08-ingestion-and-storage.md)–[5.8.11](../architecture/05-building-blocks/08-components/11-notification-fanout.md), [5.8.13](../architecture/05-building-blocks/08-components/13-realtime-gateway.md) | [6.10](../architecture/06-runtime/10-analytics-flows.md) | ClickHouse ([5.8.8](../architecture/05-building-blocks/08-components/08-ingestion-and-storage.md)) |
 
 ## 9. Câu hỏi mở cho review
 
@@ -350,5 +353,5 @@ Phân rã theo plane, thành phần và các liên kết `LK-…` giữa plane �
 | OQ-12 | Cổng thanh toán cụ thể và tính phí theo kỳ trả trước hay trả sau? | Phí nền trả trước, phí vượt trả sau | IR-2, FR-10-11 |
 | OQ-13 | Developer có được tạo exception không cần duyệt trong zone được giao không? | Không, luôn qua change request | FR-1-06, F5.1.4 |
 | OQ-14 | Billing theo account hay theo org (một hoá đơn cho cả org)? | Theo account, gộp được ở cấp org | DT-8 |
-| OQ-15 | Chốt các hợp đồng tạm ở [5.5](../05-building-blocks/05-contracts.md#hợp-đồng-bổ-sung-tạm-2026-11-06) (purge, kết quả biên dịch, rollout, cert, kiểm zone, kiểm origin, `PopState`, `PermissionsChanged`, cấu hình alert/export, nhãn chặn nhầm, replay, xoá dữ liệu, cách ly, reputation) | Đã thêm tạm; chốt dần theo từng nghiệp vụ ở 1.7 | 5.5, outbox của Management |
-| OQ-16…OQ-20 | Câu hỏi của onboarding: IP tĩnh cho apex, điều kiện bật chặn, cert theo hostname, hostname xem trước, xác minh bằng TXT | Ở [1.7.1](07-business-analysis/01-onboarding.md) §9 | F2 |
+| OQ-15 | Chốt các hợp đồng tạm ở [5.5](../architecture/05-building-blocks/05-contracts.md#hợp-đồng-bổ-sung-tạm-2026-11-06) (purge, kết quả biên dịch, rollout, cert, kiểm zone, kiểm origin, `PopState`, `PermissionsChanged`, cấu hình alert/export, nhãn chặn nhầm, replay, xoá dữ liệu, cách ly, reputation) | Đã thêm tạm; chốt dần theo từng nghiệp vụ ở §3 | 5.5, outbox của Management |
+| OQ-16…OQ-32 | Câu hỏi của onboarding: OQ-21…OQ-32 là danh sách đang mở (zone là gì, IP tĩnh v4/v6, cổng phi chuẩn, traffic không phải HTTP, DNS hosting, nhà DNS trong nước, phân khúc, tunnel, origin theo path, nền tảng SaaS, ACME của origin, A/AAAA lệch); OQ-16…OQ-20 thuộc bản nháp | Ở [requirements §3.1](03-business-analysis/01-onboarding.md#4-câu-hỏi-cần-chủ-dự-án-quyết) | F2 |
