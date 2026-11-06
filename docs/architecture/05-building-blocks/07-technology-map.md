@@ -15,18 +15,18 @@ Hai tiêu chí chạy xuyên suốt:
 
 | Thành phần | Công nghệ | License | ADR |
 |---|---|---|---|
-| Edge proxy (TLS, kết nối, pre-filter, challenge, cache, proxy) | **Chờ chọn.** Shortlist: Rust + Pingora, Go tự xây, Envoy; mốc NGINX (cache) và HAProxy (gọi WAF) | Apache-2.0 / BSD | [0031](../09-adr/0031-edge-l7-and-waf-engine-options.md), [0033](../09-adr/0033-two-tier-edge-proxy-and-waf.md) |
+| L7 (TLS, kết nối, pre-filter, challenge, cache, L7) | **Chờ chọn.** Shortlist: Rust + Pingora, Go tự xây, Envoy; mốc NGINX (cache) và HAProxy (gọi WAF) | Apache-2.0 / BSD | [0031](../09-adr/0031-edge-l7-and-waf-engine-options.md), [0033](../09-adr/0033-two-tier-edge-proxy-and-waf.md) |
 | HTTP/3 | Theo nền L7 được chọn (Pingora chưa xác nhận; Envoy, NGINX, `quic-go` có) | — | [0031](../09-adr/0031-edge-l7-and-waf-engine-options.md) |
 | WAF inspection (tầng 2) | Dịch vụ riêng; engine mặc định Coraza (Go), so sánh libmodsecurity v3 trong spike; OWASP CRS v4 | Apache-2.0 | [0031](../09-adr/0031-edge-l7-and-waf-engine-options.md) |
-| Proxy ↔ WAF | Inspection API riêng (gRPC stream); adapter `ext_proc`/SPOE nếu proxy là Envoy/HAProxy | Apache-2.0 | [0031](../09-adr/0031-edge-l7-and-waf-engine-options.md) |
-| Cache (CDN) | Trong tầng proxy: RAM + NVMe, purge qua fast lane | — | [0035](../09-adr/0035-cdn-and-dns-strategy.md) |
+| L7 ↔ WAF | Inspection API riêng (gRPC stream); adapter `ext_proc`/SPOE nếu L7 là Envoy/HAProxy | Apache-2.0 | [0031](../09-adr/0031-edge-l7-and-waf-engine-options.md) |
+| Cache (CDN) | Trong tầng L7: RAM + NVMe, purge qua fast lane | — | [0035](../09-adr/0035-cdn-and-dns-strategy.md) |
 | DNS điều hướng, DNS authoritative (Mở rộng) | CoreDNS + plugin riêng | Apache-2.0 | [0035](../09-adr/0035-cdn-and-dns-strategy.md) |
-| Custom rule engine | CEL kiểm tra ở Control (`cel-go`); phần pre chạy IR ở proxy, phần inspect chạy ở WAF | Apache-2.0 | [0032](../09-adr/0032-cel-checked-at-control-ir-at-edge.md), [0034](../09-adr/0034-pre-filter-and-rule-split-across-tiers.md) |
+| Custom rule engine | CEL kiểm tra ở Control (`cel-go`); phần pre chạy IR ở L7, phần inspect chạy ở WAF | Apache-2.0 | [0032](../09-adr/0032-cel-checked-at-control-ir-at-edge.md), [0034](../09-adr/0034-pre-filter-and-rule-split-across-tiers.md) |
 | IP / CIDR matching | Trie IPv4/IPv6 theo ngôn ngữ edge | MIT / Apache-2.0 | — |
-| Bot scoring | Fingerprint JA4 + HTTP/2 tính ở proxy; điểm có trọng số (Mở rộng), mô hình cây quyết định suy luận tại edge (Nâng cao); challenge tự phát | — | [0038](../09-adr/0038-bot-management-layered-scoring.md) |
-| API security | Route table + JWT/mTLS ở proxy; validator JSON Schema, GraphQL ở WAF; discovery ở Analytics | — | [0039](../09-adr/0039-api-security-positive-model.md) |
+| Bot scoring | Fingerprint JA4 + HTTP/2 tính ở L7; điểm có trọng số (Mở rộng), mô hình cây quyết định suy luận tại edge (Nâng cao); challenge tự phát | — | [0038](../09-adr/0038-bot-management-layered-scoring.md) |
+| API security | Route table + JWT/mTLS ở L7; validator JSON Schema, GraphQL ở WAF; discovery ở Analytics | — | [0039](../09-adr/0039-api-security-positive-model.md) |
 | Geo / ASN | Định dạng MMDB, dữ liệu thương mại có quyền phân phối lại | Theo hợp đồng | [0025](../09-adr/0025-geo-asn-data-commercial-license.md) |
-| Policy agent, state sync | Policy agent trong binary của cả hai tầng; state sync trong edge proxy; con trỏ nguyên tử tới runtime bất biến | — | [0015](../09-adr/0015-snapshot-format-and-distribution.md) |
+| Policy agent, state sync | Policy agent trong binary của cả hai tầng; state sync trong L7; con trỏ nguyên tử tới runtime bất biến | — | [0015](../09-adr/0015-snapshot-format-and-distribution.md) |
 | PoP config store | KV nhúng trên NVMe (kiểu LMDB) sau một dịch vụ Go nhỏ, hai bản mỗi PoP | — | [0040](../09-adr/0040-config-distribution-at-scale.md) |
 | Routing index | Bảng trong RAM mỗi node, cập nhật delta theo bucket | — | [0040](../09-adr/0040-config-distribution-at-scale.md) |
 | Rate limit đồng bộ | Valkey theo region, chỉ cho hot key | BSD-3 | [0021](../09-adr/0021-valkey-for-hot-key-rate-limit-sync.md) |

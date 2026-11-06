@@ -105,7 +105,7 @@ blockquote { margin: 0 0 14px; padding: 8px 16px; border-left: 3px solid var(--l
 <a class="sub" href="#f-05-building-blocks-06-data-model">5.6 Mô hình dữ liệu</a>
 <a class="sub" href="#f-05-building-blocks-07-technology-map">5.7 Bản đồ công nghệ</a>
 <a class="sub" href="#f-05-building-blocks-08-components-00-index">5.8 Level 3: detail design theo container (C4 Component)</a>
-<a class="sub2" href="#f-05-building-blocks-08-components-01-edge-proxy">5.8.1 Edge proxy (tầng 1)</a>
+<a class="sub2" href="#f-05-building-blocks-08-components-01-l7">5.8.1 L7 (tầng 1)</a>
 <a class="sub2" href="#f-05-building-blocks-08-components-02-waf-inspection">5.8.2 WAF inspection (tầng 2)</a>
 <a class="sub2" href="#f-05-building-blocks-08-components-03-dns-and-traffic-steering">5.8.3 DNS và điều hướng traffic</a>
 <a class="sub2" href="#f-05-building-blocks-08-components-04-edge-agent-and-state">5.8.4 Policy agent, state sync, log shipping trên node</a>
@@ -160,14 +160,14 @@ blockquote { margin: 0 0 14px; padding: 8px 16px; border-left: 3px solid var(--l
 <a class="sub" href="#f-09-adr-0028-notification-adapters-and-plan-gated-channels">ADR-0028: Notification theo adapter, khách tự tích hợp qua webhook chuẩn, kênh mở theo gói</a>
 <a class="sub" href="#f-09-adr-0029-independent-platform-observability">ADR-0029: Giám sát nền tảng độc lập, theo SLO và theo hành vi</a>
 <a class="sub" href="#f-09-adr-0030-language-per-workload">ADR-0030: Chọn ngôn ngữ theo đặc tính tải của từng plane</a>
-<a class="sub" href="#f-09-adr-0031-edge-l7-and-waf-engine-options">ADR-0031: Lựa chọn nền cho tầng edge proxy và engine cho tầng WAF</a>
+<a class="sub" href="#f-09-adr-0031-edge-l7-and-waf-engine-options">ADR-0031: Lựa chọn nền cho tầng L7 và engine cho tầng WAF</a>
 <a class="sub" href="#f-09-adr-0032-cel-checked-at-control-ir-at-edge">ADR-0032: CEL được kiểm tra ở Control, edge thực thi IR đã biên dịch</a>
-<a class="sub" href="#f-09-adr-0033-two-tier-edge-proxy-and-waf">ADR-0033: Edge tách hai tầng: edge proxy và WAF inspection</a>
-<a class="sub" href="#f-09-adr-0034-pre-filter-and-rule-split-across-tiers">ADR-0034: Pre-filter và challenge ở tầng proxy; custom rule chia theo tầng</a>
+<a class="sub" href="#f-09-adr-0033-two-tier-edge-proxy-and-waf">ADR-0033: Edge tách hai tầng: L7 và WAF inspection</a>
+<a class="sub" href="#f-09-adr-0034-pre-filter-and-rule-split-across-tiers">ADR-0034: Pre-filter và challenge ở tầng L7; custom rule chia theo tầng</a>
 <a class="sub" href="#f-09-adr-0035-cdn-and-dns-strategy">ADR-0035: Chiến lược CDN và DNS</a>
 <a class="sub" href="#f-09-adr-0036-request-timing-and-error-attribution">ADR-0036: Đo thời gian theo chặng và quy mỗi response về một nguồn</a>
 <a class="sub" href="#f-09-adr-0037-config-apply-classes">ADR-0037: Phân lớp cấu hình theo cách áp dụng trên edge</a>
-<a class="sub" href="#f-09-adr-0038-bot-management-layered-scoring">ADR-0038: Bot management chấm điểm nhiều lớp ở tầng proxy</a>
+<a class="sub" href="#f-09-adr-0038-bot-management-layered-scoring">ADR-0038: Bot management chấm điểm nhiều lớp ở tầng L7</a>
 <a class="sub" href="#f-09-adr-0039-api-security-positive-model">ADR-0039: API security theo mô hình cho phép, dựa trên schema và danh tính consumer</a>
 <a class="sub" href="#f-09-adr-0040-config-distribution-at-scale">ADR-0040: Phân phối cấu hình ở quy mô 1 triệu zone</a>
 <a class="sub" href="#f-09-adr-0041-cells-and-zone-placement">ADR-0041: Cell và cách đặt zone</a>
@@ -193,7 +193,7 @@ blockquote { margin: 0 0 14px; padding: 8px 16px; border-left: 3px solid var(--l
 <a class="sub" href="#f-05-building-blocks-06-data-model">5.6 Mô hình dữ liệu</a>
 <a class="sub" href="#f-05-building-blocks-07-technology-map">5.7 Bản đồ công nghệ</a>
 <a class="sub" href="#f-05-building-blocks-08-components-00-index">5.8 Level 3: detail design theo container (C4 Component)</a>
-<a class="sub2" href="#f-05-building-blocks-08-components-01-edge-proxy">5.8.1 Edge proxy (tầng 1)</a>
+<a class="sub2" href="#f-05-building-blocks-08-components-01-l7">5.8.1 L7 (tầng 1)</a>
 <a class="sub2" href="#f-05-building-blocks-08-components-02-waf-inspection">5.8.2 WAF inspection (tầng 2)</a>
 <a class="sub2" href="#f-05-building-blocks-08-components-03-dns-and-traffic-steering">5.8.3 DNS và điều hướng traffic</a>
 <a class="sub2" href="#f-05-building-blocks-08-components-04-edge-agent-and-state">5.8.4 Policy agent, state sync, log shipping trên node</a>
@@ -248,14 +248,14 @@ blockquote { margin: 0 0 14px; padding: 8px 16px; border-left: 3px solid var(--l
 <a class="sub" href="#f-09-adr-0028-notification-adapters-and-plan-gated-channels">ADR-0028: Notification theo adapter, khách tự tích hợp qua webhook chuẩn, kênh mở theo gói</a>
 <a class="sub" href="#f-09-adr-0029-independent-platform-observability">ADR-0029: Giám sát nền tảng độc lập, theo SLO và theo hành vi</a>
 <a class="sub" href="#f-09-adr-0030-language-per-workload">ADR-0030: Chọn ngôn ngữ theo đặc tính tải của từng plane</a>
-<a class="sub" href="#f-09-adr-0031-edge-l7-and-waf-engine-options">ADR-0031: Lựa chọn nền cho tầng edge proxy và engine cho tầng WAF</a>
+<a class="sub" href="#f-09-adr-0031-edge-l7-and-waf-engine-options">ADR-0031: Lựa chọn nền cho tầng L7 và engine cho tầng WAF</a>
 <a class="sub" href="#f-09-adr-0032-cel-checked-at-control-ir-at-edge">ADR-0032: CEL được kiểm tra ở Control, edge thực thi IR đã biên dịch</a>
-<a class="sub" href="#f-09-adr-0033-two-tier-edge-proxy-and-waf">ADR-0033: Edge tách hai tầng: edge proxy và WAF inspection</a>
-<a class="sub" href="#f-09-adr-0034-pre-filter-and-rule-split-across-tiers">ADR-0034: Pre-filter và challenge ở tầng proxy; custom rule chia theo tầng</a>
+<a class="sub" href="#f-09-adr-0033-two-tier-edge-proxy-and-waf">ADR-0033: Edge tách hai tầng: L7 và WAF inspection</a>
+<a class="sub" href="#f-09-adr-0034-pre-filter-and-rule-split-across-tiers">ADR-0034: Pre-filter và challenge ở tầng L7; custom rule chia theo tầng</a>
 <a class="sub" href="#f-09-adr-0035-cdn-and-dns-strategy">ADR-0035: Chiến lược CDN và DNS</a>
 <a class="sub" href="#f-09-adr-0036-request-timing-and-error-attribution">ADR-0036: Đo thời gian theo chặng và quy mỗi response về một nguồn</a>
 <a class="sub" href="#f-09-adr-0037-config-apply-classes">ADR-0037: Phân lớp cấu hình theo cách áp dụng trên edge</a>
-<a class="sub" href="#f-09-adr-0038-bot-management-layered-scoring">ADR-0038: Bot management chấm điểm nhiều lớp ở tầng proxy</a>
+<a class="sub" href="#f-09-adr-0038-bot-management-layered-scoring">ADR-0038: Bot management chấm điểm nhiều lớp ở tầng L7</a>
 <a class="sub" href="#f-09-adr-0039-api-security-positive-model">ADR-0039: API security theo mô hình cho phép, dựa trên schema và danh tính consumer</a>
 <a class="sub" href="#f-09-adr-0040-config-distribution-at-scale">ADR-0040: Phân phối cấu hình ở quy mô 1 triệu zone</a>
 <a class="sub" href="#f-09-adr-0041-cells-and-zone-placement">ADR-0041: Cell và cách đặt zone</a>
@@ -837,12 +837,12 @@ trong ADR.</p>
 </tr>
 <tr>
 <td>Q1, Q3</td>
-<td><strong>Edge hai tầng:</strong> proxy (RAM, kết nối) lọc rẻ, challenge, cache; WAF inspection (CPU) chỉ nhận phần còn lại. Scale độc lập, crash của engine không kéo theo kết nối.</td>
+<td><strong>Edge hai tầng:</strong> L7 (RAM, kết nối) lọc rẻ, challenge, cache; WAF inspection (CPU) chỉ nhận phần còn lại. Scale độc lập, crash của engine không kéo theo kết nối.</td>
 <td><a href="#f-09-adr-0033-two-tier-edge-proxy-and-waf">0033</a>, <a href="#f-09-adr-0034-pre-filter-and-rule-split-across-tiers">0034</a></td>
 </tr>
 <tr>
 <td>Thương mại, Q1</td>
-<td><strong>CDN là một phần của sản phẩm</strong> (đề xuất, chờ chọn): cache trong tầng proxy từ MVP, chế độ đứng sau CDN của khách, DNS authoritative ở giai đoạn Mở rộng.</td>
+<td><strong>CDN là một phần của sản phẩm</strong> (đề xuất, chờ chọn): cache trong tầng L7 từ MVP, chế độ đứng sau CDN của khách, DNS authoritative ở giai đoạn Mở rộng.</td>
 <td><a href="#f-09-adr-0035-cdn-and-dns-strategy">0035</a></td>
 </tr>
 <tr>
@@ -930,7 +930,7 @@ chéo tenant, data residency mở rộng, on-prem đầy đủ.</li>
     end
     subgraph E[&quot;Edge plane · PoP × N&quot;]
         e1[&quot;Policy agent · State sync&quot;]
-        e2[&quot;Edge proxy&lt;br/&gt;pre-filter · challenge · cache&quot;]
+        e2[&quot;L7&lt;br/&gt;pre-filter · challenge · cache&quot;]
         e4[&quot;WAF inspection&lt;br/&gt;CRS · rule inspect&quot;]
         e5[&quot;DNS điều hướng&quot;]
         e3[&quot;Log shipper&quot;]
@@ -976,7 +976,7 @@ chéo tenant, data residency mở rộng, on-prem đầy đủ.</li>
 </tr>
 <tr>
 <td><strong>Edge</strong></td>
-<td>Xử lý từng request qua hai tầng: edge proxy (kết nối, pre-filter, challenge, cache, proxy) và WAF inspection (CRS, rule cần body); DNS điều hướng; phát log</td>
+<td>Xử lý từng request qua hai tầng: L7 (kết nối, pre-filter, challenge, cache, L7) và WAF inspection (CRS, rule cần body); DNS điều hướng; phát log</td>
 <td>Không gọi plane khác trên đường request; không hiểu khái niệm nghiệp vụ</td>
 <td>Độ trễ thêm thấp, 99.99%, tự chạy khi mất kết nối; hai tầng scale độc lập (<a href="#f-09-adr-0033-two-tier-edge-proxy-and-waf">ADR-0033</a>)</td>
 </tr>
@@ -1205,10 +1205,10 @@ khác nhau (<a href="#f-09-adr-0033-two-tier-edge-proxy-and-waf">ADR-0033</a>), 
 <td>Hạ tầng / đối tác; PoP riêng: XDP (Mở rộng)</td>
 </tr>
 <tr>
-<td><strong>Edge proxy</strong></td>
+<td><strong>L7</strong></td>
 <td>TLS, kết nối, pre-filter, challenge, rate limit, cache, proxy tới origin</td>
 <td><strong>RAM, kết nối, băng thông</strong></td>
-<td><a href="#f-05-building-blocks-08-components-01-edge-proxy">5.8.1</a></td>
+<td><a href="#f-05-building-blocks-08-components-01-l7">5.8.1</a></td>
 </tr>
 <tr>
 <td><strong>WAF inspection</strong></td>
@@ -1234,9 +1234,9 @@ khác nhau (<a href="#f-09-adr-0033-two-tier-edge-proxy-and-waf">ADR-0033</a>), 
     origin[&quot;Origin / origin shield&quot;]
 
     subgraph POP[&quot;PoP&quot;]
-        subgraph PX[&quot;Pool edge proxy (RAM)&quot;]
+        subgraph PX[&quot;Pool L7 (RAM)&quot;]
             agp[&quot;Policy agent&quot;]
-            px[&quot;Edge proxy&lt;br/&gt;pre-filter · challenge · cache&quot;]
+            px[&quot;L7&lt;br/&gt;pre-filter · challenge · cache&quot;]
             sync[&quot;State sync&quot;]
         end
         subgraph WF[&quot;Pool WAF inspection (CPU)&quot;]
@@ -1273,8 +1273,8 @@ khác nhau (<a href="#f-09-adr-0033-two-tier-edge-proxy-and-waf">ADR-0033</a>), 
 <td>Chạy tiếp bản đang có</td>
 </tr>
 <tr>
-<td><strong>Edge proxy</strong></td>
-<td>Pipeline bước 2–10, 12–14 (<a href="#f-05-building-blocks-08-components-01-edge-proxy--thứ-tự-xử-lý">5.8.1</a>)</td>
+<td><strong>L7</strong></td>
+<td>Pipeline bước 2–10, 12–14 (<a href="#f-05-building-blocks-08-components-01-l7--thứ-tự-xử-lý">5.8.1</a>)</td>
 <td>Không phụ thuộc mạng ngoài PoP</td>
 </tr>
 <tr>
@@ -1314,55 +1314,55 @@ khác nhau (<a href="#f-09-adr-0033-two-tier-edge-proxy-and-waf">ADR-0033</a>), 
 <tr>
 <td>2</td>
 <td>TLS</td>
-<td>Proxy</td>
+<td>L7</td>
 <td>Cert theo SNI; ghi fingerprint JA4, HTTP/2</td>
 </tr>
 <tr>
 <td>3</td>
 <td>Giới hạn giao thức, chuẩn hoá</td>
-<td>Proxy</td>
+<td>L7</td>
 <td>Chặn request sai chuẩn, smuggling</td>
 </tr>
 <tr>
 <td>4</td>
 <td>Access list, reputation</td>
-<td>Proxy</td>
+<td>L7</td>
 <td><code>allow</code> có phạm vi, có thể bỏ qua cả WAF</td>
 </tr>
 <tr>
 <td>5</td>
 <td>Bot scoring</td>
-<td>Proxy</td>
+<td>L7</td>
 <td>Chỉ tính điểm và lớp (<a href="#f-08-cross-cutting-16-bot-management">8.16</a>)</td>
 </tr>
 <tr>
 <td>6</td>
 <td>Under Attack mode, challenge</td>
-<td>Proxy</td>
-<td>Mọi challenge đều ở proxy (<a href="#f-09-adr-0034-pre-filter-and-rule-split-across-tiers">ADR-0034</a>); bot đã xác minh bỏ qua theo cấu hình</td>
+<td>L7</td>
+<td>Mọi challenge đều ở L7 (<a href="#f-09-adr-0034-pre-filter-and-rule-split-across-tiers">ADR-0034</a>); bot đã xác minh bỏ qua theo cấu hình</td>
 </tr>
 <tr>
 <td>7</td>
 <td>API: endpoint, xác thực, consumer, schema rẻ</td>
-<td>Proxy</td>
+<td>L7</td>
 <td><a href="#f-08-cross-cutting-17-api-security">8.17</a></td>
 </tr>
 <tr>
 <td>8</td>
 <td>Rate limit, DDoS L7</td>
-<td>Proxy</td>
+<td>L7</td>
 <td>Khoá theo IP, phiên hoặc consumer</td>
 </tr>
 <tr>
 <td>9</td>
 <td>Policy bot, custom rule phần pre</td>
-<td>Proxy</td>
+<td>L7</td>
 <td>Rule trước rule đầu tiên cần body</td>
 </tr>
 <tr>
 <td>10</td>
 <td>Inspect gate</td>
-<td>Proxy</td>
+<td>L7</td>
 <td>Gọi hay không gọi WAF</td>
 </tr>
 <tr>
@@ -1374,19 +1374,19 @@ khác nhau (<a href="#f-09-adr-0033-two-tier-edge-proxy-and-waf">ADR-0033</a>), 
 <tr>
 <td>12</td>
 <td>Quyết định</td>
-<td>Proxy</td>
+<td>L7</td>
 <td>allow / log / challenge / block</td>
 </tr>
 <tr>
 <td>13</td>
 <td>Cache</td>
-<td>Proxy</td>
+<td>L7</td>
 <td>Mặc định sau WAF; tài nguyên tĩnh có thể miễn WAF</td>
 </tr>
 <tr>
 <td>14</td>
 <td>Proxy tới origin</td>
-<td>Proxy</td>
+<td>L7</td>
 <td>Qua origin shield ở Mở rộng</td>
 </tr>
 </tbody>
@@ -1395,7 +1395,7 @@ khác nhau (<a href="#f-09-adr-0033-two-tier-edge-proxy-and-waf">ADR-0033</a>), 
 không trả lời kịp cũng áp fail mode này.</p>
 <h2 id="f-05-building-blocks-03-edge-plane--cô-lập-tenant">Cô lập tenant</h2>
 <ul>
-<li>Ở proxy: giới hạn kết nối, RAM cho body buffer, băng thông log theo tenant.</li>
+<li>Ở L7: giới hạn kết nối, RAM cho body buffer, băng thông log theo tenant.</li>
 <li>Ở WAF: phần CPU theo gói (fair share), kích thước body được kiểm tra, độ phức tạp regex (chặn ở compiler).</li>
 <li>Tenant vượt giới hạn bị hạ cấp theo fail mode của chính nó, không làm chậm tenant khác.</li>
 </ul>
@@ -1559,7 +1559,7 @@ và giữ trạng thái cũ, không đọc dở.</p>
 </tr>
 <tr>
 <td><strong>Inspection API</strong></td>
-<td>Edge proxy → WAF inspection (trong PoP)</td>
+<td>L7 → WAF inspection (trong PoP)</td>
 <td>Header, body theo chunk, ngữ cảnh zone/tenant/request ID; trả verdict</td>
 <td>gRPC stream đồng bộ, có deadline; xem mục bên dưới</td>
 </tr>
@@ -1602,7 +1602,7 @@ gói chứa mọi zone mà là một cây theo digest:</p>
   ├── digest bundle chung, digest routing index
   └── digest của 4.096 bucket manifest
         bucket manifest (≈ 250 zone mỗi bucket)
-          └── zone_id → digest bundle proxy, digest bundle WAF, cell_id
+          └── zone_id → digest bundle L7, digest bundle WAF, cell_id
 routing index: (hostname, cổng) → zone_id, cell_id, cert_ref, digest   (mọi node, ≈ 200 MB)
 </code></pre>
 <p>Mỗi bundle có nội dung như dưới; node chỉ nạp bundle của zone đang có traffic (<a href="#f-09-adr-0040-config-distribution-at-scale">ADR-0040</a>).</p>
@@ -1613,14 +1613,14 @@ routing index: (hostname, cổng) → zone_id, cell_id, cert_ref, digest   (mọ
   ├── dữ liệu bot: danh sách bot đã xác minh, reputation fingerprint/ASN/IP, mô hình bot (8.16)
   └── lớp rule khẩn
 bundle zone (version N, tham chiếu bundle chung ≥ M)
-  ├── phần proxy
+  ├── phần L7
   │     ├── hostname, origin, TLS (tham chiếu cert đã mã hoá), fail mode
   │     ├── access list, rate limit, DDoS L7, Under Attack mode
   │     ├── custom rule phần pre (IR), inspect gate (miễn WAF cho tài nguyên tĩnh)
   │     ├── cache rule, cấu hình purge
   │     ├── policy bot theo nhóm path, danh sách bot của khách
   │     ├── API: route table, kiểm tham số/header, cấu hình JWT + JWKS, CA client mTLS, nguồn danh tính consumer (8.17)
-  │     └── entitlements áp ở proxy: tỉ lệ lấy mẫu, giới hạn body buffer, kết nối
+  │     └── entitlements áp ở L7: tỉ lệ lấy mẫu, giới hạn body buffer, kết nối
   └── phần WAF
         ├── cấu hình managed ruleset: paranoia, ngưỡng anomaly, rule tắt, exclusion
         ├── custom rule phần inspect
@@ -1629,14 +1629,14 @@ bundle zone (version N, tham chiếu bundle chung ≥ M)
 </code></pre>
 <p>Disabled rule bị loại khi biên dịch chứ không mang theo cờ: edge không bao giờ giữ một rule mà nó
 phải nhớ là không áp.</p>
-<p>Policy agent ở tầng proxy chỉ nạp phần proxy (và bundle chung), ở tầng WAF chỉ nạp phần WAF; cùng một
+<p>Policy agent ở tầng L7 chỉ nạp phần L7 (và bundle chung), ở tầng WAF chỉ nạp phần WAF; cùng một
 manifest nên hai tầng chạy cùng version policy, trừ khoảng lệch ngắn lúc swap: Inspect request mang
-<code>policy_version_id</code> của proxy, WAF giữ version hiện tại và version trước để trả lời đúng version
+<code>policy_version_id</code> của L7, WAF giữ version hiện tại và version trước để trả lời đúng version
 (<a href="#f-08-cross-cutting-15-config-propagation-and-apply--6-hai-tầng-swap-lệch-nhau">8.15 §6</a>). Bundle chung
 có thêm <strong>lớp rule khẩn</strong> nhỏ, tách khỏi ruleset release để fast lane không phải build lại CRS.</p>
-<h2 id="f-05-building-blocks-05-contracts--inspection-api-edge-proxy--waf">Inspection API (edge proxy → WAF)</h2>
+<h2 id="f-05-building-blocks-05-contracts--inspection-api-l7--waf">Inspection API (L7 → WAF)</h2>
 <p>Hợp đồng chuẩn giữa hai tầng (<a href="#f-09-adr-0031-edge-l7-and-waf-engine-options">ADR-0031</a> §5), độc lập
-với nền proxy được chọn.</p>
+với nền L7 được chọn.</p>
 <pre class="code"><code class="lang-protobuf">service Inspection {
   rpc Inspect(stream InspectRequest) returns (stream InspectResponse);
 }
@@ -1652,7 +1652,7 @@ message InspectRequest {
 message InspectResponse {
   oneof m {
     Verdict    verdict    = 1;  // có thể gửi trước khi nhận hết body
-    Overloaded overloaded = 2;  // admission control từ chối, proxy áp fail mode
+    Overloaded overloaded = 2;  // admission control từ chối, L7 áp fail mode
     Error      error      = 3;
   }
 }
@@ -1674,15 +1674,15 @@ message Verdict {
 <tbody>
 <tr>
 <td>Deadline</td>
-<td>Proxy đặt theo ngân sách của zone (mặc định 1,5 ms); quá hạn → fail mode</td>
+<td>L7 đặt theo ngân sách của zone (mặc định 1,5 ms); quá hạn → fail mode</td>
 </tr>
 <tr>
 <td>Verdict sớm</td>
-<td>WAF trả ngay khi điểm anomaly vượt ngưỡng; proxy ngừng gửi body</td>
+<td>WAF trả ngay khi điểm anomaly vượt ngưỡng; L7 ngừng gửi body</td>
 </tr>
 <tr>
 <td>Tương thích</td>
-<td>N/N-1 như mọi hợp đồng; WAF nhận <code>ext_proc</code>/SPOE qua adapter nếu proxy là Envoy/HAProxy</td>
+<td>N/N-1 như mọi hợp đồng; WAF nhận <code>ext_proc</code>/SPOE qua adapter nếu L7 là Envoy/HAProxy</td>
 </tr>
 <tr>
 <td>Bảo mật</td>
@@ -1830,7 +1830,7 @@ trong phần phát hành cho khách; không dịch vụ managed độc quyền m
 </thead>
 <tbody>
 <tr>
-<td>Edge proxy (TLS, kết nối, pre-filter, challenge, cache, proxy)</td>
+<td>L7 (TLS, kết nối, pre-filter, challenge, cache, L7)</td>
 <td><strong>Chờ chọn.</strong> Shortlist: Rust + Pingora, Go tự xây, Envoy; mốc NGINX (cache) và HAProxy (gọi WAF)</td>
 <td>Apache-2.0 / BSD</td>
 <td><a href="#f-09-adr-0031-edge-l7-and-waf-engine-options">0031</a>, <a href="#f-09-adr-0033-two-tier-edge-proxy-and-waf">0033</a></td>
@@ -1848,14 +1848,14 @@ trong phần phát hành cho khách; không dịch vụ managed độc quyền m
 <td><a href="#f-09-adr-0031-edge-l7-and-waf-engine-options">0031</a></td>
 </tr>
 <tr>
-<td>Proxy ↔ WAF</td>
-<td>Inspection API riêng (gRPC stream); adapter <code>ext_proc</code>/SPOE nếu proxy là Envoy/HAProxy</td>
+<td>L7 ↔ WAF</td>
+<td>Inspection API riêng (gRPC stream); adapter <code>ext_proc</code>/SPOE nếu L7 là Envoy/HAProxy</td>
 <td>Apache-2.0</td>
 <td><a href="#f-09-adr-0031-edge-l7-and-waf-engine-options">0031</a></td>
 </tr>
 <tr>
 <td>Cache (CDN)</td>
-<td>Trong tầng proxy: RAM + NVMe, purge qua fast lane</td>
+<td>Trong tầng L7: RAM + NVMe, purge qua fast lane</td>
 <td>—</td>
 <td><a href="#f-09-adr-0035-cdn-and-dns-strategy">0035</a></td>
 </tr>
@@ -1867,7 +1867,7 @@ trong phần phát hành cho khách; không dịch vụ managed độc quyền m
 </tr>
 <tr>
 <td>Custom rule engine</td>
-<td>CEL kiểm tra ở Control (<code>cel-go</code>); phần pre chạy IR ở proxy, phần inspect chạy ở WAF</td>
+<td>CEL kiểm tra ở Control (<code>cel-go</code>); phần pre chạy IR ở L7, phần inspect chạy ở WAF</td>
 <td>Apache-2.0</td>
 <td><a href="#f-09-adr-0032-cel-checked-at-control-ir-at-edge">0032</a>, <a href="#f-09-adr-0034-pre-filter-and-rule-split-across-tiers">0034</a></td>
 </tr>
@@ -1879,13 +1879,13 @@ trong phần phát hành cho khách; không dịch vụ managed độc quyền m
 </tr>
 <tr>
 <td>Bot scoring</td>
-<td>Fingerprint JA4 + HTTP/2 tính ở proxy; điểm có trọng số (Mở rộng), mô hình cây quyết định suy luận tại edge (Nâng cao); challenge tự phát</td>
+<td>Fingerprint JA4 + HTTP/2 tính ở L7; điểm có trọng số (Mở rộng), mô hình cây quyết định suy luận tại edge (Nâng cao); challenge tự phát</td>
 <td>—</td>
 <td><a href="#f-09-adr-0038-bot-management-layered-scoring">0038</a></td>
 </tr>
 <tr>
 <td>API security</td>
-<td>Route table + JWT/mTLS ở proxy; validator JSON Schema, GraphQL ở WAF; discovery ở Analytics</td>
+<td>Route table + JWT/mTLS ở L7; validator JSON Schema, GraphQL ở WAF; discovery ở Analytics</td>
 <td>—</td>
 <td><a href="#f-09-adr-0039-api-security-positive-model">0039</a></td>
 </tr>
@@ -1897,7 +1897,7 @@ trong phần phát hành cho khách; không dịch vụ managed độc quyền m
 </tr>
 <tr>
 <td>Policy agent, state sync</td>
-<td>Policy agent trong binary của cả hai tầng; state sync trong edge proxy; con trỏ nguyên tử tới runtime bất biến</td>
+<td>Policy agent trong binary của cả hai tầng; state sync trong L7; con trỏ nguyên tử tới runtime bất biến</td>
 <td>—</td>
 <td><a href="#f-09-adr-0015-snapshot-format-and-distribution">0015</a></td>
 </tr>
@@ -2146,8 +2146,8 @@ thiết kế, hợp đồng hoặc schema chính, hành vi khi lỗi. Công ngh�
 <tbody>
 <tr>
 <td>5.8.1</td>
-<td><a href="#f-05-building-blocks-08-components-01-edge-proxy">01-edge-proxy.md</a></td>
-<td>Edge proxy: pre-filter, challenge, cache, gọi WAF</td>
+<td><a href="#f-05-building-blocks-08-components-01-l7">01-edge-L7.md</a></td>
+<td>L7: pre-filter, challenge, cache, gọi WAF</td>
 <td>Edge</td>
 </tr>
 <tr>
@@ -2229,7 +2229,7 @@ thiết kế, hợp đồng hoặc schema chính, hành vi khi lỗi. Công ngh�
 </thead>
 <tbody>
 <tr>
-<td><code>edge-proxy</code> (proxy + agent + state sync)</td>
+<td><code>l7-proxy</code> (L7 + agent + state sync)</td>
 <td>Chờ chọn (<a href="#f-09-adr-0031-edge-l7-and-waf-engine-options">ADR-0031</a>)</td>
 <td>Edge node (pool RAM)</td>
 </tr>
@@ -2296,7 +2296,7 @@ thiết kế, hợp đồng hoặc schema chính, hành vi khi lỗi. Công ngh�
 </tbody>
 </table>
 </section>
-<section class="doc" id="f-05-building-blocks-08-components-01-edge-proxy"><div class="path">05-building-blocks/08-components/01-edge-proxy.md</div><h1 id="f-05-building-blocks-08-components-01-edge-proxy--581-edge-proxy-tầng-1">5.8.1 Edge proxy (tầng 1)</h1>
+<section class="doc" id="f-05-building-blocks-08-components-01-l7"><div class="path">05-building-blocks/08-components/01-l7.md</div><h1 id="f-05-building-blocks-08-components-01-l7--581-l7-tầng-1">5.8.1 L7 (tầng 1)</h1>
 <p>Tầng đầu của edge (<a href="#f-09-adr-0033-two-tier-edge-proxy-and-waf">ADR-0033</a>): nhận mọi kết nối,
 lọc rẻ những gì lọc được, phục vụ cache, và chỉ chuyển sang tầng WAF (<a href="#f-05-building-blocks-08-components-02-waf-inspection">5.8.2</a>)
 những request cần kiểm tra sâu. Tài nguyên chính là <strong>RAM, số kết nối, băng thông</strong>, không phải CPU
@@ -2305,10 +2305,10 @@ kiểm tra nội dung.</p>
 <p>Nền L7 của tầng này <strong>chưa chọn</strong> (<a href="#f-09-adr-0031-edge-l7-and-waf-engine-options">ADR-0031</a>).
 Thiết kế component dưới đây đúng với mọi phương án; chỗ khác nhau theo phương án thì ghi rõ.</p>
 </blockquote>
-<h2 id="f-05-building-blocks-08-components-01-edge-proxy--component-diagram">Component diagram</h2>
+<h2 id="f-05-building-blocks-08-components-01-l7--component-diagram">Component diagram</h2>
 <div class="diagram"><pre class="mermaid">flowchart TB
     l4[&quot;L3/L4 · anycast / GeoDNS&quot;]
-    subgraph PX[&quot;Edge proxy&quot;]
+    subgraph PX[&quot;L7&quot;]
         lst[&quot;Listener + TLS&lt;br/&gt;h1 · h2 · h3&quot;]
         lim[&quot;Protocol limits + normalizer&quot;]
         rid[&quot;Request ID · zone router&quot;]
@@ -2343,7 +2343,7 @@ Thiết kế component dưới đây đúng với mọi phương án; chỗ khá
     dec --&gt; tel --&gt; vec
     cache --&gt; tel
 </pre></div>
-<h2 id="f-05-building-blocks-08-components-01-edge-proxy--thứ-tự-xử-lý">Thứ tự xử lý</h2>
+<h2 id="f-05-building-blocks-08-components-01-l7--thứ-tự-xử-lý">Thứ tự xử lý</h2>
 <table>
 <thead>
 <tr>
@@ -2365,63 +2365,63 @@ Thiết kế component dưới đây đúng với mọi phương án; chỗ khá
 <tr>
 <td>2</td>
 <td>TLS, HTTP; ghi fingerprint JA4, HTTP/2</td>
-<td>Proxy</td>
+<td>L7</td>
 <td>RAM, CPU TLS</td>
 <td>Đóng kết nối</td>
 </tr>
 <tr>
 <td>3</td>
 <td>Giới hạn giao thức, chuẩn hoá</td>
-<td>Proxy</td>
+<td>L7</td>
 <td>Rất thấp</td>
 <td>400/413/431</td>
 </tr>
 <tr>
 <td>4</td>
 <td>Access list (allow, deny, reputation)</td>
-<td>Proxy</td>
+<td>L7</td>
 <td>Rất thấp (trie)</td>
 <td>Block; allow bỏ qua bước 5–11 theo phạm vi cấu hình</td>
 </tr>
 <tr>
 <td>5</td>
 <td>Bot scoring (chỉ tính, chưa hành động)</td>
-<td>Proxy</td>
+<td>L7</td>
 <td>Thấp</td>
 <td><code>bot.score</code>, <code>bot.class</code>, <code>bot.category</code> (<a href="#f-08-cross-cutting-16-bot-management">8.16</a>)</td>
 </tr>
 <tr>
 <td>6</td>
 <td>Under Attack mode, challenge</td>
-<td>Proxy</td>
+<td>L7</td>
 <td>Thấp</td>
 <td>Challenge; bot đã xác minh bỏ qua theo cấu hình</td>
 </tr>
 <tr>
 <td>7</td>
 <td>API: khớp endpoint, xác thực (JWT, mTLS, API key), danh tính consumer, kiểm schema không cần body</td>
-<td>Proxy</td>
+<td>L7</td>
 <td>Thấp</td>
 <td>401/403/404/400 (<a href="#f-08-cross-cutting-17-api-security">8.17</a>)</td>
 </tr>
 <tr>
 <td>8</td>
 <td>Rate limit, DDoS L7</td>
-<td>Proxy</td>
+<td>L7</td>
 <td>Thấp</td>
 <td>Block / challenge; khoá theo IP, phiên hoặc consumer API</td>
 </tr>
 <tr>
 <td>9</td>
 <td>Policy bot, custom rule <strong>phần pre</strong></td>
-<td>Proxy</td>
+<td>L7</td>
 <td>Thấp</td>
 <td>Theo hành động của policy/rule (dùng được <code>bot.*</code>, <code>jwt.*</code>, <code>api.*</code>)</td>
 </tr>
 <tr>
 <td>10</td>
 <td>Inspect gate</td>
-<td>Proxy</td>
+<td>L7</td>
 <td>Rất thấp</td>
 <td>Gọi hay không gọi WAF</td>
 </tr>
@@ -2435,21 +2435,21 @@ Thiết kế component dưới đây đúng với mọi phương án; chỗ khá
 <tr>
 <td>12</td>
 <td>Quyết định</td>
-<td>Proxy</td>
+<td>L7</td>
 <td>Rất thấp</td>
 <td>allow / log / challenge / block</td>
 </tr>
 <tr>
 <td>13</td>
 <td>Cache lookup</td>
-<td>Proxy</td>
+<td>L7</td>
 <td>RAM / đĩa</td>
 <td>Phục vụ từ cache</td>
 </tr>
 <tr>
 <td>14</td>
 <td>Proxy tới origin (hoặc origin shield)</td>
-<td>Proxy</td>
+<td>L7</td>
 <td>Mạng</td>
 <td>Response</td>
 </tr>
@@ -2460,7 +2460,7 @@ không đáng kể, tầng WAF chỉ thấy phần còn lại.</p>
 <p><strong>WAF đứng trước cache theo mặc định</strong>, để payload tấn công trong query của một URL đã cache vẫn bị phát
 hiện và ghi nhận. Zone có thể bật &quot;bỏ qua WAF cho tài nguyên tĩnh&quot; (theo path/đuôi file, chỉ GET/HEAD
 không body) để giảm tải WAF cho site nhiều static.</p>
-<h2 id="f-05-building-blocks-08-components-01-edge-proxy--thành-phần">Thành phần</h2>
+<h2 id="f-05-building-blocks-08-components-01-l7--thành-phần">Thành phần</h2>
 <table>
 <thead>
 <tr>
@@ -2483,7 +2483,7 @@ không body) để giảm tải WAF cho site nhiều static.</p>
 </tr>
 <tr>
 <td><strong>Challenge &amp; clearance</strong></td>
-<td>JS proof-of-work và challenge tương tác; clearance token HMAC (zone, hạn, IP prefix, UA hash), kiểm cục bộ; WAF tier trả verdict <code>challenge</code> thì proxy thực thi tại đây</td>
+<td>JS proof-of-work và challenge tương tác; clearance token HMAC (zone, hạn, IP prefix, UA hash), kiểm cục bộ; WAF tier trả verdict <code>challenge</code> thì L7 thực thi tại đây</td>
 </tr>
 <tr>
 <td><strong>Bot scoring</strong></td>
@@ -2511,7 +2511,7 @@ không body) để giảm tải WAF cho site nhiều static.</p>
 </tr>
 <tr>
 <td><strong>Inspection client</strong></td>
-<td>gRPC stream tới pool WAF trong PoP (<a href="#f-05-building-blocks-05-contracts--inspection-api-edge-proxy--waf">Inspection API</a>); timeout theo zone; circuit breaker khi tầng WAF lỗi hoặc quá tải → fail mode của zone</td>
+<td>gRPC stream tới pool WAF trong PoP (<a href="#f-05-building-blocks-05-contracts--inspection-api-l7--waf">Inspection API</a>); timeout theo zone; circuit breaker khi tầng WAF lỗi hoặc quá tải → fail mode của zone</td>
 </tr>
 <tr>
 <td><strong>Cache</strong></td>
@@ -2527,7 +2527,7 @@ không body) để giảm tải WAF cho site nhiều static.</p>
 </tr>
 </tbody>
 </table>
-<h2 id="f-05-building-blocks-08-components-01-edge-proxy--ngân-sách-độ-trễ">Ngân sách độ trễ</h2>
+<h2 id="f-05-building-blocks-08-components-01-l7--ngân-sách-độ-trễ">Ngân sách độ trễ</h2>
 <table>
 <thead>
 <tr>
@@ -2537,7 +2537,7 @@ không body) để giảm tải WAF cho site nhiều static.</p>
 </thead>
 <tbody>
 <tr>
-<td>Xử lý của proxy (bước 2–10, 12)</td>
+<td>Xử lý của L7 (bước 2–10, 12)</td>
 <td>≤ 0,5 ms</td>
 </tr>
 <tr>
@@ -2554,7 +2554,7 @@ không body) để giảm tải WAF cho site nhiều static.</p>
 </tr>
 </tbody>
 </table>
-<h2 id="f-05-building-blocks-08-components-01-edge-proxy--lỗi-và-hành-vi">Lỗi và hành vi</h2>
+<h2 id="f-05-building-blocks-08-components-01-l7--lỗi-và-hành-vi">Lỗi và hành vi</h2>
 <table>
 <thead>
 <tr>
@@ -2583,13 +2583,13 @@ không body) để giảm tải WAF cho site nhiều static.</p>
 </table>
 </section>
 <section class="doc" id="f-05-building-blocks-08-components-02-waf-inspection"><div class="path">05-building-blocks/08-components/02-waf-inspection.md</div><h1 id="f-05-building-blocks-08-components-02-waf-inspection--582-waf-inspection-tầng-2">5.8.2 WAF inspection (tầng 2)</h1>
-<p>Dịch vụ kiểm tra nội dung, tách khỏi proxy (<a href="#f-09-adr-0033-two-tier-edge-proxy-and-waf">ADR-0033</a>).
-Không giữ kết nối của client, không gọi origin: nhận request đã qua pre-filter từ proxy, chạy ruleset,
+<p>Dịch vụ kiểm tra nội dung, tách khỏi L7 (<a href="#f-09-adr-0033-two-tier-edge-proxy-and-waf">ADR-0033</a>).
+Không giữ kết nối của client, không gọi origin: nhận request đã qua pre-filter từ L7, chạy ruleset,
 trả <strong>verdict</strong>. Tài nguyên chính là <strong>CPU</strong>. Engine chưa chọn
 (<a href="#f-09-adr-0031-edge-l7-and-waf-engine-options">ADR-0031</a>).</p>
 <h2 id="f-05-building-blocks-08-components-02-waf-inspection--component-diagram">Component diagram</h2>
 <div class="diagram"><pre class="mermaid">flowchart LR
-    px[&quot;Edge proxy&lt;br/&gt;Inspection client&quot;]
+    px[&quot;L7&lt;br/&gt;Inspection client&quot;]
     subgraph WF[&quot;WAF inspection service (pool trong PoP)&quot;]
         srv[&quot;Inspection server&lt;br/&gt;gRPC stream&quot;]
         adm[&quot;Admission control&lt;br/&gt;fair share theo tenant&quot;]
@@ -2624,7 +2624,7 @@ trả <strong>verdict</strong>. Tài nguyên chính là <strong>CPU</strong>. En
 </tr>
 <tr>
 <td><strong>Admission control</strong></td>
-<td>Mỗi tenant có phần CPU theo gói (weighted fair queueing, trọng số Free 1 / Pro 2 / Business 4 / Enterprise 8, <a href="#f-08-cross-cutting-18-segments-and-plans">8.18</a>); khi quá tải từ chối gói thấp trước; hàng đợi đầy → trả <code>Overloaded</code> ngay để proxy áp fail mode, không để request chờ lâu</td>
+<td>Mỗi tenant có phần CPU theo gói (weighted fair queueing, trọng số Free 1 / Pro 2 / Business 4 / Enterprise 8, <a href="#f-08-cross-cutting-18-segments-and-plans">8.18</a>); khi quá tải từ chối gói thấp trước; hàng đợi đầy → trả <code>Overloaded</code> ngay để L7 áp fail mode, không để request chờ lâu</td>
 </tr>
 <tr>
 <td><strong>Ruleset selector</strong></td>
@@ -2640,7 +2640,7 @@ trả <strong>verdict</strong>. Tài nguyên chính là <strong>CPU</strong>. En
 </tr>
 <tr>
 <td><strong>API schema</strong></td>
-<td>Mở rộng: kiểm body JSON theo JSON Schema của endpoint (endpoint đã được proxy khớp, gửi kèm <code>api.endpoint_id</code>); GraphQL: parse, độ sâu, độ phức tạp, introspection, batch (<a href="#f-08-cross-cutting-17-api-security">8.17</a>)</td>
+<td>Mở rộng: kiểm body JSON theo JSON Schema của endpoint (endpoint đã được L7 khớp, gửi kèm <code>api.endpoint_id</code>); GraphQL: parse, độ sâu, độ phức tạp, introspection, batch (<a href="#f-08-cross-cutting-17-api-security">8.17</a>)</td>
 </tr>
 <tr>
 <td><strong>Verdict builder</strong></td>
@@ -2648,7 +2648,138 @@ trả <strong>verdict</strong>. Tài nguyên chính là <strong>CPU</strong>. En
 </tr>
 <tr>
 <td><strong>Policy agent</strong></td>
-<td>Cùng cơ chế với proxy (<a href="#f-05-building-blocks-08-components-04-edge-agent-and-state">5.8.4</a>); chỉ nạp phần snapshot của tầng WAF</td>
+<td>Cùng cơ chế với L7 (<a href="#f-05-building-blocks-08-components-04-edge-agent-and-state">5.8.4</a>); chỉ nạp phần snapshot của tầng WAF</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-05-building-blocks-08-components-02-waf-inspection--phạm-vi-giao-thức">Phạm vi giao thức</h2>
+<p>WAF chỉ kiểm được traffic mà tầng L7 đã giải mã TLS (cần cert của zone, kể cả kiểu keyless). Khách không
+cho giải mã thì chỉ còn bảo vệ L3/L4.</p>
+<h3 id="f-05-building-blocks-08-components-02-waf-inspection--giao-thức-vào-edge">Giao thức vào edge</h3>
+<table>
+<thead>
+<tr>
+<th>Giao thức</th>
+<th>Mức bảo vệ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HTTP/1.1, HTTP/2</td>
+<td>Đầy đủ. L7 chuẩn hoá request (giải nén header, gộp cookie, chuẩn hoá path); WAF nhận cùng một dạng, không phụ thuộc bản HTTP</td>
+</tr>
+<tr>
+<td>HTTP/3 (QUIC)</td>
+<td>Như trên; phụ thuộc nền L7 được chọn (<a href="#f-09-adr-0031-edge-l7-and-waf-engine-options">ADR-0031</a>, T10)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-05-building-blocks-08-components-02-waf-inspection--nội-dung-body">Nội dung body</h3>
+<table>
+<thead>
+<tr>
+<th>Loại</th>
+<th>Mức bảo vệ</th>
+<th>Ghi chú</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Query, header, cookie, form urlencoded</td>
+<td>Đầy đủ: CRS, system ruleset, custom rule</td>
+<td></td>
+</tr>
+<tr>
+<td>JSON</td>
+<td>Đầy đủ; Business trở lên kiểm thêm theo JSON Schema</td>
+<td><a href="#f-08-cross-cutting-17-api-security">8.17</a></td>
+</tr>
+<tr>
+<td>XML, SOAP</td>
+<td>CRS (gồm XXE, injection trong phần tử và thuộc tính)</td>
+<td>Engine phải parse XML, tắt thực thể ngoài; tiêu chí T13 của <a href="#f-09-adr-0031-edge-l7-and-waf-engine-options">ADR-0031</a></td>
+</tr>
+<tr>
+<td>multipart (upload file)</td>
+<td>Kiểm field, tên file, loại khai báo và magic bytes, kích thước, số phần</td>
+<td><strong>Không quét malware</strong> trong nội dung file; nếu làm là tính năng riêng, chạy bất đồng bộ</td>
+</tr>
+<tr>
+<td>GraphQL</td>
+<td>Parse, độ sâu, độ phức tạp, introspection, batch</td>
+<td>Mở rộng, <a href="#f-08-cross-cutting-17-api-security">8.17</a></td>
+</tr>
+<tr>
+<td>Body vượt giới hạn của gói</td>
+<td>Chỉ kiểm phần đầu tới giới hạn (8 KB → 1 MB theo gói, <a href="#f-08-cross-cutting-18-segments-and-plans">8.18</a>)</td>
+<td>Phần vượt: theo chính sách zone <code>body_overflow = pass | block</code>, mặc định <code>pass</code>, có event <code>body_truncated</code></td>
+</tr>
+<tr>
+<td>Body nén (gzip, br) từ client</td>
+<td>L7 giải nén có giới hạn tỉ lệ và kích thước trước khi gửi WAF</td>
+<td>Vượt giới hạn giải nén coi như body vượt giới hạn; chống zip bomb</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-05-building-blocks-08-components-02-waf-inspection--kết-nối-dài-và-streaming">Kết nối dài và streaming</h3>
+<table>
+<thead>
+<tr>
+<th>Giao thức</th>
+<th>Mức bảo vệ</th>
+<th>Giai đoạn</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>WebSocket</td>
+<td>Kiểm request bắt tay (header, auth, bot, rate limit, custom rule). Sau khi nâng cấp kết nối, frame <strong>không</strong> đi qua CRS; chỉ có giới hạn kích thước frame, số frame/giây, thời gian sống của kết nối, số kết nối đồng thời mỗi IP</td>
+<td>MVP</td>
+</tr>
+<tr>
+<td>WebSocket, kiểm frame</td>
+<td>Frame text/JSON đi qua rule riêng (không dùng CRS nguyên bản), theo mẫu hoặc cứ N frame một lần</td>
+<td>Nâng cao</td>
+</tr>
+<tr>
+<td>Server-Sent Events, response chunked</td>
+<td>Request được kiểm; response chảy thẳng tới client, không đệm, không kiểm</td>
+<td>MVP</td>
+</tr>
+<tr>
+<td>gRPC, gRPC-Web</td>
+<td>Rule theo method (path <code>/package.Service/Method</code>), metadata (header), auth JWT/mTLS, rate limit theo method; giới hạn kích thước message. Body protobuf nhị phân không qua CRS</td>
+<td>MVP (theo method), Mở rộng (rate limit theo consumer)</td>
+</tr>
+<tr>
+<td>gRPC, kiểm nội dung</td>
+<td>Khách tải file descriptor <code>.proto</code>; WAF decode message thành cây trường và chạy rule, kiểm schema như JSON</td>
+<td>Nâng cao</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-05-building-blocks-08-components-02-waf-inspection--response">Response</h3>
+<p>Không kiểm body response ở MVP (chỉ header và status cho analytics). Phát hiện dữ liệu nhạy cảm trong
+response là giai đoạn Nâng cao (<a href="#f-08-cross-cutting-17-api-security">8.17</a>).</p>
+<h3 id="f-05-building-blocks-08-components-02-waf-inspection--ngoài-phạm-vi-waf">Ngoài phạm vi WAF</h3>
+<table>
+<thead>
+<tr>
+<th>Traffic</th>
+<th>Sản phẩm</th>
+<th>Bảo vệ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TCP/UDP không phải HTTP (game, MQTT, SMTP, database, SSH, RDP, cổng tuỳ ý)</td>
+<td>Proxy L4 (Mở rộng, <a href="#f-07-deployment-05-capacity-and-sharding--7-cổng">7.5 §7</a>)</td>
+<td>DDoS L3/L4, access list IP/geo/ASN, giới hạn kết nối và băng thông; không kiểm nội dung</td>
+</tr>
+<tr>
+<td>DNS</td>
+<td>DNS điều hướng, DNS authoritative (<a href="#f-05-building-blocks-08-components-03-dns-and-traffic-steering">5.8.3</a>)</td>
+<td>Rate limit truy vấn, chống amplification</td>
 </tr>
 </tbody>
 </table>
@@ -2663,22 +2794,22 @@ trả <strong>verdict</strong>. Tài nguyên chính là <strong>CPU</strong>. En
 <tbody>
 <tr>
 <td>Nhỏ (vài node)</td>
-<td>Proxy và WAF cùng host, hai process, cgroup giới hạn CPU riêng cho WAF; gọi qua Unix socket</td>
+<td>L7 và WAF cùng host, hai process, cgroup giới hạn CPU riêng cho WAF; gọi qua Unix socket</td>
 </tr>
 <tr>
 <td>Lớn</td>
-<td>Hai pool node riêng: proxy (RAM, NIC lớn), WAF (nhiều core); gọi qua mạng nội bộ PoP, mTLS</td>
+<td>Hai pool node riêng: L7 (RAM, NIC lớn), WAF (nhiều core); gọi qua mạng nội bộ PoP, mTLS</td>
 </tr>
 </tbody>
 </table>
 <p>Scale độc lập: số node WAF theo CPU dùng cho kiểm tra (thường tăng khi bị tấn công tầng ứng dụng), số
-node proxy theo kết nối và băng thông (tăng khi bị flood hoặc traffic cache lớn).</p>
+node L7 theo kết nối và băng thông (tăng khi bị flood hoặc traffic cache lớn).</p>
 <h2 id="f-05-building-blocks-08-components-02-waf-inspection--hiệu-năng-và-cô-lập">Hiệu năng và cô lập</h2>
 <ul>
 <li>Mục tiêu p99 cho một lần kiểm tra ở PL1 (gồm mạng trong PoP): ≤ 1,5 ms.</li>
 <li>Engine chạy trong process riêng nên lỗi bộ nhớ hoặc crash của engine (nếu là libmodsecurity) không
-kéo theo proxy và kết nối của client; process WAF chết thì proxy chuyển sang instance khác trong pool.</li>
-<li>Nếu engine là Go (Coraza), GC chỉ ảnh hưởng tầng này; proxy không bị dừng theo.</li>
+kéo theo L7 và kết nối của client; process WAF chết thì L7 chuyển sang instance khác trong pool.</li>
+<li>Nếu engine là Go (Coraza), GC chỉ ảnh hưởng tầng này; L7 không bị dừng theo.</li>
 </ul>
 <h2 id="f-05-building-blocks-08-components-02-waf-inspection--lỗi-và-hành-vi">Lỗi và hành vi</h2>
 <table>
@@ -2691,19 +2822,19 @@ kéo theo proxy và kết nối của client; process WAF chết thì proxy chuy
 <tbody>
 <tr>
 <td>Quá tải (hàng đợi đầy)</td>
-<td>Trả <code>Overloaded</code>; proxy áp fail mode của zone; metrics <code>waf_overloaded_total{tenant}</code></td>
+<td>Trả <code>Overloaded</code>; L7 áp fail mode của zone; metrics <code>waf_overloaded_total{tenant}</code></td>
 </tr>
 <tr>
 <td>Engine lỗi trên một request</td>
-<td>Trả <code>Error</code>; proxy áp fail mode; mẫu request (đã che) gửi về để điều tra</td>
+<td>Trả <code>Error</code>; L7 áp fail mode; mẫu request (đã che) gửi về để điều tra</td>
 </tr>
 <tr>
 <td>Process WAF chết</td>
-<td>Proxy loại instance khỏi pool qua health check, thử instance khác</td>
+<td>L7 loại instance khỏi pool qua health check, thử instance khác</td>
 </tr>
 <tr>
 <td>Toàn bộ pool WAF của PoP mất</td>
-<td>Circuit breaker ở proxy mở; fail mode của từng zone; cảnh báo P1</td>
+<td>Circuit breaker ở L7 mở; fail mode của từng zone; cảnh báo P1</td>
 </tr>
 </tbody>
 </table>
@@ -2845,12 +2976,12 @@ kéo theo proxy và kết nối của client; process WAF chết thì proxy chuy
 <section class="doc" id="f-05-building-blocks-08-components-04-edge-agent-and-state"><div class="path">05-building-blocks/08-components/04-edge-agent-and-state.md</div><h1 id="f-05-building-blocks-08-components-04-edge-agent-and-state--584-policy-agent-state-sync-log-shipping-trên-node">5.8.4 Policy agent, state sync, log shipping trên node</h1>
 <p>Ba thành phần chạy cạnh hai tầng edge (<a href="#f-09-adr-0033-two-tier-edge-proxy-and-waf">ADR-0033</a>):</p>
 <ul>
-<li><strong>Policy agent</strong> là module trong binary của <strong>cả hai tầng</strong> (edge proxy và WAF inspection); mỗi tầng
+<li><strong>Policy agent</strong> là module trong binary của <strong>cả hai tầng</strong> (L7 và WAF inspection); mỗi tầng
 chỉ nạp phần bundle của mình từ cùng một manifest, nên hai tầng luôn chạy cùng version policy.</li>
-<li><strong>State sync</strong> là module trong binary edge proxy (rate limit nằm ở proxy).</li>
+<li><strong>State sync</strong> là module trong binary L7 (rate limit nằm ở L7).</li>
 <li><strong>Vector</strong> là process riêng trên mỗi node, nhận bản ghi từ cả hai tầng.</li>
 </ul>
-<p>Diagram dưới vẽ cho tầng proxy; tầng WAF giống phần policy agent, không có state sync.</p>
+<p>Diagram dưới vẽ cho tầng L7; tầng WAF giống phần policy agent, không có state sync.</p>
 <h2 id="f-05-building-blocks-08-components-04-edge-agent-and-state--component-diagram">Component diagram</h2>
 <div class="diagram"><pre class="mermaid">flowchart LR
     dist[&quot;Control · Distribution&lt;br/&gt;gRPC stream&quot;]
@@ -2874,7 +3005,7 @@ chỉ nạp phần bundle của mình từ cùng một manifest, nên hai tầng
             hk[&quot;Hot key detector&quot;]
             sc[&quot;Sync client&quot;]
         end
-        gw[&quot;Edge proxy&quot;]
+        gw[&quot;L7&quot;]
     end
     vec[&quot;Vector&lt;br/&gt;buffer đĩa&quot;]
 
@@ -3104,7 +3235,7 @@ chỉ nạp phần bundle của mình từ cùng một manifest, nên hai tầng
 <tr>
 <td><strong>API compiler</strong></td>
 <td>Biên dịch schema của khách</td>
-<td>OpenAPI → route table + kiểm tham số/header (phần proxy) và validator body JSON + giới hạn GraphQL (phần WAF); kiểm schema hợp lệ, cảnh báo route trùng hoặc mơ hồ (<a href="#f-08-cross-cutting-17-api-security">8.17</a>)</td>
+<td>OpenAPI → route table + kiểm tham số/header (phần L7) và validator body JSON + giới hạn GraphQL (phần WAF); kiểm schema hợp lệ, cảnh báo route trùng hoặc mơ hồ (<a href="#f-08-cross-cutting-17-api-security">8.17</a>)</td>
 </tr>
 <tr>
 <td><strong>JWKS fetcher</strong></td>
@@ -3119,7 +3250,7 @@ chỉ nạp phần bundle của mình từ cùng một manifest, nên hai tầng
 <tr>
 <td><strong>Bundle builder</strong></td>
 <td>Đóng gói</td>
-<td>Protobuf → zstd → SHA-256; bundle zone chia <strong>phần proxy</strong> và <strong>phần WAF</strong> (<a href="#f-05-building-blocks-05-contracts--snapshot-gồm-gì">5.5</a>), tham chiếu digest của bundle chung; <strong>chia custom rule theo tầng</strong>: xếp theo priority, rule đầu tiên cần trường đắt (body, tham số đã parse, JSON path) và mọi rule sau nó vào phần WAF, các rule trước vào phần proxy (<a href="#f-09-adr-0034-pre-filter-and-rule-split-across-tiers">ADR-0034</a>)</td>
+<td>Protobuf → zstd → SHA-256; bundle zone chia <strong>phần L7</strong> và <strong>phần WAF</strong> (<a href="#f-05-building-blocks-05-contracts--snapshot-gồm-gì">5.5</a>), tham chiếu digest của bundle chung; <strong>chia custom rule theo tầng</strong>: xếp theo priority, rule đầu tiên cần trường đắt (body, tham số đã parse, JSON path) và mọi rule sau nó vào phần WAF, các rule trước vào phần L7 (<a href="#f-09-adr-0034-pre-filter-and-rule-split-across-tiers">ADR-0034</a>)</td>
 </tr>
 <tr>
 <td><strong>Self-test</strong></td>
@@ -5120,7 +5251,7 @@ sang Analytics để join vào hiệu quả rule.</p>
 <div class="diagram"><pre class="mermaid">sequenceDiagram
     participant U as End-user
     participant D as DNS điều hướng
-    participant P as Edge proxy
+    participant P as L7
     participant W as WAF inspection
     participant C as Cache
     participant O as Origin
@@ -5797,8 +5928,8 @@ cần mở cổng vào hạ tầng của khách.</p>
 không ảnh hưởng traffic.</li>
 <li><strong>Analytics theo region dữ liệu:</strong> log của tenant ở lại region đã chọn. Thêm region khi có khách
 yêu cầu residency.</li>
-<li><strong>Edge:</strong> PoP riêng và node trên hạ tầng đối tác/cloud, cùng artifact. Mỗi PoP có pool edge proxy
-(RAM, NIC, NVMe cho cache), pool WAF inspection (CPU), DNS điều hướng; PoP nhỏ đặt proxy và WAF chung
+<li><strong>Edge:</strong> PoP riêng và node trên hạ tầng đối tác/cloud, cùng artifact. Mỗi PoP có pool L7
+(RAM, NIC, NVMe cho cache), pool WAF inspection (CPU), DNS điều hướng; PoP nhỏ đặt L7 và WAF chung
 host với cgroup CPU riêng (<a href="#f-09-adr-0033-two-tier-edge-proxy-and-waf">ADR-0033</a>). Định tuyến vào
 PoP gần nhất bằng anycast hoặc DNS điều hướng (<a href="#f-05-building-blocks-08-components-03-dns-and-traffic-steering">5.8.3</a>).</li>
 </ul>
@@ -5976,7 +6107,7 @@ Quyết định nền: <a href="#f-09-adr-0040-config-distribution-at-scale">ADR
 </thead>
 <tbody>
 <tr>
-<td>Edge proxy</td>
+<td>L7</td>
 <td>64 core, 256 GB RAM, 2×100 GbE, NVMe</td>
 <td>80.000 rps có TLS (phần lớn resume session)</td>
 </tr>
@@ -6031,7 +6162,7 @@ Quyết định nền: <a href="#f-09-adr-0040-config-distribution-at-scale">ADR
 </thead>
 <tbody>
 <tr>
-<td>Edge proxy</td>
+<td>L7</td>
 <td>10M rps ÷ (80k × 60% mức sử dụng mục tiêu) ≈ 210; cộng dư cho tấn công (pre-filter loại rẻ, ước 1/3 chi phí request thường: 30M ÷ 3 ÷ 48k ≈ 210); cộng N+1 mỗi PoP</td>
 <td><strong>≈ 450 node</strong></td>
 </tr>
@@ -6043,7 +6174,7 @@ Quyết định nền: <a href="#f-09-adr-0040-config-distribution-at-scale">ADR
 <tr>
 <td>Trung bình mỗi PoP</td>
 <td></td>
-<td>15 proxy + 7 WAF; PoP lớn gấp 3–5 lần</td>
+<td>15 L7 + 7 WAF; PoP lớn gấp 3–5 lần</td>
 </tr>
 </tbody>
 </table>
@@ -6058,7 +6189,7 @@ Quyết định nền: <a href="#f-09-adr-0040-config-distribution-at-scale">ADR
 </thead>
 <tbody>
 <tr>
-<td>Bundle zone (phần proxy + WAF, nén)</td>
+<td>Bundle zone (phần L7 + WAF, nén)</td>
 <td>Free ≈ 2 KB, Pro ≈ 4 KB, Business ≈ 15 KB, Enterprise ≈ 200 KB (p99.9 tới 5 MB); trung bình khoảng 8 KB</td>
 <td>1M × 8 KB ≈ <strong>8 GB nén</strong></td>
 </tr>
@@ -6269,7 +6400,7 @@ cho phép cô lập zone lớn hoặc đang bị tấn công.</p>
     end
 </pre></div>
 <ul>
-<li><strong>Ngân sách RAM</strong> của node cho runtime zone (ví dụ 32 GB proxy, phần WAF tính riêng); LRU theo kích
+<li><strong>Ngân sách RAM</strong> của node cho runtime zone (ví dụ 32 GB L7, phần WAF tính riêng); LRU theo kích
 thước thật, không theo số zone.</li>
 <li><strong>Làm nóng trước:</strong> Analytics tính mỗi giờ danh sách zone nóng theo PoP và cell; node nạp sẵn sau khi
 khởi động và sau khi có version mới của zone nóng.</li>
@@ -6289,7 +6420,7 @@ digest; không bao giờ phục vụ bằng cấu hình mới hơn routing index
 <tbody>
 <tr>
 <td>Cell là gì</td>
-<td>Một nhóm node proxy (và phần WAF tương ứng) trong mỗi PoP, có <strong>VIP riêng</strong>. DNS điều hướng trả VIP của cell chứa zone; L4 load balancer của PoP chuyển VIP đó tới nhóm node của cell, không cần đọc SNI</td>
+<td>Một nhóm node L7 (và phần WAF tương ứng) trong mỗi PoP, có <strong>VIP riêng</strong>. DNS điều hướng trả VIP của cell chứa zone; L4 load balancer của PoP chuyển VIP đó tới nhóm node của cell, không cần đọc SNI</td>
 </tr>
 <tr>
 <td>Số cell</td>
@@ -6514,7 +6645,7 @@ trong phạm vi được giao), Viewer, Billing. ABAC giới hạn theo zone ho�
 thời gian; mỗi lần kích hoạt phát event riêng để khách thấy.</li>
 <li>Mặc định: fail-open (thương mại điện tử thường chọn), khách tài chính thường đổi sang fail-closed.</li>
 <li>Tầng WAF không trả lời kịp, quá tải (<code>Overloaded</code>) hoặc mất cả pool trong PoP cũng áp đúng fail mode
-này ở proxy; pre-filter, challenge và rate limit vẫn chạy vì nằm ở proxy (<a href="#f-09-adr-0033-two-tier-edge-proxy-and-waf">ADR-0033</a>).</li>
+này ở L7; pre-filter, challenge và rate limit vẫn chạy vì nằm ở L7 (<a href="#f-09-adr-0033-two-tier-edge-proxy-and-waf">ADR-0033</a>).</li>
 <li>Origin lỗi: phục vụ bản cũ trong cache nếu có (<code>stale-if-error</code>).</li>
 </ul>
 <h2 id="f-08-cross-cutting-00-index--86-quyền-riêng-tư">8.6 Quyền riêng tư</h2>
@@ -6899,7 +7030,7 @@ chắn, ngắn để tắt nhanh khi đã hết lỗi):</p>
 </thead>
 <tbody>
 <tr>
-<td>Edge proxy</td>
+<td>L7</td>
 <td><code>waap_edge_requests_total{zone,phase,verdict,status_source,edge_error}</code>, <code>waap_edge_stage_duration_seconds{stage}</code> (client_tls, pre, waf, cache, origin_connect, origin_ttfb, client_send), <code>waap_edge_phase_duration_seconds{phase}</code>, <code>waap_edge_failmode_triggered_total{reason}</code>, <code>waap_edge_prefilter_dropped_total{phase}</code>, <code>waap_edge_inspect_calls_total{result}</code>, <code>waap_edge_inspect_duration_seconds</code>, <code>waap_edge_cache_requests_total{status}</code>, <code>waap_edge_cache_bytes</code>, <code>waap_edge_purge_duration_seconds</code>, <code>waap_edge_connections_open</code>, <code>waap_edge_body_buffer_bytes</code>, <code>waap_edge_upstream_errors_total{origin}</code></td>
 </tr>
 <tr>
@@ -6911,7 +7042,7 @@ chắn, ngắn để tắt nhanh khi đã hết lỗi):</p>
 <td>Truy vấn/giây theo PoP, tỉ lệ NXDOMAIN/SERVFAIL, độ trễ cập nhật trạng thái PoP</td>
 </tr>
 <tr>
-<td>Bot, API ở proxy</td>
+<td>Bot, API ở L7</td>
 <td><code>waap_edge_bot_score_duration_seconds</code>, <code>waap_edge_bot_class_total{class}</code>, <code>waap_edge_verified_bot_blocked_total</code> (phải bằng 0), <code>waap_edge_challenge_total{type,result}</code>, <code>waap_edge_jwt_total{status}</code>, <code>waap_edge_jwks_age_seconds</code>, <code>waap_edge_schema_violation_total{tier}</code></td>
 </tr>
 <tr>
@@ -7369,15 +7500,15 @@ ticket trong giờ làm việc.</p>
 </tr>
 <tr>
 <td>Cảnh báo</td>
-<td>Burn rate S11. P2: <code>Overloaded</code> &gt; 0,1% request đi qua WAF trong 5 phút ở một PoP. P1: circuit breaker ở proxy mở cho cả PoP</td>
+<td>Burn rate S11. P2: <code>Overloaded</code> &gt; 0,1% request đi qua WAF trong 5 phút ở một PoP. P1: circuit breaker ở L7 mở cho cả PoP</td>
 </tr>
 <tr>
 <td>Tự phản ứng</td>
-<td>Admission control giữ phần CPU của từng tenant; proxy áp fail mode theo zone; autoscale pool WAF nếu PoP chạy trên hạ tầng co giãn được</td>
+<td>Admission control giữ phần CPU của từng tenant; L7 áp fail mode theo zone; autoscale pool WAF nếu PoP chạy trên hạ tầng co giãn được</td>
 </tr>
 <tr>
 <td>Runbook</td>
-<td>Xem tenant nào chiếm CPU (<code>waap_waf_cpu_seconds_total{tenant}</code>): tấn công tầng ứng dụng nhắm một zone → đề xuất Under Attack mode hoặc rule pre để loại ở proxy; ruleset mới tốn CPU hơn → so sánh theo version, rollback; thiếu năng lực thật → thêm node WAF, điều hướng bớt traffic sang PoP khác qua DNS</td>
+<td>Xem tenant nào chiếm CPU (<code>waap_waf_cpu_seconds_total{tenant}</code>): tấn công tầng ứng dụng nhắm một zone → đề xuất Under Attack mode hoặc rule pre để loại ở L7; ruleset mới tốn CPU hơn → so sánh theo version, rollback; thiếu năng lực thật → thêm node WAF, điều hướng bớt traffic sang PoP khác qua DNS</td>
 </tr>
 </tbody>
 </table>
@@ -7806,7 +7937,7 @@ hay của WAAP?&quot;</strong>. Quyết định nền: <a href="#f-09-adr-0036-r
 <h2 id="f-08-cross-cutting-14-latency-and-error-attribution--1-các-chặng-của-một-request">1. Các chặng của một request</h2>
 <div class="diagram"><pre class="mermaid">sequenceDiagram
     participant C as Client
-    participant P as Edge proxy
+    participant P as L7
     participant W as WAF inspection
     participant O as Origin
     Note over C,P: c1 TCP/QUIC + TLS (theo kết nối)
@@ -7840,37 +7971,37 @@ của request (<a href="#f-05-building-blocks-08-components-08-ingestion-and-sto
 <td><strong>Client → edge</strong></td>
 <td><code>client_tls_us</code></td>
 <td>Bắt tay TLS (chỉ request đầu của kết nối)</td>
-<td>Proxy</td>
+<td>L7</td>
 </tr>
 <tr>
 <td></td>
 <td><code>client_rtt_us</code>, <code>client_retrans</code></td>
 <td>RTT và số gói gửi lại tới client (<code>TCP_INFO</code> trên Linux, thống kê của QUIC)</td>
-<td>Proxy</td>
+<td>L7</td>
 </tr>
 <tr>
 <td></td>
 <td><code>req_recv_us</code></td>
 <td>Từ byte đầu tới hết header (+ body nếu buffer)</td>
-<td>Proxy</td>
+<td>L7</td>
 </tr>
 <tr>
-<td><strong>Edge proxy</strong></td>
+<td><strong>L7</strong></td>
 <td><code>pre_us{phase}</code></td>
 <td>Thời gian từng phase pre-filter</td>
-<td>Proxy</td>
+<td>L7</td>
 </tr>
 <tr>
 <td></td>
 <td><code>cache_us</code>, <code>cache_status</code></td>
 <td>Tra cache, kết quả HIT/MISS/EXPIRED/BYPASS/STALE</td>
-<td>Proxy</td>
+<td>L7</td>
 </tr>
 <tr>
 <td><strong>WAF</strong></td>
 <td><code>waf_rtt_us</code></td>
-<td>Từ lúc gửi Inspect tới lúc nhận verdict (do proxy đo)</td>
-<td>Proxy</td>
+<td>Từ lúc gửi Inspect tới lúc nhận verdict (do L7 đo)</td>
+<td>L7</td>
 </tr>
 <tr>
 <td></td>
@@ -7888,43 +8019,43 @@ của request (<a href="#f-05-building-blocks-08-components-08-ingestion-and-sto
 <td><strong>Edge → origin</strong></td>
 <td><code>origin_connect_us</code>, <code>origin_tls_us</code></td>
 <td>Mở kết nối, bắt tay TLS tới origin (0 nếu dùng lại kết nối trong pool)</td>
-<td>Proxy</td>
+<td>L7</td>
 </tr>
 <tr>
 <td></td>
 <td><code>origin_ttfb_us</code></td>
 <td>Từ lúc gửi xong request tới byte đầu của response</td>
-<td>Proxy</td>
+<td>L7</td>
 </tr>
 <tr>
 <td></td>
 <td><code>origin_transfer_us</code></td>
 <td>Từ byte đầu tới byte cuối của response từ origin</td>
-<td>Proxy</td>
+<td>L7</td>
 </tr>
 <tr>
 <td><strong>Edge → client</strong></td>
 <td><code>client_ttfb_us</code></td>
 <td>Từ lúc nhận xong request tới byte đầu gửi client</td>
-<td>Proxy</td>
+<td>L7</td>
 </tr>
 <tr>
 <td></td>
 <td><code>client_send_us</code></td>
 <td>Từ byte đầu tới byte cuối ghi ra socket client</td>
-<td>Proxy</td>
+<td>L7</td>
 </tr>
 <tr>
 <td><strong>Tổng hợp</strong></td>
 <td><code>edge_us</code></td>
-<td>Thời gian do WAAP gây ra = proxy + WAF, <strong>không gồm</strong> chờ origin và chờ client</td>
+<td>Thời gian do WAAP gây ra = L7 + WAF, <strong>không gồm</strong> chờ origin và chờ client</td>
 <td>Tính ra</td>
 </tr>
 <tr>
 <td></td>
 <td><code>total_us</code></td>
 <td>Từ byte đầu của request tới byte cuối của response</td>
-<td>Proxy</td>
+<td>L7</td>
 </tr>
 </tbody>
 </table>
@@ -8061,13 +8192,13 @@ của request (<a href="#f-05-building-blocks-08-components-08-ingestion-and-sto
 <tr>
 <td><code>edge_internal</code></td>
 <td>500</td>
-<td>Lỗi nội bộ của proxy</td>
+<td>Lỗi nội bộ của L7</td>
 <td><code>edge_platform</code></td>
 </tr>
 <tr>
 <td><code>edge_overloaded</code></td>
 <td>503</td>
-<td>Proxy quá tải, từ chối để bảo vệ</td>
+<td>L7 quá tải, từ chối để bảo vệ</td>
 <td><code>edge_platform</code></td>
 </tr>
 </tbody>
@@ -8136,7 +8267,7 @@ DNS phía client, thời gian trình duyệt dựng trang, và mạng chặng cu
 <tr>
 <td>RUM (real user monitoring)</td>
 <td>Mở rộng</td>
-<td>Đoạn JS tuỳ chọn (khách tự thêm hoặc proxy chèn khi zone bật) gửi Navigation/Resource Timing kèm request ID lấy từ <code>Server-Timing</code>, về một endpoint ingest riêng; nối với trace của request</td>
+<td>Đoạn JS tuỳ chọn (khách tự thêm hoặc L7 chèn khi zone bật) gửi Navigation/Resource Timing kèm request ID lấy từ <code>Server-Timing</code>, về một endpoint ingest riêng; nối với trace của request</td>
 </tr>
 </tbody>
 </table>
@@ -8163,12 +8294,12 @@ lỗi của website không bao giờ làm cháy error budget của NCC, và ngư
     participant OR as Orchestrator
     participant DI as Distribution
     participant RL as Regional relay
-    participant AG as Agent (proxy và WAF)
+    participant AG as Agent (L7 và WAF)
     participant RT as Runtime đang chạy
     U-&gt;&gt;M: lưu thay đổi (đã duyệt nếu cần)
     M-&gt;&gt;CS: PolicyVersionPublished (outbox → RabbitMQ)
     CS-&gt;&gt;CP: job biên dịch
-    CP-&gt;&gt;CP: CEL → IR, chia pre/inspect, sinh SecLang, chia phần proxy/WAF
+    CP-&gt;&gt;CP: CEL → IR, chia pre/inspect, sinh SecLang, chia phần L7/WAF
     CP-&gt;&gt;CP: self-test (edge-verify), ký manifest
     CP-&gt;&gt;OR: manifest sẵn sàng
     OR-&gt;&gt;DI: desired state theo đợt (hoặc fast lane)
@@ -8285,28 +8416,28 @@ zone nào đều chạy cấu hình ≤ V.</p>
 <tr>
 <td>Access list (IP/CIDR/geo/ASN) của zone</td>
 <td>Zone</td>
-<td>Proxy</td>
+<td>L7</td>
 <td>A</td>
 <td>Danh sách rất lớn (&gt; 100.000 mục) dựng trie ở nền, vẫn tính là A vì vài chục ms</td>
 </tr>
 <tr>
 <td>Rate limit rule</td>
 <td>Zone</td>
-<td>Proxy</td>
+<td>L7</td>
 <td>A</td>
 <td>Counter giữ theo <code>(rule_id, hash(khoá, ngưỡng, cửa sổ))</code>: đổi ngưỡng/khoá thì counter của rule đó bắt đầu lại, rule khác giữ nguyên</td>
 </tr>
 <tr>
 <td>Under Attack mode bật/tắt</td>
 <td>Zone</td>
-<td>Proxy</td>
+<td>L7</td>
 <td>A</td>
 <td>Fast lane; clearance token cũ vẫn hợp lệ</td>
 </tr>
 <tr>
 <td>Custom rule phần pre (IR)</td>
 <td>Zone</td>
-<td>Proxy</td>
+<td>L7</td>
 <td>A</td>
 <td></td>
 </tr>
@@ -8327,28 +8458,28 @@ zone nào đều chạy cấu hình ≤ V.</p>
 <tr>
 <td>Cache rule</td>
 <td>Zone</td>
-<td>Proxy</td>
+<td>L7</td>
 <td>A</td>
 <td>Object đã cache giữ nguyên; đổi cache key làm object cũ không còn được trúng, tự bị đẩy ra theo LRU; muốn xoá ngay thì purge</td>
 </tr>
 <tr>
 <td>Purge</td>
 <td>Zone</td>
-<td>Proxy</td>
+<td>L7</td>
 <td>A (lệnh, không phải cấu hình)</td>
 <td>Fast lane; đánh dấu vô hiệu theo URL/prefix/tag, không quét đĩa đồng bộ</td>
 </tr>
 <tr>
 <td>Origin (địa chỉ, TLS, timeout)</td>
 <td>Zone</td>
-<td>Proxy</td>
+<td>L7</td>
 <td>A</td>
 <td>Pool kết nối mới cho cấu hình mới; pool cũ drain khi hết request</td>
 </tr>
 <tr>
 <td>Cert của zone (thêm, gia hạn)</td>
 <td>Zone</td>
-<td>Proxy</td>
+<td>L7</td>
 <td>A</td>
 <td>Map SNI → cert swap; handshake mới dùng cert mới, kết nối TLS đang mở giữ cert cũ</td>
 </tr>
@@ -8362,7 +8493,7 @@ zone nào đều chạy cấu hình ≤ V.</p>
 <tr>
 <td>Chế độ đứng sau CDN (dải IP tin cậy, header IP client)</td>
 <td>Zone</td>
-<td>Proxy</td>
+<td>L7</td>
 <td>A</td>
 <td></td>
 </tr>
@@ -8383,14 +8514,14 @@ zone nào đều chạy cấu hình ≤ V.</p>
 <tr>
 <td>Policy bot, danh sách bot của khách</td>
 <td>Zone</td>
-<td>Proxy</td>
+<td>L7</td>
 <td>A</td>
 <td></td>
 </tr>
 <tr>
 <td>API: route table, kiểm tham số, cấu hình JWT/mTLS, nguồn danh tính consumer</td>
 <td>Zone</td>
-<td>Proxy</td>
+<td>L7</td>
 <td>A</td>
 <td></td>
 </tr>
@@ -8404,21 +8535,21 @@ zone nào đều chạy cấu hình ≤ V.</p>
 <tr>
 <td>JWKS của khách</td>
 <td>Zone</td>
-<td>Proxy</td>
+<td>L7</td>
 <td>A</td>
 <td>Fast lane khi khách xoay khoá; giữ khoá cũ tới khi hết hạn token dài nhất</td>
 </tr>
 <tr>
 <td>Danh sách bot đã xác minh</td>
 <td>Toàn cục</td>
-<td>Proxy</td>
+<td>L7</td>
 <td>A</td>
 <td></td>
 </tr>
 <tr>
 <td>Reputation fingerprint/ASN/IP, mô hình bot</td>
 <td>Toàn cục</td>
-<td>Proxy</td>
+<td>L7</td>
 <td>B (A nếu mô hình nhỏ)</td>
 <td>Qua đánh giá và log-only song song</td>
 </tr>
@@ -8432,21 +8563,21 @@ zone nào đều chạy cấu hình ≤ V.</p>
 <tr>
 <td><strong>Rule khẩn của NCC</strong></td>
 <td>Toàn cục</td>
-<td>WAF (và proxy nếu là rule pre)</td>
+<td>WAF (và L7 nếu là rule pre)</td>
 <td>A</td>
 <td>Tách thành <strong>lớp rule khẩn nhỏ</strong> riêng, không build lại cả CRS, nên đi fast lane được (§4)</td>
 </tr>
 <tr>
 <td><strong>Dữ liệu geo/ASN (MMDB)</strong>, reputation list lớn</td>
 <td>Toàn cục</td>
-<td>Proxy</td>
+<td>L7</td>
 <td><strong>B</strong></td>
 <td>Hàng trăm MB; nạp vào vùng nhớ mới rồi swap</td>
 </tr>
 <tr>
 <td>Khoá HMAC clearance, session ticket key</td>
 <td>Toàn cục</td>
-<td>Proxy</td>
+<td>L7</td>
 <td>A</td>
 <td>Luôn giữ khoá hiện tại + khoá trước</td>
 </tr>
@@ -8472,7 +8603,7 @@ zone nào đều chạy cấu hình ≤ V.</p>
 <td>Vector hot reload; không ảnh hưởng traffic</td>
 </tr>
 <tr>
-<td>Binary proxy, WAF, agent</td>
+<td>Binary L7, WAF, agent</td>
 <td>Node</td>
 <td>Cả hai</td>
 <td><strong>D</strong></td>
@@ -8493,7 +8624,7 @@ dành cho cấu hình của node, không bao giờ do khách kích hoạt.</p>
 <h2 id="f-08-cross-cutting-15-config-propagation-and-apply--4-fast-lane-không-được-kích-hoạt-build-nặng">4. Fast lane không được kích hoạt build nặng</h2>
 <ul>
 <li>Rule khẩn của NCC nằm trong một <strong>lớp rule khẩn</strong> riêng, nhỏ, đánh giá <strong>trước</strong> CRS ở tầng WAF (và ở
-proxy nếu chỉ dùng trường rẻ). Thêm rule khẩn chỉ dựng lại lớp này, không build lại instance CRS.</li>
+L7 nếu chỉ dùng trường rẻ). Thêm rule khẩn chỉ dựng lại lớp này, không build lại instance CRS.</li>
 <li>Khi rule khẩn được đưa vào system ruleset ở release kế tiếp (lớp B, rollout thường), nó được gỡ khỏi
 lớp khẩn.</li>
 <li>Compiler từ chối đưa vào fast lane bất kỳ thay đổi nào sinh ra việc lớp B (ví dụ đổi paranoia sang tổ
@@ -8545,11 +8676,11 @@ hợp chưa có instance); thay đổi đó đi đường thường và portal n
 </tbody>
 </table>
 <h2 id="f-08-cross-cutting-15-config-propagation-and-apply--6-hai-tầng-swap-lệch-nhau">6. Hai tầng swap lệch nhau</h2>
-<p>Proxy và WAF là hai process, swap độc lập nên có khoảng lệch ngắn (thường dưới 1 giây) khi proxy đã ở
+<p>L7 và WAF là hai process, swap độc lập nên có khoảng lệch ngắn (thường dưới 1 giây) khi L7 đã ở
 version N còn WAF vẫn ở N−1, hoặc ngược lại.</p>
 <ul>
-<li>Mọi Inspect request mang <code>policy_version_id</code> của proxy (<a href="#f-05-building-blocks-05-contracts--inspection-api-edge-proxy--waf">5.5</a>).</li>
-<li>Tầng WAF giữ runtime của <strong>version hiện tại và version trước</strong> cho mỗi zone; nếu proxy hỏi version
+<li>Mọi Inspect request mang <code>policy_version_id</code> của L7 (<a href="#f-05-building-blocks-05-contracts--inspection-api-l7--waf">5.5</a>).</li>
+<li>Tầng WAF giữ runtime của <strong>version hiện tại và version trước</strong> cho mỗi zone; nếu L7 hỏi version
 đó thì dùng đúng version đó, nếu không có thì dùng version mới nhất mình có và gắn cờ <code>version_skew</code>
 vào verdict.</li>
 <li>Telemetry ghi <code>version_skew</code>; orchestrator coi một node chỉ &quot;đã nhận&quot; version N khi <strong>cả hai tầng</strong>
@@ -8665,7 +8796,7 @@ Giai đoạn: <strong>Mở rộng</strong> cho phần lõi, <strong>Nâng cao</s
 <p>Điểm chung: bot xấu ngày càng giả trình duyệt tốt (headless Chrome, proxy dân cư), nên không có một tín
 hiệu nào đủ; phải chồng nhiều lớp tín hiệu và để người dùng thật đi qua mà không bị làm phiền.</p>
 <h2 id="f-08-cross-cutting-16-bot-management--2-các-lớp-tín-hiệu">2. Các lớp tín hiệu</h2>
-<p>Tất cả chạy ở <strong>tầng edge proxy</strong> (<a href="#f-09-adr-0034-pre-filter-and-rule-split-across-tiers">ADR-0034</a>):
+<p>Tất cả chạy ở <strong>tầng L7</strong> (<a href="#f-09-adr-0034-pre-filter-and-rule-split-across-tiers">ADR-0034</a>):
 rẻ, không cần đọc body, và phải có kết quả trước rate limit và custom rule.</p>
 <table>
 <thead>
@@ -8711,7 +8842,7 @@ rẻ, không cần đọc body, và phải có kết quả trước rate limit v
 <td><strong>Hành vi ngắn hạn</strong></td>
 <td>Theo IP, phiên (cookie), consumer API: tốc độ theo path, độ đều của nhịp gửi, tỉ lệ trang HTML/tài nguyên phụ, tỉ lệ lỗi 4xx, số path khác nhau</td>
 <td>Thấp (counter cục bộ)</td>
-<td>State trong proxy, hot key qua Valkey</td>
+<td>State trong L7, hot key qua Valkey</td>
 </tr>
 <tr>
 <td>S6</td>
@@ -8794,7 +8925,7 @@ Mô hình học máy chỉ thay thế khi đo được tốt hơn trên tập đ
 </tr>
 <tr>
 <td>Dùng trong custom rule</td>
-<td><code>bot.score &lt; 30 &amp;&amp; http.request.uri.path.startsWith(&quot;/api/search&quot;)</code> (phần pre, chạy ở proxy)</td>
+<td><code>bot.score &lt; 30 &amp;&amp; http.request.uri.path.startsWith(&quot;/api/search&quot;)</code> (phần pre, chạy ở L7)</td>
 </tr>
 <tr>
 <td>Chế độ chỉ quan sát</td>
@@ -8834,7 +8965,7 @@ người dùng ra ngoài, chạy được on-prem). Tích hợp CAPTCHA bên th�
 </ul>
 <h2 id="f-08-cross-cutting-16-bot-management--6-vòng-học-ở-analytics">6. Vòng học ở Analytics</h2>
 <div class="diagram"><pre class="mermaid">flowchart LR
-    edge[&quot;Edge proxy&lt;br/&gt;bot.score, signals, JA4, h2fp&quot;]
+    edge[&quot;L7&lt;br/&gt;bot.score, signals, JA4, h2fp&quot;]
     k[(&quot;Kafka enriched&quot;)]
     subgraph AN[&quot;Analytics&quot;]
         agg[&quot;Gộp reputation&lt;br/&gt;fingerprint, ASN, IP&quot;]
@@ -8919,7 +9050,7 @@ song trên traffic thật, so sánh tỉ lệ challenge và tỉ lệ người d
 </tr>
 <tr>
 <td>Độ trễ tính điểm</td>
-<td>≤ 50 µs p99 ở proxy</td>
+<td>≤ 50 µs p99 ở L7</td>
 </tr>
 </tbody>
 </table>
@@ -9016,19 +9147,19 @@ consumer), và <strong>biết thế nào là bất thường với từng consum
 <tr>
 <td>A3</td>
 <td><strong>Kiểm theo schema</strong> (OpenAPI 3.x)</td>
-<td>Proxy (đường, method, tham số, header) + WAF (body)</td>
+<td>L7 (đường, method, tham số, header) + WAF (body)</td>
 <td>Mở rộng</td>
 </tr>
 <tr>
 <td>A4</td>
 <td><strong>Xác thực ở edge</strong>: JWT, mTLS client cert, có mặt API key</td>
-<td>Proxy</td>
+<td>L7</td>
 <td>Mở rộng</td>
 </tr>
 <tr>
 <td>A5</td>
 <td><strong>Danh tính consumer</strong> làm khoá cho rate limit, quota, analytics</td>
-<td>Proxy</td>
+<td>L7</td>
 <td>Mở rộng</td>
 </tr>
 <tr>
@@ -9040,7 +9171,7 @@ consumer), và <strong>biết thế nào là bất thường với từng consum
 <tr>
 <td>A7</td>
 <td><strong>Phát hiện BOLA / duyệt đối tượng</strong></td>
-<td>Analytics + proxy</td>
+<td>Analytics + L7</td>
 <td>Nâng cao</td>
 </tr>
 <tr>
@@ -9070,7 +9201,7 @@ consumer), và <strong>biết thế nào là bất thường với từng consum
     K-&gt;&gt;M: xác nhận endpoint, tải OpenAPI hoặc sinh schema từ discovery
     K-&gt;&gt;M: bật kiểm schema ở log-only cho nhóm endpoint
     M-&gt;&gt;C: PolicyVersion (route table + schema + cấu hình xác thực)
-    C-&gt;&gt;C: biên dịch: route table → phần proxy, validator body → phần WAF
+    C-&gt;&gt;C: biên dịch: route table → phần L7, validator body → phần WAF
     C-&gt;&gt;E: snapshot (lớp A)
     E-&gt;&gt;A: vi phạm schema (log-only)
     K-&gt;&gt;M: xem vi phạm, sửa schema hoặc chuyển enforce
@@ -9116,17 +9247,17 @@ trên giao diện.</p>
 <tbody>
 <tr>
 <td>Endpoint có trong schema không (route table theo host, method, path template)</td>
-<td>Proxy</td>
+<td>L7</td>
 <td>Rẻ; endpoint lạ bị chặn hoặc ghi log trước khi tốn CPU WAF</td>
 </tr>
 <tr>
 <td>Tham số path, query, header bắt buộc, kiểu và giới hạn</td>
-<td>Proxy</td>
+<td>L7</td>
 <td>Không cần body</td>
 </tr>
 <tr>
 <td>Content-type, kích thước body</td>
-<td>Proxy</td>
+<td>L7</td>
 <td>Không cần đọc body</td>
 </tr>
 <tr>
@@ -9142,7 +9273,7 @@ trên giao diện.</p>
 </tbody>
 </table>
 <ul>
-<li>Compiler biên dịch OpenAPI thành <strong>route table</strong> (phần proxy) và <strong>validator theo endpoint</strong> (phần WAF),
+<li>Compiler biên dịch OpenAPI thành <strong>route table</strong> (phần L7) và <strong>validator theo endpoint</strong> (phần WAF),
 cùng manifest nên hai tầng khớp version (<a href="#f-08-cross-cutting-15-config-propagation-and-apply--6-hai-tầng-swap-lệch-nhau">8.15 §6</a>).</li>
 <li>Chế độ theo endpoint hoặc nhóm: tắt, log-only, enforce. Mặc định log-only khi mới tải schema.</li>
 <li>Vi phạm trả 400 (dữ liệu sai) hoặc 404/403 (endpoint không khai báo) với <code>status_source = edge_policy</code>
@@ -9167,7 +9298,7 @@ và mã vi phạm cụ thể.</li>
 </tr>
 <tr>
 <td><strong>mTLS client cert</strong></td>
-<td>Proxy kiểm cert client theo CA khách tải lên; subject/SAN dùng làm danh tính</td>
+<td>L7 kiểm cert client theo CA khách tải lên; subject/SAN dùng làm danh tính</td>
 </tr>
 <tr>
 <td><strong>API key</strong></td>
@@ -9206,7 +9337,7 @@ thể sau một NAT, một consumer có thể gọi từ nhiều IP.</p>
 </tbody>
 </table>
 <h2 id="f-08-cross-cutting-17-api-security--8-dữ-liệu-nhạy-cảm-trong-response-a8-nâng-cao">8. Dữ liệu nhạy cảm trong response (A8, Nâng cao)</h2>
-<p>Kiểm response cần gửi response từ proxy sang WAF, tốn gấp đôi chi phí. Thiết kế: chỉ bật theo endpoint
+<p>Kiểm response cần gửi response từ L7 sang WAF, tốn gấp đôi chi phí. Thiết kế: chỉ bật theo endpoint
 khách chọn, có lấy mẫu; WAF tìm mẫu (số thẻ qua kiểm Luhn, khoá API dạng phổ biến, mẫu PII do khách định
 nghĩa); hành động: log, che trong response, hoặc chặn.</p>
 <h2 id="f-08-cross-cutting-17-api-security--9-dữ-liệu-và-cấu-hình">9. Dữ liệu và cấu hình</h2>
@@ -9223,19 +9354,19 @@ nghĩa); hành động: log, che trong response, hoặc chặn.</p>
 <tr>
 <td>Kho API, schema, nhóm endpoint, chế độ</td>
 <td>Management</td>
-<td>Route table (proxy), validator (WAF)</td>
+<td>Route table (L7), validator (WAF)</td>
 <td>A</td>
 </tr>
 <tr>
 <td>Cấu hình xác thực (JWT issuer/audience, CA client, nguồn danh tính consumer)</td>
 <td>Management</td>
-<td>Proxy</td>
+<td>L7</td>
 <td>A</td>
 </tr>
 <tr>
 <td>JWKS</td>
 <td>Control kéo từ khách</td>
-<td>Proxy</td>
+<td>L7</td>
 <td>A, fast lane khi xoay khoá</td>
 </tr>
 <tr>
@@ -9279,7 +9410,7 @@ nghĩa); hành động: log, che trong response, hoặc chặn.</p>
 </tr>
 <tr>
 <td>Độ trễ kiểm schema</td>
-<td>Proxy ≤ 20 µs; WAF (body JSON 10 KB) ≤ 300 µs p99</td>
+<td>L7 ≤ 20 µs; WAF (body JSON 10 KB) ≤ 300 µs p99</td>
 </tr>
 </tbody>
 </table>
@@ -9479,7 +9610,7 @@ nóng làm nhiễu láng giềng nhỏ).</li>
 </thead>
 <tbody>
 <tr>
-<td>Node edge proxy</td>
+<td>Node L7</td>
 <td>450 × 1.500 USD (khấu hao + colo + điện)</td>
 <td>675k</td>
 </tr>
@@ -9510,13 +9641,13 @@ nóng làm nhiễu láng giềng nhỏ).</li>
 </tr>
 </tbody>
 </table>
-<p>Phân bổ theo đơn vị gây chi phí: proxy và băng thông theo traffic; WAF theo đơn vị CPU WAF; Analytics
+<p>Phân bổ theo đơn vị gây chi phí: L7 và băng thông theo traffic; WAF theo đơn vị CPU WAF; Analytics
 theo số bản ghi log; phần chung theo số zone.</p>
 <table>
 <thead>
 <tr>
 <th>Gói</th>
-<th>Proxy + băng thông</th>
+<th>L7 + băng thông</th>
 <th>WAF</th>
 <th>Analytics</th>
 <th>Chung</th>
@@ -9578,7 +9709,7 @@ theo số bản ghi log; phần chung theo số zone.</p>
 </thead>
 <tbody>
 <tr>
-<td>1 rps trung bình trong tháng (≈ 2,6 triệu request) qua proxy + băng thông</td>
+<td>1 rps trung bình trong tháng (≈ 2,6 triệu request) qua L7 + băng thông</td>
 <td>≈ 0,43 USD</td>
 </tr>
 <tr>
@@ -9710,6 +9841,30 @@ ngờ. Enterprise định giá theo cam kết traffic (rps hoặc băng thông 9
 <td>64 KB</td>
 <td>128 KB</td>
 <td>Tới 1 MB</td>
+</tr>
+<tr>
+<td></td>
+<td>Body XML, multipart</td>
+<td>Có</td>
+<td>Có</td>
+<td>Có</td>
+<td>Có</td>
+</tr>
+<tr>
+<td></td>
+<td>WebSocket</td>
+<td>Kiểm bắt tay, giới hạn cơ bản</td>
+<td>Như Free</td>
+<td>+ giới hạn frame tuỳ chỉnh</td>
+<td>+ kiểm frame (Nâng cao)</td>
+</tr>
+<tr>
+<td></td>
+<td>gRPC</td>
+<td>—</td>
+<td>Rule theo method</td>
+<td>+ rate limit theo method, consumer</td>
+<td>+ kiểm nội dung theo <code>.proto</code> (Nâng cao)</td>
 </tr>
 <tr>
 <td></td>
@@ -10175,7 +10330,7 @@ cân nhắc. Quyết định bị thay thế giữ lại với trạng thái &qu
 </tr>
 <tr>
 <td><a href="#f-09-adr-0031-edge-l7-and-waf-engine-options">0031</a></td>
-<td>Nền tầng proxy × engine tầng WAF × cách gọi; shortlist S2 / S3 / S1, spike để chọn</td>
+<td>Nền tầng L7 × engine tầng WAF × cách gọi; shortlist S2 / S3 / S1, spike để chọn</td>
 <td><strong>Đề xuất, chờ chọn</strong></td>
 </tr>
 <tr>
@@ -10185,12 +10340,12 @@ cân nhắc. Quyết định bị thay thế giữ lại với trạng thái &qu
 </tr>
 <tr>
 <td><a href="#f-09-adr-0033-two-tier-edge-proxy-and-waf">0033</a></td>
-<td>Edge hai tầng: edge proxy (RAM) và WAF inspection (CPU)</td>
+<td>Edge hai tầng: L7 (RAM) và WAF inspection (CPU)</td>
 <td>Chấp nhận</td>
 </tr>
 <tr>
 <td><a href="#f-09-adr-0034-pre-filter-and-rule-split-across-tiers">0034</a></td>
-<td>Pre-filter và challenge ở proxy; custom rule chia tầng giữ first-match</td>
+<td>Pre-filter và challenge ở L7; custom rule chia tầng giữ first-match</td>
 <td>Chấp nhận</td>
 </tr>
 <tr>
@@ -10210,12 +10365,12 @@ cân nhắc. Quyết định bị thay thế giữ lại với trạng thái &qu
 </tr>
 <tr>
 <td><a href="#f-09-adr-0038-bot-management-layered-scoring">0038</a></td>
-<td>Bot management chấm điểm nhiều lớp ở proxy; challenge tự phát; dữ liệu bot phát hành như ruleset</td>
+<td>Bot management chấm điểm nhiều lớp ở L7; challenge tự phát; dữ liệu bot phát hành như ruleset</td>
 <td>Chấp nhận</td>
 </tr>
 <tr>
 <td><a href="#f-09-adr-0039-api-security-positive-model">0039</a></td>
-<td>API security: discovery, schema chia proxy/WAF, JWT/mTLS ở edge, danh tính consumer</td>
+<td>API security: discovery, schema chia L7/WAF, JWT/mTLS ở edge, danh tính consumer</td>
 <td>Chấp nhận</td>
 </tr>
 <tr>
@@ -10615,7 +10770,7 @@ là một transaction.</li>
 <h2 id="f-09-adr-0013-edge-gateway-custom-go-with-coraza--hệ-quả">Hệ quả</h2>
 <ul>
 <li>Toàn quyền với thứ tự pipeline, ngân sách thời gian, cô lập tenant.</li>
-<li>Phải tự lo những thứ proxy có sẵn: connection pool tới origin, retry, health check, giới hạn
+<li>Phải tự lo những thứ proxy dựng sẵn (Envoy, NGINX) đã có: connection pool tới origin, retry, health check, giới hạn
 header/body, HTTP/2 tuning. Phạm vi này nhỏ và đã có thư viện chuẩn.</li>
 <li>Coraza là phần đắt nhất trong ngân sách độ trễ; benchmark là việc đầu tiên của giai đoạn MVP.</li>
 <li>Lối thoát nếu benchmark không đạt: đặt Envoy phía trước làm TLS/HTTP, gateway Go chạy sau qua
@@ -10676,7 +10831,7 @@ hình <strong>desired state</strong> của xDS: Control gửi &quot;node này ph
 NACK kèm lỗi, có nonce để khớp.</li>
 <li><strong>Kênh dữ liệu:</strong> node kéo bundle theo digest qua HTTPS từ <strong>regional relay</strong> (cache bất biến,
 vì nội dung theo digest không bao giờ đổi); relay kéo từ artifact store.</li>
-<li><strong>Policy agent nằm trong binary của từng tầng</strong> (proxy và WAF, <a href="#f-09-adr-0033-two-tier-edge-proxy-and-waf">ADR-0033</a>), không phải process riêng: swap con trỏ nguyên khối, không cần IPC. Mỗi tầng chỉ nạp phần bundle của mình từ cùng một manifest.</li>
+<li><strong>Policy agent nằm trong binary của từng tầng</strong> (L7 và WAF, <a href="#f-09-adr-0033-two-tier-edge-proxy-and-waf">ADR-0033</a>), không phải process riêng: swap con trỏ nguyên khối, không cần IPC. Mỗi tầng chỉ nạp phần bundle của mình từ cùng một manifest.</li>
 <li><strong>Bí mật không nằm trong snapshot:</strong> private key cert được agent lấy riêng qua mTLS, chỉ giữ trong RAM.</li>
 </ul>
 <h2 id="f-09-adr-0015-snapshot-format-and-distribution--hệ-quả">Hệ quả</h2>
@@ -11096,14 +11251,14 @@ nghiệp vụ, khối lượng vừa phải; ở đó tốc độ phát triển 
 </thead>
 <tbody>
 <tr>
-<td><strong>Edge proxy</strong></td>
+<td><strong>L7</strong></td>
 <td><strong>Chờ chọn</strong> (<a href="#f-09-adr-0031-edge-l7-and-waf-engine-options">ADR-0031</a>); shortlist Rust (Pingora), Go, Envoy (C++ + wasm)</td>
 <td>Quyết định bằng spike</td>
 </tr>
 <tr>
 <td><strong>WAF inspection</strong></td>
 <td>Go mặc định (Coraza), so sánh libmodsecurity (C++)</td>
-<td>Process riêng nên GC và rủi ro bộ nhớ của engine không lan sang proxy (<a href="#f-09-adr-0033-two-tier-edge-proxy-and-waf">ADR-0033</a>)</td>
+<td>Process riêng nên GC và rủi ro bộ nhớ của engine không lan sang L7 (<a href="#f-09-adr-0033-two-tier-edge-proxy-and-waf">ADR-0033</a>)</td>
 </tr>
 <tr>
 <td><strong>Replay worker</strong></td>
@@ -11145,7 +11300,7 @@ nghiệp vụ, khối lượng vừa phải; ở đó tốc độ phát triển 
 Edge vốn đã là codebase và chu kỳ deploy riêng, không phụ thuộc <code>metap</code>, nên ranh giới rõ.</li>
 <li>Nếu chọn Rust cho edge: org vừa bỏ Rust khỏi các repo khác (2026-11-01), cần người viết Rust thành
 thạo (<a href="#f-11-risks-00-index--111-rủi-ro">11 R12</a>).</li>
-<li>Nếu edge proxy không phải Go: kiểm tra rule bằng <code>cel-go</code> nhưng phần pre thực thi bằng ngôn ngữ khác, cần bộ test
+<li>Nếu L7 không phải Go: kiểm tra rule bằng <code>cel-go</code> nhưng phần pre thực thi bằng ngôn ngữ khác, cần bộ test
 đối chiếu ngữ nghĩa (<a href="#f-09-adr-0032-cel-checked-at-control-ir-at-edge">ADR-0032</a>).</li>
 </ul>
 <h2 id="f-09-adr-0030-language-per-workload--phương-án-đã-cân-nhắc">Phương án đã cân nhắc</h2>
@@ -11161,7 +11316,7 @@ hàng chục nghìn phiên portal cùng lúc (Phoenix Channels là lựa chọn 
 vượt mức một cụm Go nhỏ xử lý được.</li>
 </ul>
 </section>
-<section class="doc" id="f-09-adr-0031-edge-l7-and-waf-engine-options"><div class="path">09-adr/0031-edge-l7-and-waf-engine-options.md</div><h1 id="f-09-adr-0031-edge-l7-and-waf-engine-options--adr-0031-lựa-chọn-nền-cho-tầng-edge-proxy-và-engine-cho-tầng-waf">ADR-0031: Lựa chọn nền cho tầng edge proxy và engine cho tầng WAF</h1>
+<section class="doc" id="f-09-adr-0031-edge-l7-and-waf-engine-options"><div class="path">09-adr/0031-edge-l7-and-waf-engine-options.md</div><h1 id="f-09-adr-0031-edge-l7-and-waf-engine-options--adr-0031-lựa-chọn-nền-cho-tầng-l7-và-engine-cho-tầng-waf">ADR-0031: Lựa chọn nền cho tầng L7 và engine cho tầng WAF</h1>
 <ul>
 <li>Trạng thái: <strong>Đề xuất, chờ chọn</strong> sau spike (§7). Phương án cũ ở <a href="#f-09-adr-0013-edge-gateway-custom-go-with-coraza">ADR-0013</a> nằm trong các lựa chọn dưới đây.</li>
 <li>Ngày: 2026-11-06</li>
@@ -11169,12 +11324,12 @@ vượt mức một cụm Go nhỏ xử lý được.</li>
 <h2 id="f-09-adr-0031-edge-l7-and-waf-engine-options--1-bối-cảnh">1. Bối cảnh</h2>
 <p>Edge có hai tầng (<a href="#f-09-adr-0033-two-tier-edge-proxy-and-waf">ADR-0033</a>), nên có <strong>ba lựa chọn</strong>:</p>
 <ol>
-<li><strong>Nền cho tầng proxy:</strong> kết nối, TLS, pre-filter, challenge, cache, proxy tới origin. Tốn RAM, kết
+<li><strong>Nền cho tầng L7:</strong> kết nối, TLS, pre-filter, challenge, cache, proxy tới origin. Tốn RAM, kết
 nối, băng thông.</li>
 <li><strong>Engine cho tầng WAF:</strong> chạy SecLang/CRS và custom rule phần inspect. Tốn CPU.</li>
-<li><strong>Cách proxy gọi WAF:</strong> giao thức kiểm tra giữa hai tầng.</li>
+<li><strong>Cách L7 gọi WAF:</strong> giao thức kiểm tra giữa hai tầng.</li>
 </ol>
-<p>Hai tầng là hai process riêng, nên hai lựa chọn đầu gần như độc lập: proxy viết bằng một ngôn ngữ, WAF
+<p>Hai tầng là hai process riêng, nên hai lựa chọn đầu gần như độc lập: L7 viết bằng một ngôn ngữ, WAF
 có thể viết bằng ngôn ngữ khác.</p>
 <h2 id="f-09-adr-0031-edge-l7-and-waf-engine-options--2-tiêu-chí">2. Tiêu chí</h2>
 <table>
@@ -11202,25 +11357,25 @@ có thể viết bằng ngôn ngữ khác.</p>
 <tr>
 <td>T3</td>
 <td>An toàn bộ nhớ trên đường traffic</td>
-<td>Proxy (nhận traffic internet) cao hơn WAF (đã cô lập process)</td>
+<td>L7 (nhận traffic internet) cao hơn WAF (đã cô lập process)</td>
 <td>Cao</td>
 </tr>
 <tr>
 <td>T4</td>
 <td>Mức kiểm soát pre-filter, challenge, governor theo tenant, fail mode, swap snapshot</td>
-<td>Proxy</td>
+<td>L7</td>
 <td>Cao</td>
 </tr>
 <tr>
 <td>T5</td>
 <td><strong>Khả năng cache</strong> (RAM + đĩa, purge, cache key)</td>
-<td>Proxy</td>
+<td>L7</td>
 <td>Cao (<a href="#f-09-adr-0035-cdn-and-dns-strategy">ADR-0035</a>)</td>
 </tr>
 <tr>
 <td>T6</td>
 <td><strong>Gọi dịch vụ kiểm tra ngoài kèm body</strong> (stream, timeout, fail mode)</td>
-<td>Proxy</td>
+<td>L7</td>
 <td>Cao</td>
 </tr>
 <tr>
@@ -11244,13 +11399,19 @@ có thể viết bằng ngôn ngữ khác.</p>
 <tr>
 <td>T10</td>
 <td>HTTP/3</td>
-<td>Proxy</td>
+<td>L7</td>
 <td>Thấp</td>
 </tr>
 <tr>
 <td>T12</td>
 <td>Truy cập ClientHello và frame HTTP/2 thô (để tính JA4, fingerprint HTTP/2 cho bot management, <a href="#f-09-adr-0038-bot-management-layered-scoring">ADR-0038</a>)</td>
-<td>Proxy</td>
+<td>L7</td>
+<td>Trung bình</td>
+</tr>
+<tr>
+<td>T13</td>
+<td>Body processor: XML (tắt thực thể ngoài), multipart, JSON; khả năng gắn decoder riêng (GraphQL, protobuf theo descriptor cho gRPC)</td>
+<td>WAF</td>
 <td>Trung bình</td>
 </tr>
 <tr>
@@ -11261,7 +11422,7 @@ có thể viết bằng ngôn ngữ khác.</p>
 </tr>
 </tbody>
 </table>
-<h2 id="f-09-adr-0031-edge-l7-and-waf-engine-options--3-nền-cho-tầng-proxy">3. Nền cho tầng proxy</h2>
+<h2 id="f-09-adr-0031-edge-l7-and-waf-engine-options--3-nền-cho-tầng-l7">3. Nền cho tầng L7</h2>
 <table>
 <thead>
 <tr>
@@ -11320,7 +11481,7 @@ có thể viết bằng ngôn ngữ khác.</p>
 <td>Rất chín</td>
 <td>Rất chín, phổ biến nhất</td>
 <td>Rất chín</td>
-<td>Proxy tự viết</td>
+<td>L7 tự viết</td>
 </tr>
 <tr>
 <td>T8</td>
@@ -11368,7 +11529,7 @@ vụ kiểm tra; P2/P4 ngược lại. P1 và P5 phải tự viết cả hai nh�
 <tr>
 <td>T3</td>
 <td>Cao</td>
-<td>Thấp, nhưng đã cô lập trong process riêng nên crash không kéo theo proxy</td>
+<td>Thấp, nhưng đã cô lập trong process riêng nên crash không kéo theo L7</td>
 <td>Cao</td>
 </tr>
 <tr>
@@ -11393,7 +11554,7 @@ vụ kiểm tra; P2/P4 ngược lại. P1 và P5 phải tự viết cả hai nh�
 </table>
 <p>Vì tầng WAF đã tách process, nhược điểm lớn nhất của W1 (GC) và W2 (an toàn bộ nhớ) đều giảm nhiều.
 <strong>W1 là mặc định hợp lý</strong>; W2 đưa vào spike để so CPU mỗi request, vì CPU tầng WAF là chi phí hạ tầng lớn.</p>
-<h2 id="f-09-adr-0031-edge-l7-and-waf-engine-options--5-cách-proxy-gọi-waf">5. Cách proxy gọi WAF</h2>
+<h2 id="f-09-adr-0031-edge-l7-and-waf-engine-options--5-cách-l7-gọi-waf">5. Cách L7 gọi WAF</h2>
 <table>
 <thead>
 <tr>
@@ -11406,19 +11567,19 @@ vụ kiểm tra; P2/P4 ngược lại. P1 và P5 phải tự viết cả hai nh�
 <tbody>
 <tr>
 <td>Mô tả</td>
-<td>Proto của mình (<a href="#f-05-building-blocks-05-contracts--inspection-api-edge-proxy--waf">5.5</a>)</td>
+<td>Proto của mình (<a href="#f-05-building-blocks-05-contracts--inspection-api-l7--waf">5.5</a>)</td>
 <td>Giao thức có sẵn của Envoy</td>
 <td>Giao thức có sẵn của HAProxy</td>
 </tr>
 <tr>
 <td>Ưu</td>
-<td>Độc lập nền proxy; đúng thứ mình cần (verdict sớm, ngân sách thời gian)</td>
+<td>Độc lập nền L7; đúng thứ mình cần (verdict sớm, ngân sách thời gian)</td>
 <td>Không phải viết client</td>
 <td>Không phải viết client; có <code>coraza-spoa</code></td>
 </tr>
 <tr>
 <td>Nhược</td>
-<td>Phải viết client ở proxy</td>
+<td>Phải viết client ở L7</td>
 <td>Gắn với Envoy</td>
 <td>Gắn với HAProxy; giới hạn kích thước body</td>
 </tr>
@@ -11431,7 +11592,7 @@ hoặc SPOE rồi chuyển sang G1, để tầng WAF chỉ có một giao diện
 <thead>
 <tr>
 <th>Tổ hợp</th>
-<th>Proxy</th>
+<th>L7</th>
 <th>WAF</th>
 <th>Gọi</th>
 <th>Mạnh</th>
@@ -11444,7 +11605,7 @@ hoặc SPOE rồi chuyển sang G1, để tầng WAF chỉ có một giao diện
 <td>P2 Envoy</td>
 <td>W1 Coraza</td>
 <td>G2 → G1</td>
-<td>Proxy rất chín, tích hợp kiểm tra sẵn, HTTP/3</td>
+<td>L7 rất chín, tích hợp kiểm tra sẵn, HTTP/3</td>
 <td>Cache yếu: cần thêm tầng cache (ví dụ Varnish) hoặc chờ CDN tự xây</td>
 </tr>
 <tr>
@@ -11452,7 +11613,7 @@ hoặc SPOE rồi chuyển sang G1, để tầng WAF chỉ có một giao diện
 <td>P1 Pingora</td>
 <td>W1 Coraza (hoặc W2)</td>
 <td>G1</td>
-<td>Kiểm soát cao, không GC ở proxy, có nền cache</td>
+<td>Kiểm soát cao, không GC ở L7, có nền cache</td>
 <td>Cần người Rust; tự viết client, purge, cache đĩa</td>
 </tr>
 <tr>
@@ -11461,14 +11622,14 @@ hoặc SPOE rồi chuyển sang G1, để tầng WAF chỉ có một giao diện
 <td>W1 Coraza</td>
 <td>G1</td>
 <td>Đội làm được ngay; replay dùng chung code cả hai tầng</td>
-<td>Tự viết cache và proxy</td>
+<td>Tự viết cache và L7</td>
 </tr>
 <tr>
 <td><strong>S4</strong></td>
 <td>P4 HAProxy</td>
 <td>W1 Coraza</td>
 <td>G3 (<code>coraza-spoa</code>)</td>
-<td>Proxy rất nhanh và chín, tích hợp WAF có sẵn</td>
+<td>L7 rất nhanh và chín, tích hợp WAF có sẵn</td>
 <td>Cache yếu; pre-filter phải viết bằng Lua/cấu hình</td>
 </tr>
 <tr>
@@ -11486,7 +11647,7 @@ Tầng WAF dùng W1 trong mọi tổ hợp; spike đo thêm W2 trên cùng tần
 <h2 id="f-09-adr-0031-edge-l7-and-waf-engine-options--7-spike">7. Spike</h2>
 <p>Thời hạn 3 tuần, 2 người. Mỗi tổ hợp dựng tối thiểu:</p>
 <ul>
-<li>Ở proxy: access list, rate limit, challenge, custom rule phần pre, cache cơ bản.</li>
+<li>Ở L7: access list, rate limit, challenge, custom rule phần pre, cache cơ bản.</li>
 <li>Gọi WAF với CRS PL1/PL2 và custom rule phần inspect.</li>
 <li>Swap snapshot nóng, governor theo tenant đơn giản.</li>
 </ul>
@@ -11507,7 +11668,7 @@ Tầng WAF dùng W1 trong mọi tổ hợp; spike đo thêm W2 trên cùng tần
 <td>p99 ≤ 0,5 ms</td>
 </tr>
 <tr>
-<td>Tỉ lệ request bị loại ở proxy trong kịch bản flood từ ít nguồn</td>
+<td>Tỉ lệ request bị loại ở L7 trong kịch bản flood từ ít nguồn</td>
 <td>≥ 95%, CPU tầng WAF không tăng quá 20%</td>
 </tr>
 <tr>
@@ -11531,7 +11692,7 @@ Tầng WAF dùng W1 trong mọi tổ hợp; spike đo thêm W2 trên cùng tần
 <td>Đo và so sánh</td>
 </tr>
 <tr>
-<td>Fuzz proxy 24 giờ</td>
+<td>Fuzz L7 24 giờ</td>
 <td>Không crash</td>
 </tr>
 <tr>
@@ -11542,7 +11703,7 @@ Tầng WAF dùng W1 trong mọi tổ hợp; spike đo thêm W2 trên cùng tần
 </table>
 <p>Kết quả ghi thành bản sửa của ADR này, trạng thái chuyển sang &quot;Chấp nhận&quot;.</p>
 <p><strong>Gợi ý nếu không làm spike:</strong> <strong>S3</strong> (Go cả hai tầng) để ra MVP nhanh với đội hiện tại, giữ G1 làm
-hợp đồng để sau thay proxy bằng P1 mà không đụng tầng WAF; <strong>S2</strong> nếu độ trễ đuôi của proxy và hiệu quả
+hợp đồng để sau thay L7 bằng P1 mà không đụng tầng WAF; <strong>S2</strong> nếu độ trễ đuôi của L7 và hiệu quả
 RAM là cam kết bán hàng ngay từ đầu.</p>
 <h2 id="f-09-adr-0031-edge-l7-and-waf-engine-options--8-ảnh-hưởng-tới-adr-khác">8. Ảnh hưởng tới ADR khác</h2>
 <table>
@@ -11555,11 +11716,11 @@ RAM là cam kết bán hàng ngay từ đầu.</p>
 <tbody>
 <tr>
 <td><a href="#f-09-adr-0030-language-per-workload">0030</a></td>
-<td>Ngôn ngữ proxy theo P đã chọn; tầng WAF mặc định Go (W1)</td>
+<td>Ngôn ngữ L7 theo P đã chọn; tầng WAF mặc định Go (W1)</td>
 </tr>
 <tr>
 <td><a href="#f-09-adr-0032-cel-checked-at-control-ir-at-edge">0032</a></td>
-<td>Custom rule phần pre chạy ở proxy: cần IR nếu proxy không phải Go; phần inspect chạy ở WAF (Go) có thể dùng <code>cel-go</code></td>
+<td>Custom rule phần pre chạy ở L7: cần IR nếu L7 không phải Go; phần inspect chạy ở WAF (Go) có thể dùng <code>cel-go</code></td>
 </tr>
 <tr>
 <td><a href="#f-09-adr-0026-replay-on-request-samples-with-shared-pipeline">0026</a></td>
@@ -11574,7 +11735,7 @@ RAM là cam kết bán hàng ngay từ đầu.</p>
 </section>
 <section class="doc" id="f-09-adr-0032-cel-checked-at-control-ir-at-edge"><div class="path">09-adr/0032-cel-checked-at-control-ir-at-edge.md</div><h1 id="f-09-adr-0032-cel-checked-at-control-ir-at-edge--adr-0032-cel-được-kiểm-tra-ở-control-edge-thực-thi-ir-đã-biên-dịch">ADR-0032: CEL được kiểm tra ở Control, edge thực thi IR đã biên dịch</h1>
 <ul>
-<li>Trạng thái: <strong>Đề xuất</strong>, theo kết quả <a href="#f-09-adr-0031-edge-l7-and-waf-engine-options">ADR-0031</a>: custom rule phần pre chạy ở edge proxy (<a href="#f-09-adr-0034-pre-filter-and-rule-split-across-tiers">ADR-0034</a>) nên cần IR nếu proxy không viết bằng Go; phần inspect chạy ở tầng WAF (mặc định Go) có thể dùng thẳng <code>cel-go</code>. Sửa đổi <a href="#f-09-adr-0014-cel-as-rule-language">ADR-0014</a></li>
+<li>Trạng thái: <strong>Đề xuất</strong>, theo kết quả <a href="#f-09-adr-0031-edge-l7-and-waf-engine-options">ADR-0031</a>: custom rule phần pre chạy ở L7 (<a href="#f-09-adr-0034-pre-filter-and-rule-split-across-tiers">ADR-0034</a>) nên cần IR nếu L7 không viết bằng Go; phần inspect chạy ở tầng WAF (mặc định Go) có thể dùng thẳng <code>cel-go</code>. Sửa đổi <a href="#f-09-adr-0014-cel-as-rule-language">ADR-0014</a></li>
 <li>Ngày: 2026-11-06</li>
 </ul>
 <h2 id="f-09-adr-0032-cel-checked-at-control-ir-at-edge--bối-cảnh">Bối cảnh</h2>
@@ -11598,75 +11759,75 @@ lẫn evaluator của edge trong CI; lệch là lỗi chặn merge ở cả hai 
 <li>Thêm một hàm vào ngôn ngữ rule phải làm ở cả hai phía và thêm vector test.</li>
 </ul>
 </section>
-<section class="doc" id="f-09-adr-0033-two-tier-edge-proxy-and-waf"><div class="path">09-adr/0033-two-tier-edge-proxy-and-waf.md</div><h1 id="f-09-adr-0033-two-tier-edge-proxy-and-waf--adr-0033-edge-tách-hai-tầng-edge-proxy-và-waf-inspection">ADR-0033: Edge tách hai tầng: edge proxy và WAF inspection</h1>
+<section class="doc" id="f-09-adr-0033-two-tier-edge-proxy-and-waf"><div class="path">09-adr/0033-two-tier-edge-proxy-and-waf.md</div><h1 id="f-09-adr-0033-two-tier-edge-proxy-and-waf--adr-0033-edge-tách-hai-tầng-l7-và-waf-inspection">ADR-0033: Edge tách hai tầng: L7 và WAF inspection</h1>
 <ul>
 <li>Trạng thái: Chấp nhận</li>
 <li>Ngày: 2026-11-06</li>
 </ul>
 <h2 id="f-09-adr-0033-two-tier-edge-proxy-and-waf--bối-cảnh">Bối cảnh</h2>
-<p>Thiết kế trước đặt mọi thứ trong một binary edge: TLS, kết nối, pre-filter, CRS, proxy. Hai loại tải
+<p>Thiết kế trước đặt mọi thứ trong một binary edge: TLS, kết nối, pre-filter, CRS, L7. Hai loại tải
 trong đó khác hẳn nhau:</p>
 <ul>
-<li>Giữ kết nối, TLS, buffer, cache, proxy: tốn <strong>RAM, số kết nối, băng thông</strong>.</li>
+<li>Giữ kết nối, TLS, buffer, cache, L7: tốn <strong>RAM, số kết nối, băng thông</strong>.</li>
 <li>Kiểm tra nội dung bằng CRS: tốn <strong>CPU</strong>, đột biến khi bị tấn công tầng ứng dụng.</li>
 </ul>
 <p>Gộp chung thì đỉnh CPU của WAF làm chậm việc giữ kết nối của mọi tenant, và mọi request (kể cả request
 lẽ ra bị chặn từ cửa bằng whitelist/blacklist hay rate limit) đều tốn chi phí kiểm tra.</p>
 <h2 id="f-09-adr-0033-two-tier-edge-proxy-and-waf--quyết-định">Quyết định</h2>
 <ul>
-<li><strong>Tầng 1, edge proxy</strong> (<a href="#f-05-building-blocks-08-components-01-edge-proxy">5.8.1</a>): kết nối, TLS,
+<li><strong>Tầng 1, L7</strong> (<a href="#f-05-building-blocks-08-components-01-l7">5.8.1</a>): kết nối, TLS,
 giới hạn giao thức, pre-filter (access list, reputation, rate limit, DDoS L7, challenge, Under Attack
 mode, bot tín hiệu rẻ, custom rule phần pre), cache, proxy tới origin, telemetry.</li>
 <li><strong>Tầng 2, WAF inspection</strong> (<a href="#f-05-building-blocks-08-components-02-waf-inspection">5.8.2</a>): managed
 ruleset, custom rule phần inspect, API schema. Không giữ kết nối client, không gọi origin; nhận request
 qua <strong>Inspection API</strong> (gRPC stream) và trả verdict.</li>
-<li>Proxy chỉ gọi WAF cho request đã qua pre-filter và không được miễn.</li>
+<li>L7 chỉ gọi WAF cho request đã qua pre-filter và không được miễn.</li>
 <li>Hai tầng scale độc lập; PoP nhỏ đặt chung host (process riêng, cgroup CPU riêng, Unix socket), PoP lớn
 tách pool node.</li>
-<li>Tầng WAF có admission control theo tenant; quá tải thì trả <code>Overloaded</code> ngay, proxy áp fail mode của zone.</li>
-<li>Ngân sách p99: proxy ≤ 0,5 ms, gọi WAF ≤ 1,5 ms, tổng ≤ 2 ms (QS-1 giữ nguyên).</li>
+<li>Tầng WAF có admission control theo tenant; quá tải thì trả <code>Overloaded</code> ngay, L7 áp fail mode của zone.</li>
+<li>Ngân sách p99: L7 ≤ 0,5 ms, gọi WAF ≤ 1,5 ms, tổng ≤ 2 ms (QS-1 giữ nguyên).</li>
 </ul>
 <h2 id="f-09-adr-0033-two-tier-edge-proxy-and-waf--hệ-quả">Hệ quả</h2>
 <ul>
-<li>Khi bị tấn công, phần lớn lưu lượng bị loại ở proxy với chi phí rất thấp; CPU của WAF dành cho phần
+<li>Khi bị tấn công, phần lớn lưu lượng bị loại ở L7 với chi phí rất thấp; CPU của WAF dành cho phần
 còn lại.</li>
 <li>Engine WAF chạy process riêng: crash hay lỗi bộ nhớ của engine không kéo theo kết nối client; GC (nếu
-engine là Go) không làm dừng proxy. Điều này làm thay đổi đánh giá các phương án ở <a href="#f-09-adr-0031-edge-l7-and-waf-engine-options">ADR-0031</a>.</li>
+engine là Go) không làm dừng L7. Điều này làm thay đổi đánh giá các phương án ở <a href="#f-09-adr-0031-edge-l7-and-waf-engine-options">ADR-0031</a>.</li>
 <li>Thêm một chặng mạng trong PoP (thường 0,1–0,3 ms) và một hợp đồng phải giữ tương thích
-(<a href="#f-05-building-blocks-05-contracts--inspection-api-edge-proxy--waf">5.5</a>).</li>
-<li>Proxy phải buffer body tới giới hạn để gửi WAF, nên RAM của proxy tính theo cả kết nối lẫn body.</li>
+(<a href="#f-05-building-blocks-05-contracts--inspection-api-l7--waf">5.5</a>).</li>
+<li>L7 phải buffer body tới giới hạn để gửi WAF, nên RAM của L7 tính theo cả kết nối lẫn body.</li>
 <li>Snapshot chia phần cho từng tầng; policy agent chạy ở cả hai tầng.</li>
 </ul>
 <h2 id="f-09-adr-0033-two-tier-edge-proxy-and-waf--phương-án-đã-cân-nhắc">Phương án đã cân nhắc</h2>
 <ul>
 <li><strong>Một binary làm hết</strong> (thiết kế trước): ít chặng hơn nhưng tải CPU và RAM giành nhau, không scale riêng.</li>
-<li><strong>WAF làm reverse proxy nối tiếp</strong> (proxy → WAF proxy → origin): WAF phải giữ kết nối và stream
+<li><strong>WAF làm reverse proxy nối tiếp</strong> (L7 → WAF proxy → origin): WAF phải giữ kết nối và stream
 response, mất lợi ích tách tải; hai lần proxy.</li>
 </ul>
 </section>
-<section class="doc" id="f-09-adr-0034-pre-filter-and-rule-split-across-tiers"><div class="path">09-adr/0034-pre-filter-and-rule-split-across-tiers.md</div><h1 id="f-09-adr-0034-pre-filter-and-rule-split-across-tiers--adr-0034-pre-filter-và-challenge-ở-tầng-proxy-custom-rule-chia-theo-tầng">ADR-0034: Pre-filter và challenge ở tầng proxy; custom rule chia theo tầng</h1>
+<section class="doc" id="f-09-adr-0034-pre-filter-and-rule-split-across-tiers"><div class="path">09-adr/0034-pre-filter-and-rule-split-across-tiers.md</div><h1 id="f-09-adr-0034-pre-filter-and-rule-split-across-tiers--adr-0034-pre-filter-và-challenge-ở-tầng-l7-custom-rule-chia-theo-tầng">ADR-0034: Pre-filter và challenge ở tầng L7; custom rule chia theo tầng</h1>
 <ul>
 <li>Trạng thái: Chấp nhận</li>
 <li>Ngày: 2026-11-06</li>
 </ul>
 <h2 id="f-09-adr-0034-pre-filter-and-rule-split-across-tiers--quyết-định">Quyết định</h2>
 <ul>
-<li><strong>Ở tầng proxy, trước WAF:</strong> access list (allow, deny, reputation), Under Attack mode và mọi
+<li><strong>Ở tầng L7, trước WAF:</strong> access list (allow, deny, reputation), Under Attack mode và mọi
 challenge, rate limit, DDoS L7, bot tín hiệu rẻ. WAF có thể trả verdict <code>challenge</code>, nhưng việc
-phát challenge, kiểm kết quả và cấp clearance token luôn ở proxy.</li>
+phát challenge, kiểm kết quả và cấp clearance token luôn ở L7.</li>
 <li><strong>Allow có phạm vi:</strong> một mục allow chọn bỏ qua những gì (rate limit, challenge, WAF, hoặc tất cả).
-Allow bỏ qua WAF thì proxy không gọi WAF.</li>
+Allow bỏ qua WAF thì L7 không gọi WAF.</li>
 <li><strong>Chia custom rule theo trường được dùng</strong>, giữ nguyên ngữ nghĩa first-match theo priority:
 <ul>
 <li>Compiler xếp rule theo priority, tìm rule <strong>đầu tiên</strong> cần trường đắt (body, tham số đã parse,
 JSON path, kết quả của CRS).</li>
-<li>Mọi rule <strong>đứng trước</strong> nó chạy ở proxy (phần pre); rule đó và mọi rule <strong>sau</strong> nó chạy ở WAF
+<li>Mọi rule <strong>đứng trước</strong> nó chạy ở L7 (phần pre); rule đó và mọi rule <strong>sau</strong> nó chạy ở WAF
 (phần inspect, WAF cũng có đủ trường rẻ).</li>
-<li>Nhờ vậy không có trường hợp rule priority thấp ở proxy chặn trước một rule priority cao ở WAF.</li>
+<li>Nhờ vậy không có trường hợp rule priority thấp ở L7 chặn trước một rule priority cao ở WAF.</li>
 </ul>
 </li>
 <li>Portal hiển thị rule nào chạy ở tầng nào và cảnh báo khi một rule cần body đứng quá cao làm giảm
-phần lọc được ở proxy.</li>
+phần lọc được ở L7.</li>
 </ul>
 <h2 id="f-09-adr-0034-pre-filter-and-rule-split-across-tiers--hệ-quả">Hệ quả</h2>
 <ul>
@@ -11762,7 +11923,7 @@ zone của khách (sản phẩm bán thêm).</p>
 </tr>
 <tr>
 <td>Ra thị trường</td>
-<td>Cache cơ bản nhanh (nằm sẵn trong proxy); CDN đầy đủ mất nhiều giai đoạn</td>
+<td>Cache cơ bản nhanh (nằm sẵn trong L7); CDN đầy đủ mất nhiều giai đoạn</td>
 <td>Nhanh</td>
 <td>Trung bình (tích hợp, hợp đồng)</td>
 <td>Nhanh nhất</td>
@@ -11802,7 +11963,7 @@ zone của khách (sản phẩm bán thêm).</p>
 <tbody>
 <tr>
 <td><strong>MVP</strong></td>
-<td>Cache cơ bản trong tầng proxy: tôn trọng <code>Cache-Control</code>, cache rule theo path/đuôi file, purge theo URL và prefix, <code>stale-if-error</code>, cache status trong log</td>
+<td>Cache cơ bản trong tầng L7: tôn trọng <code>Cache-Control</code>, cache rule theo path/đuôi file, purge theo URL và prefix, <code>stale-if-error</code>, cache status trong log</td>
 <td>DNS điều hướng nội bộ (GeoDNS + health); khách onboard bằng CNAME</td>
 </tr>
 <tr>
@@ -11826,7 +11987,7 @@ zone của khách (sản phẩm bán thêm).</p>
 soát được lớp cache, nhưng vẫn có thể dùng như kênh mở rộng vùng phủ (<a href="#f-09-adr-0005-edge-on-own-and-existing-infra">ADR-0005</a>).</p>
 <h2 id="f-09-adr-0035-cdn-and-dns-strategy--5-hệ-quả-nếu-chọn-đề-xuất">5. Hệ quả nếu chọn đề xuất</h2>
 <ul>
-<li>Khả năng cache trở thành một tiêu chí khi chọn nền proxy (<a href="#f-09-adr-0031-edge-l7-and-waf-engine-options">ADR-0031</a>).</li>
+<li>Khả năng cache trở thành một tiêu chí khi chọn nền L7 (<a href="#f-09-adr-0031-edge-l7-and-waf-engine-options">ADR-0031</a>).</li>
 <li>PoP cần NVMe cho cache và băng thông lớn hơn; metering tính theo băng thông phục vụ (đã có trong
 <code>usage_1h</code>).</li>
 <li>Management thêm cache rule, purge, và sau này bản ghi DNS (<a href="#f-05-building-blocks-08-components-12-management">5.8.12</a>).</li>
@@ -11847,7 +12008,7 @@ mọi sự cố của website sẽ bị đổ cho WAAP. Ngược lại, lỗi c�
 lỗi chung.</p>
 <h2 id="f-09-adr-0036-request-timing-and-error-attribution--quyết-định">Quyết định</h2>
 <ul>
-<li>Proxy ghi <strong>mốc thời gian theo chặng</strong> cho mọi request (<a href="#f-08-cross-cutting-14-latency-and-error-attribution--2-điểm-đo-và-chỉ-số">8.14 §2</a>).
+<li>L7 ghi <strong>mốc thời gian theo chặng</strong> cho mọi request (<a href="#f-08-cross-cutting-14-latency-and-error-attribution--2-điểm-đo-và-chỉ-số">8.14 §2</a>).
 Các chặng gồm:
 <ul>
 <li>TLS và RTT phía client;</li>
@@ -11918,7 +12079,7 @@ không phải build lại CRS.</li>
 <li>giữ sẵn 3 manifest gần nhất để rollback.</li>
 </ul>
 </li>
-<li>Hai tầng swap độc lập; Inspect request mang version của proxy, WAF giữ version hiện tại và version
+<li>Hai tầng swap độc lập; Inspect request mang version của L7, WAF giữ version hiện tại và version
 trước; một node chỉ tính là &quot;đã nhận&quot; khi cả hai tầng ACK.</li>
 <li>Node profile là bundle riêng có chữ ký, rollout như phần mềm.</li>
 </ul>
@@ -11930,14 +12091,14 @@ trước; một node chỉ tính là &quot;đã nhận&quot; khi cả hai tầng
 đó bắt đầu lại.</li>
 </ul>
 </section>
-<section class="doc" id="f-09-adr-0038-bot-management-layered-scoring"><div class="path">09-adr/0038-bot-management-layered-scoring.md</div><h1 id="f-09-adr-0038-bot-management-layered-scoring--adr-0038-bot-management-chấm-điểm-nhiều-lớp-ở-tầng-proxy">ADR-0038: Bot management chấm điểm nhiều lớp ở tầng proxy</h1>
+<section class="doc" id="f-09-adr-0038-bot-management-layered-scoring"><div class="path">09-adr/0038-bot-management-layered-scoring.md</div><h1 id="f-09-adr-0038-bot-management-layered-scoring--adr-0038-bot-management-chấm-điểm-nhiều-lớp-ở-tầng-l7">ADR-0038: Bot management chấm điểm nhiều lớp ở tầng L7</h1>
 <ul>
 <li>Trạng thái: Chấp nhận</li>
 <li>Ngày: 2026-11-06</li>
 </ul>
 <h2 id="f-09-adr-0038-bot-management-layered-scoring--quyết-định">Quyết định</h2>
 <ul>
-<li>Bot management chạy toàn bộ ở <strong>tầng edge proxy</strong>, trước rate limit và custom rule. Tầng WAF không
+<li>Bot management chạy toàn bộ ở <strong>tầng L7</strong>, trước rate limit và custom rule. Tầng WAF không
 tham gia (<a href="#f-09-adr-0034-pre-filter-and-rule-split-across-tiers">ADR-0034</a>).</li>
 <li>Tín hiệu theo lớp, rẻ trước đắt sau (<a href="#f-08-cross-cutting-16-bot-management--2-các-lớp-tín-hiệu">8.16 §2</a>):
 <ul>
@@ -11964,8 +12125,8 @@ song, rồi mới chuyển mặc định.</li>
 </ul>
 <h2 id="f-09-adr-0038-bot-management-layered-scoring--hệ-quả">Hệ quả</h2>
 <ul>
-<li>Proxy cần thêm bộ tính fingerprint TLS/HTTP/2 ở tầng nhận kết nối. Đây là một tiêu chí khi chọn nền
-proxy (<a href="#f-09-adr-0031-edge-l7-and-waf-engine-options">ADR-0031</a>): nền nào cho truy cập ClientHello và frame
+<li>L7 cần thêm bộ tính fingerprint TLS/HTTP/2 ở tầng nhận kết nối. Đây là một tiêu chí khi chọn nền
+L7 (<a href="#f-09-adr-0031-edge-l7-and-waf-engine-options">ADR-0031</a>): nền nào cho truy cập ClientHello và frame
 HTTP/2 thô.</li>
 <li>Telemetry thêm <code>bot.*</code>, JA4, fingerprint HTTP/2 (đã băm).</li>
 <li>Gộp reputation chéo tenant phải ẩn danh, chỉ thống kê theo fingerprint, IP, ASN.</li>
@@ -11990,7 +12151,7 @@ endpoint mới, shadow, zombie, không dùng; sinh schema nháp cho khách duy�
 <li><strong>Kiểm schema chia hai tầng:</strong>
 <ul>
 <li>route table và các kiểm không cần body (endpoint có khai báo, tham số path/query/header,
-content-type, kích thước) ở <strong>proxy</strong>;</li>
+content-type, kích thước) ở <strong>L7</strong>;</li>
 <li>kiểm body JSON và GraphQL ở <strong>WAF</strong>.</li>
 <li>Compiler sinh cả hai từ một schema, cùng manifest.</li>
 </ul>
@@ -12211,7 +12372,7 @@ tham chiếu (QS-33).</li>
 <ul>
 <li><strong>Mọi zone chung pool, chỉ khác tính năng:</strong> đơn giản hơn nhưng không cô lập được, và chi phí theo
 zone nguội rơi vào RAM của node phục vụ khách lớn.</li>
-<li><strong>Free chỉ có proxy, không WAF:</strong> rẻ hơn nữa nhưng Free không có giá trị bảo mật để thu hút và thiếu
+<li><strong>Free chỉ có L7, không WAF:</strong> rẻ hơn nữa nhưng Free không có giá trị bảo mật để thu hút và thiếu
 dữ liệu tấn công cho cả fleet; profile lite chỉ tốn khoảng 1% CPU WAF.</li>
 <li><strong>Tính tiền theo request cho mọi gói:</strong> công bằng về chi phí nhưng khách nhỏ không dự đoán được hoá
 đơn, và hoá đơn tăng khi bị tấn công; chọn giá cố định theo zone + fair use, Enterprise theo cam kết.</li>
@@ -12355,7 +12516,7 @@ kịch bản đo được (§10.3) và cơ chế kiến trúc đáp ứng nó.</
 <td>QS-1</td>
 <td>Độ trễ</td>
 <td>Request đi qua WAF, zone có CRS paranoia 1 và 50 custom rule</td>
-<td>Độ trễ thêm p99 ≤ 2 ms (proxy ≤ 0,5 ms + gọi WAF ≤ 1,5 ms), p50 ≤ 0,5 ms; request bị chặn ở pre-filter hoặc cache hit được miễn WAF p99 ≤ 0,5 ms</td>
+<td>Độ trễ thêm p99 ≤ 2 ms (L7 ≤ 0,5 ms + gọi WAF ≤ 1,5 ms), p50 ≤ 0,5 ms; request bị chặn ở pre-filter hoặc cache hit được miễn WAF p99 ≤ 0,5 ms</td>
 </tr>
 <tr>
 <td>QS-2</td>
@@ -12451,7 +12612,7 @@ kịch bản đo được (§10.3) và cơ chế kiến trúc đáp ứng nó.</
 <td>QS-17</td>
 <td>Tách tầng</td>
 <td>Flood từ ít nguồn vào một zone</td>
-<td>≥ 95% request bị loại ở proxy; CPU tầng WAF của PoP tăng ≤ 20%</td>
+<td>≥ 95% request bị loại ở L7; CPU tầng WAF của PoP tăng ≤ 20%</td>
 </tr>
 <tr>
 <td>QS-18</td>
@@ -12481,7 +12642,7 @@ kịch bản đo được (§10.3) và cơ chế kiến trúc đáp ứng nó.</
 <td>QS-22</td>
 <td>API</td>
 <td>Request tới endpoint có schema</td>
-<td>Kiểm ở proxy ≤ 20 µs, kiểm body JSON 10 KB ở WAF ≤ 300 µs p99</td>
+<td>Kiểm ở L7 ≤ 20 µs, kiểm body JSON 10 KB ở WAF ≤ 300 µs p99</td>
 </tr>
 <tr>
 <td>QS-23</td>
@@ -12529,7 +12690,7 @@ kịch bản đo được (§10.3) và cơ chế kiến trúc đáp ứng nó.</
 <td>QS-30</td>
 <td>Chi phí</td>
 <td>1 triệu request hợp lệ, CRS PL1</td>
-<td>CPU tổng (proxy + WAF) ≤ mục tiêu đặt sau spike; theo dõi theo release</td>
+<td>CPU tổng (L7 + WAF) ≤ mục tiêu đặt sau spike; theo dõi theo release</td>
 </tr>
 <tr>
 <td>QS-31</td>
@@ -12585,7 +12746,7 @@ kịch bản đo được (§10.3) và cơ chế kiến trúc đáp ứng nó.</
 </tr>
 <tr>
 <td>Node</td>
-<td>≈ 450 edge proxy, ≈ 210 WAF inspection, 30 PoP</td>
+<td>≈ 450 L7, ≈ 210 WAF inspection, 30 PoP</td>
 </tr>
 <tr>
 <td>Cấu hình</td>
@@ -12726,7 +12887,7 @@ kịch bản đo được (§10.3) và cơ chế kiến trúc đáp ứng nó.</
 </tr>
 <tr>
 <td>R14</td>
-<td>Nếu edge proxy không phải Go: ngữ nghĩa custom rule lệch giữa <code>cel-go</code> và evaluator IR</td>
+<td>Nếu L7 không phải Go: ngữ nghĩa custom rule lệch giữa <code>cel-go</code> và evaluator IR</td>
 <td>Thấp</td>
 <td>Cao</td>
 <td>Bộ vector test đối chiếu chạy ở cả hai phía trong CI (<a href="#f-09-adr-0032-cel-checked-at-control-ir-at-edge">ADR-0032</a>)</td>
@@ -12734,7 +12895,7 @@ kịch bản đo được (§10.3) và cơ chế kiến trúc đáp ứng nó.</
 </tr>
 <tr>
 <td>R15</td>
-<td>Chặng proxy → WAF làm vượt ngân sách độ trễ</td>
+<td>Chặng L7 → WAF làm vượt ngân sách độ trễ</td>
 <td>Thấp</td>
 <td>Trung bình</td>
 <td>PoP nhỏ đặt chung host qua Unix socket; verdict sớm; đo trong spike (<a href="#f-09-adr-0033-two-tier-edge-proxy-and-waf">ADR-0033</a>)</td>
@@ -12745,7 +12906,7 @@ kịch bản đo được (§10.3) và cơ chế kiến trúc đáp ứng nó.</
 <td>Tự xây CDN tốn đầu tư băng thông và lưu trữ trước khi có doanh thu</td>
 <td>Trung bình</td>
 <td>Cao</td>
-<td>Làm theo giai đoạn: cache cơ bản trong proxy ở MVP, tiered cache sau; chế độ đứng sau CDN của khách để bán sớm (<a href="#f-09-adr-0035-cdn-and-dns-strategy">ADR-0035</a>)</td>
+<td>Làm theo giai đoạn: cache cơ bản trong L7 ở MVP, tiered cache sau; chế độ đứng sau CDN của khách để bán sớm (<a href="#f-09-adr-0035-cdn-and-dns-strategy">ADR-0035</a>)</td>
 <td>Chi phí băng thông / doanh thu theo PoP</td>
 </tr>
 <tr>
@@ -12937,12 +13098,12 @@ CEL), công nghệ của Control, Analytics, Management (<a href="#f-05-building
 <tr>
 <td><strong>Chiến lược CDN và DNS</strong></td>
 <td>Tự xây theo giai đoạn + chế độ đứng sau CDN khách (đề xuất), hay đứng sau CDN, bán lại CDN đối tác, hoặc không CDN</td>
-<td><a href="#f-09-adr-0035-cdn-and-dns-strategy">ADR-0035</a>; kéo theo tiêu chí cache khi chọn nền proxy</td>
+<td><a href="#f-09-adr-0035-cdn-and-dns-strategy">ADR-0035</a>; kéo theo tiêu chí cache khi chọn nền L7</td>
 </tr>
 <tr>
-<td><strong>Nền tầng proxy và engine tầng WAF</strong></td>
+<td><strong>Nền tầng L7 và engine tầng WAF</strong></td>
 <td>Chọn sau spike 3 tuần: shortlist S2 (Pingora + Coraza), S3 (Go + Coraza), S1 (Envoy + Coraza); mốc S5 (NGINX, cho cache) và S4 (HAProxy + SPOE); đo thêm libmodsecurity ở tầng WAF; kèm HTTP/3</td>
-<td><a href="#f-09-adr-0031-edge-l7-and-waf-engine-options">ADR-0031</a>; kéo theo ngôn ngữ proxy, replay, <code>edge-verify</code>, <a href="#f-09-adr-0032-cel-checked-at-control-ir-at-edge">ADR-0032</a></td>
+<td><a href="#f-09-adr-0031-edge-l7-and-waf-engine-options">ADR-0031</a>; kéo theo ngôn ngữ L7, replay, <code>edge-verify</code>, <a href="#f-09-adr-0032-cel-checked-at-control-ir-at-edge">ADR-0032</a></td>
 </tr>
 <tr>
 <td>Phân công zone cho node</td>
@@ -12986,8 +13147,8 @@ CEL), công nghệ của Control, Analytics, Management (<a href="#f-05-building
 <td>Point of Presence: một điểm đặt edge node</td>
 </tr>
 <tr>
-<td><strong>Edge proxy</strong></td>
-<td>Tầng 1 của edge: kết nối, TLS, pre-filter, challenge, cache, proxy tới origin</td>
+<td><strong>L7</strong></td>
+<td>Tầng 1 của edge, đứng trước WAF (trước đây gọi là <em>edge proxy</em>): kết nối, TLS, pre-filter, bot, challenge, API auth, rate limit, cache, proxy tới origin. Phân biệt với <em>tấn công L7</em> / <em>DDoS L7</em> (tấn công ở tầng ứng dụng): khi viết về tầng thì dùng &quot;tầng L7&quot; hoặc &quot;L7&quot; như tên thành phần</td>
 </tr>
 <tr>
 <td><strong>WAF inspection</strong></td>
@@ -12995,11 +13156,15 @@ CEL), công nghệ của Control, Analytics, Management (<a href="#f-05-building
 </tr>
 <tr>
 <td><strong>Pre-filter</strong></td>
-<td>Các bước lọc rẻ ở proxy trước khi gọi WAF: access list, challenge, rate limit, custom rule phần pre</td>
+<td>Các bước lọc rẻ ở L7 trước khi gọi WAF: access list, challenge, rate limit, custom rule phần pre</td>
+</tr>
+<tr>
+<td><strong>Body processor</strong></td>
+<td>Bộ phân tích body của engine WAF theo content type (form, JSON, XML, multipart) và decoder gắn thêm (GraphQL, protobuf)</td>
 </tr>
 <tr>
 <td><strong>Inspection API</strong></td>
-<td>Hợp đồng gRPC giữa edge proxy và WAF inspection</td>
+<td>Hợp đồng gRPC giữa L7 và WAF inspection</td>
 </tr>
 <tr>
 <td><strong>Origin shield / tiered cache</strong></td>

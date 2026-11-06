@@ -30,7 +30,7 @@ thể vô tình kéo theo một lần build nặng.
   - build ở thread nền có giới hạn CPU, kiểm RAM trước khi build lớp B (thiếu thì NACK);
   - so le build lớp B tối đa 25% node WAF mỗi PoP;
   - giữ sẵn 3 manifest gần nhất để rollback.
-- Hai tầng swap độc lập; Inspect request mang version của proxy, WAF giữ version hiện tại và version
+- Hai tầng swap độc lập; Inspect request mang version của L7, WAF giữ version hiện tại và version
   trước; một node chỉ tính là "đã nhận" khi cả hai tầng ACK.
 - Node profile là bundle riêng có chữ ký, rollout như phần mềm.
 

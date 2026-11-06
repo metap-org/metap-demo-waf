@@ -10,7 +10,7 @@
 - **Kho API** ở Management là nguồn sự thật; khách tải OpenAPI 3.x hoặc duyệt schema nháp.
 - **Kiểm schema chia hai tầng:**
   - route table và các kiểm không cần body (endpoint có khai báo, tham số path/query/header,
-    content-type, kích thước) ở **proxy**;
+    content-type, kích thước) ở **L7**;
   - kiểm body JSON và GraphQL ở **WAF**.
   - Compiler sinh cả hai từ một schema, cùng manifest.
 - Chế độ log-only mặc định khi mới tải schema; khách chuyển enforce theo endpoint.

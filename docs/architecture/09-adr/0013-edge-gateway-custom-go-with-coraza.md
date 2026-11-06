@@ -21,7 +21,7 @@ này; mở rộng chúng thì bị giới hạn bởi mô hình plugin.
 ## Hệ quả
 
 - Toàn quyền với thứ tự pipeline, ngân sách thời gian, cô lập tenant.
-- Phải tự lo những thứ proxy có sẵn: connection pool tới origin, retry, health check, giới hạn
+- Phải tự lo những thứ proxy dựng sẵn (Envoy, NGINX) đã có: connection pool tới origin, retry, health check, giới hạn
   header/body, HTTP/2 tuning. Phạm vi này nhỏ và đã có thư viện chuẩn.
 - Coraza là phần đắt nhất trong ngân sách độ trễ; benchmark là việc đầu tiên của giai đoạn MVP.
 - Lối thoát nếu benchmark không đạt: đặt Envoy phía trước làm TLS/HTTP, gateway Go chạy sau qua

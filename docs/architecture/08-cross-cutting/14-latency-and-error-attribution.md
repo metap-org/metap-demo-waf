@@ -8,7 +8,7 @@ hay của WAAP?"**. Quyết định nền: [ADR-0036](../09-adr/0036-request-tim
 ```mermaid
 sequenceDiagram
     participant C as Client
-    participant P as Edge proxy
+    participant P as L7
     participant W as WAF inspection
     participant O as Origin
     Note over C,P: c1 TCP/QUIC + TLS (theo kết nối)
@@ -33,21 +33,21 @@ của request ([5.8.8](../05-building-blocks/08-components/08-ingestion-and-stor
 
 | Nhóm | Trường | Đo cái gì | Ai đo |
 |---|---|---|---|
-| **Client → edge** | `client_tls_us` | Bắt tay TLS (chỉ request đầu của kết nối) | Proxy |
-| | `client_rtt_us`, `client_retrans` | RTT và số gói gửi lại tới client (`TCP_INFO` trên Linux, thống kê của QUIC) | Proxy |
-| | `req_recv_us` | Từ byte đầu tới hết header (+ body nếu buffer) | Proxy |
-| **Edge proxy** | `pre_us{phase}` | Thời gian từng phase pre-filter | Proxy |
-| | `cache_us`, `cache_status` | Tra cache, kết quả HIT/MISS/EXPIRED/BYPASS/STALE | Proxy |
-| **WAF** | `waf_rtt_us` | Từ lúc gửi Inspect tới lúc nhận verdict (do proxy đo) | Proxy |
+| **Client → edge** | `client_tls_us` | Bắt tay TLS (chỉ request đầu của kết nối) | L7 |
+| | `client_rtt_us`, `client_retrans` | RTT và số gói gửi lại tới client (`TCP_INFO` trên Linux, thống kê của QUIC) | L7 |
+| | `req_recv_us` | Từ byte đầu tới hết header (+ body nếu buffer) | L7 |
+| **L7** | `pre_us{phase}` | Thời gian từng phase pre-filter | L7 |
+| | `cache_us`, `cache_status` | Tra cache, kết quả HIT/MISS/EXPIRED/BYPASS/STALE | L7 |
+| **WAF** | `waf_rtt_us` | Từ lúc gửi Inspect tới lúc nhận verdict (do L7 đo) | L7 |
 | | `waf_queue_us`, `waf_engine_us` | Chờ hàng đợi và thời gian engine (WAF trả trong verdict) | WAF |
 | | `waf_net_us` | `waf_rtt_us − waf_queue_us − waf_engine_us` | Tính ra |
-| **Edge → origin** | `origin_connect_us`, `origin_tls_us` | Mở kết nối, bắt tay TLS tới origin (0 nếu dùng lại kết nối trong pool) | Proxy |
-| | `origin_ttfb_us` | Từ lúc gửi xong request tới byte đầu của response | Proxy |
-| | `origin_transfer_us` | Từ byte đầu tới byte cuối của response từ origin | Proxy |
-| **Edge → client** | `client_ttfb_us` | Từ lúc nhận xong request tới byte đầu gửi client | Proxy |
-| | `client_send_us` | Từ byte đầu tới byte cuối ghi ra socket client | Proxy |
-| **Tổng hợp** | `edge_us` | Thời gian do WAAP gây ra = proxy + WAF, **không gồm** chờ origin và chờ client | Tính ra |
-| | `total_us` | Từ byte đầu của request tới byte cuối của response | Proxy |
+| **Edge → origin** | `origin_connect_us`, `origin_tls_us` | Mở kết nối, bắt tay TLS tới origin (0 nếu dùng lại kết nối trong pool) | L7 |
+| | `origin_ttfb_us` | Từ lúc gửi xong request tới byte đầu của response | L7 |
+| | `origin_transfer_us` | Từ byte đầu tới byte cuối của response từ origin | L7 |
+| **Edge → client** | `client_ttfb_us` | Từ lúc nhận xong request tới byte đầu gửi client | L7 |
+| | `client_send_us` | Từ byte đầu tới byte cuối ghi ra socket client | L7 |
+| **Tổng hợp** | `edge_us` | Thời gian do WAAP gây ra = L7 + WAF, **không gồm** chờ origin và chờ client | Tính ra |
+| | `total_us` | Từ byte đầu của request tới byte cuối của response | L7 |
 
 Công thức tách trách nhiệm cho một request:
 
@@ -89,8 +89,8 @@ Mã chi tiết `edge_error`, hiện trên trang lỗi, trong header `X-WAAP-Erro
 | `origin_bad_response` | 502 | Origin trả response sai chuẩn, rỗng, hoặc đóng giữa chừng | `origin_unreachable` |
 | `waf_unavailable_closed` | 503 | Tầng WAF không trả lời và zone chọn fail-closed | `edge_platform` |
 | `config_missing` | 503 | Node chưa có cấu hình cho hostname này | `edge_platform` |
-| `edge_internal` | 500 | Lỗi nội bộ của proxy | `edge_platform` |
-| `edge_overloaded` | 503 | Proxy quá tải, từ chối để bảo vệ | `edge_platform` |
+| `edge_internal` | 500 | Lỗi nội bộ của L7 | `edge_platform` |
+| `edge_overloaded` | 503 | L7 quá tải, từ chối để bảo vệ | `edge_platform` |
 
 Gửi status chuẩn (502/503/504) cho client thay vì mã riêng ngoài chuẩn, để công cụ giám sát và thư viện
 HTTP của khách xử lý đúng; phần phân biệt nằm ở `X-WAAP-Error`, trang lỗi và log.
@@ -123,7 +123,7 @@ DNS phía client, thời gian trình duyệt dựng trang, và mạng chặng cu
 |---|---|---|
 | Chỉ số từ edge (§2) | MVP | `client_rtt_us`, `client_retrans`, `client_ttfb_us`, `client_send_us` theo quốc gia/ASN |
 | Probe tổng hợp cho zone của khách | Mở rộng | Prober của NCC (cùng hạ tầng [8.12 §4](12-platform-monitoring.md#4-probe-tổng-hợp-theo-hành-vi)) gọi URL khách chọn từ nhiều điểm, đo toàn bộ đường đi kể cả DNS |
-| RUM (real user monitoring) | Mở rộng | Đoạn JS tuỳ chọn (khách tự thêm hoặc proxy chèn khi zone bật) gửi Navigation/Resource Timing kèm request ID lấy từ `Server-Timing`, về một endpoint ingest riêng; nối với trace của request |
+| RUM (real user monitoring) | Mở rộng | Đoạn JS tuỳ chọn (khách tự thêm hoặc L7 chèn khi zone bật) gửi Navigation/Resource Timing kèm request ID lấy từ `Server-Timing`, về một endpoint ingest riêng; nối với trace của request |
 
 ## 6. Dùng cho vận hành nội bộ
 

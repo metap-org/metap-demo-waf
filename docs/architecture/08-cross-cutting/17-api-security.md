@@ -23,11 +23,11 @@ consumer), và **biết thế nào là bất thường với từng consumer**.
 |---|---|---|---|
 | A1 | **API discovery**: học endpoint từ traffic | Analytics | Mở rộng |
 | A2 | **Kho API** (inventory): endpoint đã xác nhận, gắn schema, gắn nhãn nhạy cảm | Management | Mở rộng |
-| A3 | **Kiểm theo schema** (OpenAPI 3.x) | Proxy (đường, method, tham số, header) + WAF (body) | Mở rộng |
-| A4 | **Xác thực ở edge**: JWT, mTLS client cert, có mặt API key | Proxy | Mở rộng |
-| A5 | **Danh tính consumer** làm khoá cho rate limit, quota, analytics | Proxy | Mở rộng |
+| A3 | **Kiểm theo schema** (OpenAPI 3.x) | L7 (đường, method, tham số, header) + WAF (body) | Mở rộng |
+| A4 | **Xác thực ở edge**: JWT, mTLS client cert, có mặt API key | L7 | Mở rộng |
+| A5 | **Danh tính consumer** làm khoá cho rate limit, quota, analytics | L7 | Mở rộng |
 | A6 | **Bảo vệ GraphQL**: độ sâu, độ phức tạp, chặn introspection, giới hạn batch | WAF | Mở rộng |
-| A7 | **Phát hiện BOLA / duyệt đối tượng** | Analytics + proxy | Nâng cao |
+| A7 | **Phát hiện BOLA / duyệt đối tượng** | Analytics + L7 | Nâng cao |
 | A8 | **Dữ liệu nhạy cảm trong response** (số thẻ, khoá bí mật, PII) | WAF, theo mẫu | Nâng cao |
 | A9 | **Dashboard API**: theo endpoint: traffic, lỗi, độ trễ ([8.14](14-latency-and-error-attribution.md)), lỗi xác thực, vi phạm schema | Analytics + Management | Mở rộng |
 
@@ -46,7 +46,7 @@ sequenceDiagram
     K->>M: xác nhận endpoint, tải OpenAPI hoặc sinh schema từ discovery
     K->>M: bật kiểm schema ở log-only cho nhóm endpoint
     M->>C: PolicyVersion (route table + schema + cấu hình xác thực)
-    C->>C: biên dịch: route table → phần proxy, validator body → phần WAF
+    C->>C: biên dịch: route table → phần L7, validator body → phần WAF
     C->>E: snapshot (lớp A)
     E->>A: vi phạm schema (log-only)
     K->>M: xem vi phạm, sửa schema hoặc chuyển enforce
@@ -68,13 +68,13 @@ trên giao diện.
 
 | Kiểm | Tầng | Lý do |
 |---|---|---|
-| Endpoint có trong schema không (route table theo host, method, path template) | Proxy | Rẻ; endpoint lạ bị chặn hoặc ghi log trước khi tốn CPU WAF |
-| Tham số path, query, header bắt buộc, kiểu và giới hạn | Proxy | Không cần body |
-| Content-type, kích thước body | Proxy | Không cần đọc body |
+| Endpoint có trong schema không (route table theo host, method, path template) | L7 | Rẻ; endpoint lạ bị chặn hoặc ghi log trước khi tốn CPU WAF |
+| Tham số path, query, header bắt buộc, kiểu và giới hạn | L7 | Không cần body |
+| Content-type, kích thước body | L7 | Không cần đọc body |
 | Body JSON theo JSON Schema của endpoint | **WAF** | Cần đọc body |
 | GraphQL: parse, độ sâu, độ phức tạp, introspection, batch (A6) | **WAF** | Cần đọc body |
 
-- Compiler biên dịch OpenAPI thành **route table** (phần proxy) và **validator theo endpoint** (phần WAF),
+- Compiler biên dịch OpenAPI thành **route table** (phần L7) và **validator theo endpoint** (phần WAF),
   cùng manifest nên hai tầng khớp version ([8.15 §6](15-config-propagation-and-apply.md#6-hai-tầng-swap-lệch-nhau)).
 - Chế độ theo endpoint hoặc nhóm: tắt, log-only, enforce. Mặc định log-only khi mới tải schema.
 - Vi phạm trả 400 (dữ liệu sai) hoặc 404/403 (endpoint không khai báo) với `status_source = edge_policy`
@@ -86,7 +86,7 @@ trên giao diện.
 |---|---|
 | **JWT** | Kiểm chữ ký bằng JWKS của khách, `exp`, `nbf`, `iss`, `aud`; claim dùng được trong rule (`jwt.claims.sub`, `jwt.claims.scope`) |
 | **JWKS** | Khách khai báo URL JWKS; **Control** kéo định kỳ (và khi gặp `kid` lạ được báo về), kiểm, đưa vào bundle zone qua fast lane; edge không bao giờ tự gọi ra ngoài trên đường request |
-| **mTLS client cert** | Proxy kiểm cert client theo CA khách tải lên; subject/SAN dùng làm danh tính |
+| **mTLS client cert** | L7 kiểm cert client theo CA khách tải lên; subject/SAN dùng làm danh tính |
 | **API key** | Kiểm có mặt và định dạng ở MVP của tính năng; kiểm giá trị (danh sách hash key đồng bộ từ khách qua API) ở Nâng cao |
 | **Danh tính consumer** | Khách chọn nguồn: `jwt.claims.sub`, header API key, cert subject, cookie; edge băm thành `api.consumer` và dùng làm khoá rate limit, quota, analytics |
 
@@ -105,7 +105,7 @@ Broken Object Level Authorization: một consumer truy cập đối tượng c�
 
 ## 8. Dữ liệu nhạy cảm trong response (A8, Nâng cao)
 
-Kiểm response cần gửi response từ proxy sang WAF, tốn gấp đôi chi phí. Thiết kế: chỉ bật theo endpoint
+Kiểm response cần gửi response từ L7 sang WAF, tốn gấp đôi chi phí. Thiết kế: chỉ bật theo endpoint
 khách chọn, có lấy mẫu; WAF tìm mẫu (số thẻ qua kiểm Luhn, khoá API dạng phổ biến, mẫu PII do khách định
 nghĩa); hành động: log, che trong response, hoặc chặn.
 
@@ -113,9 +113,9 @@ nghĩa); hành động: log, che trong response, hoặc chặn.
 
 | Dữ liệu | Nơi giữ | Xuống edge | Lớp áp dụng |
 |---|---|---|---|
-| Kho API, schema, nhóm endpoint, chế độ | Management | Route table (proxy), validator (WAF) | A |
-| Cấu hình xác thực (JWT issuer/audience, CA client, nguồn danh tính consumer) | Management | Proxy | A |
-| JWKS | Control kéo từ khách | Proxy | A, fast lane khi xoay khoá |
+| Kho API, schema, nhóm endpoint, chế độ | Management | Route table (L7), validator (WAF) | A |
+| Cấu hình xác thực (JWT issuer/audience, CA client, nguồn danh tính consumer) | Management | L7 | A |
+| JWKS | Control kéo từ khách | L7 | A, fast lane khi xoay khoá |
 | Endpoint đã phát hiện, thống kê | Analytics → Management | Không | — |
 | Baseline BOLA | Analytics | Không (chỉ cảnh báo, đề xuất) | — |
 
@@ -127,4 +127,4 @@ nghĩa); hành động: log, che trong response, hoặc chặn.
 | Số endpoint shadow, zombie | Rủi ro bề mặt tấn công |
 | Vi phạm schema theo endpoint (log-only vs enforce) | Sẵn sàng chuyển enforce chưa |
 | Tỉ lệ JWT không hợp lệ, hết hạn | Lỗi tích hợp của khách hoặc tấn công |
-| Độ trễ kiểm schema | Proxy ≤ 20 µs; WAF (body JSON 10 KB) ≤ 300 µs p99 |
+| Độ trễ kiểm schema | L7 ≤ 20 µs; WAF (body JSON 10 KB) ≤ 300 µs p99 |

@@ -17,12 +17,12 @@ sequenceDiagram
     participant OR as Orchestrator
     participant DI as Distribution
     participant RL as Regional relay
-    participant AG as Agent (proxy và WAF)
+    participant AG as Agent (L7 và WAF)
     participant RT as Runtime đang chạy
     U->>M: lưu thay đổi (đã duyệt nếu cần)
     M->>CS: PolicyVersionPublished (outbox → RabbitMQ)
     CS->>CP: job biên dịch
-    CP->>CP: CEL → IR, chia pre/inspect, sinh SecLang, chia phần proxy/WAF
+    CP->>CP: CEL → IR, chia pre/inspect, sinh SecLang, chia phần L7/WAF
     CP->>CP: self-test (edge-verify), ký manifest
     CP->>OR: manifest sẵn sàng
     OR->>DI: desired state theo đợt (hoặc fast lane)
@@ -72,34 +72,34 @@ zone nào đều chạy cấu hình ≤ V.
 
 | Cấu hình | Phạm vi | Tầng | Lớp | Ghi chú về trạng thái |
 |---|---|---|---|---|
-| Access list (IP/CIDR/geo/ASN) của zone | Zone | Proxy | A | Danh sách rất lớn (> 100.000 mục) dựng trie ở nền, vẫn tính là A vì vài chục ms |
-| Rate limit rule | Zone | Proxy | A | Counter giữ theo `(rule_id, hash(khoá, ngưỡng, cửa sổ))`: đổi ngưỡng/khoá thì counter của rule đó bắt đầu lại, rule khác giữ nguyên |
-| Under Attack mode bật/tắt | Zone | Proxy | A | Fast lane; clearance token cũ vẫn hợp lệ |
-| Custom rule phần pre (IR) | Zone | Proxy | A | |
+| Access list (IP/CIDR/geo/ASN) của zone | Zone | L7 | A | Danh sách rất lớn (> 100.000 mục) dựng trie ở nền, vẫn tính là A vì vài chục ms |
+| Rate limit rule | Zone | L7 | A | Counter giữ theo `(rule_id, hash(khoá, ngưỡng, cửa sổ))`: đổi ngưỡng/khoá thì counter của rule đó bắt đầu lại, rule khác giữ nguyên |
+| Under Attack mode bật/tắt | Zone | L7 | A | Fast lane; clearance token cũ vẫn hợp lệ |
+| Custom rule phần pre (IR) | Zone | L7 | A | |
 | Custom rule phần inspect | Zone | WAF | A | |
 | Cấu hình CRS của zone (paranoia, ngưỡng, rule tắt, exclusion) | Zone | WAF | A nếu cấu hình đã có instance trong node; **B** nếu là tổ hợp mới | Instance engine dùng chung theo hash cấu hình; tổ hợp mới phải build |
-| Cache rule | Zone | Proxy | A | Object đã cache giữ nguyên; đổi cache key làm object cũ không còn được trúng, tự bị đẩy ra theo LRU; muốn xoá ngay thì purge |
-| Purge | Zone | Proxy | A (lệnh, không phải cấu hình) | Fast lane; đánh dấu vô hiệu theo URL/prefix/tag, không quét đĩa đồng bộ |
-| Origin (địa chỉ, TLS, timeout) | Zone | Proxy | A | Pool kết nối mới cho cấu hình mới; pool cũ drain khi hết request |
-| Cert của zone (thêm, gia hạn) | Zone | Proxy | A | Map SNI → cert swap; handshake mới dùng cert mới, kết nối TLS đang mở giữ cert cũ |
+| Cache rule | Zone | L7 | A | Object đã cache giữ nguyên; đổi cache key làm object cũ không còn được trúng, tự bị đẩy ra theo LRU; muốn xoá ngay thì purge |
+| Purge | Zone | L7 | A (lệnh, không phải cấu hình) | Fast lane; đánh dấu vô hiệu theo URL/prefix/tag, không quét đĩa đồng bộ |
+| Origin (địa chỉ, TLS, timeout) | Zone | L7 | A | Pool kết nối mới cho cấu hình mới; pool cũ drain khi hết request |
+| Cert của zone (thêm, gia hạn) | Zone | L7 | A | Map SNI → cert swap; handshake mới dùng cert mới, kết nối TLS đang mở giữ cert cũ |
 | Fail mode, giới hạn body, timeout | Zone | Cả hai | A | |
-| Chế độ đứng sau CDN (dải IP tin cậy, header IP client) | Zone | Proxy | A | |
+| Chế độ đứng sau CDN (dải IP tin cậy, header IP client) | Zone | L7 | A | |
 | Entitlements áp ở edge | Tenant | Cả hai | A | Tỉ lệ lấy mẫu áp qua cấu hình Vector (reload Vector, không ảnh hưởng traffic) |
 | Zone data DNS điều hướng | Toàn cục | DNS | A | Plugin CoreDNS đọc snapshot, swap tại chỗ |
-| Policy bot, danh sách bot của khách | Zone | Proxy | A | |
-| API: route table, kiểm tham số, cấu hình JWT/mTLS, nguồn danh tính consumer | Zone | Proxy | A | |
+| Policy bot, danh sách bot của khách | Zone | L7 | A | |
+| API: route table, kiểm tham số, cấu hình JWT/mTLS, nguồn danh tính consumer | Zone | L7 | A | |
 | API: validator body JSON, giới hạn GraphQL | Zone | WAF | A | Schema rất lớn dựng ở nền, vẫn trong ngân sách lớp A |
-| JWKS của khách | Zone | Proxy | A | Fast lane khi khách xoay khoá; giữ khoá cũ tới khi hết hạn token dài nhất |
-| Danh sách bot đã xác minh | Toàn cục | Proxy | A | |
-| Reputation fingerprint/ASN/IP, mô hình bot | Toàn cục | Proxy | B (A nếu mô hình nhỏ) | Qua đánh giá và log-only song song |
+| JWKS của khách | Zone | L7 | A | Fast lane khi khách xoay khoá; giữ khoá cũ tới khi hết hạn token dài nhất |
+| Danh sách bot đã xác minh | Toàn cục | L7 | A | |
+| Reputation fingerprint/ASN/IP, mô hình bot | Toàn cục | L7 | B (A nếu mô hình nhỏ) | Qua đánh giá và log-only song song |
 | **Ruleset release** (CRS upstream, system ruleset) | Toàn cục | WAF | **B** | Build hàng nghìn rule mất vài giây, RAM gấp đôi; so le theo node trong PoP |
-| **Rule khẩn của NCC** | Toàn cục | WAF (và proxy nếu là rule pre) | A | Tách thành **lớp rule khẩn nhỏ** riêng, không build lại cả CRS, nên đi fast lane được (§4) |
-| **Dữ liệu geo/ASN (MMDB)**, reputation list lớn | Toàn cục | Proxy | **B** | Hàng trăm MB; nạp vào vùng nhớ mới rồi swap |
-| Khoá HMAC clearance, session ticket key | Toàn cục | Proxy | A | Luôn giữ khoá hiện tại + khoá trước |
+| **Rule khẩn của NCC** | Toàn cục | WAF (và L7 nếu là rule pre) | A | Tách thành **lớp rule khẩn nhỏ** riêng, không build lại cả CRS, nên đi fast lane được (§4) |
+| **Dữ liệu geo/ASN (MMDB)**, reputation list lớn | Toàn cục | L7 | **B** | Hàng trăm MB; nạp vào vùng nhớ mới rồi swap |
+| Khoá HMAC clearance, session ticket key | Toàn cục | L7 | A | Luôn giữ khoá hiện tại + khoá trước |
 | Khoá công khai kiểm chữ ký manifest | Toàn cục | Agent | A | Thêm khoá mới trước, ký bằng khoá mới sau ([8.13 B5](13-operational-behaviors.md#b5-xoay-khoá)) |
 | **Node profile**: cổng nghe, số worker, giới hạn RAM, kích thước cache đĩa, tham số HTTP/2/3 toàn cục, kích thước pool WAF, địa chỉ relay | Node / PoP | Cả hai | **C** | Bundle riêng có chữ ký, rollout như phần mềm |
 | Cấu hình Vector (đích, buffer) | Node | Vector | C (chỉ Vector) | Vector hot reload; không ảnh hưởng traffic |
-| Binary proxy, WAF, agent | Node | Cả hai | **D** | |
+| Binary L7, WAF, agent | Node | Cả hai | **D** | |
 | Cert mTLS của node | Node | Agent | A | Tự gia hạn, không cần thao tác |
 
 Nguyên tắc phân lớp: mọi thứ thuộc **zone hoặc tenant** phải là lớp A, vì khách đổi thường xuyên và
@@ -109,7 +109,7 @@ dành cho cấu hình của node, không bao giờ do khách kích hoạt.
 ## 4. Fast lane không được kích hoạt build nặng
 
 - Rule khẩn của NCC nằm trong một **lớp rule khẩn** riêng, nhỏ, đánh giá **trước** CRS ở tầng WAF (và ở
-  proxy nếu chỉ dùng trường rẻ). Thêm rule khẩn chỉ dựng lại lớp này, không build lại instance CRS.
+  L7 nếu chỉ dùng trường rẻ). Thêm rule khẩn chỉ dựng lại lớp này, không build lại instance CRS.
 - Khi rule khẩn được đưa vào system ruleset ở release kế tiếp (lớp B, rollout thường), nó được gỡ khỏi
   lớp khẩn.
 - Compiler từ chối đưa vào fast lane bất kỳ thay đổi nào sinh ra việc lớp B (ví dụ đổi paranoia sang tổ
@@ -143,11 +143,11 @@ stateDiagram-v2
 
 ## 6. Hai tầng swap lệch nhau
 
-Proxy và WAF là hai process, swap độc lập nên có khoảng lệch ngắn (thường dưới 1 giây) khi proxy đã ở
+L7 và WAF là hai process, swap độc lập nên có khoảng lệch ngắn (thường dưới 1 giây) khi L7 đã ở
 version N còn WAF vẫn ở N−1, hoặc ngược lại.
 
-- Mọi Inspect request mang `policy_version_id` của proxy ([5.5](../05-building-blocks/05-contracts.md#inspection-api-edge-proxy--waf)).
-- Tầng WAF giữ runtime của **version hiện tại và version trước** cho mỗi zone; nếu proxy hỏi version
+- Mọi Inspect request mang `policy_version_id` của L7 ([5.5](../05-building-blocks/05-contracts.md#inspection-api-l7--waf)).
+- Tầng WAF giữ runtime của **version hiện tại và version trước** cho mỗi zone; nếu L7 hỏi version
   đó thì dùng đúng version đó, nếu không có thì dùng version mới nhất mình có và gắn cờ `version_skew`
   vào verdict.
 - Telemetry ghi `version_skew`; orchestrator coi một node chỉ "đã nhận" version N khi **cả hai tầng**

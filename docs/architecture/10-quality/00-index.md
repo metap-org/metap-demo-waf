@@ -56,7 +56,7 @@ flowchart LR
 
 | ID | Thuộc tính | Kịch bản | Mục tiêu |
 |---|---|---|---|
-| QS-1 | Độ trễ | Request đi qua WAF, zone có CRS paranoia 1 và 50 custom rule | Độ trễ thêm p99 ≤ 2 ms (proxy ≤ 0,5 ms + gọi WAF ≤ 1,5 ms), p50 ≤ 0,5 ms; request bị chặn ở pre-filter hoặc cache hit được miễn WAF p99 ≤ 0,5 ms |
+| QS-1 | Độ trễ | Request đi qua WAF, zone có CRS paranoia 1 và 50 custom rule | Độ trễ thêm p99 ≤ 2 ms (L7 ≤ 0,5 ms + gọi WAF ≤ 1,5 ms), p50 ≤ 0,5 ms; request bị chặn ở pre-filter hoặc cache hit được miễn WAF p99 ≤ 0,5 ms |
 | QS-2 | Khả dụng | Core region sập 4 giờ | Traffic khách không bị ảnh hưởng; edge ≥ 99,99%/tháng |
 | QS-3 | Khả dụng | Management bảo trì | Portal ≥ 99,9%/tháng; traffic không bị ảnh hưởng |
 | QS-4 | Lan truyền | Bản policy được duyệt, đường thường không có canary hold | p95 ≤ 30 s tới 100% node đang sống |
@@ -72,12 +72,12 @@ flowchart LR
 | QS-14 | Thương mại | Khách đổi gói | Entitlements mới có hiệu lực ≤ 5 phút, không deploy |
 | QS-15 | CDN | Khách purge một URL hoặc prefix | Không còn phục vụ bản cũ ở 95% node trong ≤ 5 s, 100% trong ≤ 30 s |
 | QS-16 | Điều hướng | Một PoP sập | DNS điều hướng ngừng trả IP PoP đó trong ≤ 60 s |
-| QS-17 | Tách tầng | Flood từ ít nguồn vào một zone | ≥ 95% request bị loại ở proxy; CPU tầng WAF của PoP tăng ≤ 20% |
+| QS-17 | Tách tầng | Flood từ ít nguồn vào một zone | ≥ 95% request bị loại ở L7; CPU tầng WAF của PoP tăng ≤ 20% |
 | QS-18 | Tách tầng | Tầng WAF của một PoP quá tải hoặc sập | Kết nối client không bị ảnh hưởng; zone áp fail mode trong ≤ 1 lần deadline |
 | QS-19 | Quy lỗi | Bất kỳ response 5xx nào | Có `status_source` và (nếu WAAP tự sinh) `edge_error`; xác định được chặng chậm nhất từ trace trong ≤ 1 phút |
 | QS-20 | Bot | Request từ bot đã xác minh (Googlebot thật) | Không bị chặn hay challenge; tính điểm bot ≤ 50 µs p99 |
 | QS-21 | Bot | Người dùng thật trên zone bật bot management ở mức mặc định | Tỉ lệ bị challenge tương tác ≤ 1% |
-| QS-22 | API | Request tới endpoint có schema | Kiểm ở proxy ≤ 20 µs, kiểm body JSON 10 KB ở WAF ≤ 300 µs p99 |
+| QS-22 | API | Request tới endpoint có schema | Kiểm ở L7 ≤ 20 µs, kiểm body JSON 10 KB ở WAF ≤ 300 µs p99 |
 | QS-23 | API | Khách xoay khoá JWKS | Edge chấp nhận token ký bằng khoá mới trong ≤ 60 s |
 | QS-24 | Mở rộng | Số zone tăng từ 1 triệu lên 2 triệu, tập zone hoạt động mỗi PoP không đổi | RAM dùng cho runtime trên mỗi node tăng ≤ 10% (chỉ phần routing index); không đổi thiết kế |
 | QS-25 | Hiệu năng | Request đầu tiên của một zone Free hoặc Pro chưa có trong RAM node (zone Business, Enterprise luôn nóng trong cell của mình) | Độ trễ thêm ≤ 10 ms p99 cho request đó (lấy từ PoP store + dựng runtime); request sau trở lại QS-1 |
@@ -85,7 +85,7 @@ flowchart LR
 | QS-27 | Vận hành | Thay đổi hàng loạt 100.000 zone (đổi mặc định, Terraform) | Hoàn tất ≤ 15 phút; QS-1 không vỡ trong lúc đó |
 | QS-28 | Cô lập | Cấu hình lỗi hoặc tấn công trong một cell | p99 của cell khác thay đổi ≤ 5% |
 | QS-29 | Hấp thụ tấn công | Flood L7 30 triệu rps nhắm một zone | Zone được chuyển sang cell cách ly ≤ 2 phút; zone khác không bị ảnh hưởng |
-| QS-30 | Chi phí | 1 triệu request hợp lệ, CRS PL1 | CPU tổng (proxy + WAF) ≤ mục tiêu đặt sau spike; theo dõi theo release |
+| QS-30 | Chi phí | 1 triệu request hợp lệ, CRS PL1 | CPU tổng (L7 + WAF) ≤ mục tiêu đặt sau spike; theo dõi theo release |
 | QS-31 | Chi phí | Toàn fleet ở đỉnh 10 triệu rps | Mức sử dụng CPU trung bình node ≤ 60%, đủ dư cho tấn công theo [7.5](../07-deployment/05-capacity-and-sharding.md) |
 | QS-32 | Cô lập theo gói | Pool Free của một PoP quá tải (nhiều zone Free bị flood cùng lúc) | p99 của zone Business, Enterprise cùng PoP thay đổi ≤ 5%; thứ tự hy sinh ở [8.18 §4](../08-cross-cutting/18-segments-and-plans.md#thứ-tự-hy-sinh-khi-pop-quá-tải) chạy đúng thứ tự, mỗi bước có event |
 | QS-33 | Chi phí | Chi phí phục vụ một zone Free trung bình | ≤ 0,25 USD/tháng theo mô hình chi phí ở 8.18; zone p99 của mỗi gói trả phí vẫn có lãi ở giá tham chiếu |
@@ -101,7 +101,7 @@ flowchart LR
 | Request hợp lệ | 3 triệu rps trung bình, 10 triệu rps đỉnh; thêm tới 30 triệu rps tấn công L7 |
 | Băng thông ra client | ≈ 600 Gbps trung bình, ≈ 2 Tbps đỉnh |
 | Phân khúc | 65% Free, 15% Pro, 18% Business, 2% Enterprise ([8.18](../08-cross-cutting/18-segments-and-plans.md)) |
-| Node | ≈ 450 edge proxy, ≈ 210 WAF inspection, 30 PoP |
+| Node | ≈ 450 L7, ≈ 210 WAF inspection, 30 PoP |
 | Cấu hình | ≈ 8 GB bundle nén + 8 GB cert mỗi PoP store; ≈ 200 MB routing index mỗi node |
 | Thay đổi cấu hình | ≈ 1,7/s trung bình, 30/s đỉnh |
 | Telemetry | ≈ 1,15 triệu bản ghi/s trung bình; ≈ 12 TB/ngày trong ClickHouse |

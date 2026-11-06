@@ -6,7 +6,7 @@ thiết kế, hợp đồng hoặc schema chính, hành vi khi lỗi. Công ngh�
 
 | Mục | File | Container | Plane |
 |---|---|---|---|
-| 5.8.1 | [01-edge-proxy.md](01-edge-proxy.md) | Edge proxy: pre-filter, challenge, cache, gọi WAF | Edge |
+| 5.8.1 | [01-edge-L7.md](01-l7.md) | L7: pre-filter, challenge, cache, gọi WAF | Edge |
 | 5.8.2 | [02-waf-inspection.md](02-waf-inspection.md) | WAF inspection: CRS, custom rule phần inspect | Edge |
 | 5.8.3 | [03-dns-and-traffic-steering.md](03-dns-and-traffic-steering.md) | DNS điều hướng, DNS authoritative (Mở rộng) | Edge |
 | 5.8.4 | [04-edge-agent-and-state.md](04-edge-agent-and-state.md) | Policy agent, state sync, Vector | Edge |
@@ -23,7 +23,7 @@ thiết kế, hợp đồng hoặc schema chính, hành vi khi lỗi. Công ngh�
 
 | Deployable | Ngôn ngữ / sản phẩm | Chạy ở |
 |---|---|---|
-| `edge-proxy` (proxy + agent + state sync) | Chờ chọn ([ADR-0031](../../09-adr/0031-edge-l7-and-waf-engine-options.md)) | Edge node (pool RAM) |
+| `l7-proxy` (L7 + agent + state sync) | Chờ chọn ([ADR-0031](../../09-adr/0031-edge-l7-and-waf-engine-options.md)) | Edge node (pool RAM) |
 | `waf-inspection` (engine + agent) | Go mặc định (Coraza) | Edge node (pool CPU, hoặc chung host với cgroup riêng) |
 | `edge-dns` | CoreDNS + plugin | Mỗi PoP |
 | `edge-verify` (nạp thử snapshot, lint ruleset) | Cùng ngôn ngữ và code với edge | Cạnh compiler và pipeline phát hành ruleset |

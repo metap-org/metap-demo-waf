@@ -35,15 +35,15 @@ cân nhắc. Quyết định bị thay thế giữ lại với trạng thái "B�
 | [0028](0028-notification-adapters-and-plan-gated-channels.md) | Notification: adapter theo kênh, webhook CloudEvents ký HMAC, email luôn có, kênh khác theo gói | Chấp nhận |
 | [0029](0029-independent-platform-observability.md) | Giám sát nền tảng độc lập với Analytics, SLO + burn rate, probe theo hành vi | Chấp nhận |
 | [0030](0030-language-per-workload.md) | Ngôn ngữ theo đặc tính tải: Go cho Control/Analytics/Management, edge theo 0031; Elixir đã cân nhắc | Chấp nhận (phần edge chờ 0031) |
-| [0031](0031-edge-l7-and-waf-engine-options.md) | Nền tầng proxy × engine tầng WAF × cách gọi; shortlist S2 / S3 / S1, spike để chọn | **Đề xuất, chờ chọn** |
+| [0031](0031-edge-l7-and-waf-engine-options.md) | Nền tầng L7 × engine tầng WAF × cách gọi; shortlist S2 / S3 / S1, spike để chọn | **Đề xuất, chờ chọn** |
 | [0032](0032-cel-checked-at-control-ir-at-edge.md) | CEL kiểm tra ở Control, edge thực thi IR | Đề xuất, theo 0031 |
-| [0033](0033-two-tier-edge-proxy-and-waf.md) | Edge hai tầng: edge proxy (RAM) và WAF inspection (CPU) | Chấp nhận |
-| [0034](0034-pre-filter-and-rule-split-across-tiers.md) | Pre-filter và challenge ở proxy; custom rule chia tầng giữ first-match | Chấp nhận |
+| [0033](0033-two-tier-edge-proxy-and-waf.md) | Edge hai tầng: L7 (RAM) và WAF inspection (CPU) | Chấp nhận |
+| [0034](0034-pre-filter-and-rule-split-across-tiers.md) | Pre-filter và challenge ở L7; custom rule chia tầng giữ first-match | Chấp nhận |
 | [0035](0035-cdn-and-dns-strategy.md) | Chiến lược CDN và DNS: tự xây theo giai đoạn + chế độ đứng sau CDN khách | **Đề xuất, chờ chọn** |
 | [0036](0036-request-timing-and-error-attribution.md) | Đo thời gian theo chặng; mỗi response có `status_source`, mã `edge_error`; status chuẩn + header | Chấp nhận |
 | [0037](0037-config-apply-classes.md) | Phân lớp cấu hình A/B/C/D theo cách áp dụng; fast lane chỉ lớp A; rule khẩn là lớp riêng | Chấp nhận |
-| [0038](0038-bot-management-layered-scoring.md) | Bot management chấm điểm nhiều lớp ở proxy; challenge tự phát; dữ liệu bot phát hành như ruleset | Chấp nhận |
-| [0039](0039-api-security-positive-model.md) | API security: discovery, schema chia proxy/WAF, JWT/mTLS ở edge, danh tính consumer | Chấp nhận |
+| [0038](0038-bot-management-layered-scoring.md) | Bot management chấm điểm nhiều lớp ở L7; challenge tự phát; dữ liệu bot phát hành như ruleset | Chấp nhận |
+| [0039](0039-api-security-positive-model.md) | API security: discovery, schema chia L7/WAF, JWT/mTLS ở edge, danh tính consumer | Chấp nhận |
 | [0040](0040-config-distribution-at-scale.md) | Phân phối cấu hình ở 1 triệu zone: manifest theo bucket, routing index, PoP store, nạp khi cần, ACK theo version tổng | Chấp nhận |
 | [0041](0041-cells-and-zone-placement.md) | Cell và cách đặt zone: so sánh 4 phương án, đề xuất cell theo VIP | **Đề xuất, chờ chọn** |
 | [0042](0042-plan-tiers-drive-placement-and-isolation.md) | Gói quyết định pool cell, tài nguyên, thứ tự hy sinh khi quá tải, thứ tự rollout | Chấp nhận (giá chờ business) |

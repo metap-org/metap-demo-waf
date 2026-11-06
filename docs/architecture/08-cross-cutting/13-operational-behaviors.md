@@ -135,9 +135,9 @@ ticket trong giờ làm việc.
 |---|---|
 | Mục tiêu | S11; kết nối client không bị ảnh hưởng (QS-18) |
 | Tín hiệu | `waap_waf_queue_depth`, `waap_waf_overloaded_total{tenant}`, CPU của pool WAF, `waap_edge_failmode_triggered_total{reason="waf_overloaded"}` |
-| Cảnh báo | Burn rate S11. P2: `Overloaded` > 0,1% request đi qua WAF trong 5 phút ở một PoP. P1: circuit breaker ở proxy mở cho cả PoP |
-| Tự phản ứng | Admission control giữ phần CPU của từng tenant; proxy áp fail mode theo zone; autoscale pool WAF nếu PoP chạy trên hạ tầng co giãn được |
-| Runbook | Xem tenant nào chiếm CPU (`waap_waf_cpu_seconds_total{tenant}`): tấn công tầng ứng dụng nhắm một zone → đề xuất Under Attack mode hoặc rule pre để loại ở proxy; ruleset mới tốn CPU hơn → so sánh theo version, rollback; thiếu năng lực thật → thêm node WAF, điều hướng bớt traffic sang PoP khác qua DNS |
+| Cảnh báo | Burn rate S11. P2: `Overloaded` > 0,1% request đi qua WAF trong 5 phút ở một PoP. P1: circuit breaker ở L7 mở cho cả PoP |
+| Tự phản ứng | Admission control giữ phần CPU của từng tenant; L7 áp fail mode theo zone; autoscale pool WAF nếu PoP chạy trên hạ tầng co giãn được |
+| Runbook | Xem tenant nào chiếm CPU (`waap_waf_cpu_seconds_total{tenant}`): tấn công tầng ứng dụng nhắm một zone → đề xuất Under Attack mode hoặc rule pre để loại ở L7; ruleset mới tốn CPU hơn → so sánh theo version, rollback; thiếu năng lực thật → thêm node WAF, điều hướng bớt traffic sang PoP khác qua DNS |
 
 ### A14. Cache hiệu quả thấp hoặc purge chậm
 
