@@ -4738,8 +4738,8 @@ chính. Dưới đây chỉ là những điểm 10.3 chưa có, chủ yếu cho 
 <td>5.5, outbox của Management</td>
 </tr>
 <tr>
-<td>OQ-16…OQ-146</td>
-<td>OQ-16…OQ-20 thuộc bản nháp onboarding cũ; OQ-21…OQ-126 và OQ-143…OQ-146 theo từng nghiệp vụ (<a href="#f-03-business-analysis-00-index">§3</a>); OQ-127…OQ-142 về định hướng sản phẩm (<a href="#f-04-product-direction-00-index">§4</a>)</td>
+<td>OQ-16…OQ-150</td>
+<td>OQ-16…OQ-20 thuộc bản nháp onboarding cũ; OQ-21…OQ-126 và OQ-143…OQ-150 theo từng nghiệp vụ (<a href="#f-03-business-analysis-00-index">§3</a>); OQ-127…OQ-142 về định hướng sản phẩm (<a href="#f-04-product-direction-00-index">§4</a>)</td>
 <td>Một số đã quyết hoặc có đề xuất chờ duyệt</td>
 <td>Theo trang</td>
 </tr>
@@ -4784,8 +4784,8 @@ xuất chờ duyệt.</li>
 <tr>
 <td><a href="#f-03-business-analysis-01-onboarding">3.1</a></td>
 <td>Onboarding một website</td>
-<td>OQ-21…OQ-32</td>
-<td>Bước 1, chủ dự án đang phân tích (có bản nháp luồng cũ chưa duyệt ở phụ lục)</td>
+<td>OQ-21…OQ-32, OQ-147…OQ-150</td>
+<td>Bước 1 mở rộng (trục K–N), có hồ sơ khách, cây quyết định kết nối và phân tích mọi câu, đề xuất chờ duyệt (bản nháp luồng cũ vẫn ở phụ lục)</td>
 </tr>
 <tr>
 <td><a href="#f-03-business-analysis-02-policy-change">3.2</a></td>
@@ -4890,9 +4890,11 @@ xuất chờ duyệt.</li>
 </section>
 <section class="doc" id="f-03-business-analysis-01-onboarding"><div class="path">03-business-analysis/01-onboarding.md</div><h1 id="f-03-business-analysis-01-onboarding--31-onboarding-một-website">3.1 Onboarding một website</h1>
 <blockquote>
-<p><strong>Trạng thái: đang mở. Chủ dự án đang phân tích, chưa có quyết định nào (2026-11-06).</strong> Trang này ghi lại
-các kịch bản và câu hỏi cần trả lời trước khi viết luồng onboarding. Cột &quot;ghi chú ban đầu&quot; chỉ là ý kiến
-lúc ghi, <strong>không phải quyết định</strong>.</p>
+<p><strong>Trạng thái: đang mở, chưa có quyết định nào.</strong> Trang này ghi lại các kịch bản và câu hỏi cần trả lời trước
+khi viết luồng onboarding. Cột &quot;ghi chú ban đầu&quot; chỉ là ý kiến lúc ghi, <strong>không phải quyết định</strong>. Lần phân
+tích tiếp (2026-11-07) thêm trục K–N, hồ sơ khách điển hình (<a href="#f-03-business-analysis-01-onboarding--6-hồ-sơ-khách-điển-hình-đề-xuất-chờ-duyệt">§6</a>),
+cây quyết định kết nối (<a href="#f-03-business-analysis-01-onboarding--7-cây-quyết-định-cách-kết-nối-đề-xuất-chờ-duyệt">§7</a>) và phân tích các câu ở
+<a href="#f-03-business-analysis-01-onboarding--8-phân-tích-các-câu-còn-mở-đề-xuất-của-claude-chờ-duyệt">§8</a>; tất cả là đề xuất chờ duyệt.</p>
 <p>Bản nháp luồng đầu tiên được viết trước khi hỏi chủ dự án và <strong>chưa được duyệt</strong>. Nó được giữ ở
 <a href="#f-03-business-analysis-01-onboarding--phụ-lục-a-bản-nháp-luồng-đầu-tiên-chưa-duyệt">Phụ lục A</a> chỉ để tham khảo. Những chỗ ở §1, §2 và kiến
 trúc kéo theo từ bản nháp đó được đánh dấu <strong>chờ onboarding</strong> (<a href="#f-03-business-analysis-01-onboarding--5-những-chỗ-đang-phụ-thuộc-vào-trang-này">§5</a>).</p>
@@ -5384,6 +5386,169 @@ phân khúc nào.</p>
 </tr>
 </tbody>
 </table>
+<h3 id="f-03-business-analysis-01-onboarding--k-xác-minh-khi-không-dùng-được-dns-như-mong-muốn">K. Xác minh khi không dùng được DNS như mong muốn</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB1-K1</td>
+<td>Nhà DNS không cho tạo bản ghi có tên bắt đầu bằng <code>_</code></td>
+<td>Cần tên bản ghi xác minh khác (<code>waap-verify.example.com</code>) và vẫn cần đường cấp cert trước khi đổi DNS</td>
+</tr>
+<tr>
+<td>KB1-K2</td>
+<td>Người onboard chỉ sửa được website (upload file), không có quyền DNS</td>
+<td>Xác minh bằng file <code>/.well-known/…</code> trên origin được, nhưng sau đó vẫn phải có người đổi DNS</td>
+</tr>
+<tr>
+<td>KB1-K3</td>
+<td>Shared hosting, trình tạo website: chỉ thêm được thẻ <code>&lt;meta&gt;</code> vào trang</td>
+<td>Xác minh bằng thẻ meta</td>
+</tr>
+<tr>
+<td>KB1-K4</td>
+<td>Xác minh qua email <code>admin@</code>, <code>hostmaster@</code>, email trong WHOIS</td>
+<td>WHOIS thường bị ẩn; email chung dễ bị chiếm</td>
+</tr>
+<tr>
+<td>KB1-K5</td>
+<td>Cùng org đã xác minh apex cho một zone khác</td>
+<td>Không bắt xác minh lại cho subdomain</td>
+</tr>
+<tr>
+<td>KB1-K6</td>
+<td>Zone chuyển sang org khác (bán website)</td>
+<td>Xác minh lại với org mới</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-01-onboarding--l-sự-cố-thường-gặp-ngay-sau-khi-đổi-dns">L. Sự cố thường gặp ngay sau khi đổi DNS</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB1-L1</td>
+<td>Vòng chuyển hướng vô hạn: edge gửi HTTP về origin, origin ép HTTPS</td>
+<td>Lỗi phổ biến nhất khi origin chưa có TLS (KB1-E5, KB1-E6)</td>
+</tr>
+<tr>
+<td>KB1-L2</td>
+<td>Origin rate limit hoặc fail2ban theo IP: mọi request giờ đến từ vài IP của edge</td>
+<td>Origin tự chặn edge, website sập cho mọi người</td>
+</tr>
+<tr>
+<td>KB1-L3</td>
+<td>Ứng dụng khoá đăng nhập theo IP: một người nhập sai mật khẩu nhiều lần khoá cả IP edge</td>
+<td>Khoá toàn bộ người dùng</td>
+</tr>
+<tr>
+<td>KB1-L4</td>
+<td>Trang có nội dung hỗn hợp (<code>http://</code>), link tuyệt đối tới IP origin</td>
+<td>Trình duyệt chặn tài nguyên; lộ IP origin</td>
+</tr>
+<tr>
+<td>KB1-L5</td>
+<td>Cookie domain, CORS, <code>SameSite</code> sai sau khi đổi hostname</td>
+<td>Đăng nhập hỏng</td>
+</tr>
+<tr>
+<td>KB1-L6</td>
+<td>Webhook của cổng thanh toán, đối tác bị bot challenge hoặc WAF chặn</td>
+<td>Mất giao dịch</td>
+</tr>
+<tr>
+<td>KB1-L7</td>
+<td>Upload lớn bị <code>413</code> theo giới hạn body của gói</td>
+<td></td>
+</tr>
+<tr>
+<td>KB1-L8</td>
+<td>WebSocket, SSE bị ngắt theo timeout</td>
+<td></td>
+</tr>
+<tr>
+<td>KB1-L9</td>
+<td>DNS chưa lan truyền hết: một phần người dùng vẫn đi thẳng origin</td>
+<td>Khoá origin quá sớm làm sập phần người dùng này</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-01-onboarding--m-onboarding-hàng-loạt-và-di-chuyển-từ-nơi-khác">M. Onboarding hàng loạt và di chuyển từ nơi khác</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB1-M1</td>
+<td>Tạo zone hàng loạt bằng API, Terraform</td>
+<td>Mọi bước kiểm (xác minh, origin) phải chạy được không cần UI</td>
+</tr>
+<tr>
+<td>KB1-M2</td>
+<td>Chuyển từ Cloudflare hoặc CDN khác</td>
+<td>Nhập bản ghi DNS, IP allowlist; rule của nhà cung cấp cũ không tự chuyển</td>
+</tr>
+<tr>
+<td>KB1-M3</td>
+<td>Chuyển từ WAF tự vận hành (ModSecurity, thiết bị phần cứng)</td>
+<td>Rule cũ có dùng được không; exception đã có của khách</td>
+</tr>
+<tr>
+<td>KB1-M4</td>
+<td>Agency onboard hàng chục website của nhiều khách</td>
+<td>Một người thuộc nhiều org (đã quyết ở 3.6)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-01-onboarding--n-pháp-lý-và-dữ-liệu-lúc-onboarding">N. Pháp lý và dữ liệu lúc onboarding</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB1-N1</td>
+<td>Chấp nhận điều khoản và thoả thuận xử lý dữ liệu khi đăng ký</td>
+<td>Doanh nghiệp cần bản ký riêng; Nghị định 13/2023</td>
+</tr>
+<tr>
+<td>KB1-N2</td>
+<td>Chọn region lưu log, lưu cấu hình (Enterprise)</td>
+<td>Chọn lúc onboard, đổi sau khó (KB7-H3)</td>
+</tr>
+<tr>
+<td>KB1-N3</td>
+<td>Website thuộc lĩnh vực bị cấm</td>
+<td>Từ chối trước, hay xử lý qua abuse sau (OQ-88)</td>
+</tr>
+<tr>
+<td>KB1-N4</td>
+<td>Website của cơ quan nhà nước</td>
+<td>Yêu cầu về cấp độ an toàn hệ thống thông tin, nơi lưu dữ liệu</td>
+</tr>
+</tbody>
+</table>
 <h2 id="f-03-business-analysis-01-onboarding--3-ví-dụ-một-vps-và-một-domain-riêng">3. Ví dụ: một VPS và một domain riêng</h2>
 <p>Cây câu hỏi cho kịch bản bạn nêu. Mỗi nút là một câu hỏi onboarding phải hỏi khách, hoặc tự phát hiện; chưa
 có câu trả lời.</p>
@@ -5490,6 +5655,30 @@ có câu trả lời.</p>
 <td>KB1-C4</td>
 <td></td>
 </tr>
+<tr>
+<td>OQ-147</td>
+<td>Phương thức xác minh dự phòng nào khi không tạo được bản ghi <code>_acme-challenge</code>: TXT tên khác, file HTTP, thẻ meta, email?</td>
+<td>KB1-K1…KB1-K4</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-148</td>
+<td>Có tự phát hiện các sự cố thường gặp (vòng chuyển hướng, origin chặn IP edge) trong lúc kiểm thử trước khi đổi DNS không?</td>
+<td>KB1-L1…KB1-L3</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-149</td>
+<td>Có công cụ nhập cấu hình từ Cloudflare, nhà cung cấp khác không?</td>
+<td>KB1-M2, KB1-M3</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-150</td>
+<td>Có từ chối onboard website thuộc lĩnh vực bị cấm ngay từ đầu không?</td>
+<td>KB1-N3</td>
+<td>Gắn với OQ-88</td>
+</tr>
 </tbody>
 </table>
 <h2 id="f-03-business-analysis-01-onboarding--5-những-chỗ-đang-phụ-thuộc-vào-trang-này">5. Những chỗ đang phụ thuộc vào trang này</h2>
@@ -5522,6 +5711,205 @@ khi các câu hỏi ở §4 có trả lời:</p>
 <tr>
 <td><a href="v1-waap-architecture.html#f-06-runtime-00-index--64-onboarding-một-zone" target="_blank" rel="noopener">Kiến trúc 6.4</a></td>
 <td>Sequence onboarding</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-03-business-analysis-01-onboarding--6-hồ-sơ-khách-điển-hình-đề-xuất-chờ-duyệt">6. Hồ sơ khách điển hình (đề xuất, chờ duyệt)</h2>
+<p>Gom các trục ở §2 thành vài hồ sơ hay gặp, mỗi hồ sơ có một lộ trình gợi ý. Onboarding nên hỏi vài câu đầu để
+xếp khách vào hồ sơ, rồi chỉ hiện các bước của hồ sơ đó, thay vì một wizard chung cho mọi người.</p>
+<table>
+<thead>
+<tr>
+<th>Hồ sơ</th>
+<th>Nhận ra qua</th>
+<th>Lộ trình gợi ý</th>
+<th>Rủi ro chính cần chặn trước</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>H1 Một VPS, vài website</strong></td>
+<td>IP origin là máy chủ đơn; DNS ở nhà đăng ký trong nước</td>
+<td><code>www</code> và subdomain trỏ CNAME; apex dùng ALIAS nếu nhà DNS có, nếu không thì A và AAAA tĩnh (OQ-22); xác minh bằng CNAME <code>_acme-challenge</code>, dự phòng TXT tên khác (OQ-147); khoá origin bằng firewall theo dải IP edge</td>
+<td>Mail, SSH cùng IP với apex (KB1-C9); certbot hết gia hạn được (KB1-F3); origin tự chặn edge (KB1-L2)</td>
+</tr>
+<tr>
+<td><strong>H2 Shared hosting</strong></td>
+<td>IP origin dùng chung nhiều site; DNS do hosting quản lý</td>
+<td>Origin theo hostname, giữ Host header; TLS tới origin dùng cert của hosting; xác minh bằng file hoặc thẻ meta nếu DNS hạn chế</td>
+<td>Không khoá được origin theo IP: chỉ cảnh báo, gợi ý header bí mật nếu hosting cho cấu hình</td>
+</tr>
+<tr>
+<td><strong>H3 Cloud, container</strong></td>
+<td>Origin là load balancer, hostname đổi IP</td>
+<td>Origin khai bằng hostname; khoá origin bằng mTLS hoặc header bí mật; Terraform, API</td>
+<td>Origin đổi IP liên tục, edge phải phân giải lại</td>
+</tr>
+<tr>
+<td><strong>H4 Nền tảng SaaS</strong></td>
+<td>CNAME hiện tại trỏ về Haravan, Sapo, Shopify…</td>
+<td>Chỉ hỗ trợ khi nền tảng cho phép custom origin (OQ-30); nếu không thì báo rõ không hỗ trợ</td>
+<td>Nền tảng từ chối Host lạ, tự cấp cert theo domain</td>
+</tr>
+<tr>
+<td><strong>H5 Đã có CDN, WAF khác</strong></td>
+<td>CNAME hoặc ASN của nhà cung cấp khác</td>
+<td>Hai lựa chọn: thay hẳn (đổi DNS, nhập bản ghi, OQ-149) hoặc đứng sau CDN đó (chế độ F2.2.5)</td>
+<td>Hai lớp cache, hai lớp WAF chặn chồng</td>
+</tr>
+<tr>
+<td><strong>H6 Doanh nghiệp có đội IT</strong></td>
+<td>Nhiều domain, có SSO, cần duyệt</td>
+<td>Nhập hàng loạt, zone staging trước, account ở chế độ cần duyệt (BR-26), khung giờ đổi DNS</td>
+<td>Đổi DNS sai giờ; thiếu người duyệt</td>
+</tr>
+<tr>
+<td><strong>H7 Đang bị tấn công</strong></td>
+<td>Khách chọn &quot;đang bị tấn công&quot;</td>
+<td>Đường tắt: xác minh, cert, chặn ngay, bỏ giai đoạn log-only</td>
+<td>Chặn nhầm; khách đổi DNS khi cert chưa có</td>
+</tr>
+<tr>
+<td><strong>H8 Agency</strong></td>
+<td>Một người tạo nhiều org</td>
+<td>Mỗi khách một org, agency là thành viên; bàn giao owner khi xong</td>
+<td>Agency giữ quyền owner sau khi bàn giao</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-03-business-analysis-01-onboarding--7-cây-quyết-định-cách-kết-nối-đề-xuất-chờ-duyệt">7. Cây quyết định cách kết nối (đề xuất, chờ duyệt)</h2>
+<p>Trả lời cho từng hostname, không cho cả zone.</p>
+<div class="diagram"><pre class="mermaid">flowchart TB
+    cdn{&quot;Đang có CDN khác&lt;br/&gt;và khách muốn giữ?&quot;}
+    h{&quot;Hostname là apex?&quot;}
+    alias{&quot;Nhà DNS có ALIAS&lt;br/&gt;hoặc CNAME flattening?&quot;}
+    other{&quot;Cùng IP còn mail, SSH,&lt;br/&gt;dịch vụ không phải HTTP?&quot;}
+    behind[&quot;Đứng sau CDN của khách&lt;br/&gt;CDN trỏ origin về edge&quot;]
+    cname[&quot;CNAME về hostname edge&quot;]
+    al[&quot;ALIAS về hostname edge&quot;]
+    ip[&quot;A và AAAA về dải IP tĩnh&lt;br/&gt;khai đủ cả hai họ IP&quot;]
+    split[&quot;Tách dịch vụ khác sang hostname riêng&lt;br/&gt;trỏ thẳng origin, rồi mới trỏ apex&quot;]
+    port{&quot;Website dùng cổng&lt;br/&gt;phi chuẩn phía client?&quot;}
+    pl[&quot;Chỉ khi cổng nằm trong&lt;br/&gt;danh sách hỗ trợ (OQ-23)&quot;]
+    ok[&quot;Tiếp tục: xác minh, cert, kiểm origin&quot;]
+    cdn --&gt;|có| behind --&gt; port
+    cdn --&gt;|không| h
+    h --&gt;|không| cname --&gt; port
+    h --&gt;|có| alias
+    alias --&gt;|có| al --&gt; port
+    alias --&gt;|không| other
+    other --&gt;|có| split --&gt; ip
+    other --&gt;|không| ip
+    ip --&gt; port
+    port --&gt;|có| pl --&gt; ok
+    port --&gt;|không| ok
+</pre></div>
+<h2 id="f-03-business-analysis-01-onboarding--8-phân-tích-các-câu-còn-mở-đề-xuất-của-claude-chờ-duyệt">8. Phân tích các câu còn mở (đề xuất của Claude, chờ duyệt)</h2>
+<table>
+<thead>
+<tr>
+<th>Câu</th>
+<th>Phương án</th>
+<th>Đánh đổi</th>
+<th>Đề xuất</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OQ-21</td>
+<td>(a) Zone luôn là domain gốc; (b) cho phép onboard riêng một hostname</td>
+<td>(a) chặn công ty con không giữ apex; (b) cần xác minh theo hostname</td>
+<td>Domain gốc là mặc định. Cho phép zone chỉ gồm một hostname khi khách chứng minh quyền với chính hostname đó; zone như vậy không giữ claim của apex, nên chủ apex vẫn onboard được phần còn lại</td>
+</tr>
+<tr>
+<td>OQ-22</td>
+<td>(a) Dải IP dùng chung theo region; (b) IP riêng theo zone; (c) chỉ CNAME, ALIAS</td>
+<td>(a) mất điều hướng theo vị trí, rút PoP chậm; (c) khách VPS không trỏ được apex</td>
+<td>(a) từ MVP, có cả IPv4 và IPv6; UI luôn đề xuất CNAME hoặc ALIAS trước và nói rõ cái giá của A tĩnh. (b) cho Enterprise. Anycast theo lộ trình hạ tầng, khi có thì dải IP tĩnh tự tốt lên mà khách không phải đổi</td>
+</tr>
+<tr>
+<td>OQ-23</td>
+<td>(a) Danh sách cổng cố định; (b) cổng tuỳ ý; (c) không hỗ trợ</td>
+<td>(b) cần IP riêng hoặc proxy L4</td>
+<td>(a) cho mọi gói: một danh sách nhỏ cổng HTTP và HTTPS hay dùng (ví dụ 8080, 8443); cổng tuỳ ý chỉ cho Enterprise có IP riêng</td>
+</tr>
+<tr>
+<td>OQ-24</td>
+<td>(a) Cảnh báo, hướng dẫn tách hostname; (b) proxy L4</td>
+<td>(b) là sản phẩm khác, ngoài WAF</td>
+<td>(a) ở MVP. Phát hiện bằng DNS: bản ghi MX, SRV, hoặc hostname khác trỏ cùng IP với apex. Không quét cổng origin của khách</td>
+</tr>
+<tr>
+<td>OQ-25</td>
+<td>DNS hosting ở MVP</td>
+<td>Phải quản lý mọi loại bản ghi, DNSSEC; DNS sập là sập cả mail</td>
+<td>Không ở MVP; để Mở rộng như ADR-0035</td>
+</tr>
+<tr>
+<td>OQ-26</td>
+<td>Hướng dẫn theo nhà DNS</td>
+<td>Tốn công duy trì</td>
+<td>Có, cho 5–6 nhà phổ biến trong nước, kèm ảnh; khảo sát thực tế trước MVP xem nhà nào không cho <code>_</code></td>
+</tr>
+<tr>
+<td>OQ-27</td>
+<td>Phân khúc chính ở MVP</td>
+<td></td>
+<td>H1 (VPS) và H6 (doanh nghiệp có IT) là chính; H2 (shared hosting) chạy được nhưng không khoá được origin, nói rõ; H8 (agency) dùng nhiều org (đã quyết). Giá cho nhiều site theo OQ-54</td>
+</tr>
+<tr>
+<td>OQ-28</td>
+<td>Tunnel ở MVP</td>
+<td>Phải viết và duy trì agent chạy ở máy khách</td>
+<td>Mở rộng, nhưng ưu tiên cao: tunnel làm origin không cần IP public, khoá origin triệt để nhất</td>
+</tr>
+<tr>
+<td>OQ-29</td>
+<td>Origin theo path, nhiều origin</td>
+<td></td>
+<td>Mở rộng</td>
+</tr>
+<tr>
+<td>OQ-30</td>
+<td>Nền tảng SaaS</td>
+<td>Mỗi nền tảng một kiểu</td>
+<td>Không hỗ trợ chính thức ở MVP; có trang hướng dẫn chung &quot;đứng trước được nếu nền tảng cho dùng hostname origin riêng&quot;; kiểm 2–3 nền tảng phổ biến nhất trước khi quyết</td>
+</tr>
+<tr>
+<td>OQ-31</td>
+<td>Chuyển challenge ACME của origin</td>
+<td></td>
+<td>Có, mặc định bật: token không phải của NCC thì chuyển về origin</td>
+</tr>
+<tr>
+<td>OQ-32</td>
+<td>A/AAAA lệch</td>
+<td></td>
+<td>Cảnh báo đỏ ở mọi bước và không cho hoàn tất onboarding (OG4) khi còn một họ IP trỏ thẳng origin; không chặn các bước khác</td>
+</tr>
+<tr>
+<td>OQ-147</td>
+<td>Xác minh dự phòng</td>
+<td>Email WHOIS dễ bị chiếm</td>
+<td>TXT tên khác và file HTTP ở MVP; thẻ meta ở Mở rộng; không dùng email</td>
+</tr>
+<tr>
+<td>OQ-148</td>
+<td>Tự phát hiện sự cố trước khi đổi DNS</td>
+<td></td>
+<td>Có: trong bước kiểm thử, edge gửi vài request về origin và phát hiện vòng chuyển hướng, <code>403</code>/<code>429</code> từ origin (dấu hiệu origin chặn IP edge), nội dung hỗn hợp trên trang chủ</td>
+</tr>
+<tr>
+<td>OQ-149</td>
+<td>Nhập cấu hình từ nơi khác</td>
+<td></td>
+<td>Mở rộng: nhập bản ghi DNS và IP allowlist; rule không chuyển tự động, chỉ có hướng dẫn tương đương</td>
+</tr>
+<tr>
+<td>OQ-150</td>
+<td>Từ chối lĩnh vực bị cấm từ đầu</td>
+<td>Kiểm trước thì chậm, dễ sai</td>
+<td>Điều khoản cấm, kiểm domain với danh sách đen đã biết lúc thêm zone, còn lại xử lý qua abuse (OQ-88)</td>
 </tr>
 </tbody>
 </table>

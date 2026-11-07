@@ -1,8 +1,10 @@
 # 3.1 Onboarding một website
 
-> **Trạng thái: đang mở. Chủ dự án đang phân tích, chưa có quyết định nào (2026-11-06).** Trang này ghi lại
-> các kịch bản và câu hỏi cần trả lời trước khi viết luồng onboarding. Cột "ghi chú ban đầu" chỉ là ý kiến
-> lúc ghi, **không phải quyết định**.
+> **Trạng thái: đang mở, chưa có quyết định nào.** Trang này ghi lại các kịch bản và câu hỏi cần trả lời trước
+> khi viết luồng onboarding. Cột "ghi chú ban đầu" chỉ là ý kiến lúc ghi, **không phải quyết định**. Lần phân
+> tích tiếp (2026-11-07) thêm trục K–N, hồ sơ khách điển hình ([§6](#6-hồ-sơ-khách-điển-hình-đề-xuất-chờ-duyệt)),
+> cây quyết định kết nối ([§7](#7-cây-quyết-định-cách-kết-nối-đề-xuất-chờ-duyệt)) và phân tích các câu ở
+> [§8](#8-phân-tích-các-câu-còn-mở-đề-xuất-của-claude-chờ-duyệt); tất cả là đề xuất chờ duyệt.
 >
 > Bản nháp luồng đầu tiên được viết trước khi hỏi chủ dự án và **chưa được duyệt**. Nó được giữ ở
 > [Phụ lục A](#phụ-lục-a-bản-nháp-luồng-đầu-tiên-chưa-duyệt) chỉ để tham khảo. Những chỗ ở §1, §2 và kiến
@@ -150,6 +152,49 @@ Mã `KB1-<trục><số>` dùng để nhắc tới kịch bản khi phân tích.
 | KB1-J3 | Enterprise onboard có kỹ sư NCC đi kèm | Danh sách việc chuẩn bị, khung giờ đổi DNS |
 | KB1-J4 | Khách onboard đúng lúc đang bị tấn công | Cần đường tắt, chấp nhận rủi ro chặn nhầm |
 
+### K. Xác minh khi không dùng được DNS như mong muốn
+
+| Mã | Kịch bản | Concern |
+|---|---|---|
+| KB1-K1 | Nhà DNS không cho tạo bản ghi có tên bắt đầu bằng `_` | Cần tên bản ghi xác minh khác (`waap-verify.example.com`) và vẫn cần đường cấp cert trước khi đổi DNS |
+| KB1-K2 | Người onboard chỉ sửa được website (upload file), không có quyền DNS | Xác minh bằng file `/.well-known/…` trên origin được, nhưng sau đó vẫn phải có người đổi DNS |
+| KB1-K3 | Shared hosting, trình tạo website: chỉ thêm được thẻ `<meta>` vào trang | Xác minh bằng thẻ meta |
+| KB1-K4 | Xác minh qua email `admin@`, `hostmaster@`, email trong WHOIS | WHOIS thường bị ẩn; email chung dễ bị chiếm |
+| KB1-K5 | Cùng org đã xác minh apex cho một zone khác | Không bắt xác minh lại cho subdomain |
+| KB1-K6 | Zone chuyển sang org khác (bán website) | Xác minh lại với org mới |
+
+### L. Sự cố thường gặp ngay sau khi đổi DNS
+
+| Mã | Kịch bản | Concern |
+|---|---|---|
+| KB1-L1 | Vòng chuyển hướng vô hạn: edge gửi HTTP về origin, origin ép HTTPS | Lỗi phổ biến nhất khi origin chưa có TLS (KB1-E5, KB1-E6) |
+| KB1-L2 | Origin rate limit hoặc fail2ban theo IP: mọi request giờ đến từ vài IP của edge | Origin tự chặn edge, website sập cho mọi người |
+| KB1-L3 | Ứng dụng khoá đăng nhập theo IP: một người nhập sai mật khẩu nhiều lần khoá cả IP edge | Khoá toàn bộ người dùng |
+| KB1-L4 | Trang có nội dung hỗn hợp (`http://`), link tuyệt đối tới IP origin | Trình duyệt chặn tài nguyên; lộ IP origin |
+| KB1-L5 | Cookie domain, CORS, `SameSite` sai sau khi đổi hostname | Đăng nhập hỏng |
+| KB1-L6 | Webhook của cổng thanh toán, đối tác bị bot challenge hoặc WAF chặn | Mất giao dịch |
+| KB1-L7 | Upload lớn bị `413` theo giới hạn body của gói | |
+| KB1-L8 | WebSocket, SSE bị ngắt theo timeout | |
+| KB1-L9 | DNS chưa lan truyền hết: một phần người dùng vẫn đi thẳng origin | Khoá origin quá sớm làm sập phần người dùng này |
+
+### M. Onboarding hàng loạt và di chuyển từ nơi khác
+
+| Mã | Kịch bản | Concern |
+|---|---|---|
+| KB1-M1 | Tạo zone hàng loạt bằng API, Terraform | Mọi bước kiểm (xác minh, origin) phải chạy được không cần UI |
+| KB1-M2 | Chuyển từ Cloudflare hoặc CDN khác | Nhập bản ghi DNS, IP allowlist; rule của nhà cung cấp cũ không tự chuyển |
+| KB1-M3 | Chuyển từ WAF tự vận hành (ModSecurity, thiết bị phần cứng) | Rule cũ có dùng được không; exception đã có của khách |
+| KB1-M4 | Agency onboard hàng chục website của nhiều khách | Một người thuộc nhiều org (đã quyết ở 3.6) |
+
+### N. Pháp lý và dữ liệu lúc onboarding
+
+| Mã | Kịch bản | Concern |
+|---|---|---|
+| KB1-N1 | Chấp nhận điều khoản và thoả thuận xử lý dữ liệu khi đăng ký | Doanh nghiệp cần bản ký riêng; Nghị định 13/2023 |
+| KB1-N2 | Chọn region lưu log, lưu cấu hình (Enterprise) | Chọn lúc onboard, đổi sau khó (KB7-H3) |
+| KB1-N3 | Website thuộc lĩnh vực bị cấm | Từ chối trước, hay xử lý qua abuse sau (OQ-88) |
+| KB1-N4 | Website của cơ quan nhà nước | Yêu cầu về cấp độ an toàn hệ thống thông tin, nơi lưu dữ liệu |
+
 ## 3. Ví dụ: một VPS và một domain riêng
 
 Cây câu hỏi cho kịch bản bạn nêu. Mỗi nút là một câu hỏi onboarding phải hỏi khách, hoặc tự phát hiện; chưa
@@ -193,6 +238,10 @@ flowchart TB
 | OQ-30 | Origin là nền tảng SaaS (Shopify, Haravan, Sapo…): có hỗ trợ chính thức không? | KB1-A10 | Cần kiểm từng nền tảng |
 | OQ-31 | Edge có chuyển challenge ACME của origin (certbot) về origin không? | KB1-F3 | |
 | OQ-32 | Khi khách khai A nhưng AAAA vẫn trỏ origin (hoặc ngược lại): chỉ cảnh báo, hay chặn bước hoàn tất? | KB1-C4 | |
+| OQ-147 | Phương thức xác minh dự phòng nào khi không tạo được bản ghi `_acme-challenge`: TXT tên khác, file HTTP, thẻ meta, email? | KB1-K1…KB1-K4 | |
+| OQ-148 | Có tự phát hiện các sự cố thường gặp (vòng chuyển hướng, origin chặn IP edge) trong lúc kiểm thử trước khi đổi DNS không? | KB1-L1…KB1-L3 | |
+| OQ-149 | Có công cụ nhập cấu hình từ Cloudflare, nhà cung cấp khác không? | KB1-M2, KB1-M3 | |
+| OQ-150 | Có từ chối onboard website thuộc lĩnh vực bị cấm ngay từ đầu không? | KB1-N3 | Gắn với OQ-88 |
 
 ## 5. Những chỗ đang phụ thuộc vào trang này
 
@@ -206,6 +255,74 @@ khi các câu hỏi ở §4 có trả lời:
 | [Kiến trúc 5.5](../../architecture/05-building-blocks/05-contracts.md#hợp-đồng-bổ-sung-tạm-2026-11-06) | `ZoneCheckResult`, `OriginProbe` |
 | [Kiến trúc 5.8.7](../../architecture/05-building-blocks/08-components/07-cert-ruleset-release.md) | DNS-01 qua uỷ quyền `_acme-challenge` là mặc định |
 | [Kiến trúc 6.4](../../architecture/06-runtime/00-index.md#64-onboarding-một-zone) | Sequence onboarding |
+
+## 6. Hồ sơ khách điển hình (đề xuất, chờ duyệt)
+
+Gom các trục ở §2 thành vài hồ sơ hay gặp, mỗi hồ sơ có một lộ trình gợi ý. Onboarding nên hỏi vài câu đầu để
+xếp khách vào hồ sơ, rồi chỉ hiện các bước của hồ sơ đó, thay vì một wizard chung cho mọi người.
+
+| Hồ sơ | Nhận ra qua | Lộ trình gợi ý | Rủi ro chính cần chặn trước |
+|---|---|---|---|
+| **H1 Một VPS, vài website** | IP origin là máy chủ đơn; DNS ở nhà đăng ký trong nước | `www` và subdomain trỏ CNAME; apex dùng ALIAS nếu nhà DNS có, nếu không thì A và AAAA tĩnh (OQ-22); xác minh bằng CNAME `_acme-challenge`, dự phòng TXT tên khác (OQ-147); khoá origin bằng firewall theo dải IP edge | Mail, SSH cùng IP với apex (KB1-C9); certbot hết gia hạn được (KB1-F3); origin tự chặn edge (KB1-L2) |
+| **H2 Shared hosting** | IP origin dùng chung nhiều site; DNS do hosting quản lý | Origin theo hostname, giữ Host header; TLS tới origin dùng cert của hosting; xác minh bằng file hoặc thẻ meta nếu DNS hạn chế | Không khoá được origin theo IP: chỉ cảnh báo, gợi ý header bí mật nếu hosting cho cấu hình |
+| **H3 Cloud, container** | Origin là load balancer, hostname đổi IP | Origin khai bằng hostname; khoá origin bằng mTLS hoặc header bí mật; Terraform, API | Origin đổi IP liên tục, edge phải phân giải lại |
+| **H4 Nền tảng SaaS** | CNAME hiện tại trỏ về Haravan, Sapo, Shopify… | Chỉ hỗ trợ khi nền tảng cho phép custom origin (OQ-30); nếu không thì báo rõ không hỗ trợ | Nền tảng từ chối Host lạ, tự cấp cert theo domain |
+| **H5 Đã có CDN, WAF khác** | CNAME hoặc ASN của nhà cung cấp khác | Hai lựa chọn: thay hẳn (đổi DNS, nhập bản ghi, OQ-149) hoặc đứng sau CDN đó (chế độ F2.2.5) | Hai lớp cache, hai lớp WAF chặn chồng |
+| **H6 Doanh nghiệp có đội IT** | Nhiều domain, có SSO, cần duyệt | Nhập hàng loạt, zone staging trước, account ở chế độ cần duyệt (BR-26), khung giờ đổi DNS | Đổi DNS sai giờ; thiếu người duyệt |
+| **H7 Đang bị tấn công** | Khách chọn "đang bị tấn công" | Đường tắt: xác minh, cert, chặn ngay, bỏ giai đoạn log-only | Chặn nhầm; khách đổi DNS khi cert chưa có |
+| **H8 Agency** | Một người tạo nhiều org | Mỗi khách một org, agency là thành viên; bàn giao owner khi xong | Agency giữ quyền owner sau khi bàn giao |
+
+## 7. Cây quyết định cách kết nối (đề xuất, chờ duyệt)
+
+Trả lời cho từng hostname, không cho cả zone.
+
+```mermaid
+flowchart TB
+    cdn{"Đang có CDN khác<br/>và khách muốn giữ?"}
+    h{"Hostname là apex?"}
+    alias{"Nhà DNS có ALIAS<br/>hoặc CNAME flattening?"}
+    other{"Cùng IP còn mail, SSH,<br/>dịch vụ không phải HTTP?"}
+    behind["Đứng sau CDN của khách<br/>CDN trỏ origin về edge"]
+    cname["CNAME về hostname edge"]
+    al["ALIAS về hostname edge"]
+    ip["A và AAAA về dải IP tĩnh<br/>khai đủ cả hai họ IP"]
+    split["Tách dịch vụ khác sang hostname riêng<br/>trỏ thẳng origin, rồi mới trỏ apex"]
+    port{"Website dùng cổng<br/>phi chuẩn phía client?"}
+    pl["Chỉ khi cổng nằm trong<br/>danh sách hỗ trợ (OQ-23)"]
+    ok["Tiếp tục: xác minh, cert, kiểm origin"]
+    cdn -->|có| behind --> port
+    cdn -->|không| h
+    h -->|không| cname --> port
+    h -->|có| alias
+    alias -->|có| al --> port
+    alias -->|không| other
+    other -->|có| split --> ip
+    other -->|không| ip
+    ip --> port
+    port -->|có| pl --> ok
+    port -->|không| ok
+```
+
+## 8. Phân tích các câu còn mở (đề xuất của Claude, chờ duyệt)
+
+| Câu | Phương án | Đánh đổi | Đề xuất |
+|---|---|---|---|
+| OQ-21 | (a) Zone luôn là domain gốc; (b) cho phép onboard riêng một hostname | (a) chặn công ty con không giữ apex; (b) cần xác minh theo hostname | Domain gốc là mặc định. Cho phép zone chỉ gồm một hostname khi khách chứng minh quyền với chính hostname đó; zone như vậy không giữ claim của apex, nên chủ apex vẫn onboard được phần còn lại |
+| OQ-22 | (a) Dải IP dùng chung theo region; (b) IP riêng theo zone; (c) chỉ CNAME, ALIAS | (a) mất điều hướng theo vị trí, rút PoP chậm; (c) khách VPS không trỏ được apex | (a) từ MVP, có cả IPv4 và IPv6; UI luôn đề xuất CNAME hoặc ALIAS trước và nói rõ cái giá của A tĩnh. (b) cho Enterprise. Anycast theo lộ trình hạ tầng, khi có thì dải IP tĩnh tự tốt lên mà khách không phải đổi |
+| OQ-23 | (a) Danh sách cổng cố định; (b) cổng tuỳ ý; (c) không hỗ trợ | (b) cần IP riêng hoặc proxy L4 | (a) cho mọi gói: một danh sách nhỏ cổng HTTP và HTTPS hay dùng (ví dụ 8080, 8443); cổng tuỳ ý chỉ cho Enterprise có IP riêng |
+| OQ-24 | (a) Cảnh báo, hướng dẫn tách hostname; (b) proxy L4 | (b) là sản phẩm khác, ngoài WAF | (a) ở MVP. Phát hiện bằng DNS: bản ghi MX, SRV, hoặc hostname khác trỏ cùng IP với apex. Không quét cổng origin của khách |
+| OQ-25 | DNS hosting ở MVP | Phải quản lý mọi loại bản ghi, DNSSEC; DNS sập là sập cả mail | Không ở MVP; để Mở rộng như ADR-0035 |
+| OQ-26 | Hướng dẫn theo nhà DNS | Tốn công duy trì | Có, cho 5–6 nhà phổ biến trong nước, kèm ảnh; khảo sát thực tế trước MVP xem nhà nào không cho `_` |
+| OQ-27 | Phân khúc chính ở MVP | | H1 (VPS) và H6 (doanh nghiệp có IT) là chính; H2 (shared hosting) chạy được nhưng không khoá được origin, nói rõ; H8 (agency) dùng nhiều org (đã quyết). Giá cho nhiều site theo OQ-54 |
+| OQ-28 | Tunnel ở MVP | Phải viết và duy trì agent chạy ở máy khách | Mở rộng, nhưng ưu tiên cao: tunnel làm origin không cần IP public, khoá origin triệt để nhất |
+| OQ-29 | Origin theo path, nhiều origin | | Mở rộng |
+| OQ-30 | Nền tảng SaaS | Mỗi nền tảng một kiểu | Không hỗ trợ chính thức ở MVP; có trang hướng dẫn chung "đứng trước được nếu nền tảng cho dùng hostname origin riêng"; kiểm 2–3 nền tảng phổ biến nhất trước khi quyết |
+| OQ-31 | Chuyển challenge ACME của origin | | Có, mặc định bật: token không phải của NCC thì chuyển về origin |
+| OQ-32 | A/AAAA lệch | | Cảnh báo đỏ ở mọi bước và không cho hoàn tất onboarding (OG4) khi còn một họ IP trỏ thẳng origin; không chặn các bước khác |
+| OQ-147 | Xác minh dự phòng | Email WHOIS dễ bị chiếm | TXT tên khác và file HTTP ở MVP; thẻ meta ở Mở rộng; không dùng email |
+| OQ-148 | Tự phát hiện sự cố trước khi đổi DNS | | Có: trong bước kiểm thử, edge gửi vài request về origin và phát hiện vòng chuyển hướng, `403`/`429` từ origin (dấu hiệu origin chặn IP edge), nội dung hỗn hợp trên trang chủ |
+| OQ-149 | Nhập cấu hình từ nơi khác | | Mở rộng: nhập bản ghi DNS và IP allowlist; rule không chuyển tự động, chỉ có hướng dẫn tương đương |
+| OQ-150 | Từ chối lĩnh vực bị cấm từ đầu | Kiểm trước thì chậm, dễ sai | Điều khoản cấm, kiểm domain với danh sách đen đã biết lúc thêm zone, còn lại xử lý qua abuse (OQ-88) |
 
 ## Phụ lục A. Bản nháp luồng đầu tiên (chưa duyệt)
 

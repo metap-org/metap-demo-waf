@@ -368,13 +368,14 @@ Mỗi tiền tố chỉ có một nghĩa trong toàn bộ tài liệu.
 | **M1…M10 / V1…V6 / AI1…AI8** | Năng lực của WAAP hiện đại / vị trí đặt AI/ML / nguyên tắc AI | [requirements §4.1, §4.2](../../requirements/04-product-direction/00-index.md) |
 | **TH0…TH4 / HR1…HR8** | Mức tự hành của SOC / hàng rào an toàn cho hành động tự động | [requirements §4.3](../../requirements/04-product-direction/03-autonomous-soc.md) |
 | **U1…U7 / TD0…TD5 / LC1…LC7** | Mục đích dùng dữ liệu / tầng dữ liệu / lớp lọc dữ liệu nhạy cảm | [requirements §4.4](../../requirements/04-product-direction/04-data-strategy.md) |
+| **H1…H8** | Hồ sơ khách điển hình khi onboarding | [requirements §3.1](../../requirements/03-business-analysis/01-onboarding.md#6-hồ-sơ-khách-điển-hình-đề-xuất-chờ-duyệt) |
 | **KB1-A1…KB12-F3** | Kịch bản của từng nghiệp vụ: `KB<số trang>-<trục><số>`, ví dụ KB1-C4 là trục C (cách trỏ) của onboarding (§3.1) | [requirements §3](../../requirements/03-business-analysis/00-index.md) |
 | **OB1…OB12 / OG1…OG4 / CB1…CB7** | Bước / cổng / việc chuẩn bị trong bản nháp onboarding chưa duyệt (Phụ lục A) | [requirements §3.1](../../requirements/03-business-analysis/01-onboarding.md) |
 | **Q1–Q6** | Mục tiêu chất lượng | [1.3](../01-introduction/00-index.md#13-mục-tiêu-chất-lượng) |
 | **F1…F12, Fx.y, Fx.y.z** | Nhóm chức năng, chức năng, chức năng lá | [requirements §1](../../requirements/01-functional-decomposition.md) |
 | **PM1…PM7 / PC1…PC8 / PE1…PE4 / PA1…PA8** | Thành phần chức năng của Management / Control / Edge / Analytics trong phân rã theo plane | [requirements §1](../../requirements/01-functional-decomposition.md#phân-rã-theo-plane) |
 | **LK-1…LK-28** | Liên kết giữa các plane (chức năng phát → chức năng nhận, hợp đồng, kiểu, hành vi khi hỏng) | [requirements §1](../../requirements/01-functional-decomposition.md#liên-kết-giữa-các-plane) |
-| **FR-x-nn / BR-n / DT-n / NFR-n / IR-n / OQ-n** | Yêu cầu chức năng / quy tắc nghiệp vụ / yêu cầu dữ liệu / phi chức năng / giao tiếp ngoài / câu hỏi mở của requirements (OQ-1…OQ-15 ở §2, OQ-16…OQ-20 ở Phụ lục A của §3.1, OQ-21…OQ-126 và OQ-143…OQ-146 ở các trang của §3, OQ-127…OQ-142 ở §4) | [requirements §2](../../requirements/02-requirements.md) |
+| **FR-x-nn / BR-n / DT-n / NFR-n / IR-n / OQ-n** | Yêu cầu chức năng / quy tắc nghiệp vụ / yêu cầu dữ liệu / phi chức năng / giao tiếp ngoài / câu hỏi mở của requirements (OQ-1…OQ-15 ở §2, OQ-16…OQ-20 ở Phụ lục A của §3.1, OQ-21…OQ-126 và OQ-143…OQ-150 ở các trang của §3, OQ-127…OQ-142 ở §4) | [requirements §2](../../requirements/02-requirements.md) |
 | **QS-1…QS-41** | Kịch bản chất lượng đo được | [10.3](../10-quality/00-index.md#103-kịch-bản) |
 | **R1…R29** | Rủi ro | [11.1](../11-risks/00-index.md) |
 | **A1…A17 / B1…B10** | Tình huống vận hành tự xảy ra / thao tác của người vận hành, mỗi cái có runbook | [8.13](../08-cross-cutting/13-operational-behaviors.md) |

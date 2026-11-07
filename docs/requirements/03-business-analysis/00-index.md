@@ -26,7 +26,7 @@ Mỗi nghiệp vụ đi qua hai bước, và **không viết bước 2 khi chủ
 
 | Mục | Nghiệp vụ | Câu hỏi | Trạng thái |
 |---|---|---|---|
-| [3.1](01-onboarding.md) | Onboarding một website | OQ-21…OQ-32 | Bước 1, chủ dự án đang phân tích (có bản nháp luồng cũ chưa duyệt ở phụ lục) |
+| [3.1](01-onboarding.md) | Onboarding một website | OQ-21…OQ-32, OQ-147…OQ-150 | Bước 1 mở rộng (trục K–N), có hồ sơ khách, cây quyết định kết nối và phân tích mọi câu, đề xuất chờ duyệt (bản nháp luồng cũ vẫn ở phụ lục) |
 | [3.2](02-policy-change.md) | Viết, duyệt, phát hành một thay đổi policy | OQ-33…OQ-40 | Đã quyết OQ-35; các câu còn lại có đề xuất chờ duyệt |
 | [3.3](03-attack-response.md) | Phản ứng khi bị tấn công | OQ-41…OQ-47 | Đã quyết OQ-41 (NCC bật được mitigation); các câu còn lại có đề xuất chờ duyệt |
 | [3.4](04-false-positive.md) | Xử lý chặn nhầm | OQ-48…OQ-53 | Đã quyết cách xử lý và OQ-49; các câu còn lại có đề xuất chờ duyệt |
