@@ -200,7 +200,7 @@ flowchart LR
 | OQ-85 | Bot trong nước trong danh sách xác minh | Mỗi bot thêm là một nguồn phải kiểm định kỳ | Có: Cốc Cốc và bot xem trước link của Zalo, Facebook, Telegram, Slack vào danh sách từ MVP; threat research duy trì |
 | OQ-100 | Bài toán ưu tiên ở MVP | | Credential stuffing và SMS pumping (mất tiền trực tiếp, hay gặp ở khách trong nước), rồi flash sale; scraping để Mở rộng vì khó phân biệt với đối tác |
 | OQ-101 | Challenge request AJAX/JSON | Trang HTML trả cho JSON làm ứng dụng hỏng | Không challenge tương tác trên request không phải điều hướng trang; trả `403` hoặc `429` có mã lỗi JSON và header gợi ý; ứng dụng tự mở challenge khi cần |
-| OQ-102 | Dữ liệu giả, tarpit | Dữ liệu giả có rủi ro pháp lý, gây nhầm cho đối tác | Tarpit (làm chậm) có ở Mở rộng; dữ liệu giả không làm |
+| OQ-102 | Dữ liệu giả, tarpit | Dữ liệu giả có rủi ro pháp lý, gây nhầm cho đối tác | Tarpit (làm chậm) có ở Mở rộng; dữ liệu giả không làm. **Tarpit đã quyết 2026-11-07** ở [3.13](13-configuration-surface.md#4-đã-quyết): có trần theo node, không dùng làm cách chính chống credential stuffing |
 | OQ-103 | Clearance | | Thời hạn mặc định 30 phút, khách chỉnh 5 phút tới 24 giờ; không gắn cứng với IP (người dùng di động), gắn với dấu vân tay TLS và zone; dùng chung giữa các subdomain của zone |
 | OQ-104 | Tín hiệu hành vi | Dữ liệu cá nhân | Mặc định tắt như kiến trúc 8.16; khách bật thì có văn bản mẫu để đưa vào chính sách quyền riêng tư của họ |
 | OQ-105 | Tín hiệu chéo tenant | | Có, chỉ ở dạng reputation gộp (IP, ASN, dấu vân tay), không chia sẻ request; là lợi thế lớn nhất của một nền tảng nhiều khách (xem [§4.4](../04-product-direction/04-data-strategy.md)) |

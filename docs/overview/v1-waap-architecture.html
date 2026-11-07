@@ -2770,10 +2770,10 @@ Thiết kế component dưới đây đúng với mọi phương án; chỗ khá
 </tr>
 <tr>
 <td>4</td>
-<td>Access list (allow, deny, reputation)</td>
+<td>Access list (trust, skip, deny, reputation)</td>
 <td>L7</td>
 <td>Rất thấp (trie)</td>
-<td>Block; allow bỏ qua bước 5–11 theo phạm vi cấu hình</td>
+<td>Block; trust bỏ qua bot và challenge (bước 6, phần bot của bước 9); skip bỏ qua đúng chặng đã chỉ định; không chặng nào bỏ qua được DDoS L7 ở bước 8</td>
 </tr>
 <tr>
 <td>5</td>
@@ -2870,8 +2870,16 @@ không body) để giảm tải WAF cho site nhiều static.</p>
 <td>Giới hạn header, URL, số tham số, độ sâu JSON; từ chối request sai chuẩn (smuggling: <code>Content-Length</code> + <code>Transfer-Encoding</code> mâu thuẫn); chuẩn hoá path cho pre-filter, giữ bản gốc gửi WAF</td>
 </tr>
 <tr>
+<td><strong>Client IP resolver</strong></td>
+<td>Zone đứng sau CDN của khách: header IP thật (<code>X-Forwarded-For</code>, <code>True-Client-IP</code>, <code>CF-Connecting-IP</code>...) và dải IP CDN do khách khai, hoặc preset có dải tự cập nhật (Cloudflare, Akamai, CloudFront). Chỉ đọc header khi IP TCP nằm trong dải đó; <code>X-Forwarded-For</code> đọc từ phải sang, lấy IP đầu tiên không thuộc dải tin cậy; còn lại dùng IP TCP (<a href="v1-waap-requirements.html#f-02-requirements--4-quy-tắc-nghiệp-vụ" target="_blank" rel="noopener">BR-31</a>). Mọi bước sau (access list, rate limit, bot) dùng IP đã giải</td>
+</tr>
+<tr>
 <td><strong>Access list</strong></td>
-<td>Trie IPv4/IPv6; geo/ASN từ MMDB; danh sách reputation của NCC trong bundle chung; <code>allow</code> có phạm vi (bỏ qua rate limit, challenge, WAF, hoặc tất cả)</td>
+<td>Trie IPv4/IPv6; geo/ASN từ MMDB; danh sách reputation của NCC trong bundle chung. Hai hành động tách biệt (<a href="v1-waap-requirements.html#f-02-requirements--4-quy-tắc-nghiệp-vụ" target="_blank" rel="noopener">BR-28</a>): <code>trust</code> bỏ qua bot và challenge, WAF vẫn kiểm, vẫn chịu rate limit và DDoS L7; <code>skip</code> bỏ qua đúng một chặng đã chỉ định (bot, challenge, rate limit rule cụ thể, WAF managed cho path) trong phạm vi đã chỉ định. Cả hai vẫn ghi log</td>
+</tr>
+<tr>
+<td><strong>Tarpit</strong></td>
+<td>Hành động <code>tarpit</code> (Mở rộng): giữ request vài giây rồi trả 403. Trần số kết nối tarpit trên mỗi node (theo cả tenant); vượt trần thì block ngay, không giữ thêm, để botnet lớn không làm cạn connection slot của chính edge</td>
 </tr>
 <tr>
 <td><strong>Challenge &amp; clearance</strong></td>
@@ -2911,7 +2919,11 @@ không body) để giảm tải WAF cho site nhiều static.</p>
 </tr>
 <tr>
 <td><strong>Upstream</strong></td>
-<td>Pool kết nối theo origin, mTLS tới origin, retry cho request idempotent, health check thụ động; Mở rộng: đi qua origin shield (tiered cache)</td>
+<td>Pool kết nối theo origin, mTLS tới origin, retry cho request idempotent, health check thụ động; Mở rộng: đi qua origin shield (tiered cache). <strong>Origin pool</strong> (Mở rộng, Business trở lên): active-passive, round-robin hoặc theo trọng số; health check chủ động từ edge-agent và thụ động (lỗi kết nối, 502/504) đếm theo node trong cửa sổ cấu hình, vượt ngưỡng thì đưa origin ra khỏi pool và chuyển sang dự phòng, phát event để báo khách; request không idempotent không bao giờ gửi lại sang origin khác</td>
+</tr>
+<tr>
+<td><strong>Response builder</strong></td>
+<td>Trang do edge sinh (403 WAF, 429, 502, 504, 503 bảo trì, challenge) lấy từ <strong>CustomErrorPage</strong> của zone, rồi của tenant, rồi mặc định của NCC; path API (theo schema hoặc <code>Accept: application/json</code>) trả JSON. Template là HTML, CSS tĩnh đã kiểm ở Management (không JavaScript, không tài nguyên ngoài); edge chỉ thay các chỗ giữ request ID, mã lỗi, thời điểm, và gửi kèm <code>Cache-Control: no-store</code></td>
 </tr>
 <tr>
 <td><strong>Telemetry</strong></td>
@@ -3610,6 +3622,11 @@ chỉ nạp phần bundle của mình từ cùng một manifest, nên hai tầng
 <td>Đọc version, lịch sử, trạng thái biên dịch và rollout</td>
 </tr>
 <tr>
+<td><strong>Validate (dry-run)</strong></td>
+<td>Phục vụ <code>POST /zones/{id}/policy:validate</code> của public API (Terraform plan, CI) qua Management</td>
+<td>Nhận tài liệu policy đề xuất, chạy CEL checker, CRS config generator, entitlement validator, bundle builder và <code>edge-verify</code> như một lần biên dịch thật, trả lỗi theo rule; <strong>không</strong> ghi config repository, không tạo PolicyVersion hay change request, không ký. Worker riêng, độ ưu tiên thấp hơn job biên dịch thật; quota theo tenant (<a href="v1-waap-requirements.html#f-02-requirements--f5-vòng-đời-policy" target="_blank" rel="noopener">FR-5-20</a>)</td>
+</tr>
+<tr>
 <td><strong>Job queue</strong></td>
 <td>Lập lịch biên dịch</td>
 <td>Bảng <code>compile_jobs</code>, worker lấy bằng <code>FOR UPDATE SKIP LOCKED</code>; job khẩn có priority cao hơn</td>
@@ -3777,7 +3794,11 @@ message ZoneBundle {
 </tr>
 <tr>
 <td><strong>Gate evaluator</strong></td>
-<td>Điều kiện qua đợt: tỉ lệ ACK ≥ 99% node đích, không NACK, độ trễ p99 không tăng quá ngưỡng, tỉ lệ chặn và tỉ lệ 5xx của zone không lệch quá ngưỡng so với version trước (từ Analytics)</td>
+<td>Điều kiện qua đợt: tỉ lệ ACK ≥ 99% node đích, không NACK, độ trễ p99 không tăng quá ngưỡng, tỉ lệ chặn và tỉ lệ 5xx của zone không lệch quá ngưỡng so với version trước (từ Analytics). <strong>Gate theo tỉ lệ chặn, traffic chỉ tự rollback bản phát hành của NCC</strong> (ruleset, bundle chung, node profile, phần mềm edge). Với policy của khách (lớp A), chỉ ACK/NACK, node lỗi và độ trễ tự rollback; tỉ lệ chặn lệch thì dừng đợt, báo khách và gợi ý rollback, vì một rule block làm tăng 403 là đúng ý khách (<a href="v1-waap-requirements.html#f-02-requirements--4-quy-tắc-nghiệp-vụ" target="_blank" rel="noopener">BR-29</a>)</td>
+</tr>
+<tr>
+<td><strong>Tiến độ cho portal</strong></td>
+<td>Mỗi lần đổi trạng thái đợt, phát <code>RolloutProgress</code> (version, % node đã ACK theo region, trạng thái, lý do khi dừng hoặc rollback) lên RabbitMQ; Realtime gateway đẩy vào topic <code>rollout:{version}</code>. Lý do nêu theo region, không nêu tên cell hay node</td>
 </tr>
 <tr>
 <td><strong>Fast lane</strong></td>
@@ -4386,6 +4407,14 @@ rule, ASN, quốc gia), hiệu quả rule theo policy version, số liệu sử 
 <tr>
 <td><strong>Router</strong></td>
 <td>Cấu hình đích lấy từ Management (qua sự kiện); mỗi bản ghi enriched được định tuyến tới các đích của tenant đó</td>
+</tr>
+<tr>
+<td><strong>Bộ lọc</strong></td>
+<td>Theo đích: loại bản ghi (security event, access log, audit log), hành động (block, challenge, log, allow), zone, trường xuất; lấy mẫu riêng cho log allow. Lọc trước khi xếp hàng nên bản ghi bị loại không tốn hàng đợi. Bản nâng cao (bán thêm) dùng biểu thức cùng ngôn ngữ của rule, đã kiểm chi phí, thay vì regex (<a href="v1-waap-requirements.html#f-02-requirements--f7-quan-sát-và-điều-tra" target="_blank" rel="noopener">FR-7-11</a>)</td>
+</tr>
+<tr>
+<td><strong>Audit log</strong></td>
+<td>Management phát audit entry (kèm hash của entry trước, theo account) sang topic riêng; exporter đẩy cùng đường với event tới đích có bật audit, giữ nguyên chuỗi hash để khách tự kiểm toàn vẹn (<a href="v1-waap-requirements.html#f-02-requirements--f1-tenant-và-danh-tính" target="_blank" rel="noopener">FR-1-19</a>)</td>
 </tr>
 <tr>
 <td><strong>Hàng đợi theo đích</strong></td>
@@ -5241,6 +5270,10 @@ steps:
 <td>Renotify và cảnh báo tổng hợp (chống bão) gửi một tin cho nhiều alert</td>
 </tr>
 <tr>
+<td>Dedup</td>
+<td>Khoá <code>(alert_rule, zone, nguồn)</code>; trong cửa sổ gộp (mặc định 30 phút) chỉ tin đầu gửi riêng, các lần sau vào thread của tin đó (Slack, Teams) hoặc một digest cuối cửa sổ (email, SMS); mức tăng hoặc nguồn mới phá khoá và gửi tin mới (<a href="v1-waap-requirements.html#f-02-requirements--f8-phát-hiện-cảnh-báo-sự-cố" target="_blank" rel="noopener">FR-8-08</a>)</td>
+</tr>
+<tr>
 <td>Dự phòng</td>
 <td>Mọi kênh của một cảnh báo critical đều lỗi → gửi email tới liên hệ bảo mật của account</td>
 </tr>
@@ -5275,6 +5308,10 @@ steps:
 <tr>
 <td><strong>Ack ngược</strong></td>
 <td>Link ack có ký trong email/SMS, nút ack trong Slack/Teams, API; ack dừng escalation</td>
+</tr>
+<tr>
+<td><strong>Xử lý một bấm</strong></td>
+<td>Cảnh báo có đề xuất mitigation (bật Under Attack, chặn ASN 24 giờ...) kèm link tới trang xác nhận trên portal. Token trong link chỉ trỏ tới <code>CaseProposal</code>, hạn ngắn, không thay cho đăng nhập; mở link (kể cả trình quét link của email, Slack) không thay đổi gì; hành động chạy sau khi người dùng đăng nhập và bấm xác nhận, qua kênh khẩn (<a href="v1-waap-requirements.html#f-02-requirements--4-quy-tắc-nghiệp-vụ" target="_blank" rel="noopener">BR-30</a>)</td>
 </tr>
 </tbody>
 </table>
@@ -5468,9 +5505,9 @@ dùng chung tenant, quyền, audit; tách service khi có lý do scale cụ th�
 </tr>
 <tr>
 <td><strong>zone</strong></td>
-<td>Zone, Hostname, Origin, CertRequest, CacheRule, PurgeRequest, DnsRecord (Mở rộng)</td>
+<td>Zone, Hostname, Origin, OriginPool (Mở rộng), CertRequest, CacheRule, PurgeRequest, CustomErrorPage, TrustedProxyRange, DnsRecord (Mở rộng)</td>
 <td><code>pending → verifying → active ↔ paused → removed</code></td>
-<td>Xác minh DNS, kiểm origin, đổi fail mode, purge cache (fast lane), cấu hình chế độ đứng sau CDN của khách, quản lý bản ghi DNS (Mở rộng)</td>
+<td>Xác minh DNS, kiểm origin, đổi fail mode, purge cache (fast lane), cấu hình chế độ đứng sau CDN của khách (header IP thật, dải IP CDN), kiểm và xem trước trang lỗi (từ chối JavaScript, tài nguyên ngoài), quản lý bản ghi DNS (Mở rộng)</td>
 </tr>
 <tr>
 <td><strong>policy</strong></td>
@@ -5482,7 +5519,7 @@ dùng chung tenant, quyền, audit; tách service khi có lý do scale cụ th�
 <td><strong>change</strong></td>
 <td>ChangeRequest, Approval</td>
 <td><code>draft → simulating → pending_approval → approved → publishing → enforced</code> / <code>rejected</code> / <code>rolled_back</code></td>
-<td>Gửi replay, duyệt 4-eyes, publish (ghi outbox), kênh khẩn (Under Attack mode, rule tạm)</td>
+<td>Gửi replay, duyệt 4-eyes, publish (ghi outbox), kênh khẩn (Under Attack mode, rule tạm), emergency override, validate (dry-run) gọi Control</td>
 </tr>
 <tr>
 <td><strong>case</strong></td>
@@ -5522,6 +5559,13 @@ dùng chung tenant, quyền, audit; tách service khi có lý do scale cụ th�
 </tr>
 </tbody>
 </table>
+<p><strong>Emergency override</strong> (<a href="v1-waap-requirements.html#f-02-requirements--4-quy-tắc-nghiệp-vụ" target="_blank" rel="noopener">BR-27</a>): ở account cần duyệt, workflow có thêm
+transition <code>emergency_apply</code> từ <code>draft</code> thẳng sang <code>publishing</code> (fast lane), guard gồm ba điều kiện: người gọi có
+policy <code>transition:emergency_apply</code>, mọi thay đổi trong change request đều là loại siết chặt (kiểm bằng diff,
+không tin cờ do client gửi), và có <code>expires_at</code>. Sau đó change request ở <code>enforced</code> với cờ <code>pending_review</code>;
+transition <code>review_approve</code> (guard <code>$workflow.actors.emergency_apply</code> khác người gọi) xoá cờ; tới hạn mà chưa
+duyệt thì <code>metap-cron</code> tạo change request rollback. Mỗi lần dùng phát cảnh báo critical tới mọi Owner, Admin của
+account. Dùng cùng cơ chế workflow theo người gọi của <code>metap-go</code> (Phase 104).</p>
 <p>Thiết kế database: <a href="#f-05-building-blocks-08-components-14-management-database">5.8.14</a>. Audit dùng <code>metap-audit</code> cho mọi entity; FP label (đánh dấu chặn nhầm) ghi ở Management rồi phát
 sang Analytics để join vào hiệu quả rule.</p>
 <h2 id="f-05-building-blocks-08-components-12-management--tích-hợp">Tích hợp</h2>
@@ -5703,6 +5747,10 @@ lúc ClickHouse đang chịu tải ghi cao nhất vì tấn công. Vì vậy lu�
 <tr>
 <td><strong>Live tap (trong enricher)</strong></td>
 <td>Enricher (Go, <a href="#f-05-building-blocks-08-components-08-ingestion-and-storage">5.8.8</a>) chỉ ghi vào topic <code>live</code> cho zone có trong registry: số liệu gộp mỗi giây và security event đã che, <strong>trần 50 event/s mỗi zone</strong> (lấy mẫu khi vượt). Đầu vào của gateway tỉ lệ với số zone đang được xem, không với tổng traffic hay cường độ tấn công</td>
+</tr>
+<tr>
+<td><strong>Live tail</strong></td>
+<td>Phiên SOC mở live tail kèm bộ lọc (rule ID, IP, path, hành động); gateway lọc trên luồng event của zone ngay trong zone aggregator, chỉ đẩy event khớp qua WebSocket. Gồm hit của rule log-only. Trần event/s theo gói như event live, phiên tối đa 30 phút rồi phải mở lại; chỉ người có quyền xem dữ liệu request (<a href="v1-waap-requirements.html#f-02-requirements--f7-quan-sát-và-điều-tra" target="_blank" rel="noopener">FR-7-10</a>). Khi zone vượt trần 50 event/s ở live tap, event bị lấy mẫu trước khi lọc, nên portal báo &quot;đang lấy mẫu&quot;</td>
 </tr>
 <tr>
 <td><strong>Zone aggregator</strong></td>
@@ -6256,6 +6304,24 @@ theo tenant) hay <strong>toàn cục</strong> (qua <code>waap_global</code>).</p
 <td>Con trỏ do sự kiện từ Control cập nhật; tách khỏi <code>zones</code> để không đụng optimistic lock của người sửa zone</td>
 </tr>
 <tr>
+<td><code>custom_error_pages</code></td>
+<td><code>tenant_id</code>, <code>zone_id</code> ref (null = cấp tenant), <code>error_kind</code> (<code>waf_block</code> / <code>rate_limited</code> / <code>origin_502</code> / <code>origin_504</code> / <code>maintenance_503</code> / <code>challenge</code>), <code>format</code> (<code>html</code> / <code>json</code>), <code>content_hash</code></td>
+<td>Unique: <code>(tenant_id, zone_id, error_kind, format)</code></td>
+<td>Nội dung (HTML, CSS tĩnh, ảnh nhúng) đã kiểm ở module zone, lưu object storage khi lớn</td>
+</tr>
+<tr>
+<td><code>trusted_proxy_ranges</code></td>
+<td><code>zone_id</code> ref, <code>preset</code> (<code>cloudflare</code> / <code>akamai</code> / <code>cloudfront</code> / <code>custom</code>), <code>client_ip_header</code>, <code>cidrs</code></td>
+<td>Unique: <code>zone_id</code></td>
+<td>Preset có dải do NCC cập nhật</td>
+</tr>
+<tr>
+<td><code>origin_pools</code> (Mở rộng)</td>
+<td><code>zone_id</code> ref, <code>mode</code> (<code>active_passive</code> / <code>round_robin</code> / <code>weighted</code>), <code>health_check</code></td>
+<td>Index <code>(zone_id)</code></td>
+<td><code>origins.pool</code> trỏ vào đây</td>
+</tr>
+<tr>
 <td><code>dns_records</code> (Mở rộng)</td>
 <td><code>zone_id</code> ref, <code>type</code>, <code>name</code>, <code>proxied</code></td>
 <td>Unique zone: <code>(zone_id, type, name, value)</code></td>
@@ -6371,9 +6437,9 @@ của zone được chuẩn hoá thành <strong>một tài liệu</strong> và g
 <tbody>
 <tr>
 <td><code>change_requests</code></td>
-<td><code>zone_id</code> ref (hoặc null cho thay đổi nhiều zone), <code>batch_id</code>, <code>base_version_id</code>, <code>kind</code> (<code>normal</code> / <code>emergency</code>), <code>author_member_id</code>, <code>expires_at</code></td>
-<td>Index <code>(zone_id, status)</code>, <code>(batch_id)</code></td>
-<td>Workflow ở 5.8.12; nội dung đề xuất là tài liệu trong <code>data</code></td>
+<td><code>zone_id</code> ref (hoặc null cho thay đổi nhiều zone), <code>batch_id</code>, <code>base_version_id</code>, <code>kind</code> (<code>normal</code> / <code>emergency</code> / <code>emergency_override</code>), <code>author_member_id</code>, <code>expires_at</code>, <code>pending_review</code></td>
+<td>Index <code>(zone_id, status)</code>, <code>(batch_id)</code>; index <code>(expires_at)</code> where <code>pending_review</code></td>
+<td>Workflow ở 5.8.12; nội dung đề xuất là tài liệu trong <code>data</code>. <code>emergency_override</code> bắt buộc <code>expires_at</code></td>
 </tr>
 <tr>
 <td><code>change_batches</code></td>

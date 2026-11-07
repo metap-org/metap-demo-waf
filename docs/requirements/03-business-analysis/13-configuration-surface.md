@@ -1,6 +1,6 @@
 # 3.13 Bề mặt cấu hình: rule và setting trên portal
 
-> **Trạng thái: bước 1, chưa có quyết định nào (2026-11-07).** Trang này mở theo nhận xét của chủ dự án:
+> **Trạng thái: bước 1, đã quyết một nhóm tính năng (2026-11-07, [§4](#4-đã-quyết)).** Trang này mở theo nhận xét của chủ dự án:
 > một sản phẩm WAAP kiểu Cloudflare cho cấu hình hầu hết mọi thứ bằng rule trên portal: whitelist, blacklist,
 > rate limit, JA4, cookie challenge, trang chặn, cảnh báo tấn công (ngưỡng, format, kênh). Ngoài ra admin cần
 > cấu hình nâng cao cho từng lớp L7 và WAF. Tài liệu hiện có liệt kê các chức năng này rời rạc ở F3–F8, nhưng
@@ -141,16 +141,40 @@ khách; có mở một phần cho Enterprise hay không là OQ-159.
 | KB13-J2 | Mọi mục ở §2 có API, Terraform không | UI là nguồn sự thật (OQ-35 đã quyết) |
 | KB13-J3 | Thay đổi một list dùng chung ảnh hưởng nhiều zone | Diff phải cho thấy zone nào bị ảnh hưởng |
 
-## 4. Câu hỏi cần chủ dự án quyết
+## 4. Đã quyết
+
+Chủ dự án đưa danh sách tính năng theo từng plane, Claude nêu các điểm cần chỉnh, chủ dự án đồng ý cả hai
+(2026-11-07). Yêu cầu tương ứng ở [§2](../02-requirements.md); thiết kế ở các component 5.8.x.
+
+| Nhóm | Quyết định | Yêu cầu |
+|---|---|---|
+| Trang lỗi tuỳ biến | Entity **CustomErrorPage** theo tenant hoặc zone, map với từng loại lỗi (403 WAF, 429, 502, 504, 503 bảo trì, trang challenge); path API trả JSON. HTML, CSS tĩnh: không JavaScript, không tài nguyên ngoài, ảnh nhúng có trần dung lượng; edge tự chèn request ID; xem trước được | FR-3-16 |
+| Emergency override | Ở account cần duyệt, áp ngay vào fast lane, chỉ cho thay đổi siết chặt, có hạn, duyệt bù, cảnh báo critical tới Owner, Admin | FR-5-21, BR-27 |
+| Trust và Skip | Hai hành động tách biệt: Trust bỏ qua bot và challenge, WAF vẫn kiểm, vẫn chịu DDoS L7 và rate limit; Skip bỏ qua đúng một chặng. Googlebot đi qua bot đã xác minh, không theo IP hay User-Agent | FR-3-15, BR-28 (đóng KB13-B1) |
+| Xuất audit log | Đẩy liên tục sang SIEM, gồm thao tác của NCC, có chuỗi hash | FR-1-19 |
+| Tiến độ rollout | Realtime trên portal, nêu lý do khi dừng. Policy của khách không tự rollback theo tỉ lệ chặn hay traffic (một rule block làm tăng 403 là đúng ý khách); bản phát hành của NCC thì có | FR-5-13, FR-6-04, BR-29 |
+| Dry-run cho CI/CD | Endpoint validate không lưu, cùng checker và `edge-verify`, có quota | FR-5-20 |
+| Origin failover | Active-passive, round-robin, theo trọng số; health check chủ động và thụ động; không gửi lại request không idempotent | FR-4-05 |
+| Tarpit | Có, với trần số kết nối giữ trên mỗi node, vượt trần thì block; không dùng làm cách chính chống credential stuffing (cách chính là rate limit endpoint đăng nhập cộng challenge) | FR-3-17 |
+| IP thật sau CDN | Khai header và dải IP CDN; chỉ tin header từ dải đó; đọc `X-Forwarded-For` từ phải sang; preset CDN phổ biến | FR-3-14, BR-31 |
+| Xử lý một bấm | Link trong thông báo mở portal, đăng nhập, xác nhận; không bao giờ tự thực thi khi mở (trình quét link tự mở link) | FR-8-09, BR-30 |
+| Live tail | Lọc theo rule ID, IP, path, hành động, gồm hit log-only; lọc ở Realtime gateway trên luồng live đã có; theo quyền xem dữ liệu request | FR-7-10 |
+| Chống bão cảnh báo | Dedup theo alert, zone, nguồn trong cửa sổ 30 phút, gom vào thread hoặc digest; mức tăng hoặc nguồn mới phá dedup | FR-8-08 |
+| Lọc khi export | Theo hành động, loại event, zone, trường, lấy mẫu log allow; bản lọc nâng cao dùng cùng ngôn ngữ biểu thức của rule thay vì regex | FR-7-11 |
+
+Chi tiết Claude thêm khi ghi, **chờ duyệt**: DDoS L7 không skip được; emergency override mặc định hạn 24 giờ;
+cửa sổ dedup mặc định 30 phút.
+
+## 5. Câu hỏi cần chủ dự án quyết
 
 | ID | Câu hỏi | Kịch bản | Ghi chú ban đầu |
 |---|---|---|---|
-| OQ-151 | Một ngôn ngữ biểu thức chung cho mọi loại rule, hay form riêng cho từng tính năng? | KB13-A1…KB13-A5 | Cloudflare dùng một ngôn ngữ chung, form builder sinh ra biểu thức |
+| OQ-151 | Một ngôn ngữ biểu thức chung cho mọi loại rule, hay form riêng cho từng tính năng? | KB13-A1…KB13-A5 | Cloudflare dùng một ngôn ngữ chung, form builder sinh ra biểu thức. Custom rule đã dùng CEL ([ADR-0032](../../architecture/09-adr/0032-cel-checked-at-control-ir-at-edge.md)); câu hỏi là có mở rộng CEL cho mọi loại rule không |
 | OQ-152 | Biểu thức ở MVP gồm những trường nào (IP, quốc gia, ASN, JA4, User-Agent, URI, header, cookie, body, bot score, kết quả WAF)? | KB13-A4 | |
 | OQ-153 | Có list dùng lại cấp account (IP, ASN, JA4, hostname) không? | KB13-C1, KB13-J3 | |
 | OQ-154 | Rate limit ở MVP có khoá đếm theo biểu thức, đếm theo response và thời gian phạt không? | §2 | |
 | OQ-155 | Khách được chọn những loại challenge nào (cookie, JS, tương tác, managed)? TTL clearance do khách đặt hay cố định? | §2 | Gắn với 3.9 |
-| OQ-156 | Trang chặn: khách sửa HTML tự do, hay chỉ điền template (logo, màu, nội dung, liên hệ)? Gói nào? | KB13-F1…KB13-F6 | |
+| OQ-156 | Trang chặn: khách sửa HTML tự do, hay chỉ điền template (logo, màu, nội dung, liên hệ)? Gói nào? | KB13-F1…KB13-F6 | **Đã quyết một phần** ở §4: tải HTML, CSS tĩnh, không JavaScript; còn mở gói nào có |
 | OQ-157 | Có nhóm transform rule (header, rewrite, redirect) ở v1 không? | §2 | |
 | OQ-158 | Cảnh báo: ngưỡng riêng từng loại hay chỉ mức nhạy? Có template nội dung không? Có kênh Zalo, Telegram không? | KB13-G1…KB13-G8 | |
 | OQ-159 | Cấu hình nâng cao từng lớp: những tham số nào, phạm vi áp ở đâu, chỉ admin NCC hay mở một phần cho Enterprise? | KB13-H1…KB13-H5 | |
@@ -158,7 +182,7 @@ khách; có mở một phần cho Enterprise hay không là OQ-159.
 | OQ-161 | Có công cụ giải thích "vì sao request này bị chặn" cho khách không? | KB13-B4 | |
 | OQ-162 | Trần số rule và độ phức tạp theo gói? | KB13-D1…KB13-D4 | Gắn với 3.5 |
 
-## 5. Phụ thuộc
+## 6. Phụ thuộc
 
 F3, F5, F8 ở [§1](../01-functional-decomposition.md); [3.2](02-policy-change.md), [3.4](04-false-positive.md),
 [3.9](09-bot-management.md), [3.10](10-cache-performance.md), [3.12](12-api-security.md); pipeline ở

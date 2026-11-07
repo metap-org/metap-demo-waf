@@ -113,6 +113,7 @@ sequenceDiagram
 | Cô lập | Mỗi loại kênh một pool worker; mỗi kênh cụ thể một giới hạn tốc độ (ví dụ Slack 1 tin/s mỗi webhook) |
 | Idempotency | Khoá `(alert_id, event, channel)`: alert engine gửi lặp không sinh tin lặp |
 | Gộp | Renotify và cảnh báo tổng hợp (chống bão) gửi một tin cho nhiều alert |
+| Dedup | Khoá `(alert_rule, zone, nguồn)`; trong cửa sổ gộp (mặc định 30 phút) chỉ tin đầu gửi riêng, các lần sau vào thread của tin đó (Slack, Teams) hoặc một digest cuối cửa sổ (email, SMS); mức tăng hoặc nguồn mới phá khoá và gửi tin mới ([FR-8-08](../../../requirements/02-requirements.md#f8-phát-hiện-cảnh-báo-sự-cố)) |
 | Dự phòng | Mọi kênh của một cảnh báo critical đều lỗi → gửi email tới liên hệ bảo mật của account |
 | SLO | Từ `firing` tới gửi thành công qua kênh push: p95 ≤ 30 s |
 
@@ -126,6 +127,7 @@ Khách không chạy code của họ trong hệ thống. Có bốn cách để k
 | **Template body** | Khách định nghĩa body webhook bằng template (biến cho phép: alert, zone, giá trị, ngưỡng, top nguồn, link) để khớp API có sẵn của hệ thống đích mà không cần dịch vụ trung gian |
 | **API kéo và ack** | `GET /alerts?state=firing`, `POST /alerts/{id}/ack`: hệ thống của khách tự kéo và đóng vòng |
 | **Ack ngược** | Link ack có ký trong email/SMS, nút ack trong Slack/Teams, API; ack dừng escalation |
+| **Xử lý một bấm** | Cảnh báo có đề xuất mitigation (bật Under Attack, chặn ASN 24 giờ...) kèm link tới trang xác nhận trên portal. Token trong link chỉ trỏ tới `CaseProposal`, hạn ngắn, không thay cho đăng nhập; mở link (kể cả trình quét link của email, Slack) không thay đổi gì; hành động chạy sau khi người dùng đăng nhập và bấm xác nhận, qua kênh khẩn ([BR-30](../../../requirements/02-requirements.md#4-quy-tắc-nghiệp-vụ)) |
 
 Webhook URL qua SSRF guard (chặn địa chỉ nội bộ, link-local, metadata cloud; không theo redirect) như
 cron webhook của `metap`. Bí mật kênh lưu qua `SecretStore`, không bao giờ hiện lại sau khi lưu.

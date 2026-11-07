@@ -65,6 +65,7 @@ một hay nhiều chức năng lá `F…`. Requirement chất lượng không vi
 | FR-1-15 | Hệ thống phải có service account không gắn người, sở hữu API key cho CI/CD | F1.4.3 | MVP | Gỡ người tạo không làm mất service account |
 | FR-1-16 | Mọi thay đổi qua UI, API, Terraform, SCIM, kênh khẩn và thao tác của NCC phải ghi audit: người/máy, đối tượng, trước/sau, thời điểm, IP, kênh | F1.5.1 | MVP | Không có API ghi nào mà không sinh audit (test tự động trên toàn bộ API) |
 | FR-1-17 | Kiểm toán phải lọc audit theo người, đối tượng, loại hành động, thời gian, và xuất CSV/JSON | F1.5.2, F1.5.3 | MVP | Xuất 1 triệu dòng không làm chậm portal của tenant khác |
+| FR-1-19 | Audit log phải đẩy liên tục sang SIEM của khách qua cùng exporter với security event, gồm thao tác của nhân viên NCC trên zone khách, và có chuỗi hash để kiểm toàn vẹn (PCI DSS 10) | F1.5.3, F1.5.4 | MVP | Sửa hoặc xoá một dòng audit làm kiểm chuỗi hash báo lỗi |
 | FR-1-18 | Một tài khoản người dùng phải thuộc được nhiều org; người dùng chuyển org trong portal; SSO bắt buộc và chính sách MFA áp theo từng org; API key luôn thuộc một org ([3.6](03-business-analysis/06-members-access.md#3-đã-quyết)) | F1.2.6 | MVP | Gỡ khỏi org A không ảnh hưởng quyền ở org B; SCIM của org A chỉ đổi membership trong org A |
 
 ### F2 Zone và onboarding
@@ -124,10 +125,15 @@ Phần lớn là hành vi của edge; requirement đo được đã có ở 10.3
 | FR-3-11 | Edge phải thực thi trần cứng của gói có trần | F3.8.4 | MVP | QS-36 |
 | FR-3-12 | Zone phải chọn được fail-open hoặc fail-closed khi tầng WAF không trả lời kịp | F3.9.1 | MVP | QS-18 |
 | FR-3-13 | Edge phải xác thực với origin bằng mTLS hoặc header bí mật do khách cấu hình | F3.9.2 | MVP | |
+| FR-3-14 | Khi zone đứng sau CDN của khách, edge chỉ lấy IP client từ header đã khai nếu kết nối đến từ dải IP CDN đã khai; `X-Forwarded-For` đọc từ phải sang, lấy IP đầu tiên không thuộc dải tin cậy ([BR-31](#4-quy-tắc-nghiệp-vụ)) | F3.1.4 | MVP | Request từ ngoài dải CDN mang `True-Client-IP` giả không đổi được IP mà rate limit dùng |
+| FR-3-15 | Access list và custom rule phải có hai hành động tách biệt Trust và Skip theo [BR-28](#4-quy-tắc-nghiệp-vụ); UI và API gọi đúng tên, nói rõ chặng nào bị bỏ qua | F3.2.4 | MVP | IP được Trust vẫn bị rate limit và DDoS L7 chặn khi flood |
+| FR-3-16 | Khách nên tải trang lỗi tuỳ biến (HTML, CSS tĩnh) theo tenant hoặc zone và map với từng loại lỗi; edge tự chèn request ID; path API trả JSON | F3.8.2 | MR | Trang có JavaScript hoặc tài nguyên ngoài bị từ chối khi lưu; xem trước được trước khi phát hành |
+| FR-3-17 | Edge nên có hành động tarpit có trần theo node | F3.8.5 | MR | Vượt trần, request tarpit mới chuyển thành block, không tăng số kết nối giữ |
 | FR-4-01 | Edge phải cache theo Cache-Control và cache rule của khách, phục vụ bản cũ khi origin lỗi | F4.1.1, F4.1.2, F3.9.3 | MVP | |
 | FR-4-02 | Người dùng phải purge toàn zone, theo URL, theo prefix trong hạn mức gói | F4.2.1 | MVP | QS-15 |
 | FR-4-03 | DNS điều hướng phải trả IP PoP khoẻ, gần client | F4.3.1 | MVP | QS-16 |
-| FR-4-04 | Khách nên dùng được DNS authoritative với bản ghi proxied, DNSSEC; nhóm origin có health check và failover | F4.3.2, F4.4.1 | MR | |
+| FR-4-04 | Khách nên dùng được DNS authoritative với bản ghi proxied, DNSSEC | F4.3.2 | MR | |
+| FR-4-05 | Khách gói Business, Enterprise nên cấu hình nhóm origin active-passive, round-robin hoặc theo trọng số, health check chủ động và thụ động; origin chính lỗi liên tiếp trong cửa sổ cấu hình thì edge chuyển sang origin dự phòng và báo khách | F4.4.1 | MR | Request không idempotent (POST, PATCH...) không bao giờ được gửi lại sang origin khác |
 
 ### F5 Vòng đời policy
 
@@ -145,13 +151,15 @@ Phần lớn là hành vi của edge; requirement đo được đã có ở 10.3
 | FR-5-10 | Account bật 4-eyes thì change request phải có người duyệt khác người tạo ([BR-5](#4-quy-tắc-nghiệp-vụ)); account self-service phát hành thẳng, không qua duyệt ([BR-26](#4-quy-tắc-nghiệp-vụ)) | F5.3.2 | MR | Cùng một workflow: mỗi người chỉ thấy nút mình bấm được (phát hành, gửi duyệt, duyệt); người gửi có vai trò duyệt vẫn không tự duyệt được |
 | FR-5-11 | Account nên đặt được khung giờ cho phép phát hành; ngoài khung chỉ kênh khẩn chạy | F5.3.3 | MR | |
 | FR-5-12 | Phát hành phải tạo PolicyVersion bất biến và gửi sang Control trong cùng giao dịch với lần ghi ([BR-4](#4-quy-tắc-nghiệp-vụ)) | F5.3.4 | MVP | Không có version nào "đã phát hành" mà Control chưa nhận |
-| FR-5-13 | Portal phải hiện trạng thái phát hành: đã biên dịch, % node đã áp, lỗi | F5.3.5 | MVP | QS-4 |
+| FR-5-13 | Portal phải hiện trạng thái phát hành realtime: đã biên dịch, % node đã áp, lỗi; khi dừng hoặc rollback phải nêu lý do theo region | F5.3.5 | MVP | QS-4 |
 | FR-5-14 | Người dùng phải xem lịch sử version, so sánh hai version bất kỳ, và rollback một bấm | F5.4.1–F5.4.3 | MVP | QS-7 |
 | FR-5-15 | SOC phải bật Under Attack mode và rule tạm có hạn mà không cần duyệt; rule tạm tự hết hạn ([BR-6](#4-quy-tắc-nghiệp-vụ)) | F5.5.1, F5.5.2 | MVP | QS-5 |
 | FR-5-16 | Mọi thao tác F5.1–F5.4 phải làm được qua public API với cùng quyền như UI | F5.6.1 | MVP | UI chỉ dùng public API |
 | FR-5-17 | Hệ thống nên có Terraform provider và đồng bộ policy từ Git; **UI là nguồn sự thật**: khi xung đột, bản trên UI thắng, Terraform và GitOps báo drift chứ không ghi đè ([3.2](03-business-analysis/02-policy-change.md#3-đã-quyết)) | F5.6.2, F5.6.3 | MR | `terraform plan` lần hai sau `apply` không có thay đổi; sửa trên UI sau đó làm `plan` báo drift |
 | FR-5-18 | Hệ thống nên kế thừa policy org → nhóm zone → zone; zone thấy được rule nào đến từ cấp nào | F5.1.7 | MR | |
 | FR-5-19 | Người dùng nên duyệt endpoint API từ discovery và tải OpenAPI làm schema | F5.1.8 | MR | |
+| FR-5-20 | Public API phải có endpoint kiểm tra không lưu (validate, dry-run): chạy cùng checker và `edge-verify` với Control, trả lỗi theo rule, không tạo PolicyVersion hay change request; có quota theo tenant | F5.2.4 | MVP | Gọi validate nhiều lần không sinh dòng nào trong `policy_versions` |
+| FR-5-21 | Account cần duyệt nên có emergency override theo [BR-27](#4-quy-tắc-nghiệp-vụ) | F5.5.3 | MR | Override sinh cảnh báo critical tới mọi Owner và Admin của account trong ≤ 1 phút |
 
 ### F6 Phân phối cấu hình và F11 Threat intelligence
 
@@ -160,7 +168,7 @@ Phần lớn là hành vi của edge; requirement đo được đã có ở 10.3
 | FR-6-01 | Control phải biên dịch mỗi thay đổi thành bundle của zone, từ chối bundle vượt ngân sách và báo lý do về Management | F6.1.1, F6.1.2 | MVP | |
 | FR-6-02 | Mọi bundle và manifest phải được ký; edge từ chối bản không có chữ ký hợp lệ | F6.1.3 | MVP | |
 | FR-6-03 | Cấu hình khẩn (Under Attack, rule khẩn, purge) phải đi đường nhanh tách khỏi đường thường | F6.2.2 | MVP | QS-5, QS-15 |
-| FR-6-04 | Thay đổi phải đi canary theo cell, có gate theo chỉ số, tự rollback khi vượt ngưỡng | F6.3.1 | MVP | QS-6 |
+| FR-6-04 | Thay đổi phải đi canary theo cell, có gate theo chỉ số, tự rollback khi vượt ngưỡng; gate theo tỉ lệ chặn và traffic chỉ tự rollback bản phát hành của NCC ([BR-29](#4-quy-tắc-nghiệp-vụ)) | F6.3.1 | MVP | QS-6 |
 | FR-6-05 | Node phải có danh tính, cert ngắn hạn tự gia hạn, thu hồi được | F6.4.1, F6.4.2 | MVP | QS-39, QS-40 |
 | FR-6-06 | NOC phải biết mỗi node chạy bản edge, ruleset, manifest nào | F6.4.3 | MVP | |
 | FR-6-07 | Zone phải được đặt vào pool cell theo gói và chuyển khi đổi gói | F6.5.1 | MVP | QS-34 |
@@ -181,6 +189,8 @@ Phần lớn là hành vi của edge; requirement đo được đã có ở 10.3
 | FR-7-07 | Người dùng phải đánh dấu event là chặn nhầm, thấy tỉ lệ chặn nhầm theo rule, và tạo nháp exception từ event | F7.5.1–F7.5.3 | MVP | Exception nháp điền sẵn rule, đường dẫn, trường |
 | FR-7-08 | Người dùng phải cấu hình đích export SIEM; Analytics đẩy liên tục, thử lại, cảnh báo khi đích lỗi | F7.6.1, F7.6.2 | MVP | Đích lỗi 24 giờ không làm mất event trong retention |
 | FR-7-09 | Mọi truy vấn dữ liệu traffic phải đi qua Query API áp quyền theo tenant | F7.3 | MVP | QS-9 |
+| FR-7-10 | Portal phải có live tail lọc theo rule ID, IP, path, hành động, gồm hit log-only; lọc trước khi đẩy về trình duyệt; giới hạn tốc độ và thời lượng phiên; theo quyền xem dữ liệu request | F7.2.3 | MVP | Phiên live tail chỉ nhận event khớp bộ lọc |
+| FR-7-11 | Đích export phải có bộ lọc theo hành động, loại event, zone, trường, và lấy mẫu log allow | F7.6.3 | MVP | Đích lọc "chỉ block, challenge" không nhận bản ghi allow nào |
 
 ### F8 Phát hiện, cảnh báo, sự cố
 
@@ -193,6 +203,8 @@ Phần lớn là hành vi của edge; requirement đo được đã có ở 10.3
 | FR-8-05 | SOC nên mở case tay hoặc từ đề xuất của Detection, gắn event, truy vấn, mitigation | F8.4.1, F8.4.2 | MR | |
 | FR-8-06 | Case nên có workflow mở → tiếp nhận → giảm thiểu → đóng, người phụ trách, SLA, và bắt buộc tóm tắt khi đóng | F8.4.3, F8.4.4 | MR | [BR-19](#4-quy-tắc-nghiệp-vụ) |
 | FR-8-07 | Chấp nhận đề xuất mitigation từ case phải tạo rule tạm có hạn qua kênh khẩn | F8.1.3, F5.5.2 | MR | |
+| FR-8-08 | Notifier phải dedup theo alert, zone, nguồn: cùng khoá trong cửa sổ gộp (mặc định 30 phút) chỉ gửi tin đầu, các lần sau gom vào thread hoặc digest; mức tăng hoặc nguồn mới phá dedup | F8.3.2 | MVP | Alert W3 bắn 1.000 lần trong 30 phút sinh 1 tin và 1 digest trên Slack |
+| FR-8-09 | Thông báo nên kèm link xử lý một bấm tới mitigation đề xuất theo [BR-30](#4-quy-tắc-nghiệp-vụ) | F8.3.3 | MR | Mở link bằng trình quét link (không đăng nhập) không thay đổi gì |
 
 ### F9 Báo cáo và tuân thủ
 
@@ -265,6 +277,11 @@ Phần lớn là hành vi của edge; requirement đo được đã có ở 10.3
 | BR-24 | DDoS L7 và lọc sớm chặn từ request đầu tiên, không theo log-only của onboarding. Bật chặn phần còn lại lần đầu cần ≥ 7 ngày và ≥ 10.000 request log-only ([OQ-17](03-business-analysis/01-onboarding.md#a9-câu-hỏi-mở)), trừ khi khách chọn "đang bị tấn công" (có audit) | F2.6.1, F2.7.4 |
 | BR-25 | Chặn nhầm được xử lý bằng tuning rule (tắt rule, đổi ngưỡng hoặc paranoia, log-only, sửa custom rule) hoặc whitelist chọn theo tình huống (IP, path, tham số / header / cookie, client đã xác định); cả hai đi qua change request như mọi thay đổi policy ([3.4](03-business-analysis/04-false-positive.md#3-đã-quyết)) | F5.1, F7.5 |
 | BR-26 | Khách self-service tự làm chủ: thay đổi phát hành không cần ai duyệt. Khách doanh nghiệp (account bật chế độ cần duyệt) và admin của NCC có phân chia quyền theo từng bước, người duyệt khác người gửi ([3.2](03-business-analysis/02-policy-change.md#3-đã-quyết), [3.11](03-business-analysis/11-provider-operations.md#3-đã-quyết)) | F5.3, F12.4 |
+| BR-27 | Emergency override chỉ cho thay đổi **siết chặt** (block IP, ASN, quốc gia; siết rate limit; bật Under Attack), không cho nới lỏng (allowlist, Trust, Skip, tắt rule, tắt WAF). Chỉ role được giao mới dùng; bắt buộc có hạn (mặc định 24 giờ, tự gỡ khi hết hạn); người thứ hai phải duyệt bù trong hạn, nếu không thì tự rollback; mỗi lần dùng gửi cảnh báo critical tới mọi Owner, Admin ([3.13](03-business-analysis/13-configuration-surface.md#4-đã-quyết)) | F5.5.3 |
+| BR-28 | **Trust** bỏ qua bot và challenge, WAF vẫn kiểm, vẫn chịu DDoS L7 và rate limit. **Skip** bỏ qua đúng một chặng đã chỉ định trong phạm vi đã chỉ định; DDoS L7 không skip được. Cả hai vẫn ghi log. Bỏ qua bot cho crawler dùng bot đã xác minh, không dùng IP hay User-Agent | F3.2.4 |
+| BR-29 | Policy của khách chỉ tự rollback khi lỗi biên dịch hoặc áp dụng, node lỗi, độ trễ tăng; thay đổi tỉ lệ chặn, traffic chỉ cảnh báo và gợi ý rollback. Bản phát hành của NCC (ruleset, engine, bundle chung) tự rollback theo cả gate traffic | F6.3.1 |
+| BR-30 | Link trong thông báo không bao giờ tự thực thi hành động: token chỉ trỏ tới đề xuất, có hạn ngắn, không thay cho đăng nhập; hành động chạy sau khi người dùng đăng nhập và xác nhận, qua kênh khẩn | F8.3.3 |
+| BR-31 | Header IP client thật chỉ được tin khi kết nối đến từ dải IP CDN khách đã khai; nếu không, edge dùng IP TCP | F3.1.4 |
 
 ## 5. Yêu cầu dữ liệu
 
@@ -275,7 +292,7 @@ hoặc đọc qua API.
 |---|---|---|---|---|---|---|
 | DT-1 | Tenant, danh tính | Org, Account, Member, Invitation, Role, RoleBinding, Group, SsoConnection, SsoDomain, ServiceAccount, ApiKey, MfaFactor, Session | M | 400k org, 1,5 triệu member | Tới khi xoá org + thời hạn giữ | Dữ liệu cá nhân (email, tên, IP đăng nhập); secret SSO ở secret store |
 | DT-2 | Registry toàn cục | DomainClaim, HostnameClaim, ApiKey prefix, SsoDomain claim, TrialClaim, nơi đặt tenant | M (dùng chung mọi tenant) | ≈ 5 triệu dòng | Theo vòng đời đối tượng gốc | Thấp |
-| DT-3 | Cấu hình zone | Zone, Hostname, Origin, OriginPool, ZoneSettings, ZoneGroup, ZoneTag, CacheRule, DnsRecord, CustomPage, DomainVerification, OriginCheck, DnsSnapshot, OnboardingProgress; ZonePreset là danh mục của NCC | M | 1 triệu zone, 3 triệu hostname | Tới khi gỡ zone | Thấp; secret tới origin ở secret store |
+| DT-3 | Cấu hình zone | Zone, Hostname, Origin, OriginPool, ZoneSettings, ZoneGroup, ZoneTag, CacheRule, DnsRecord, CustomErrorPage, TrustedProxyRange, DomainVerification, OriginCheck, DnsSnapshot, OnboardingProgress; ZonePreset là danh mục của NCC | M | 1 triệu zone, 3 triệu hostname | Tới khi gỡ zone | Thấp; secret tới origin ở secret store |
 | DT-4 | Policy nháp | PolicyDraft, CustomRule, RateLimitRule, AccessList, ManagedRulesetConfig, Exception, DdosSettings, BotPolicy, ApiEndpoint, ApiSchema, ApiAuthConfig, PolicyTemplate, PolicyBinding | M | Tới 1.000 rule mỗi zone, trung bình ≈ 10 | Tới khi gỡ zone | Trung bình (lộ cách phòng thủ của khách) |
 | DT-5 | Policy đã phát hành | PolicyVersion (tài liệu bất biến + `content_hash`) | M | ≈ 50 triệu mỗi năm | Giữ đủ để rollback và kiểm toán ([OQ-7](#9-câu-hỏi-mở-cho-review)) | Trung bình |
 | DT-6 | Thay đổi và duyệt | ChangeRequest, Approval, ChangeWindow, TemporaryMitigation, BulkOperation, GitSource | M | ≈ thay đổi cấu hình 1,7/s | 13 tháng truy vấn được | Trung bình |

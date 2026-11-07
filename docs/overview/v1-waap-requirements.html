@@ -497,7 +497,14 @@ hiện ở Analytics, F10.4 Đo usage đếm ở Edge và gộp ở Analytics. B
 </tr>
 <tr>
 <td>F1.5.3</td>
-<td>Xuất audit log (CSV, JSON, đẩy sang SIEM)</td>
+<td>Xuất audit log (CSV, JSON) và đẩy liên tục sang SIEM của khách qua cùng exporter với log; gồm thao tác của nhân viên NCC trên zone khách</td>
+<td>M</td>
+<td>MVP</td>
+<td>AuditEntry</td>
+</tr>
+<tr>
+<td>F1.5.4</td>
+<td>Chống sửa audit log (chuỗi hash), kiểm được tính toàn vẹn khi xuất</td>
 <td>M</td>
 <td>MVP</td>
 <td>AuditEntry</td>
@@ -868,10 +875,10 @@ từ bản nháp onboarding chưa duyệt; onboarding đang được phân tích
 </tr>
 <tr>
 <td>F3.1.4</td>
-<td>Nhận diện IP client thật khi đứng sau CDN của khách</td>
+<td>Nhận diện IP client thật khi đứng sau CDN của khách: khách khai header chứa IP thật và dải IP của CDN; chỉ tin header khi kết nối đến từ dải đó; preset cho CDN phổ biến</td>
 <td>E</td>
 <td>MVP</td>
-<td>ZoneSettings (đọc)</td>
+<td>ZoneSettings, TrustedProxyRange (đọc)</td>
 </tr>
 <tr>
 <td><strong>F3.2</strong></td>
@@ -900,6 +907,13 @@ từ bản nháp onboarding chưa duyệt; onboarding đang được phân tích
 <td>E</td>
 <td>MVP</td>
 <td>—</td>
+</tr>
+<tr>
+<td>F3.2.4</td>
+<td>Hành động Trust (bỏ qua bot và challenge; WAF vẫn kiểm; vẫn chịu DDoS L7 và rate limit) và Skip (bỏ qua một chặng chỉ định); cả hai vẫn ghi log</td>
+<td>E</td>
+<td>MVP</td>
+<td>AccessList, CustomRule (đọc)</td>
 </tr>
 <tr>
 <td><strong>F3.3</strong></td>
@@ -1085,10 +1099,10 @@ từ bản nháp onboarding chưa duyệt; onboarding đang được phân tích
 </tr>
 <tr>
 <td>F3.8.2</td>
-<td>Trang chặn và trang challenge tuỳ biến theo zone</td>
+<td>Trang lỗi tuỳ biến theo tenant hoặc zone, map với từng loại lỗi (403 WAF, 429, 502, 504, 503 bảo trì, trang challenge), JSON cho path API</td>
 <td>E</td>
 <td>MR</td>
-<td><strong>CustomPage</strong> (đọc)</td>
+<td><strong>CustomErrorPage</strong> (đọc)</td>
 </tr>
 <tr>
 <td>F3.8.3</td>
@@ -1103,6 +1117,13 @@ từ bản nháp onboarding chưa duyệt; onboarding đang được phân tích
 <td>E</td>
 <td>MVP</td>
 <td>Entitlements (đọc)</td>
+</tr>
+<tr>
+<td>F3.8.5</td>
+<td>Tarpit: giữ kết nối vài giây trước khi trả 403; có trần số kết nối tarpit trên mỗi node, vượt trần thì block</td>
+<td>E</td>
+<td>MR</td>
+<td>—</td>
 </tr>
 <tr>
 <td><strong>F3.9</strong></td>
@@ -1225,7 +1246,7 @@ từ bản nháp onboarding chưa duyệt; onboarding đang được phân tích
 </tr>
 <tr>
 <td>F4.4.1</td>
-<td>Nhóm origin, health check, chuyển origin khi lỗi</td>
+<td>Nhóm origin active-passive, round-robin, theo trọng số; health check chủ động và thụ động; chuyển sang origin dự phòng khi lỗi</td>
 <td>M</td>
 <td>MR</td>
 <td><strong>OriginPool</strong>, <strong>HealthCheck</strong></td>
@@ -1337,6 +1358,13 @@ từ bản nháp onboarding chưa duyệt; onboarding đang được phân tích
 <td><strong>ReplayJob</strong>, <strong>ReplayResult</strong></td>
 </tr>
 <tr>
+<td>F5.2.4</td>
+<td>Kiểm tra không lưu (validate, dry-run) qua public API cho Terraform plan và CI; không tạo PolicyVersion</td>
+<td>C</td>
+<td>MVP</td>
+<td>—</td>
+</tr>
+<tr>
 <td><strong>F5.3</strong></td>
 <td><strong>Duyệt và phát hành</strong></td>
 <td></td>
@@ -1373,7 +1401,7 @@ từ bản nháp onboarding chưa duyệt; onboarding đang được phân tích
 </tr>
 <tr>
 <td>F5.3.5</td>
-<td>Theo dõi trạng thái phát hành tới edge (đã biên dịch, % node đã áp)</td>
+<td>Theo dõi trạng thái phát hành tới edge realtime trên portal (đã biên dịch, % node đã áp), lý do khi dừng hoặc rollback</td>
 <td>C</td>
 <td>MVP</td>
 <td><strong>RolloutStatus</strong></td>
@@ -1426,6 +1454,13 @@ từ bản nháp onboarding chưa duyệt; onboarding đang được phân tích
 <td>M</td>
 <td>MVP</td>
 <td><strong>TemporaryMitigation</strong></td>
+</tr>
+<tr>
+<td>F5.5.3</td>
+<td>Emergency override ở account cần duyệt: áp ngay thay đổi siết chặt, có hạn, duyệt bù, cảnh báo critical tới Owner và Admin</td>
+<td>M</td>
+<td>MR</td>
+<td><strong>ChangeRequest</strong>.emergency</td>
 </tr>
 <tr>
 <td><strong>F5.6</strong></td>
@@ -1668,6 +1703,13 @@ từ bản nháp onboarding chưa duyệt; onboarding đang được phân tích
 <td>—</td>
 </tr>
 <tr>
+<td>F7.2.3</td>
+<td>Live tail có bộ lọc (rule ID, IP, path, hành động), gồm cả hit của rule log-only</td>
+<td>A</td>
+<td>MVP</td>
+<td>— (live tap)</td>
+</tr>
+<tr>
 <td><strong>F7.3</strong></td>
 <td><strong>Tìm kiếm và tra cứu</strong></td>
 <td></td>
@@ -1772,6 +1814,13 @@ từ bản nháp onboarding chưa duyệt; onboarding đang được phân tích
 <td>MVP</td>
 <td>Trạng thái export</td>
 </tr>
+<tr>
+<td>F7.6.3</td>
+<td>Bộ lọc export theo hành động, loại event, zone, trường; lấy mẫu log allow</td>
+<td>A</td>
+<td>MVP</td>
+<td><strong>ExportDestination</strong></td>
+</tr>
 </tbody>
 </table>
 <h2 id="f-01-functional-decomposition--f8-phát-hiện-cảnh-báo-sự-cố">F8 Phát hiện, cảnh báo, sự cố</h2>
@@ -1862,6 +1911,20 @@ từ bản nháp onboarding chưa duyệt; onboarding đang được phân tích
 <td>A</td>
 <td>MVP</td>
 <td><strong>NotificationDelivery</strong></td>
+</tr>
+<tr>
+<td>F8.3.2</td>
+<td>Chống bão: dedup theo alert, zone, nguồn; gom vào một thread hoặc digest; mức tăng hoặc nguồn mới thì gửi tin mới</td>
+<td>A</td>
+<td>MVP</td>
+<td><strong>NotificationDelivery</strong></td>
+</tr>
+<tr>
+<td>F8.3.3</td>
+<td>Thông báo kèm link xử lý một bấm: mở portal, đăng nhập, xác nhận mitigation đề xuất</td>
+<td>A</td>
+<td>MR</td>
+<td><strong>CaseProposal</strong></td>
 </tr>
 <tr>
 <td><strong>F8.4</strong></td>
@@ -3178,6 +3241,13 @@ lặp lại ở đây.</li>
 <td>Xuất 1 triệu dòng không làm chậm portal của tenant khác</td>
 </tr>
 <tr>
+<td>FR-1-19</td>
+<td>Audit log phải đẩy liên tục sang SIEM của khách qua cùng exporter với security event, gồm thao tác của nhân viên NCC trên zone khách, và có chuỗi hash để kiểm toàn vẹn (PCI DSS 10)</td>
+<td>F1.5.3, F1.5.4</td>
+<td>MVP</td>
+<td>Sửa hoặc xoá một dòng audit làm kiểm chuỗi hash báo lỗi</td>
+</tr>
+<tr>
 <td>FR-1-18</td>
 <td>Một tài khoản người dùng phải thuộc được nhiều org; người dùng chuyển org trong portal; SSO bắt buộc và chính sách MFA áp theo từng org; API key luôn thuộc một org (<a href="#f-03-business-analysis-06-members-access--3-đã-quyết">3.6</a>)</td>
 <td>F1.2.6</td>
@@ -3519,6 +3589,34 @@ onboarding chưa duyệt; sẽ viết lại sau khi phân tích ở <a href="#f-
 <td></td>
 </tr>
 <tr>
+<td>FR-3-14</td>
+<td>Khi zone đứng sau CDN của khách, edge chỉ lấy IP client từ header đã khai nếu kết nối đến từ dải IP CDN đã khai; <code>X-Forwarded-For</code> đọc từ phải sang, lấy IP đầu tiên không thuộc dải tin cậy (<a href="#f-02-requirements--4-quy-tắc-nghiệp-vụ">BR-31</a>)</td>
+<td>F3.1.4</td>
+<td>MVP</td>
+<td>Request từ ngoài dải CDN mang <code>True-Client-IP</code> giả không đổi được IP mà rate limit dùng</td>
+</tr>
+<tr>
+<td>FR-3-15</td>
+<td>Access list và custom rule phải có hai hành động tách biệt Trust và Skip theo <a href="#f-02-requirements--4-quy-tắc-nghiệp-vụ">BR-28</a>; UI và API gọi đúng tên, nói rõ chặng nào bị bỏ qua</td>
+<td>F3.2.4</td>
+<td>MVP</td>
+<td>IP được Trust vẫn bị rate limit và DDoS L7 chặn khi flood</td>
+</tr>
+<tr>
+<td>FR-3-16</td>
+<td>Khách nên tải trang lỗi tuỳ biến (HTML, CSS tĩnh) theo tenant hoặc zone và map với từng loại lỗi; edge tự chèn request ID; path API trả JSON</td>
+<td>F3.8.2</td>
+<td>MR</td>
+<td>Trang có JavaScript hoặc tài nguyên ngoài bị từ chối khi lưu; xem trước được trước khi phát hành</td>
+</tr>
+<tr>
+<td>FR-3-17</td>
+<td>Edge nên có hành động tarpit có trần theo node</td>
+<td>F3.8.5</td>
+<td>MR</td>
+<td>Vượt trần, request tarpit mới chuyển thành block, không tăng số kết nối giữ</td>
+</tr>
+<tr>
 <td>FR-4-01</td>
 <td>Edge phải cache theo Cache-Control và cache rule của khách, phục vụ bản cũ khi origin lỗi</td>
 <td>F4.1.1, F4.1.2, F3.9.3</td>
@@ -3541,10 +3639,17 @@ onboarding chưa duyệt; sẽ viết lại sau khi phân tích ở <a href="#f-
 </tr>
 <tr>
 <td>FR-4-04</td>
-<td>Khách nên dùng được DNS authoritative với bản ghi proxied, DNSSEC; nhóm origin có health check và failover</td>
-<td>F4.3.2, F4.4.1</td>
+<td>Khách nên dùng được DNS authoritative với bản ghi proxied, DNSSEC</td>
+<td>F4.3.2</td>
 <td>MR</td>
 <td></td>
+</tr>
+<tr>
+<td>FR-4-05</td>
+<td>Khách gói Business, Enterprise nên cấu hình nhóm origin active-passive, round-robin hoặc theo trọng số, health check chủ động và thụ động; origin chính lỗi liên tiếp trong cửa sổ cấu hình thì edge chuyển sang origin dự phòng và báo khách</td>
+<td>F4.4.1</td>
+<td>MR</td>
+<td>Request không idempotent (POST, PATCH...) không bao giờ được gửi lại sang origin khác</td>
 </tr>
 </tbody>
 </table>
@@ -3646,7 +3751,7 @@ onboarding chưa duyệt; sẽ viết lại sau khi phân tích ở <a href="#f-
 </tr>
 <tr>
 <td>FR-5-13</td>
-<td>Portal phải hiện trạng thái phát hành: đã biên dịch, % node đã áp, lỗi</td>
+<td>Portal phải hiện trạng thái phát hành realtime: đã biên dịch, % node đã áp, lỗi; khi dừng hoặc rollback phải nêu lý do theo region</td>
 <td>F5.3.5</td>
 <td>MVP</td>
 <td>QS-4</td>
@@ -3693,6 +3798,20 @@ onboarding chưa duyệt; sẽ viết lại sau khi phân tích ở <a href="#f-
 <td>MR</td>
 <td></td>
 </tr>
+<tr>
+<td>FR-5-20</td>
+<td>Public API phải có endpoint kiểm tra không lưu (validate, dry-run): chạy cùng checker và <code>edge-verify</code> với Control, trả lỗi theo rule, không tạo PolicyVersion hay change request; có quota theo tenant</td>
+<td>F5.2.4</td>
+<td>MVP</td>
+<td>Gọi validate nhiều lần không sinh dòng nào trong <code>policy_versions</code></td>
+</tr>
+<tr>
+<td>FR-5-21</td>
+<td>Account cần duyệt nên có emergency override theo <a href="#f-02-requirements--4-quy-tắc-nghiệp-vụ">BR-27</a></td>
+<td>F5.5.3</td>
+<td>MR</td>
+<td>Override sinh cảnh báo critical tới mọi Owner và Admin của account trong ≤ 1 phút</td>
+</tr>
 </tbody>
 </table>
 <h3 id="f-02-requirements--f6-phân-phối-cấu-hình-và-f11-threat-intelligence">F6 Phân phối cấu hình và F11 Threat intelligence</h3>
@@ -3730,7 +3849,7 @@ onboarding chưa duyệt; sẽ viết lại sau khi phân tích ở <a href="#f-
 </tr>
 <tr>
 <td>FR-6-04</td>
-<td>Thay đổi phải đi canary theo cell, có gate theo chỉ số, tự rollback khi vượt ngưỡng</td>
+<td>Thay đổi phải đi canary theo cell, có gate theo chỉ số, tự rollback khi vượt ngưỡng; gate theo tỉ lệ chặn và traffic chỉ tự rollback bản phát hành của NCC (<a href="#f-02-requirements--4-quy-tắc-nghiệp-vụ">BR-29</a>)</td>
 <td>F6.3.1</td>
 <td>MVP</td>
 <td>QS-6</td>
@@ -3854,6 +3973,20 @@ onboarding chưa duyệt; sẽ viết lại sau khi phân tích ở <a href="#f-
 <td>MVP</td>
 <td>QS-9</td>
 </tr>
+<tr>
+<td>FR-7-10</td>
+<td>Portal phải có live tail lọc theo rule ID, IP, path, hành động, gồm hit log-only; lọc trước khi đẩy về trình duyệt; giới hạn tốc độ và thời lượng phiên; theo quyền xem dữ liệu request</td>
+<td>F7.2.3</td>
+<td>MVP</td>
+<td>Phiên live tail chỉ nhận event khớp bộ lọc</td>
+</tr>
+<tr>
+<td>FR-7-11</td>
+<td>Đích export phải có bộ lọc theo hành động, loại event, zone, trường, và lấy mẫu log allow</td>
+<td>F7.6.3</td>
+<td>MVP</td>
+<td>Đích lọc &quot;chỉ block, challenge&quot; không nhận bản ghi allow nào</td>
+</tr>
 </tbody>
 </table>
 <h3 id="f-02-requirements--f8-phát-hiện-cảnh-báo-sự-cố">F8 Phát hiện, cảnh báo, sự cố</h3>
@@ -3916,6 +4049,20 @@ onboarding chưa duyệt; sẽ viết lại sau khi phân tích ở <a href="#f-
 <td>F8.1.3, F5.5.2</td>
 <td>MR</td>
 <td></td>
+</tr>
+<tr>
+<td>FR-8-08</td>
+<td>Notifier phải dedup theo alert, zone, nguồn: cùng khoá trong cửa sổ gộp (mặc định 30 phút) chỉ gửi tin đầu, các lần sau gom vào thread hoặc digest; mức tăng hoặc nguồn mới phá dedup</td>
+<td>F8.3.2</td>
+<td>MVP</td>
+<td>Alert W3 bắn 1.000 lần trong 30 phút sinh 1 tin và 1 digest trên Slack</td>
+</tr>
+<tr>
+<td>FR-8-09</td>
+<td>Thông báo nên kèm link xử lý một bấm tới mitigation đề xuất theo <a href="#f-02-requirements--4-quy-tắc-nghiệp-vụ">BR-30</a></td>
+<td>F8.3.3</td>
+<td>MR</td>
+<td>Mở link bằng trình quét link (không đăng nhập) không thay đổi gì</td>
 </tr>
 </tbody>
 </table>
@@ -4283,6 +4430,31 @@ onboarding chưa duyệt; sẽ viết lại sau khi phân tích ở <a href="#f-
 <td>Khách self-service tự làm chủ: thay đổi phát hành không cần ai duyệt. Khách doanh nghiệp (account bật chế độ cần duyệt) và admin của NCC có phân chia quyền theo từng bước, người duyệt khác người gửi (<a href="#f-03-business-analysis-02-policy-change--3-đã-quyết">3.2</a>, <a href="#f-03-business-analysis-11-provider-operations--3-đã-quyết">3.11</a>)</td>
 <td>F5.3, F12.4</td>
 </tr>
+<tr>
+<td>BR-27</td>
+<td>Emergency override chỉ cho thay đổi <strong>siết chặt</strong> (block IP, ASN, quốc gia; siết rate limit; bật Under Attack), không cho nới lỏng (allowlist, Trust, Skip, tắt rule, tắt WAF). Chỉ role được giao mới dùng; bắt buộc có hạn (mặc định 24 giờ, tự gỡ khi hết hạn); người thứ hai phải duyệt bù trong hạn, nếu không thì tự rollback; mỗi lần dùng gửi cảnh báo critical tới mọi Owner, Admin (<a href="#f-03-business-analysis-13-configuration-surface--4-đã-quyết">3.13</a>)</td>
+<td>F5.5.3</td>
+</tr>
+<tr>
+<td>BR-28</td>
+<td><strong>Trust</strong> bỏ qua bot và challenge, WAF vẫn kiểm, vẫn chịu DDoS L7 và rate limit. <strong>Skip</strong> bỏ qua đúng một chặng đã chỉ định trong phạm vi đã chỉ định; DDoS L7 không skip được. Cả hai vẫn ghi log. Bỏ qua bot cho crawler dùng bot đã xác minh, không dùng IP hay User-Agent</td>
+<td>F3.2.4</td>
+</tr>
+<tr>
+<td>BR-29</td>
+<td>Policy của khách chỉ tự rollback khi lỗi biên dịch hoặc áp dụng, node lỗi, độ trễ tăng; thay đổi tỉ lệ chặn, traffic chỉ cảnh báo và gợi ý rollback. Bản phát hành của NCC (ruleset, engine, bundle chung) tự rollback theo cả gate traffic</td>
+<td>F6.3.1</td>
+</tr>
+<tr>
+<td>BR-30</td>
+<td>Link trong thông báo không bao giờ tự thực thi hành động: token chỉ trỏ tới đề xuất, có hạn ngắn, không thay cho đăng nhập; hành động chạy sau khi người dùng đăng nhập và xác nhận, qua kênh khẩn</td>
+<td>F8.3.3</td>
+</tr>
+<tr>
+<td>BR-31</td>
+<td>Header IP client thật chỉ được tin khi kết nối đến từ dải IP CDN khách đã khai; nếu không, edge dùng IP TCP</td>
+<td>F3.1.4</td>
+</tr>
 </tbody>
 </table>
 <h2 id="f-02-requirements--5-yêu-cầu-dữ-liệu">5. Yêu cầu dữ liệu</h2>
@@ -4322,7 +4494,7 @@ hoặc đọc qua API.</p>
 <tr>
 <td>DT-3</td>
 <td>Cấu hình zone</td>
-<td>Zone, Hostname, Origin, OriginPool, ZoneSettings, ZoneGroup, ZoneTag, CacheRule, DnsRecord, CustomPage, DomainVerification, OriginCheck, DnsSnapshot, OnboardingProgress; ZonePreset là danh mục của NCC</td>
+<td>Zone, Hostname, Origin, OriginPool, ZoneSettings, ZoneGroup, ZoneTag, CacheRule, DnsRecord, CustomErrorPage, TrustedProxyRange, DomainVerification, OriginCheck, DnsSnapshot, OnboardingProgress; ZonePreset là danh mục của NCC</td>
 <td>M</td>
 <td>1 triệu zone, 3 triệu hostname</td>
 <td>Tới khi gỡ zone</td>
@@ -4859,7 +5031,7 @@ xuất chờ duyệt.</li>
 <td><a href="#f-03-business-analysis-13-configuration-surface">3.13</a></td>
 <td>Bề mặt cấu hình: rule và setting trên portal, cấu hình nâng cao cho admin</td>
 <td>OQ-151…OQ-162</td>
-<td>Bước 1, có danh mục cấu hình theo lớp (bản nháp chờ duyệt)</td>
+<td>Đã quyết nhóm tính năng theo plane (trang lỗi, emergency override, Trust/Skip, audit export, rollout, dry-run, failover, tarpit, IP thật sau CDN, xử lý một bấm, live tail, chống bão, lọc export); danh mục và các câu còn lại ở bước 1</td>
 </tr>
 </tbody>
 </table>
@@ -10112,7 +10284,7 @@ request hoàn toàn sạch vẫn có thể là bot (đăng nhập bằng mật k
 <td>OQ-102</td>
 <td>Dữ liệu giả, tarpit</td>
 <td>Dữ liệu giả có rủi ro pháp lý, gây nhầm cho đối tác</td>
-<td>Tarpit (làm chậm) có ở Mở rộng; dữ liệu giả không làm</td>
+<td>Tarpit (làm chậm) có ở Mở rộng; dữ liệu giả không làm. <strong>Tarpit đã quyết 2026-11-07</strong> ở <a href="#f-03-business-analysis-13-configuration-surface--4-đã-quyết">3.13</a>: có trần theo node, không dùng làm cách chính chống credential stuffing</td>
 </tr>
 <tr>
 <td>OQ-103</td>
@@ -11724,7 +11896,7 @@ mà WAF thông thường không thấy. Liên quan: F3.7, F5.1.8 ở <a href="#f
 </section>
 <section class="doc" id="f-03-business-analysis-13-configuration-surface"><div class="path">03-business-analysis/13-configuration-surface.md</div><h1 id="f-03-business-analysis-13-configuration-surface--313-bề-mặt-cấu-hình-rule-và-setting-trên-portal">3.13 Bề mặt cấu hình: rule và setting trên portal</h1>
 <blockquote>
-<p><strong>Trạng thái: bước 1, chưa có quyết định nào (2026-11-07).</strong> Trang này mở theo nhận xét của chủ dự án:
+<p><strong>Trạng thái: bước 1, đã quyết một nhóm tính năng (2026-11-07, <a href="#f-03-business-analysis-13-configuration-surface--4-đã-quyết">§4</a>).</strong> Trang này mở theo nhận xét của chủ dự án:
 một sản phẩm WAAP kiểu Cloudflare cho cấu hình hầu hết mọi thứ bằng rule trên portal: whitelist, blacklist,
 rate limit, JA4, cookie challenge, trang chặn, cảnh báo tấn công (ngưỡng, format, kênh). Ngoài ra admin cần
 cấu hình nâng cao cho từng lớp L7 và WAF. Tài liệu hiện có liệt kê các chức năng này rời rạc ở F3–F8, nhưng
@@ -12223,7 +12395,88 @@ khách; có mở một phần cho Enterprise hay không là OQ-159.</p>
 </tr>
 </tbody>
 </table>
-<h2 id="f-03-business-analysis-13-configuration-surface--4-câu-hỏi-cần-chủ-dự-án-quyết">4. Câu hỏi cần chủ dự án quyết</h2>
+<h2 id="f-03-business-analysis-13-configuration-surface--4-đã-quyết">4. Đã quyết</h2>
+<p>Chủ dự án đưa danh sách tính năng theo từng plane, Claude nêu các điểm cần chỉnh, chủ dự án đồng ý cả hai
+(2026-11-07). Yêu cầu tương ứng ở <a href="#f-02-requirements">§2</a>; thiết kế ở các component 5.8.x.</p>
+<table>
+<thead>
+<tr>
+<th>Nhóm</th>
+<th>Quyết định</th>
+<th>Yêu cầu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Trang lỗi tuỳ biến</td>
+<td>Entity <strong>CustomErrorPage</strong> theo tenant hoặc zone, map với từng loại lỗi (403 WAF, 429, 502, 504, 503 bảo trì, trang challenge); path API trả JSON. HTML, CSS tĩnh: không JavaScript, không tài nguyên ngoài, ảnh nhúng có trần dung lượng; edge tự chèn request ID; xem trước được</td>
+<td>FR-3-16</td>
+</tr>
+<tr>
+<td>Emergency override</td>
+<td>Ở account cần duyệt, áp ngay vào fast lane, chỉ cho thay đổi siết chặt, có hạn, duyệt bù, cảnh báo critical tới Owner, Admin</td>
+<td>FR-5-21, BR-27</td>
+</tr>
+<tr>
+<td>Trust và Skip</td>
+<td>Hai hành động tách biệt: Trust bỏ qua bot và challenge, WAF vẫn kiểm, vẫn chịu DDoS L7 và rate limit; Skip bỏ qua đúng một chặng. Googlebot đi qua bot đã xác minh, không theo IP hay User-Agent</td>
+<td>FR-3-15, BR-28 (đóng KB13-B1)</td>
+</tr>
+<tr>
+<td>Xuất audit log</td>
+<td>Đẩy liên tục sang SIEM, gồm thao tác của NCC, có chuỗi hash</td>
+<td>FR-1-19</td>
+</tr>
+<tr>
+<td>Tiến độ rollout</td>
+<td>Realtime trên portal, nêu lý do khi dừng. Policy của khách không tự rollback theo tỉ lệ chặn hay traffic (một rule block làm tăng 403 là đúng ý khách); bản phát hành của NCC thì có</td>
+<td>FR-5-13, FR-6-04, BR-29</td>
+</tr>
+<tr>
+<td>Dry-run cho CI/CD</td>
+<td>Endpoint validate không lưu, cùng checker và <code>edge-verify</code>, có quota</td>
+<td>FR-5-20</td>
+</tr>
+<tr>
+<td>Origin failover</td>
+<td>Active-passive, round-robin, theo trọng số; health check chủ động và thụ động; không gửi lại request không idempotent</td>
+<td>FR-4-05</td>
+</tr>
+<tr>
+<td>Tarpit</td>
+<td>Có, với trần số kết nối giữ trên mỗi node, vượt trần thì block; không dùng làm cách chính chống credential stuffing (cách chính là rate limit endpoint đăng nhập cộng challenge)</td>
+<td>FR-3-17</td>
+</tr>
+<tr>
+<td>IP thật sau CDN</td>
+<td>Khai header và dải IP CDN; chỉ tin header từ dải đó; đọc <code>X-Forwarded-For</code> từ phải sang; preset CDN phổ biến</td>
+<td>FR-3-14, BR-31</td>
+</tr>
+<tr>
+<td>Xử lý một bấm</td>
+<td>Link trong thông báo mở portal, đăng nhập, xác nhận; không bao giờ tự thực thi khi mở (trình quét link tự mở link)</td>
+<td>FR-8-09, BR-30</td>
+</tr>
+<tr>
+<td>Live tail</td>
+<td>Lọc theo rule ID, IP, path, hành động, gồm hit log-only; lọc ở Realtime gateway trên luồng live đã có; theo quyền xem dữ liệu request</td>
+<td>FR-7-10</td>
+</tr>
+<tr>
+<td>Chống bão cảnh báo</td>
+<td>Dedup theo alert, zone, nguồn trong cửa sổ 30 phút, gom vào thread hoặc digest; mức tăng hoặc nguồn mới phá dedup</td>
+<td>FR-8-08</td>
+</tr>
+<tr>
+<td>Lọc khi export</td>
+<td>Theo hành động, loại event, zone, trường, lấy mẫu log allow; bản lọc nâng cao dùng cùng ngôn ngữ biểu thức của rule thay vì regex</td>
+<td>FR-7-11</td>
+</tr>
+</tbody>
+</table>
+<p>Chi tiết Claude thêm khi ghi, <strong>chờ duyệt</strong>: DDoS L7 không skip được; emergency override mặc định hạn 24 giờ;
+cửa sổ dedup mặc định 30 phút.</p>
+<h2 id="f-03-business-analysis-13-configuration-surface--5-câu-hỏi-cần-chủ-dự-án-quyết">5. Câu hỏi cần chủ dự án quyết</h2>
 <table>
 <thead>
 <tr>
@@ -12238,7 +12491,7 @@ khách; có mở một phần cho Enterprise hay không là OQ-159.</p>
 <td>OQ-151</td>
 <td>Một ngôn ngữ biểu thức chung cho mọi loại rule, hay form riêng cho từng tính năng?</td>
 <td>KB13-A1…KB13-A5</td>
-<td>Cloudflare dùng một ngôn ngữ chung, form builder sinh ra biểu thức</td>
+<td>Cloudflare dùng một ngôn ngữ chung, form builder sinh ra biểu thức. Custom rule đã dùng CEL (<a href="v1-waap-architecture.html#f-09-adr-0032-cel-checked-at-control-ir-at-edge" target="_blank" rel="noopener">ADR-0032</a>); câu hỏi là có mở rộng CEL cho mọi loại rule không</td>
 </tr>
 <tr>
 <td>OQ-152</td>
@@ -12268,7 +12521,7 @@ khách; có mở một phần cho Enterprise hay không là OQ-159.</p>
 <td>OQ-156</td>
 <td>Trang chặn: khách sửa HTML tự do, hay chỉ điền template (logo, màu, nội dung, liên hệ)? Gói nào?</td>
 <td>KB13-F1…KB13-F6</td>
-<td></td>
+<td><strong>Đã quyết một phần</strong> ở §4: tải HTML, CSS tĩnh, không JavaScript; còn mở gói nào có</td>
 </tr>
 <tr>
 <td>OQ-157</td>
@@ -12308,7 +12561,7 @@ khách; có mở một phần cho Enterprise hay không là OQ-159.</p>
 </tr>
 </tbody>
 </table>
-<h2 id="f-03-business-analysis-13-configuration-surface--5-phụ-thuộc">5. Phụ thuộc</h2>
+<h2 id="f-03-business-analysis-13-configuration-surface--6-phụ-thuộc">6. Phụ thuộc</h2>
 <p>F3, F5, F8 ở <a href="#f-01-functional-decomposition">§1</a>; <a href="#f-03-business-analysis-02-policy-change">3.2</a>, <a href="#f-03-business-analysis-04-false-positive">3.4</a>,
 <a href="#f-03-business-analysis-09-bot-management">3.9</a>, <a href="#f-03-business-analysis-10-cache-performance">3.10</a>, <a href="#f-03-business-analysis-12-api-security">3.12</a>; pipeline ở
 <a href="v1-waap-architecture.html#f-05-building-blocks-08-components-01-l7" target="_blank" rel="noopener">kiến trúc 5.8.1</a>.</p>
