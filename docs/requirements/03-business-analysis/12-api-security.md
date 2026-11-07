@@ -1,6 +1,6 @@
 # 3.12 API security
 
-> **Trạng thái: đang mở, chưa có quyết định nào (2026-11-07).** Tách ra từ trang bot cũ để 3.9 chỉ còn bot và
+> **Trạng thái: đang mở (2026-11-07). Đã quyết ở [3.13](13-configuration-surface.md#4-đã-quyết): kiểm schema chạy trước managed ruleset, endpoint enforce schema được giảm paranoia (BR-35); rate limit theo API key, JWT ở MVP (FR-3-06).** Tách ra từ trang bot cũ để 3.9 chỉ còn bot và
 > challenge. Trang này chỉ liệt kê kịch bản và câu hỏi. Thiết kế kỹ thuật ở kiến trúc 8.17.
 
 ## 1. Phạm vi

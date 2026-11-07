@@ -132,7 +132,8 @@ Ai là khách, ai được làm gì. Persona chính: chủ tài khoản, quản 
 | **F1.5** | **Audit log** | | | |
 | F1.5.1 | Ghi mọi thay đổi: ai, cái gì, trước/sau, lúc nào, từ IP nào, qua UI hay API | M | MVP | **AuditEntry** |
 | F1.5.2 | Xem, lọc audit log theo người, đối tượng, thời gian | M | MVP | AuditEntry |
-| F1.5.3 | Xuất audit log (CSV, JSON, đẩy sang SIEM) | M | MVP | AuditEntry |
+| F1.5.3 | Xuất audit log (CSV, JSON) và đẩy liên tục sang SIEM của khách qua cùng exporter với log; gồm thao tác của nhân viên NCC trên zone khách | M | MVP | AuditEntry |
+| F1.5.4 | Chống sửa audit log (chuỗi hash), kiểm được tính toàn vẹn khi xuất | M | MVP | AuditEntry |
 
 ## F2 Zone và onboarding
 
@@ -198,11 +199,13 @@ Chạy trên từng request ở edge. Không có UI riêng: cấu hình qua F5, 
 | F3.1.1 | Kết thúc TLS theo SNI, HTTP/1.1, HTTP/2, HTTP/3 | E | MVP | Cert (đọc) |
 | F3.1.2 | Xác định zone và hostname của request | E | MVP | Routing index (đọc) |
 | F3.1.3 | Gán request ID, chuẩn hoá URI, header, giới hạn kích thước | E | MVP | — |
-| F3.1.4 | Nhận diện IP client thật khi đứng sau CDN của khách | E | MVP | ZoneSettings (đọc) |
+| F3.1.4 | Nhận diện IP client thật khi đứng sau CDN của khách: khách khai header chứa IP thật và dải IP của CDN; chỉ tin header khi kết nối đến từ dải đó; preset cho CDN phổ biến | E | MVP | ZoneSettings, TrustedProxyRange (đọc) |
+| F3.1.5 | SSL passthrough theo SNI cho hostname đã chọn (Enterprise): không giải mã, chỉ định tuyến và chống DDoS L3/L4 | E | MR | ZoneSettings (đọc) |
 | **F3.2** | **Lọc sớm** | | | |
 | F3.2.1 | Access list IP, CIDR, quốc gia, ASN (allow, block, challenge) | E | MVP | AccessList (đọc) |
 | F3.2.2 | Chặn theo IP reputation | E | MR | Reputation feed (đọc) |
 | F3.2.3 | Chặn request sai giao thức rõ ràng | E | MVP | — |
+| F3.2.4 | Hành động Trust (bỏ qua bot và challenge; WAF vẫn kiểm; vẫn chịu DDoS L7 và rate limit) và Skip (bỏ qua một chặng chỉ định); cả hai vẫn ghi log | E | MVP | AccessList, CustomRule (đọc) |
 | **F3.3** | **DDoS L7** | | | |
 | F3.3.1 | Đo traffic theo zone và nguồn, phát hiện đột biến theo baseline | E | MVP | Bộ đếm (bộ nhớ) |
 | F3.3.2 | Giảm thiểu tự động theo độ nhạy và hành động khách chọn | E | MVP | DdosSettings (đọc) |
@@ -211,7 +214,8 @@ Chạy trên từng request ở edge. Không có UI riêng: cấu hình qua F5, 
 | F3.3.5 | DDoS L3/L4 qua hạ tầng hoặc đối tác | E | MR | — |
 | **F3.4** | **Rate limit** | | | |
 | F3.4.1 | Rate limit theo IP, đường dẫn, phương thức, toàn fleet | E | MVP | RateLimitRule (đọc) |
-| F3.4.2 | Rate limit theo header, cookie, consumer API, method gRPC | E | MR | RateLimitRule (đọc) |
+| F3.4.2 | Rate limit theo header, cookie, API key, JWT claim (consumer API) | E | MVP | RateLimitRule (đọc) |
+| F3.4.3 | Rate limit theo method gRPC | E | MR | RateLimitRule (đọc) |
 | **F3.5** | **Managed ruleset và custom rule** | | | |
 | F3.5.1 | Kiểm theo CRS và system ruleset, paranoia level, ngưỡng anomaly | E | MVP | RulesetRelease, ManagedRulesetConfig (đọc) |
 | F3.5.2 | Kiểm body JSON, XML, multipart, form trong giới hạn kích thước của gói | E | MVP | Entitlements (đọc) |
@@ -228,10 +232,11 @@ Chạy trên từng request ở edge. Không có UI riêng: cấu hình qua F5, 
 | F3.7.3 | Ghi nhận endpoint để discovery | E | MR | Telemetry |
 | F3.7.4 | Phát hiện BOLA, dữ liệu nhạy cảm trong response | E | NC | — |
 | **F3.8** | **Thực thi hành động** | | | |
-| F3.8.1 | Block, challenge (JS, tương tác), log, allow, skip | E | MVP | — |
-| F3.8.2 | Trang chặn và trang challenge tuỳ biến theo zone | E | MR | **CustomPage** (đọc) |
+| F3.8.1 | Block, challenge (JS, tương tác, managed: edge tự chọn theo điểm), log, allow, trust, skip | E | MVP | — |
+| F3.8.2 | Trang lỗi tuỳ biến theo tenant hoặc zone, map với từng loại lỗi (403 WAF, 429, 502, 504, 503 bảo trì, trang challenge), JSON cho path API | E | MR | **CustomErrorPage** (đọc) |
 | F3.8.3 | Phát security event cho mọi quyết định không phải allow | E | MVP | **SecurityEvent** |
 | F3.8.4 | Thực thi trần cứng của gói (chuyển tiếp tối giản, hạ cấp) | E | MVP | Entitlements (đọc) |
+| F3.8.5 | Tarpit: giữ kết nối vài giây trước khi trả 403; có trần số kết nối tarpit trên mỗi node, vượt trần thì block | E | MR | — |
 | **F3.9** | **Bảo vệ origin và fail mode** | | | |
 | F3.9.1 | Fail-open hoặc fail-closed khi tầng WAF không trả lời kịp | E | MVP | ZoneSettings (đọc) |
 | F3.9.2 | Xác thực edge với origin (mTLS tới origin, header bí mật) | E | MVP | ZoneSettings (đọc) |
@@ -252,7 +257,7 @@ Chạy trên từng request ở edge. Không có UI riêng: cấu hình qua F5, 
 | F4.3.1 | Trả IP PoP gần và khoẻ cho hostname của khách | E | MVP | PoP health (đọc) |
 | F4.3.2 | DNS authoritative cho khách: bản ghi proxied, DNSSEC | M | MR | **DnsRecord** |
 | **F4.4** | **Load balancing và failover** | | | |
-| F4.4.1 | Nhóm origin, health check, chuyển origin khi lỗi | M | MR | **OriginPool**, **HealthCheck** |
+| F4.4.1 | Nhóm origin active-passive, round-robin, theo trọng số; health check chủ động và thụ động; chuyển sang origin dự phòng khi lỗi | M | MR | **OriginPool**, **HealthCheck** |
 
 ## F5 Vòng đời policy
 
@@ -273,12 +278,13 @@ Mọi thay đổi ảnh hưởng tới traffic đi qua nhóm này. Persona chín
 | F5.2.1 | Kiểm cú pháp, kiểu, giới hạn gói ngay khi soạn | M | MVP | — |
 | F5.2.2 | Biên dịch thử trước khi gửi duyệt (cùng checker với Control) | C | MVP | **CompileResult** |
 | F5.2.3 | Mô phỏng trên traffic lịch sử, báo số request bị ảnh hưởng | A | MR | **ReplayJob**, **ReplayResult** |
+| F5.2.4 | Kiểm tra không lưu (validate, dry-run) qua public API cho Terraform plan và CI; không tạo PolicyVersion | C | MVP | — |
 | **F5.3** | **Duyệt và phát hành** | | | |
 | F5.3.1 | Gửi change request kèm diff và kết quả kiểm tra | M | MVP | **ChangeRequest** |
 | F5.3.2 | Duyệt 4-eyes (người duyệt khác người tạo), bật theo account | M | MR | **Approval** |
 | F5.3.3 | Khung giờ được phép thay đổi | M | MR | **ChangeWindow** |
 | F5.3.4 | Phát hành: tạo PolicyVersion bất biến, gửi sang Control | M | MVP | **PolicyVersion**, Outbox |
-| F5.3.5 | Theo dõi trạng thái phát hành tới edge (đã biên dịch, % node đã áp) | C | MVP | **RolloutStatus** |
+| F5.3.5 | Theo dõi trạng thái phát hành tới edge realtime trên portal (đã biên dịch, % node đã áp), lý do khi dừng hoặc rollback | C | MVP | **RolloutStatus** |
 | **F5.4** | **Version và rollback** | | | |
 | F5.4.1 | Xem lịch sử version của zone, ai duyệt, khi nào | M | MVP | PolicyVersion |
 | F5.4.2 | So sánh hai version | M | MVP | PolicyVersion |
@@ -286,6 +292,7 @@ Mọi thay đổi ảnh hưởng tới traffic đi qua nhóm này. Persona chín
 | **F5.5** | **Kênh khẩn** | | | |
 | F5.5.1 | Bật Under Attack mode không cần duyệt | M | MVP | **ZoneSettings**, AuditEntry |
 | F5.5.2 | Rule tạm có hạn từ case hoặc từ SOC, tự hết hạn | M | MVP | **TemporaryMitigation** |
+| F5.5.3 | Emergency override ở account cần duyệt: áp ngay thay đổi siết chặt, có hạn, duyệt bù, cảnh báo critical tới Owner và Admin | M | MR | **ChangeRequest**.emergency |
 | **F5.6** | **Policy as code** | | | |
 | F5.6.1 | Toàn bộ F5.1–F5.4 qua public API | M | MVP | — |
 | F5.6.2 | Terraform provider | M | MR | — |
@@ -330,6 +337,7 @@ Persona chính: SOC analyst, quản trị bảo mật; support của NCC với q
 | **F7.2** | **Xem realtime** | | | |
 | F7.2.1 | Luồng security event trực tiếp theo zone | A | MVP | — (live tap) |
 | F7.2.2 | Thông báo trong portal (cảnh báo, kết quả phát hành) | A | MVP | — |
+| F7.2.3 | Live tail có bộ lọc (rule ID, IP, path, hành động), gồm cả hit của rule log-only | A | MVP | — (live tap) |
 | **F7.3** | **Tìm kiếm và tra cứu** | | | |
 | F7.3.1 | Tra cứu theo request ID: rule nào, bước nào, version nào | A | MVP | SecurityEvent, AccessLog |
 | F7.3.2 | Lọc, nhóm event theo trường, khoảng thời gian | A | MVP | SecurityEvent |
@@ -345,6 +353,7 @@ Persona chính: SOC analyst, quản trị bảo mật; support của NCC với q
 | **F7.6** | **Export SIEM** | | | |
 | F7.6.1 | Cấu hình đích export (Splunk, S3, HTTP, Kafka, syslog) | M | MVP | **ExportDestination** |
 | F7.6.2 | Đẩy event liên tục, thử lại, báo đích lỗi | A | MVP | Trạng thái export |
+| F7.6.3 | Bộ lọc export theo hành động, loại event, zone, trường; lấy mẫu log allow | A | MVP | **ExportDestination** |
 
 ## F8 Phát hiện, cảnh báo, sự cố
 
@@ -361,6 +370,8 @@ Persona chính: SOC analyst, quản trị bảo mật; support của NCC với q
 | F8.2.4 | Gửi thử kênh | M | MVP | — |
 | **F8.3** | **Gửi thông báo** | | | |
 | F8.3.1 | Gửi theo kênh, thử lại, ghi kết quả | A | MVP | **NotificationDelivery** |
+| F8.3.2 | Chống bão: dedup theo alert, zone, nguồn; gom vào một thread hoặc digest; mức tăng hoặc nguồn mới thì gửi tin mới | A | MVP | **NotificationDelivery** |
+| F8.3.3 | Thông báo kèm link xử lý một bấm: mở portal, đăng nhập, xác nhận mitigation đề xuất | A | MR | **CaseProposal** |
 | **F8.4** | **Case và sự cố** | | | |
 | F8.4.1 | Mở case tay hoặc từ đề xuất | M | MR | **Case** |
 | F8.4.2 | Gắn event, truy vấn, mitigation vào case | M | MR | **CaseLink** |
@@ -446,6 +457,7 @@ Persona chính: NOC/SRE, support, product. Chi tiết vận hành ở [8.12](../
 | F12.4.1 | Quản trị org: xem, tạm khoá, mở khoá tenant vi phạm | M | MVP | **Org**.status |
 | F12.4.2 | Quản lý danh mục gói, đối tác hạ tầng, PoP | M | MVP | Plan, **Partner**, **Pop** |
 | F12.4.3 | Bật mitigation trên zone của khách từ portal vận hành của NCC ([3.3](03-business-analysis/03-attack-response.md#3-đã-quyết)) | M | MVP | **ZoneSettings**, **TemporaryMitigation**, AuditEntry |
+| F12.4.4 | Đặt log-only có hạn cho một rule khẩn của NCC trên một zone bị chặn nhầm, qua support, có audit | M | MVP | **EmergencyRuleOverride**, AuditEntry |
 
 ## Phân rã theo plane
 

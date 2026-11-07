@@ -54,15 +54,23 @@ flowchart TB
 | Module | Entity chính (EntityDefinition) | Workflow | Hành động ngoài CRUD |
 |---|---|---|---|
 | **tenant** | Org, Account, Member, Role binding, ApiKey, SsoConnection | — | Đăng nhập SAML/OIDC, SCIM `/Users` `/Groups`, tạo/thu hồi API key |
-| **zone** | Zone, Hostname, Origin, CertRequest, CacheRule, PurgeRequest, DnsRecord (Mở rộng) | `pending → verifying → active ↔ paused → removed` | Xác minh DNS, kiểm origin, đổi fail mode, purge cache (fast lane), cấu hình chế độ đứng sau CDN của khách, quản lý bản ghi DNS (Mở rộng) |
+| **zone** | Zone, Hostname, Origin, OriginPool (Mở rộng), CertRequest, CacheRule, PurgeRequest, CustomErrorPage, TrustedProxyRange, DnsRecord (Mở rộng) | `pending → verifying → active ↔ paused → removed` | Xác minh DNS, kiểm origin, đổi fail mode, purge cache (fast lane), cấu hình chế độ đứng sau CDN của khách (header IP thật, dải IP CDN), kiểm và xem trước trang lỗi (từ chối JavaScript, tài nguyên ngoài), quản lý bản ghi DNS (Mở rộng) |
 | **policy** | PolicyDraft, CustomRule, AccessList, RateLimitRule, ManagedRulesetConfig, Exception, ZoneSettings, PolicyVersion | — | Validate CEL (gọi cùng thư viện checker với Control), tạo PolicyVersion bất biến, rollback |
-| **change** | ChangeRequest, Approval | `draft → simulating → pending_approval → approved → publishing → enforced` / `rejected` / `rolled_back` | Gửi replay, duyệt 4-eyes, publish (ghi outbox), kênh khẩn (Under Attack mode, rule tạm) |
+| **change** | ChangeRequest, Approval | `draft → simulating → pending_approval → approved → publishing → enforced` / `rejected` / `rolled_back` | Gửi replay, duyệt 4-eyes, publish (ghi outbox), kênh khẩn (Under Attack mode, rule tạm), emergency override, validate (dry-run) gọi Control |
 | **case** | Case, CaseLink, Mitigation | `open → acknowledged → mitigating → resolved` | Chấp nhận đề xuất từ `CaseProposed` thành ChangeRequest khẩn có hạn |
 | **bot** | BotPolicy, danh sách bot của khách, phản hồi phân loại | — | Bật log-only, xem phân bố bot, đánh dấu "đây là người / đây là bot" gửi Analytics |
 | **api** | ApiEndpoint, ApiSchema, ApiAuthConfig | Endpoint: `discovered → confirmed`, `shadow`, `zombie`, `unused` | Duyệt endpoint từ discovery, tải OpenAPI, sinh schema nháp, chuyển log-only/enforce theo endpoint |
 | **alerting** | AlertPolicy, NotificationChannel, ExportDestination | — | Thử kênh, phát cấu hình sang Analytics |
 | **reporting** | SavedSearch, ReportDefinition, ReportRun | — | Chạy báo cáo theo lịch (`metap-cron`), xuất PDF/CSV |
 | **billing** | Plan, Subscription, Entitlements, Invoice, UsageRecord | `trial → active → past_due → suspended` | Phát `EntitlementsChanged`, nhận `UsageReport`, gọi cổng thanh toán |
+
+**Emergency override** ([BR-27](../../../requirements/02-requirements.md#4-quy-tắc-nghiệp-vụ)): ở account cần duyệt, workflow có thêm
+transition `emergency_apply` từ `draft` thẳng sang `publishing` (fast lane), guard gồm ba điều kiện: người gọi có
+policy `transition:emergency_apply`, mọi thay đổi trong change request đều là loại siết chặt (kiểm bằng diff,
+không tin cờ do client gửi), và có `expires_at`. Sau đó change request ở `enforced` với cờ `pending_review`;
+transition `review_approve` (guard `$workflow.actors.emergency_apply` khác người gọi) xoá cờ; tới hạn mà chưa
+duyệt thì `metap-cron` tạo change request rollback. Mỗi lần dùng phát cảnh báo critical tới mọi Owner, Admin của
+account. Dùng cùng cơ chế workflow theo người gọi của `metap-go` (Phase 104).
 
 Thiết kế database: [5.8.14](14-management-database.md). Audit dùng `metap-audit` cho mọi entity; FP label (đánh dấu chặn nhầm) ghi ở Management rồi phát
 sang Analytics để join vào hiệu quả rule.

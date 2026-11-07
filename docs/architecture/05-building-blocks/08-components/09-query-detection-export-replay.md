@@ -83,6 +83,8 @@ Danh mục cảnh báo WAF/DDoS, cấu hình ngưỡng và công thức tính ch
 | Component | Thiết kế |
 |---|---|
 | **Router** | Cấu hình đích lấy từ Management (qua sự kiện); mỗi bản ghi enriched được định tuyến tới các đích của tenant đó |
+| **Bộ lọc** | Theo đích: loại bản ghi (security event, access log, audit log), hành động (block, challenge, log, allow), zone, trường xuất; lấy mẫu riêng cho log allow. Lọc trước khi xếp hàng nên bản ghi bị loại không tốn hàng đợi. Bản nâng cao (bán thêm) dùng biểu thức cùng ngôn ngữ của rule, đã kiểm chi phí, thay vì regex ([FR-7-11](../../../requirements/02-requirements.md#f7-quan-sát-và-điều-tra)) |
+| **Audit log** | Management phát audit entry (kèm hash của entry trước, theo account) sang topic riêng; exporter đẩy cùng đường với event tới đích có bật audit, giữ nguyên chuỗi hash để khách tự kiểm toàn vẹn ([FR-1-19](../../../requirements/02-requirements.md#f1-tenant-và-danh-tính)) |
 | **Hàng đợi theo đích** | Mỗi đích có hàng đợi và offset riêng (lưu PostgreSQL), nên đích chậm không làm chậm đích khác; đích tụt hậu quá retention Kafka → đánh dấu mất dữ liệu, báo khách |
 | **Formatter** | JSON (mặc định), CEF, LEEF; chọn trường xuất |
 | **Sink** | HTTP (Splunk HEC, Elastic/OpenSearch bulk, Datadog, endpoint tuỳ ý), syslog qua TLS, ghi object storage của khách |

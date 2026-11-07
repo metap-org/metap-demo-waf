@@ -110,6 +110,9 @@ dành cho cấu hình của node, không bao giờ do khách kích hoạt.
 
 - Rule khẩn của NCC nằm trong một **lớp rule khẩn** riêng, nhỏ, đánh giá **trước** CRS ở tầng WAF (và ở
   L7 nếu chỉ dùng trường rẻ). Thêm rule khẩn chỉ dựng lại lớp này, không build lại instance CRS.
+- Khách không tắt được rule khẩn. Khi một rule khẩn chặn nhầm một zone, support của NCC đặt
+  `EmergencyRuleOverride` (log-only cho đúng zone và rule đó, có hạn, có audit; FR-12-07); override là
+  cấu hình lớp A của zone nên cũng đi fast lane.
 - Khi rule khẩn được đưa vào system ruleset ở release kế tiếp (lớp B, rollout thường), nó được gỡ khỏi
   lớp khẩn.
 - Compiler từ chối đưa vào fast lane bất kỳ thay đổi nào sinh ra việc lớp B (ví dụ đổi paranoia sang tổ

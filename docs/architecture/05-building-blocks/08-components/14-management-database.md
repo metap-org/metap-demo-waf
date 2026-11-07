@@ -160,6 +160,9 @@ theo tenant) hay **toàn cục** (qua `waap_global`).
 | `origins` | `zone_id` ref, `address`, `port`, `tls_mode`, `pool` (Mở rộng) | Index `(zone_id)` | |
 | `certificates` | `zone_id` ref, `kind` (`universal` / `uploaded` / `custom`), `not_after`, `sans` | Index `not_after` (cho renewal scheduler) | **Không có private key**: key do Cert & key manager ở Control giữ, mã hoá bằng OpenBao; ở đây chỉ metadata và tham chiếu |
 | `zone_policy_state` | `zone_id` ref, `enforced_version_id`, `canary_version_id`, `coverage` | Unique: `zone_id` | Con trỏ do sự kiện từ Control cập nhật; tách khỏi `zones` để không đụng optimistic lock của người sửa zone |
+| `custom_error_pages` | `tenant_id`, `zone_id` ref (null = cấp tenant), `error_kind` (`waf_block` / `rate_limited` / `origin_502` / `origin_504` / `maintenance_503` / `challenge`), `format` (`html` / `json`), `content_hash` | Unique: `(tenant_id, zone_id, error_kind, format)` | Nội dung (HTML, CSS tĩnh, ảnh nhúng) đã kiểm ở module zone, lưu object storage khi lớn |
+| `trusted_proxy_ranges` | `zone_id` ref, `preset` (`cloudflare` / `akamai` / `cloudfront` / `custom`), `client_ip_header`, `cidrs` | Unique: `zone_id` | Preset có dải do NCC cập nhật |
+| `origin_pools` (Mở rộng) | `zone_id` ref, `mode` (`active_passive` / `round_robin` / `weighted`), `health_check` | Index `(zone_id)` | `origins.pool` trỏ vào đây |
 | `dns_records` (Mở rộng) | `zone_id` ref, `type`, `name`, `proxied` | Unique zone: `(zone_id, type, name, value)` | |
 
 ### policy (nháp) và PolicyVersion (bất biến)
@@ -194,7 +197,7 @@ Vì sao tài liệu bất biến thay vì sao chép từng dòng sang bảng "ve
 
 | Bảng | Cột chính | Ràng buộc, index | Ghi chú |
 |---|---|---|---|
-| `change_requests` | `zone_id` ref (hoặc null cho thay đổi nhiều zone), `batch_id`, `base_version_id`, `kind` (`normal` / `emergency`), `author_member_id`, `expires_at` | Index `(zone_id, status)`, `(batch_id)` | Workflow ở 5.8.12; nội dung đề xuất là tài liệu trong `data` |
+| `change_requests` | `zone_id` ref (hoặc null cho thay đổi nhiều zone), `batch_id`, `base_version_id`, `kind` (`normal` / `emergency` / `emergency_override`), `author_member_id`, `expires_at`, `pending_review` | Index `(zone_id, status)`, `(batch_id)`; index `(expires_at)` where `pending_review` | Workflow ở 5.8.12; nội dung đề xuất là tài liệu trong `data`. `emergency_override` bắt buộc `expires_at` |
 | `change_batches` | `account_id` ref, `zone_count`, `source` (`ui` / `api` / `terraform`) | | Thay đổi hàng loạt (QS-27) |
 | `approvals` | `change_request_id` ref, `approver_member_id`, `decision` | Unique: `(change_request_id, approver_member_id)` | Người duyệt khác người tạo: kiểm ở service |
 | `cases`, `case_links`, `mitigations` | `account_id` ref, `severity`, `zone_ids` | Index `(account_id, status)` | Link tới event là `request_id` hoặc id ngoài, không FK |

@@ -36,10 +36,11 @@ flowchart LR
 |---|---|
 | **Inspection server** | Theo [Inspection API](../05-contracts.md#inspection-api-l7--waf) (bản nháp, đang nghiên cứu). gRPC stream hai chiều: nhận header, rồi body theo chunk, rồi `end`; trả `Verdict` ngay khi có kết luận (có thể trước khi hết body nếu đã vượt ngưỡng anomaly) |
 | **Admission control** | Mỗi tenant có phần CPU theo gói (weighted fair queueing, trọng số Free 1 / Pro 2 / Business 4 / Enterprise 8, [8.18](../../08-cross-cutting/18-segments-and-plans.md)); khi quá tải từ chối gói thấp trước; hàng đợi đầy → trả `Overloaded` ngay để L7 áp fail mode, không để request chờ lâu |
+| **Lớp rule khẩn** | Bộ rule nhỏ của NCC chạy trước CRS và trước custom rule của khách ([BR-33](../../../requirements/02-requirements.md#4-quy-tắc-nghiệp-vụ)); một zone có `EmergencyRuleOverride` còn hạn thì rule đó chạy log-only trên zone đó |
 | **Ruleset selector** | Map `zone → profile`; instance engine dựng sẵn theo **profile** `(ruleset release, paranoia, ngưỡng)`, dùng chung giữa mọi zone cùng profile; rule tắt của zone áp bằng lọc kết quả; chỉ zone có exclusion theo trường mới cần instance riêng (LRU); instance riêng chưa sẵn thì kiểm bằng profile chuẩn kèm lọc rule tắt, gắn cờ `waf_profile_fallback`, dựng ở nền ([ADR-0040](../../09-adr/0040-config-distribution-at-scale.md)) |
 | **WafEngine** | Interface; engine chờ chọn: Coraza (Go), libmodsecurity v3 (C++), SecLang thuần Rust (dài hạn). CRS anomaly scoring, paranoia level, rule tắt, exclusion của khách |
 | **Custom rule phần inspect** | Rule cần body, tham số đã parse, JSON path; và mọi rule đứng sau rule đầu tiên cần body theo thứ tự priority ([ADR-0034](../../09-adr/0034-pre-filter-and-rule-split-across-tiers.md)) |
-| **API schema** | Mở rộng: kiểm body JSON theo JSON Schema của endpoint (endpoint đã được L7 khớp, gửi kèm `api.endpoint_id`); GraphQL: parse, độ sâu, độ phức tạp, introspection, batch ([8.17](../../08-cross-cutting/17-api-security.md)) |
+| **API schema** | Mở rộng: chạy **trước** managed ruleset ([BR-35](../../../requirements/02-requirements.md#4-quy-tắc-nghiệp-vụ)); sai schema thì trả verdict ngay, không quét signature. Endpoint đang enforce schema dùng profile paranoia thấp hơn (cấu hình theo endpoint) để giảm chặn nhầm. Kiểm body JSON theo JSON Schema của endpoint (endpoint đã được L7 khớp, gửi kèm `api.endpoint_id`); GraphQL: parse, độ sâu, độ phức tạp, introspection, batch ([8.17](../../08-cross-cutting/17-api-security.md)) |
 | **Verdict builder** | `{action, rule_ids, anomaly_score, matched_fields (đã che), phase, engine_time_us}` |
 | **Policy agent** | Cùng cơ chế với L7 ([5.8.4](04-edge-agent-and-state.md)); chỉ nạp phần snapshot của tầng WAF |
 
@@ -86,6 +87,7 @@ response là giai đoạn Nâng cao ([8.17](../../08-cross-cutting/17-api-securi
 
 | Traffic | Sản phẩm | Bảo vệ |
 |---|---|---|
+| HTTPS passthrough theo SNI (Enterprise chọn theo hostname) | L7, không giải mã (Mở rộng) | DDoS L3/L4, access list theo IP; không WAF |
 | TCP/UDP không phải HTTP (game, MQTT, SMTP, database, SSH, RDP, cổng tuỳ ý) | Proxy L4 (Mở rộng, [7.5 §7](../../07-deployment/05-capacity-and-sharding.md#7-cổng)) | DDoS L3/L4, access list IP/geo/ASN, giới hạn kết nối và băng thông; không kiểm nội dung |
 | DNS | DNS điều hướng, DNS authoritative ([5.8.3](03-dns-and-traffic-steering.md)) | Rate limit truy vấn, chống amplification |
 

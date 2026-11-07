@@ -25,7 +25,7 @@ consumer), và **biết thế nào là bất thường với từng consumer**.
 | A2 | **Kho API** (inventory): endpoint đã xác nhận, gắn schema, gắn nhãn nhạy cảm | Management | Mở rộng |
 | A3 | **Kiểm theo schema** (OpenAPI 3.x) | L7 (đường, method, tham số, header) + WAF (body) | Mở rộng |
 | A4 | **Xác thực ở edge**: JWT, mTLS client cert, có mặt API key | L7 | Mở rộng |
-| A5 | **Danh tính consumer** làm khoá cho rate limit, quota, analytics | L7 | Mở rộng |
+| A5 | **Danh tính consumer** làm khoá cho rate limit, quota, analytics | L7 | MVP cho khoá rate limit (API key, JWT claim, header; F3.4.2, quyết 2026-11-07); quota, analytics ở Mở rộng |
 | A6 | **Bảo vệ GraphQL**: độ sâu, độ phức tạp, chặn introspection, giới hạn batch | WAF | Mở rộng |
 | A7 | **Phát hiện BOLA / duyệt đối tượng** | Analytics + L7 | Nâng cao |
 | A8 | **Dữ liệu nhạy cảm trong response** (số thẻ, khoá bí mật, PII) | WAF, theo mẫu | Nâng cao |
@@ -76,6 +76,9 @@ trên giao diện.
 
 - Compiler biên dịch OpenAPI thành **route table** (phần L7) và **validator theo endpoint** (phần WAF),
   cùng manifest nên hai tầng khớp version ([8.15 §6](15-config-propagation-and-apply.md#6-hai-tầng-swap-lệch-nhau)).
+- Trong tầng WAF, kiểm schema body chạy **trước** managed ruleset; sai schema thì dừng, không quét signature.
+  Endpoint đang enforce schema được giảm paranoia CRS (positive security model thay cho regex) để giảm chặn
+  nhầm với payload JSON ([BR-35](../../requirements/02-requirements.md#4-quy-tắc-nghiệp-vụ)).
 - Chế độ theo endpoint hoặc nhóm: tắt, log-only, enforce. Mặc định log-only khi mới tải schema.
 - Vi phạm trả 400 (dữ liệu sai) hoặc 404/403 (endpoint không khai báo) với `status_source = edge_policy`
   và mã vi phạm cụ thể.

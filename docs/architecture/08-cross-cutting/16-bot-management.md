@@ -74,7 +74,18 @@ Mô hình học máy chỉ thay thế khi đo được tốt hơn trên tập đ
 | Dùng trong custom rule | `bot.score < 30 && http.request.uri.path.startsWith("/api/search")` (phần pre, chạy ở L7) |
 | Chế độ chỉ quan sát | Bật bot management ở log-only trước để xem phân bố trước khi enforce |
 
-Các hành động: allow, log, challenge JS (không tương tác), challenge tương tác, rate limit chặt hơn, block.
+Các hành động: allow, log, managed challenge (edge tự chọn JS hay tương tác theo điểm), challenge JS
+(không tương tác), challenge tương tác, rate limit chặt hơn, block.
+
+**Mặc định** ([BR-34](../../requirements/02-requirements.md#4-quy-tắc-nghiệp-vụ)), khách sửa được mọi mốc:
+
+| Nhóm path | `score` < 10 | 10 ≤ `score` < 50 | `score` ≥ 50 |
+|---|---|---|---|
+| Thường | Managed challenge | Log | Allow |
+| Nhạy cảm (login, checkout) | Block | Challenge tương tác | Allow |
+| API | Không challenge; rate limit theo consumer | Như cột trái | Allow |
+
+Bot đã xác minh (BS1) không đi qua bảng này: theo mục "bỏ qua những gì" ở trên.
 
 ## 5. Challenge
 
