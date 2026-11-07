@@ -1,6 +1,7 @@
 # 3.8 Giám sát, điều tra, cảnh báo, báo cáo
 
-> **Trạng thái: đang mở, chưa có quyết định nào (2026-11-06).** Trang này chỉ liệt kê kịch bản và câu hỏi.
+> **Trạng thái: tạm hoãn theo chủ dự án (2026-11-07), "giám sát thì tính sau".** Kịch bản và câu hỏi dưới đây giữ
+> nguyên để quay lại sau, không phân tích thêm lúc này.
 
 ## 1. Phạm vi
 

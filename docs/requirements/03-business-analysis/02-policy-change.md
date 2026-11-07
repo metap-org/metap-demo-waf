@@ -1,6 +1,6 @@
 # 3.2 Viết, duyệt, phát hành một thay đổi policy
 
-> **Trạng thái: đang mở, đã quyết 1/8 câu (2026-11-06).** Trang này liệt kê kịch bản và câu hỏi; quyết định của
+> **Trạng thái: đang mở, đã quyết 1/8 câu; 7 câu còn lại có đề xuất chờ duyệt (2026-11-07).** Trang này liệt kê kịch bản và câu hỏi; quyết định của
 > chủ dự án ghi ở [§3](#3-đã-quyết). Cột "ghi chú ban đầu" là ý kiến lúc ghi, không phải quyết định.
 
 ## 1. Phạm vi
@@ -120,7 +120,22 @@ Liên quan: F5 ở [§1](../01-functional-decomposition.md#f5-vòng-đời-polic
 | OQ-39 | Khách có thấy và điều khiển được tốc độ phát hành (canary, phần trăm traffic) không? | KB2-F1, KB2-F5 | |
 | OQ-40 | Support của NCC có được sửa policy thay khách không, có cần khách duyệt không? | KB2-A4 | |
 
-## 5. Phụ thuộc
+## 5. Phân tích các câu còn mở (đề xuất của Claude, chờ duyệt)
+
+Chủ dự án giao tự phân tích các câu còn lại (2026-11-07). Mỗi đề xuất có phương án và đánh đổi; **chưa câu nào
+được coi là quyết định** cho tới khi chủ dự án duyệt.
+
+| Câu | Phương án | Đánh đổi | Đề xuất |
+|---|---|---|---|
+| OQ-33 | (a) Mọi thay đổi qua change request; (b) chỉ thay đổi ảnh hưởng traffic | (a) chậm cho việc đổi tên, mô tả; (b) phải xác định ranh giới | (b): mọi thay đổi ảnh hưởng traffic qua change request, **gồm cả cài đặt zone** (origin, TLS, fail mode, cache rule) vì đổi origin sai cũng làm sập website. Đổi tên, mô tả, tag hiển thị không cần change request, vẫn ghi audit. Purge là lệnh, không phải cấu hình, không qua change request |
+| OQ-34 | (a) Tắt 4-eyes; (b) tự xác nhận diff; (c) thời gian chờ | (c) làm chậm đúng lúc cần sửa nhanh | 4-eyes chỉ bật được khi account có ít nhất hai người có quyền duyệt. Org một người vẫn tạo change request (để có diff, kiểm tra, rollback) và tự phát hành sau bước xác nhận diff; không có thời gian chờ |
+| OQ-36 | (a) Tự áp mọi zone; (b) khách chọn thời điểm; (c) tự áp theo giai đoạn | (a) đổi hành vi không báo trước; (b) zone lâu không cập nhật thì kém an toàn | (c): rule mới của release vào zone ở log-only 7 ngày, có báo cáo, rồi tự chặn. Business trở lên chọn được "duyệt thủ công": release thành change request chờ duyệt. Enterprise ghim version tối đa 90 ngày. Rule khẩn cho CVE luôn áp ngay ở chế độ chặn; khách tắt được bằng tuning rule (BR-25) |
+| OQ-37 | (a) Có duyệt theo mức rủi ro; (b) không | (a) khó giải thích với kiểm toán, ranh giới rủi ro dễ bị lách | (b) ở MVP: khi bật 4-eyes thì mọi change request đều cần duyệt. Ngoại lệ duy nhất: rollback về một version đã từng được duyệt không cần duyệt lại, vì đó là bước đưa về trạng thái đã được chấp nhận |
+| OQ-38 | (a) Duyệt từng zone; (b) duyệt một lần, phát hành theo đợt | (a) không làm được với nghìn zone | (b): một change request cho template, duyệt một lần; phát hành theo đợt (vài zone trước, rồi phần còn lại); zone biên dịch lỗi bị bỏ qua và báo, không chặn cả nhóm |
+| OQ-39 | (a) Khách chỉ xem trạng thái; (b) khách điều khiển tốc độ | (b) thêm độ phức tạp cho rollout của Control | (a) ở MVP: khách thấy canary đang ở đâu, bao nhiêu % node đã áp. Phát hành theo phần trăm traffic (KB2-F5) để mức Nâng cao |
+| OQ-40 | (a) Support không sửa; (b) support sửa, khách duyệt; (c) support sửa thẳng | (c) khách mất kiểm soát | (b): chỉ khi khách đã cấp quyền support (BR-20); thay đổi do support tạo là change request đứng tên support, cần một người của khách duyệt. Riêng mitigation khi bị tấn công thì NCC bật được không cần duyệt (đã quyết ở 3.3) |
+
+## 6. Phụ thuộc
 
 FR-5-01…FR-5-19, BR-4, BR-5, BR-6, BR-18, BR-21 ở [§2](../02-requirements.md) viết trước phân tích này;
 sẽ đối chiếu lại khi các câu hỏi trên có trả lời.

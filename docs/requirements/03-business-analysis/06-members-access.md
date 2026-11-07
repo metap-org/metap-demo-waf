@@ -1,6 +1,6 @@
 # 3.6 Quản lý thành viên, SSO, API key
 
-> **Trạng thái: đang mở, chưa có quyết định nào (2026-11-06).** Trang này chỉ liệt kê kịch bản và câu hỏi.
+> **Trạng thái: đã quyết OQ-62 (2026-11-07); các câu còn lại có đề xuất chờ duyệt.** Quyết định ở [§3](#3-đã-quyết).
 
 ## 1. Phạm vi
 
@@ -68,11 +68,17 @@ service account) và người của NCC. Liên quan: F1 ở [§1](../01-function
 | KB6-F2 | Phiên đăng nhập từ quốc gia lạ, nhiều thiết bị | Cảnh báo cho user |
 | KB6-F3 | Thời gian phiên, đăng xuất khi nhàn rỗi | Theo org |
 
-## 3. Câu hỏi cần chủ dự án quyết
+## 3. Đã quyết
+
+| Ngày | Câu hỏi | Quyết định | Hệ quả cần phân tích tiếp |
+|---|---|---|---|
+| 2026-11-07 | OQ-62 | **Một người có thể thuộc nhiều org** | Chuyển org trong portal; SSO bắt buộc của org A áp khi người đó vào org A, không chặn họ vào org B bằng mật khẩu; MFA gắn với người, chính sách MFA bắt buộc áp theo org; API key luôn thuộc một org; audit ghi cả người và org; gỡ khỏi org A không ảnh hưởng org B; SCIM của org A chỉ quản lý membership trong org A, không xoá tài khoản người dùng |
+
+## 4. Câu hỏi cần chủ dự án quyết
 
 | ID | Câu hỏi | Kịch bản | Ghi chú ban đầu |
 |---|---|---|---|
-| OQ-62 | Một tài khoản có thuộc nhiều org không? | KB6-B2, KB6-A3 | |
+| ~~OQ-62~~ | Một tài khoản có thuộc nhiều org không? | KB6-B2, KB6-A3 | **Đã quyết**: có (§3) |
 | OQ-63 | Agency quản lý nhiều khách: mô hình nào? | KB6-A3 | Liên quan OQ-59 (reseller) |
 | OQ-64 | Khôi phục khi owner duy nhất mất truy cập: NCC xác minh danh tính bằng gì? | KB6-B4, KB6-C5 | |
 | OQ-65 | Tài khoản khẩn khi bắt buộc SSO: có, ai giữ, kiểm soát thế nào? | KB6-C1 | |
@@ -80,6 +86,20 @@ service account) và người của NCC. Liên quan: F1 ở [§1](../01-function
 | OQ-67 | Đăng nhập Google, Microsoft cho khách nhỏ có ở MVP không? | KB6-C6 | |
 | OQ-68 | Quyền xem dữ liệu request có tách thành quyền riêng không? | KB6-D3 | Gộp với OQ-50 |
 
-## 4. Phụ thuộc
+## 5. Phân tích các câu còn mở (đề xuất của Claude, chờ duyệt)
+
+Chủ dự án giao tự phân tích các câu còn lại (2026-11-07). **Chưa câu nào được coi là quyết định** cho tới khi
+chủ dự án duyệt.
+
+| Câu | Phương án | Đánh đổi | Đề xuất |
+|---|---|---|---|
+| OQ-63 | (a) Agency là thành viên nhiều org; (b) org agency chứa org khách | (b) cần phân cấp org, phức tạp | (a): khách cuối là owner org của mình, agency là thành viên với vai trò được cấp; nhờ OQ-62 không cần mô hình riêng ở MVP |
+| OQ-64 | Khôi phục owner | Quy trình lỏng là đường chiếm tài khoản | Hai bằng chứng trong ba: tạo bản ghi DNS trên domain của zone, giấy tờ doanh nghiệp khớp tên trên hoá đơn, xác nhận của chủ phương thức thanh toán. Chờ 72 giờ, báo mọi admin còn lại của org; ghi audit |
+| OQ-65 | Tài khoản khẩn khi bắt buộc SSO | Không có thì IdP sập là mất quyền điều khiển | Có: tối đa hai owner được miễn SSO, dùng mật khẩu và khoá bảo mật phần cứng; mỗi lần đăng nhập báo mọi admin |
+| OQ-66 | Hạn key, quét key lộ | Hạn bắt buộc làm hỏng CI | Không bắt buộc hạn, mặc định gợi ý 90 ngày; org bật được "bắt buộc hạn". Key có tiền tố nhận diện, đăng ký với chương trình quét secret của GitHub; key lộ bị thu hồi tự động và báo owner |
+| OQ-67 | Đăng nhập Google, Microsoft | | Có ở MVP, dùng lại đường OIDC đã có |
+| OQ-68 | Quyền xem dữ liệu request | | Như OQ-50 (3.4): quyền riêng, mặc định chỉ security admin |
+
+## 6. Phụ thuộc
 
 FR-1-01…FR-1-17, BR-13…BR-15, BR-20, DT-1, OQ-1 ở [§2](../02-requirements.md).

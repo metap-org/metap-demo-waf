@@ -65,6 +65,7 @@ một hay nhiều chức năng lá `F…`. Requirement chất lượng không vi
 | FR-1-15 | Hệ thống phải có service account không gắn người, sở hữu API key cho CI/CD | F1.4.3 | MVP | Gỡ người tạo không làm mất service account |
 | FR-1-16 | Mọi thay đổi qua UI, API, Terraform, SCIM, kênh khẩn và thao tác của NCC phải ghi audit: người/máy, đối tượng, trước/sau, thời điểm, IP, kênh | F1.5.1 | MVP | Không có API ghi nào mà không sinh audit (test tự động trên toàn bộ API) |
 | FR-1-17 | Kiểm toán phải lọc audit theo người, đối tượng, loại hành động, thời gian, và xuất CSV/JSON | F1.5.2, F1.5.3 | MVP | Xuất 1 triệu dòng không làm chậm portal của tenant khác |
+| FR-1-18 | Một tài khoản người dùng phải thuộc được nhiều org; người dùng chuyển org trong portal; SSO bắt buộc và chính sách MFA áp theo từng org; API key luôn thuộc một org ([3.6](03-business-analysis/06-members-access.md#3-đã-quyết)) | F1.2.6 | MVP | Gỡ khỏi org A không ảnh hưởng quyền ở org B; SCIM của org A chỉ đổi membership trong org A |
 
 ### F2 Zone và onboarding
 
@@ -221,6 +222,7 @@ Phần lớn là hành vi của edge; requirement đo được đã có ở 10.3
 | FR-10-11 | Hệ thống phải lập hoá đơn cuối kỳ gồm phí nền, phí vượt, add-on, thuế; xuất hoá đơn điện tử | F10.6.1, F10.6.3 | MVP | Tổng phí vượt khớp usage đã đối soát |
 | FR-10-12 | Hệ thống phải thu tiền qua cổng thanh toán; chỉ lưu token của cổng | F10.6.2 | MVP | Không có số thẻ trong hệ thống (ngoài phạm vi PCI DSS SAQ D) |
 | FR-10-13 | NCC nên điều chỉnh, hoàn tiền, ghi có | F10.6.4 | MR | Mọi điều chỉnh có audit và lý do |
+| FR-10-14 | Khách phải đặt được trần chi tiêu; cách xử lý phần dùng vượt quota (trừ sau bao nhiêu, trừ vào đâu) chờ phân tích ([3.5](03-business-analysis/05-plans-billing.md#3-đã-quyết)) | F10.5.3 | MVP | |
 
 ### F12 Vận hành NCC
 
@@ -231,6 +233,7 @@ Phần lớn là hành vi của edge; requirement đo được đã có ở 10.3
 | FR-12-03 | Support chỉ được vào tenant khi khách cấp quyền, có hạn, có audit hiện cho khách ([BR-20](#4-quy-tắc-nghiệp-vụ)) | F12.3.2 | MVP | |
 | FR-12-04 | NCC phải tạm khoá, mở khoá org (vi phạm, gian lận) kèm lý do | F12.4.1 | MVP | Zone của org bị khoá chuyển theo [BR-9](#4-quy-tắc-nghiệp-vụ), không cắt đột ngột |
 | FR-12-05 | NCC phải quản lý danh mục gói, đối tác hạ tầng, PoP | F12.4.2 | MVP | |
+| FR-12-06 | NCC phải bật được mitigation (Under Attack mode, rule tạm) trên zone của khách từ portal vận hành của NCC; khách tự bật trên portal của khách; mọi lần NCC bật hiện cho khách và có audit ([3.3](03-business-analysis/03-attack-response.md#3-đã-quyết)) | F12.4.3 | MVP | |
 
 ## 4. Quy tắc nghiệp vụ
 
@@ -355,4 +358,4 @@ Phân rã theo plane, thành phần và các liên kết `LK-…` giữa plane �
 | OQ-13 | Developer có được tạo exception không cần duyệt trong zone được giao không? | Không, luôn qua change request | FR-1-06, F5.1.4 |
 | OQ-14 | Billing theo account hay theo org (một hoá đơn cho cả org)? | Theo account, gộp được ở cấp org | DT-8 |
 | OQ-15 | Chốt các hợp đồng tạm ở [5.5](../architecture/05-building-blocks/05-contracts.md#hợp-đồng-bổ-sung-tạm-2026-11-06) (purge, kết quả biên dịch, rollout, cert, kiểm zone, kiểm origin, `PopState`, `PermissionsChanged`, cấu hình alert/export, nhãn chặn nhầm, replay, xoá dữ liệu, cách ly, reputation) | Đã thêm tạm; chốt dần theo từng nghiệp vụ ở §3 | 5.5, outbox của Management |
-| OQ-16…OQ-93 | Câu hỏi của phân tích nghiệp vụ: OQ-16…OQ-20 thuộc bản nháp onboarding cũ; OQ-21…OQ-93 đang mở theo từng nghiệp vụ (onboarding, thay đổi policy, tấn công, chặn nhầm, billing, thành viên, rời dịch vụ, giám sát, bot/API, cache, vận hành NCC) | Ở [requirements §3](03-business-analysis/00-index.md) | Theo trang |
+| OQ-16…OQ-123 | Câu hỏi của phân tích nghiệp vụ: OQ-16…OQ-20 thuộc bản nháp onboarding cũ; OQ-21…OQ-123 theo từng nghiệp vụ, một số đã quyết hoặc có đề xuất chờ duyệt | Ở [requirements §3](03-business-analysis/00-index.md) | Theo trang |

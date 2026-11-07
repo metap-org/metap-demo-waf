@@ -119,6 +119,7 @@ Ai là khách, ai được làm gì. Persona chính: chủ tài khoản, quản 
 | F1.2.3 | Tạo vai trò tuỳ chỉnh từ tập quyền | M | MR | **Role** |
 | F1.2.4 | Gỡ thành viên, thu hồi mọi phiên và key của họ | M | MVP | **Member**, Session, **ApiKey** |
 | F1.2.5 | Đồng bộ user và nhóm từ IdP qua SCIM | M | MR | **Member**, **Group** |
+| F1.2.6 | Một người thuộc nhiều org, chuyển org trong portal ([3.6](03-business-analysis/06-members-access.md#3-đã-quyết)) | M | MVP | User, **Member** |
 | **F1.3** | **Đăng nhập và SSO** | | | |
 | F1.3.1 | Đăng nhập email + mật khẩu, MFA (TOTP, WebAuthn) | M | MVP | User, **MfaFactor** |
 | F1.3.2 | Cấu hình SSO SAML/OIDC theo domain email | M | MVP | **SsoConnection**, **SsoDomain** |
@@ -409,6 +410,7 @@ Persona chính: chủ tài khoản, bộ phận tài chính của khách; sales 
 | **F10.5** | **Hạn mức và trần cứng** | | | |
 | F10.5.1 | Cảnh báo 80% và 100% hạn mức | M | MVP | **QuotaNotice** |
 | F10.5.2 | Gói có trần: phát lệnh áp trần khi vượt | M | MVP | **Entitlements**.capState |
+| F10.5.3 | Khách đặt trần chi tiêu; xử lý phần vượt quota chờ phân tích ([3.5](03-business-analysis/05-plans-billing.md#3-đã-quyết)) | M | MVP | **SpendingCap** |
 | **F10.6** | **Hoá đơn và thanh toán** | | | |
 | F10.6.1 | Lập hoá đơn cuối kỳ: phí nền, phí vượt, add-on, thuế | M | MVP | **Invoice**, **InvoiceLine** |
 | F10.6.2 | Thanh toán qua cổng, lưu phương thức (token của cổng) | M | MVP | **PaymentMethod**, **Payment** |
@@ -443,6 +445,7 @@ Persona chính: NOC/SRE, support, product. Chi tiết vận hành ở [8.12](../
 | F12.3.2 | Support truy cập tenant khi khách cho phép, có hạn, có audit | M | MVP | **SupportAccessGrant** |
 | F12.4.1 | Quản trị org: xem, tạm khoá, mở khoá tenant vi phạm | M | MVP | **Org**.status |
 | F12.4.2 | Quản lý danh mục gói, đối tác hạ tầng, PoP | M | MVP | Plan, **Partner**, **Pop** |
+| F12.4.3 | Bật mitigation trên zone của khách từ portal vận hành của NCC ([3.3](03-business-analysis/03-attack-response.md#3-đã-quyết)) | M | MVP | **ZoneSettings**, **TemporaryMitigation**, AuditEntry |
 
 ## Phân rã theo plane
 
@@ -474,13 +477,13 @@ flowchart TB
 
 | Thành phần | Chức năng lá | Liên kết |
 |---|---|---|
-| **PM1 Định danh và quyền** | F1.1.1–F1.1.4, F1.2.1–F1.2.5, F1.3.1–F1.3.4, F1.4.1–F1.4.3, F1.5.1–F1.5.3 | LK-19 (token realtime, đổi quyền) |
+| **PM1 Định danh và quyền** | F1.1.1–F1.1.4, F1.2.1–F1.2.6, F1.3.1–F1.3.4, F1.4.1–F1.4.3, F1.5.1–F1.5.3 | LK-19 (token realtime, đổi quyền) |
 | **PM2 Zone và hiệu năng** | F2.1.1, F2.1.3, F2.1.8, F2.2.1, F2.2.2, F2.2.4, F2.2.5, F2.2.7, F2.3.3, F2.3.4, F2.4.1–F2.4.4, F2.5.1, F2.5.2, F2.6.1, F2.6.3, F2.7.1, F2.7.2, F2.7.4–F2.7.6, F4.1.2, F4.2.1, F4.2.2, F4.3.2, F4.4.1 | LK-2, LK-3, LK-18, LK-24, LK-28 |
 | **PM3 Policy và thay đổi** | F5.1.1–F5.1.8, F5.2.1, F5.3.1–F5.3.4, F5.4.1–F5.4.3, F5.5.1, F5.5.2, F5.6.1–F5.6.3 | LK-1, LK-6, LK-7, LK-22 |
 | **PM4 Vận hành bảo mật của khách** | F7.3.3, F7.5.1, F7.5.3, F7.6.1, F8.2.1–F8.2.4, F8.4.1–F8.4.4, F9.1.1, F9.1.2, F9.2.1 | LK-18, LK-20, LK-21 |
-| **PM5 Thương mại** | F10.1.1–F10.1.3, F10.2.1–F10.2.3, F10.3.1–F10.3.3, F10.4.3, F10.5.1, F10.5.2, F10.6.1–F10.6.4 | LK-4, LK-5, LK-17 |
+| **PM5 Thương mại** | F10.1.1–F10.1.3, F10.2.1–F10.2.3, F10.3.1–F10.3.3, F10.4.3, F10.5.1–F10.5.3, F10.6.1–F10.6.4 | LK-4, LK-5, LK-17 |
 | **PM6 Dữ liệu và tuân thủ** | F9.3.2, F9.3.3, F9.4.2 | LK-23 |
-| **PM7 Quản trị NCC** | F12.3.2, F12.4.1, F12.4.2 | LK-5 (khoá org đổi entitlements) |
+| **PM7 Quản trị NCC** | F12.3.2, F12.4.1–F12.4.3 | LK-5 (khoá org đổi entitlements) |
 
 ### Control
 

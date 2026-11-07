@@ -1,6 +1,6 @@
 # 3.5 Mua, đổi gói, vượt hạn mức, thanh toán
 
-> **Trạng thái: đang mở, chưa có quyết định nào (2026-11-06).** Trang này chỉ liệt kê kịch bản và câu hỏi. Giá
+> **Trạng thái: đã quyết một phần OQ-55 (2026-11-07); các câu còn lại có đề xuất chờ duyệt.** Giá
 > và hạn mức tham chiếu ở kiến trúc 8.18; trang này hỏi về cách mua và tính tiền, không hỏi lại giá.
 
 ## 1. Phạm vi
@@ -84,12 +84,18 @@ F10 ở [§1](../01-functional-decomposition.md#f10-gói-và-billing).
 | KB5-H5 | Enterprise cam kết sử dụng, vượt cam kết, bù trừ cuối năm | |
 | KB5-H6 | On-prem: license theo node theo năm | Kiểm license khi không có mạng |
 
-## 3. Câu hỏi cần chủ dự án quyết
+## 3. Đã quyết
+
+| Ngày | Câu hỏi | Quyết định | Hệ quả cần phân tích tiếp |
+|---|---|---|---|
+| 2026-11-07 | OQ-55 | **Có trần chi tiêu do khách đặt, và có gói.** Có kiểu dùng quá quota rồi bị trừ sau | **Để phân tích sau theo yêu cầu chủ dự án**: dùng vượt quota bị trừ sau bao nhiêu, trừ vào đâu (số dư trả trước, hoá đơn kỳ sau), vượt trần chi tiêu thì làm gì |
+
+## 4. Câu hỏi cần chủ dự án quyết
 
 | ID | Câu hỏi | Kịch bản | Ghi chú ban đầu |
 |---|---|---|---|
 | OQ-54 | Đơn vị mua là zone, account hay org? Có gói theo nhóm domain cho khách nhỏ nhiều site không? | KB5-B1, KB5-B2 | Liên quan OQ-27 của onboarding |
-| OQ-55 | Có cho khách đặt trần chi tiêu không, vượt thì làm gì? | KB5-D2 | |
+| ~~OQ-55~~ | Có cho khách đặt trần chi tiêu không, vượt thì làm gì? | KB5-D2 | **Đã quyết một phần**: có trần chi tiêu, có gói (§3); cách trừ phần vượt để phân tích sau |
 | OQ-56 | Nâng gói giữa kỳ có tính theo ngày còn lại không? | KB5-C2 | |
 | OQ-57 | Doanh nghiệp trong nước trả sau bằng chuyển khoản: có hỗ trợ ngay từ MVP không, hạn mức nợ bao nhiêu? | KB5-A2, KB5-F2 | |
 | OQ-58 | Hạ gói: log ngoài retention mới bị xoá ngay hay giữ tới hết hạn cũ? | KB5-E2 | |
@@ -97,6 +103,21 @@ F10 ở [§1](../01-functional-decomposition.md#f10-gói-và-billing).
 | OQ-60 | Cổng thanh toán và phương thức nào ở MVP (thẻ quốc tế, thẻ nội địa, QR, ví)? | KB5-A1 | Trùng OQ-12 |
 | OQ-61 | Huỷ giữa kỳ có hoàn tiền không? Có gói tạm ngừng không? | KB5-E3, KB5-E4 | |
 
-## 4. Phụ thuộc
+## 5. Phân tích các câu còn mở (đề xuất của Claude, chờ duyệt)
+
+Chủ dự án giao tự phân tích các câu còn lại (2026-11-07). **Chưa câu nào được coi là quyết định** cho tới khi
+chủ dự án duyệt.
+
+| Câu | Phương án | Đánh đổi | Đề xuất |
+|---|---|---|---|
+| OQ-54 | (a) Theo zone; (b) theo account; (c) gói nhóm cho khách nhỏ | (a) đắt cho người có nhiều site nhỏ; (b) khó so với chi phí phục vụ từng zone | Gói vẫn tính theo zone (như 8.18) để giá bám chi phí; thêm gói nhóm "nhiều site nhỏ" dùng chung một hạn mức cho N zone ít traffic. Subscription gắn với account; hoá đơn gộp theo account, gộp được ở cấp org |
+| OQ-56 | (a) Tính theo ngày còn lại; (b) từ kỳ sau | (b) khách nâng gói khi bị tấn công sẽ chờ tới kỳ sau | Nâng: có hiệu lực ngay, tính theo ngày còn lại. Hạ: có hiệu lực cuối kỳ |
+| OQ-57 | Trả sau bằng chuyển khoản ở MVP | Cấp dịch vụ trước khi thu tiền | Có, cho doanh nghiệp có hợp đồng (Business, Enterprise); hạn mức nợ theo hợp đồng; quy trình nhắc nợ riêng, quá hạn thì áp BR-9 |
+| OQ-58 | (a) Xoá log ngay; (b) giữ tới hết hạn cũ | (b) tốn chi phí lưu trữ không được trả | Báo trước 7 ngày, sau đó áp retention mới; khách muốn giữ thì xuất trước |
+| OQ-59 | Reseller ở MVP | | Không ở MVP. Một người thuộc nhiều org (đã quyết ở 3.6) đủ cho agency quản lý hộ; mô hình reseller, nhãn trắng để sau |
+| OQ-60 | Phương thức thanh toán MVP | Mỗi cổng thêm một tích hợp | Thẻ quốc tế, chuyển khoản qua QR (VietQR), chuyển khoản theo hoá đơn cho doanh nghiệp; ví điện tử để sau |
+| OQ-61 | Hoàn tiền khi huỷ, gói tạm ngừng | | Gói tháng không hoàn phần còn lại; gói năm hoàn theo tháng chưa dùng, trừ phần chiết khấu năm. Không có gói tạm ngừng: dùng tạm dừng zone và hạ gói |
+
+## 6. Phụ thuộc
 
 FR-10-01…FR-10-13, BR-7…BR-11, DT-8, IR-2, IR-3, OQ-10, OQ-12, OQ-14 ở [§2](../02-requirements.md).
