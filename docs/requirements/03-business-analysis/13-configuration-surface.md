@@ -162,6 +162,19 @@ Chủ dự án đưa danh sách tính năng theo từng plane, Claude nêu các 
 | Chống bão cảnh báo | Dedup theo alert, zone, nguồn trong cửa sổ 30 phút, gom vào thread hoặc digest; mức tăng hoặc nguồn mới phá dedup | FR-8-08 |
 | Lọc khi export | Theo hành động, loại event, zone, trường, lấy mẫu log allow; bản lọc nâng cao dùng cùng ngôn ngữ biểu thức của rule thay vì regex | FR-7-11 |
 
+**Nghiệp vụ lõi của pipeline (quyết 2026-11-07, đợt hai).** Chủ dự án nêu 6 điểm (thứ tự pipeline, xung đột
+policy, bot, API, origin, kiểm thử rule); Claude đối chiếu với tài liệu, đề xuất A–G, chủ dự án đồng ý:
+
+| Mục | Quyết định | Yêu cầu |
+|---|---|---|
+| A. Allowlist | Giữ BR-28: Trust không bỏ qua rate limit và WAF; cần bỏ qua nhiều chặng thì dùng Skip từng chặng, hiện rõ trên UI | BR-28 |
+| B. Thứ tự pipeline | Rẻ trước đắt sau; DDoS L7 tách lên ngay sau access list, trước challenge; rate limit theo rule trước WAF | BR-32, FR-3-19 |
+| C. Xung đột rule | Priority từ trên xuống, dừng ở hành động kết thúc đầu tiên; access list: cụ thể hơn thắng; block của NCC > allow của khách > block của khách > allow của NCC; support đặt log-only có hạn cho rule khẩn chặn nhầm một zone | BR-33, FR-12-07 (đóng KB13-B3) |
+| D. Bot score | Bảng hành động mặc định theo điểm và nhóm path; managed challenge mặc định | BR-34 (đóng một phần OQ-155) |
+| E. API | Schema chạy trước managed ruleset trong tầng WAF; endpoint enforce schema được giảm paranoia; rate limit theo API key, JWT lên MVP | BR-35, FR-3-06 |
+| F. SSL passthrough | Mở rộng, Enterprise, theo hostname, UI ghi rõ "không được kiểm" | FR-3-18 |
+| G. Log-only sang chặn | Không tự chuyển: báo cáo sau thời gian quan sát, người dùng bấm, qua change request | BR-36 |
+
 Chi tiết Claude thêm khi ghi, **chờ duyệt**: DDoS L7 không skip được; emergency override mặc định hạn 24 giờ;
 cửa sổ dedup mặc định 30 phút.
 

@@ -160,7 +160,7 @@ sequenceDiagram
     U->>S: báo bị chặn, gửi request ID trên trang chặn
     S->>M: tra request ID
     M->>An: Query (request ID)
-    An-->>M: bước 8, CRS 942100, khớp tham số "q"
+    An-->>M: bước 12, CRS 942100, khớp tham số "q"
     S->>M: đánh dấu chặn nhầm
     M->>An: ghi nhãn FP (nuôi tỉ lệ FP theo rule)
     S->>M: tạo exception: bỏ 942100 cho path /search, tham số q

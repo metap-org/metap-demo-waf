@@ -117,11 +117,11 @@ Phần lớn là hành vi của edge; requirement đo được đã có ở 10.3
 | FR-3-03 | Edge phải áp access list IP/CIDR/quốc gia/ASN trước mọi bước kiểm tốn kém | F3.2.1 | MVP | QS-17 |
 | FR-3-04 | Edge phải phát hiện và giảm thiểu DDoS L7 tự động theo độ nhạy, hành động khách chọn | F3.3.1, F3.3.2 | MVP | QS-17, QS-29 |
 | FR-3-05 | Under Attack mode phải challenge mọi request chưa có clearance của zone | F3.3.3 | MVP | QS-5 |
-| FR-3-06 | Edge phải áp rate limit với bộ đếm toàn fleet theo khoá khách chọn | F3.4.1, F3.4.2 | MVP | Sai lệch ngưỡng toàn fleet ≤ 10% ([OQ-8](#9-câu-hỏi-mở-cho-review)) |
+| FR-3-06 | Edge phải áp rate limit với bộ đếm toàn fleet theo khoá khách chọn: IP, path, header, cookie, API key, JWT claim (CGNAT của mạng di động làm khoá IP chặn nhầm nhiều) | F3.4.1, F3.4.2 | MVP | Sai lệch ngưỡng toàn fleet ≤ 10% ([OQ-8](#9-câu-hỏi-mở-cho-review)) |
 | FR-3-07 | Edge phải kiểm managed ruleset, custom rule theo thứ tự ưu tiên, exception có phạm vi, trên body trong giới hạn của gói | F3.5.1–F3.5.4 | MVP | QS-1, QS-8 |
 | FR-3-08 | Edge phải chặn bot xấu rõ ràng, không chặn bot đã xác minh; tính điểm bot ở gói cao | F3.6.1, F3.6.2 | MVP / MR | QS-20, QS-21 |
 | FR-3-09 | Edge nên kiểm request theo schema OpenAPI, JWT, mTLS client của endpoint | F3.7.1, F3.7.2 | MR | QS-22, QS-23 |
-| FR-3-10 | Edge phải thực hiện block, challenge, log, allow, skip và phát security event cho mọi quyết định khác allow | F3.8.1, F3.8.3 | MVP | QS-10, QS-12 |
+| FR-3-10 | Edge phải thực hiện block, challenge (JS, tương tác, managed), log, allow, trust, skip và phát security event cho mọi quyết định khác allow; rule xung đột giải theo [BR-33](#4-quy-tắc-nghiệp-vụ) | F3.8.1, F3.8.3 | MVP | QS-10, QS-12 |
 | FR-3-11 | Edge phải thực thi trần cứng của gói có trần | F3.8.4 | MVP | QS-36 |
 | FR-3-12 | Zone phải chọn được fail-open hoặc fail-closed khi tầng WAF không trả lời kịp | F3.9.1 | MVP | QS-18 |
 | FR-3-13 | Edge phải xác thực với origin bằng mTLS hoặc header bí mật do khách cấu hình | F3.9.2 | MVP | |
@@ -129,6 +129,8 @@ Phần lớn là hành vi của edge; requirement đo được đã có ở 10.3
 | FR-3-15 | Access list và custom rule phải có hai hành động tách biệt Trust và Skip theo [BR-28](#4-quy-tắc-nghiệp-vụ); UI và API gọi đúng tên, nói rõ chặng nào bị bỏ qua | F3.2.4 | MVP | IP được Trust vẫn bị rate limit và DDoS L7 chặn khi flood |
 | FR-3-16 | Khách nên tải trang lỗi tuỳ biến (HTML, CSS tĩnh) theo tenant hoặc zone và map với từng loại lỗi; edge tự chèn request ID; path API trả JSON | F3.8.2 | MR | Trang có JavaScript hoặc tài nguyên ngoài bị từ chối khi lưu; xem trước được trước khi phát hành |
 | FR-3-17 | Edge nên có hành động tarpit có trần theo node | F3.8.5 | MR | Vượt trần, request tarpit mới chuyển thành block, không tăng số kết nối giữ |
+| FR-3-18 | Edge nên có SSL passthrough theo SNI cho hostname Enterprise chọn: không giải mã, chỉ định tuyến và chống DDoS L3/L4; UI ghi rõ hostname đó không được kiểm | F3.1.5 | MR | Hostname passthrough không có event WAF, bot, cache nào |
+| FR-3-19 | Edge phải chạy pipeline theo thứ tự [BR-32](#4-quy-tắc-nghiệp-vụ) | F3 | MVP | Request bị chặn ở một bước không tốn CPU của các bước sau |
 | FR-4-01 | Edge phải cache theo Cache-Control và cache rule của khách, phục vụ bản cũ khi origin lỗi | F4.1.1, F4.1.2, F3.9.3 | MVP | |
 | FR-4-02 | Người dùng phải purge toàn zone, theo URL, theo prefix trong hạn mức gói | F4.2.1 | MVP | QS-15 |
 | FR-4-03 | DNS điều hướng phải trả IP PoP khoẻ, gần client | F4.3.1 | MVP | QS-16 |
@@ -143,7 +145,7 @@ Phần lớn là hành vi của edge; requirement đo được đã có ở 10.3
 | FR-5-02 | Người dùng phải cấu hình managed ruleset: profile, paranoia, ngưỡng anomaly, tắt từng rule trong giới hạn gói | F5.1.2 | MVP | |
 | FR-5-03 | Người dùng phải soạn rate limit rule, access list, cấu hình DDoS L7, bot, API security của zone | F5.1.3, F5.1.5 | MVP | |
 | FR-5-04 | Người dùng phải tạo exception có phạm vi (zone bắt buộc; rule, trường, đường dẫn tuỳ chọn) và có thể đặt ngày hết hạn | F5.1.4 | MVP | [BR-21](#4-quy-tắc-nghiệp-vụ) |
-| FR-5-05 | Mọi rule và cả zone phải đặt được log-only | F5.1.6 | MVP | Rule log-only sinh event với hành động `log`, không ảnh hưởng request |
+| FR-5-05 | Mọi rule (custom, managed, rate limit, bot, schema API) và cả zone phải đặt được log-only; chuyển sang chặn theo [BR-36](#4-quy-tắc-nghiệp-vụ) | F5.1.6 | MVP | Rule log-only sinh event với hành động `log`, không ảnh hưởng request |
 | FR-5-06 | Mọi chỉnh sửa phải nằm trong bản nháp của zone cho tới khi phát hành; nhiều người sửa cùng bản nháp không ghi đè nhau | F5.1 | MVP | Xung đột version trả lỗi, không mất thay đổi |
 | FR-5-07 | Hệ thống phải kiểm cú pháp, kiểu, giới hạn gói khi soạn, và biên dịch thử bằng cùng checker với Control trước khi gửi duyệt | F5.2.1, F5.2.2 | MVP | Bản nháp qua kiểm tra không bao giờ bị Control từ chối vì cú pháp |
 | FR-5-08 | Người dùng nên mô phỏng thay đổi trên traffic 7 ngày gần nhất và thấy số request đổi kết quả | F5.2.3 | MR | Kết quả ≤ 5 phút cho zone 10 triệu request/ngày |
@@ -246,6 +248,7 @@ Phần lớn là hành vi của edge; requirement đo được đã có ở 10.3
 | FR-12-04 | NCC phải tạm khoá, mở khoá org (vi phạm, gian lận) kèm lý do | F12.4.1 | MVP | Zone của org bị khoá chuyển theo [BR-9](#4-quy-tắc-nghiệp-vụ), không cắt đột ngột |
 | FR-12-05 | NCC phải quản lý danh mục gói, đối tác hạ tầng, PoP | F12.4.2 | MVP | |
 | FR-12-06 | NCC phải bật được mitigation (Under Attack mode, rule tạm) trên zone của khách từ portal vận hành của NCC; khách tự bật trên portal của khách; mọi lần NCC bật hiện cho khách và có audit ([3.3](03-business-analysis/03-attack-response.md#3-đã-quyết)) | F12.4.3 | MVP | |
+| FR-12-07 | Support NCC phải đặt được log-only có hạn cho một rule khẩn của NCC trên đúng một zone bị chặn nhầm, có audit; khách không tự tắt được rule khẩn ([BR-33](#4-quy-tắc-nghiệp-vụ)) | F12.4.4 | MVP | Hết hạn thì rule khẩn tự chặn lại trên zone đó |
 
 ## 4. Quy tắc nghiệp vụ
 
@@ -282,6 +285,11 @@ Phần lớn là hành vi của edge; requirement đo được đã có ở 10.3
 | BR-29 | Policy của khách chỉ tự rollback khi lỗi biên dịch hoặc áp dụng, node lỗi, độ trễ tăng; thay đổi tỉ lệ chặn, traffic chỉ cảnh báo và gợi ý rollback. Bản phát hành của NCC (ruleset, engine, bundle chung) tự rollback theo cả gate traffic | F6.3.1 |
 | BR-30 | Link trong thông báo không bao giờ tự thực thi hành động: token chỉ trỏ tới đề xuất, có hạn ngắn, không thay cho đăng nhập; hành động chạy sau khi người dùng đăng nhập và xác nhận, qua kênh khẩn | F8.3.3 |
 | BR-31 | Header IP client thật chỉ được tin khi kết nối đến từ dải IP CDN khách đã khai; nếu không, edge dùng IP TCP | F3.1.4 |
+| BR-32 | Thứ tự pipeline, rẻ trước đắt sau: L3/L4 → TLS → chuẩn hoá giao thức → access list (IP, CIDR, ASN, quốc gia, reputation) → **DDoS L7** → tính điểm bot → Under Attack, challenge → kiểm API rẻ (endpoint, xác thực, tham số) → rate limit theo rule → policy bot, custom rule phần rẻ → **WAF: schema body trước, rồi managed ruleset và custom rule cần body** → cache → origin. Trust và Skip không bỏ qua được DDoS L7 ([BR-28](#4-quy-tắc-nghiệp-vụ)) | F3 |
+| BR-33 | Xung đột rule: (1) trong một chặng, rule chạy theo priority từ trên xuống, gặp hành động kết thúc (block, challenge, allow, trust) đầu tiên thì dừng chặng đó; `log` không dừng; (2) trong access list, mục cụ thể hơn thắng: IP > CIDR > ASN > quốc gia; (3) giữa NCC và khách: block của NCC (lớp rule khẩn) > allow của khách > block của khách > allow của NCC. Khách không tự tắt được rule khẩn; support đặt log-only có hạn cho đúng một zone (FR-12-07) | F3.5, F3.8, F12.4.4 |
+| BR-34 | Hành động mặc định theo bot score (1–99, thấp là bot) và nhóm path: path thường: dưới 10 challenge, 10 đến dưới 50 log, từ 50 allow; path nhạy cảm (login, checkout): dưới 10 block, 10 đến dưới 50 challenge tương tác, từ 50 allow; path API: không challenge, dùng rate limit theo consumer. Mặc định dùng managed challenge (edge tự chọn JS hay tương tác theo điểm). Khách sửa được mọi mốc | F3.6.2 |
+| BR-35 | Endpoint API có schema: kiểm schema chạy trước managed ruleset trong tầng WAF, request sai schema bị loại không quét signature; endpoint đang enforce schema được giảm paranoia CRS để giảm chặn nhầm | F3.7.1 |
+| BR-36 | Log-only không bao giờ tự chuyển sang chặn: sau thời gian quan sát (mặc định 7 ngày, BR-24) hệ thống gửi báo cáo số request sẽ bị chặn và rule nghi chặn nhầm; người dùng bấm chuyển, bước chuyển đi qua change request | F5.1.6 |
 
 ## 5. Yêu cầu dữ liệu
 
@@ -300,7 +308,7 @@ hoặc đọc qua API.
 | DT-8 | Gói, billing | Plan, PlanVersion, Price, AddOn, Subscription, Entitlements, UsageDaily, QuotaNotice, Invoice, InvoiceLine, Payment, PaymentMethod (token), CreditNote | M | 1 triệu subscription, 1 triệu dòng usage mỗi ngày | Hoá đơn, chứng từ ≥ 10 năm (Luật Kế toán) | Tài chính; không lưu số thẻ |
 | DT-9 | Vận hành bảo mật của khách | SavedSearch, AlertPolicy, NotificationChannel, ExportDestination, FalsePositiveLabel, Case, CaseLink, ReportDefinition, ReportRun | M | Nhỏ so với DT-3 | Theo vòng đời; ReportRun 13 tháng | Credential kênh, đích export ở secret store |
 | DT-10 | Dữ liệu NCC | Partner, Pop, SupportAccessGrant, trạng thái khoá org | M (`PLATFORM_TENANT_ID`) | Nhỏ | Theo vòng đời | Thấp |
-| DT-11 | Phân phối, fleet | ZoneBundle, Manifest, CompileResult, Rollout, RolloutStatus, Node, NodeCert, NodeDenyList, ZonePlacement, RulesetRelease, EmergencyRule, ReputationFeed, PopState, FleetFreeze | C | 8 GB bundle mỗi PoP, ≈ 700 node | Bundle: N version gần nhất mỗi zone | Khoá ký ở KMS |
+| DT-11 | Phân phối, fleet | ZoneBundle, Manifest, CompileResult, Rollout, RolloutStatus, Node, NodeCert, NodeDenyList, ZonePlacement, RulesetRelease, EmergencyRule, EmergencyRuleOverride, ReputationFeed, PopState, FleetFreeze | C | 8 GB bundle mỗi PoP, ≈ 700 node | Bundle: N version gần nhất mỗi zone | Khoá ký ở KMS |
 | DT-12 | Telemetry | SecurityEvent, AccessLog, RequestSample, UsageCounter, AlertState, NotificationDelivery, ReplayJob, bảng tổng hợp | A | ≈ 1,15 triệu bản ghi/s, 12 TB/ngày | Theo gói: 24 giờ đến 365 ngày | Có IP và header của end-user |
 
 Yêu cầu chung cho dữ liệu:

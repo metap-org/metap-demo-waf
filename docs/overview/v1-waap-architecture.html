@@ -1299,12 +1299,12 @@ khác nhau (<a href="#f-09-adr-0033-two-tier-edge-proxy-and-waf">ADR-0033</a>), 
 </tr>
 <tr>
 <td><strong>L7</strong></td>
-<td>Pipeline bước 2–10, 12–14 (<a href="#f-05-building-blocks-08-components-01-l7--thứ-tự-xử-lý">5.8.1</a>)</td>
+<td>Pipeline bước 2–11, 13–15 (<a href="#f-05-building-blocks-08-components-01-l7--thứ-tự-xử-lý">5.8.1</a>)</td>
 <td>Không phụ thuộc mạng ngoài PoP</td>
 </tr>
 <tr>
 <td><strong>WAF inspection</strong></td>
-<td>Bước 11: managed ruleset, custom rule phần inspect, schema body API, GraphQL</td>
+<td>Bước 12: schema body API, GraphQL, rồi managed ruleset, custom rule phần inspect</td>
 <td>Không phụ thuộc mạng ngoài PoP</td>
 </tr>
 <tr>
@@ -1352,70 +1352,77 @@ khác nhau (<a href="#f-09-adr-0033-two-tier-edge-proxy-and-waf">ADR-0033</a>), 
 <td>4</td>
 <td>Access list, reputation</td>
 <td>L7</td>
-<td><code>allow</code> có phạm vi, có thể bỏ qua cả WAF</td>
+<td>Trust bỏ qua bot và challenge; skip bỏ qua đúng một chặng (<a href="v1-waap-requirements.html#f-02-requirements--4-quy-tắc-nghiệp-vụ" target="_blank" rel="noopener">BR-28</a>)</td>
 </tr>
 <tr>
 <td>5</td>
+<td>DDoS L7</td>
+<td>L7</td>
+<td>Không trust, skip nào bỏ qua được</td>
+</tr>
+<tr>
+<td>6</td>
 <td>Bot scoring</td>
 <td>L7</td>
 <td>Chỉ tính điểm và lớp (<a href="#f-08-cross-cutting-16-bot-management">8.16</a>)</td>
 </tr>
 <tr>
-<td>6</td>
+<td>7</td>
 <td>Under Attack mode, challenge</td>
 <td>L7</td>
 <td>Mọi challenge đều ở L7 (<a href="#f-09-adr-0034-pre-filter-and-rule-split-across-tiers">ADR-0034</a>); bot đã xác minh bỏ qua theo cấu hình</td>
 </tr>
 <tr>
-<td>7</td>
+<td>8</td>
 <td>API: endpoint, xác thực, consumer, schema rẻ</td>
 <td>L7</td>
 <td><a href="#f-08-cross-cutting-17-api-security">8.17</a></td>
 </tr>
 <tr>
-<td>8</td>
-<td>Rate limit, DDoS L7</td>
+<td>9</td>
+<td>Rate limit theo rule</td>
 <td>L7</td>
-<td>Khoá theo IP, phiên hoặc consumer</td>
+<td>Khoá theo IP, header, cookie, API key, JWT claim</td>
 </tr>
 <tr>
-<td>9</td>
+<td>10</td>
 <td>Policy bot, custom rule phần pre</td>
 <td>L7</td>
 <td>Rule trước rule đầu tiên cần body</td>
 </tr>
 <tr>
-<td>10</td>
+<td>11</td>
 <td>Inspect gate</td>
 <td>L7</td>
 <td>Gọi hay không gọi WAF</td>
 </tr>
 <tr>
-<td>11</td>
-<td>Managed ruleset, custom rule phần inspect, schema body, GraphQL</td>
+<td>12</td>
+<td>Schema body, GraphQL, rồi managed ruleset, custom rule phần inspect</td>
 <td><strong>WAF</strong></td>
-<td>Chỉ request còn lại sau bước 4–10</td>
+<td>Chỉ request còn lại sau bước 4–11</td>
 </tr>
 <tr>
-<td>12</td>
+<td>13</td>
 <td>Quyết định</td>
 <td>L7</td>
 <td>allow / log / challenge / block</td>
 </tr>
 <tr>
-<td>13</td>
+<td>14</td>
 <td>Cache</td>
 <td>L7</td>
 <td>Mặc định sau WAF; tài nguyên tĩnh có thể miễn WAF</td>
 </tr>
 <tr>
-<td>14</td>
+<td>15</td>
 <td>Proxy tới origin</td>
 <td>L7</td>
 <td>Qua origin shield ở Mở rộng</td>
 </tr>
 </tbody>
 </table>
+<p>Thứ tự là quy tắc nghiệp vụ <a href="v1-waap-requirements.html#f-02-requirements--4-quy-tắc-nghiệp-vụ" target="_blank" rel="noopener">BR-32</a>; xung đột rule theo <a href="v1-waap-requirements.html#f-02-requirements--4-quy-tắc-nghiệp-vụ" target="_blank" rel="noopener">BR-33</a> (<a href="#f-05-building-blocks-08-components-01-l7--thứ-tự-xử-lý">5.8.1</a>).</p>
 <p>Mỗi bước có ngân sách thời gian và hành vi khi lỗi theo zone (fail-open hoặc fail-closed); tầng WAF
 không trả lời kịp cũng áp fail mode này.</p>
 <h2 id="f-05-building-blocks-03-edge-plane--cô-lập-tenant">Cô lập tenant</h2>
@@ -2770,76 +2777,83 @@ Thiết kế component dưới đây đúng với mọi phương án; chỗ khá
 </tr>
 <tr>
 <td>4</td>
-<td>Access list (trust, skip, deny, reputation)</td>
+<td>Access list (trust, skip, deny, reputation; IP, CIDR, ASN, quốc gia)</td>
 <td>L7</td>
 <td>Rất thấp (trie)</td>
-<td>Block; trust bỏ qua bot và challenge (bước 6, phần bot của bước 9); skip bỏ qua đúng chặng đã chỉ định; không chặng nào bỏ qua được DDoS L7 ở bước 8</td>
+<td>Block; trust bỏ qua bot và challenge (bước 7, phần bot của bước 10); skip bỏ qua đúng chặng đã chỉ định; không chặng nào bỏ qua được DDoS L7 ở bước 5</td>
 </tr>
 <tr>
 <td>5</td>
+<td>DDoS L7 (bộ đếm theo zone và nguồn, giảm thiểu tự động)</td>
+<td>L7</td>
+<td>Thấp</td>
+<td>Block / challenge; cắt flood trước khi edge phải phát trang challenge</td>
+</tr>
+<tr>
+<td>6</td>
 <td>Bot scoring (chỉ tính, chưa hành động)</td>
 <td>L7</td>
 <td>Thấp</td>
 <td><code>bot.score</code>, <code>bot.class</code>, <code>bot.category</code> (<a href="#f-08-cross-cutting-16-bot-management">8.16</a>)</td>
 </tr>
 <tr>
-<td>6</td>
+<td>7</td>
 <td>Under Attack mode, challenge</td>
 <td>L7</td>
 <td>Thấp</td>
 <td>Challenge; bot đã xác minh bỏ qua theo cấu hình</td>
 </tr>
 <tr>
-<td>7</td>
+<td>8</td>
 <td>API: khớp endpoint, xác thực (JWT, mTLS, API key), danh tính consumer, kiểm schema không cần body</td>
 <td>L7</td>
 <td>Thấp</td>
 <td>401/403/404/400 (<a href="#f-08-cross-cutting-17-api-security">8.17</a>)</td>
 </tr>
 <tr>
-<td>8</td>
-<td>Rate limit, DDoS L7</td>
+<td>9</td>
+<td>Rate limit theo rule của khách</td>
 <td>L7</td>
 <td>Thấp</td>
-<td>Block / challenge; khoá theo IP, phiên hoặc consumer API</td>
+<td>Block / challenge; khoá theo IP, header, cookie, API key, JWT claim</td>
 </tr>
 <tr>
-<td>9</td>
+<td>10</td>
 <td>Policy bot, custom rule <strong>phần pre</strong></td>
 <td>L7</td>
 <td>Thấp</td>
 <td>Theo hành động của policy/rule (dùng được <code>bot.*</code>, <code>jwt.*</code>, <code>api.*</code>)</td>
 </tr>
 <tr>
-<td>10</td>
+<td>11</td>
 <td>Inspect gate</td>
 <td>L7</td>
 <td>Rất thấp</td>
 <td>Gọi hay không gọi WAF</td>
 </tr>
 <tr>
-<td>11</td>
-<td>Managed ruleset, custom rule <strong>phần inspect</strong>, schema body API, GraphQL</td>
+<td>12</td>
+<td>Schema body API, GraphQL, <strong>rồi</strong> managed ruleset và custom rule <strong>phần inspect</strong></td>
 <td><strong>WAF</strong></td>
 <td><strong>Cao</strong></td>
-<td>Verdict</td>
+<td>Verdict; sai schema thì dừng, không quét signature (<a href="v1-waap-requirements.html#f-02-requirements--4-quy-tắc-nghiệp-vụ" target="_blank" rel="noopener">BR-35</a>)</td>
 </tr>
 <tr>
-<td>12</td>
+<td>13</td>
 <td>Quyết định</td>
 <td>L7</td>
 <td>Rất thấp</td>
 <td>allow / log / challenge / block</td>
 </tr>
 <tr>
-<td>13</td>
+<td>14</td>
 <td>Cache lookup</td>
 <td>L7</td>
 <td>RAM / đĩa</td>
 <td>Phục vụ từ cache</td>
 </tr>
 <tr>
-<td>14</td>
+<td>15</td>
 <td>Proxy tới origin (hoặc origin shield)</td>
 <td>L7</td>
 <td>Mạng</td>
@@ -2847,8 +2861,19 @@ Thiết kế component dưới đây đúng với mọi phương án; chỗ khá
 </tr>
 </tbody>
 </table>
-<p>Mục tiêu của thứ tự này: khi bị tấn công, phần lớn lưu lượng bị loại ở bước 4–9 với chi phí gần như
-không đáng kể, tầng WAF chỉ thấy phần còn lại.</p>
+<p>Thứ tự này là quy tắc nghiệp vụ <a href="v1-waap-requirements.html#f-02-requirements--4-quy-tắc-nghiệp-vụ" target="_blank" rel="noopener">BR-32</a>. Mục tiêu: khi bị tấn công, phần lớn lưu lượng bị
+loại ở bước 4–10 với chi phí gần như không đáng kể, tầng WAF chỉ thấy phần còn lại. DDoS L7 đứng ngay sau
+access list để flood bị cắt trước khi edge tốn công phát challenge.</p>
+<p><strong>Xung đột rule</strong> (<a href="v1-waap-requirements.html#f-02-requirements--4-quy-tắc-nghiệp-vụ" target="_blank" rel="noopener">BR-33</a>):</p>
+<ul>
+<li>Trong một chặng, rule chạy theo priority từ trên xuống; hành động kết thúc đầu tiên (block, challenge,
+allow, trust) dừng chặng đó; <code>log</code> ghi lại rồi chạy tiếp.</li>
+<li>Trong access list, mục cụ thể hơn thắng: IP &gt; CIDR &gt; ASN &gt; quốc gia. Ví dụ trust một IP ở Việt Nam
+thắng block cả quốc gia Việt Nam.</li>
+<li>Giữa NCC và khách: block của lớp rule khẩn NCC &gt; allow của khách &gt; block của khách &gt; allow của NCC. Lớp
+rule khẩn chạy trước rule của khách ở cả L7 và WAF; khách không tắt được, support đặt log-only có hạn
+cho đúng một zone (<a href="#f-08-cross-cutting-15-config-propagation-and-apply--4-fast-lane-không-được-kích-hoạt-build-nặng">8.15 §4</a>).</li>
+</ul>
 <p><strong>WAF đứng trước cache theo mặc định</strong>, để payload tấn công trong query của một URL đã cache vẫn bị phát
 hiện và ghi nhận. Zone có thể bật &quot;bỏ qua WAF cho tài nguyên tĩnh&quot; (theo path/đuôi file, chỉ GET/HEAD
 không body) để giảm tải WAF cho site nhiều static.</p>
@@ -2861,6 +2886,10 @@ không body) để giảm tải WAF cho site nhiều static.</p>
 </tr>
 </thead>
 <tbody>
+<tr>
+<td><strong>SNI passthrough</strong></td>
+<td>Mở rộng, Enterprise: hostname chọn passthrough được định tuyến theo SNI ở tầng TCP tới origin mà không giải mã; chỉ có DDoS L3/L4, access list theo IP và log kết nối; không có WAF, bot, cache, trang lỗi (<a href="v1-waap-requirements.html#f-02-requirements--f3-bảo-vệ-runtime-và-f4-hiệu-năng" target="_blank" rel="noopener">FR-3-18</a>)</td>
+</tr>
 <tr>
 <td><strong>Listener + TLS</strong></td>
 <td>TCP 443/80, QUIC 443/udp; PROXY protocol v2 sau L4 đối tác; chọn cert theo SNI từ snapshot; session ticket key xoay qua bundle chung</td>
@@ -2887,7 +2916,7 @@ không body) để giảm tải WAF cho site nhiều static.</p>
 </tr>
 <tr>
 <td><strong>Bot scoring</strong></td>
-<td>Tính <code>bot.score/class/category/signals</code> từ bot đã xác minh, danh sách khách, JA4 + fingerprint HTTP/2 + độ nhất quán với User-Agent, reputation, hành vi ngắn hạn, clearance token; chỉ tính, hành động ở bước 9 (<a href="#f-08-cross-cutting-16-bot-management">8.16</a>)</td>
+<td>Tính <code>bot.score/class/category/signals</code> từ bot đã xác minh, danh sách khách, JA4 + fingerprint HTTP/2 + độ nhất quán với User-Agent, reputation, hành vi ngắn hạn, clearance token; chỉ tính, hành động ở bước 10 (<a href="#f-08-cross-cutting-16-bot-management">8.16</a>)</td>
 </tr>
 <tr>
 <td><strong>API</strong></td>
@@ -2941,7 +2970,7 @@ không body) để giảm tải WAF cho site nhiều static.</p>
 </thead>
 <tbody>
 <tr>
-<td>Xử lý của L7 (bước 2–10, 12)</td>
+<td>Xử lý của L7 (bước 2–11, 13)</td>
 <td>≤ 0,5 ms</td>
 </tr>
 <tr>
@@ -3031,6 +3060,10 @@ trả <strong>verdict</strong>. Tài nguyên chính là <strong>CPU</strong>. En
 <td>Mỗi tenant có phần CPU theo gói (weighted fair queueing, trọng số Free 1 / Pro 2 / Business 4 / Enterprise 8, <a href="#f-08-cross-cutting-18-segments-and-plans">8.18</a>); khi quá tải từ chối gói thấp trước; hàng đợi đầy → trả <code>Overloaded</code> ngay để L7 áp fail mode, không để request chờ lâu</td>
 </tr>
 <tr>
+<td><strong>Lớp rule khẩn</strong></td>
+<td>Bộ rule nhỏ của NCC chạy trước CRS và trước custom rule của khách (<a href="v1-waap-requirements.html#f-02-requirements--4-quy-tắc-nghiệp-vụ" target="_blank" rel="noopener">BR-33</a>); một zone có <code>EmergencyRuleOverride</code> còn hạn thì rule đó chạy log-only trên zone đó</td>
+</tr>
+<tr>
 <td><strong>Ruleset selector</strong></td>
 <td>Map <code>zone → profile</code>; instance engine dựng sẵn theo <strong>profile</strong> <code>(ruleset release, paranoia, ngưỡng)</code>, dùng chung giữa mọi zone cùng profile; rule tắt của zone áp bằng lọc kết quả; chỉ zone có exclusion theo trường mới cần instance riêng (LRU); instance riêng chưa sẵn thì kiểm bằng profile chuẩn kèm lọc rule tắt, gắn cờ <code>waf_profile_fallback</code>, dựng ở nền (<a href="#f-09-adr-0040-config-distribution-at-scale">ADR-0040</a>)</td>
 </tr>
@@ -3044,7 +3077,7 @@ trả <strong>verdict</strong>. Tài nguyên chính là <strong>CPU</strong>. En
 </tr>
 <tr>
 <td><strong>API schema</strong></td>
-<td>Mở rộng: kiểm body JSON theo JSON Schema của endpoint (endpoint đã được L7 khớp, gửi kèm <code>api.endpoint_id</code>); GraphQL: parse, độ sâu, độ phức tạp, introspection, batch (<a href="#f-08-cross-cutting-17-api-security">8.17</a>)</td>
+<td>Mở rộng: chạy <strong>trước</strong> managed ruleset (<a href="v1-waap-requirements.html#f-02-requirements--4-quy-tắc-nghiệp-vụ" target="_blank" rel="noopener">BR-35</a>); sai schema thì trả verdict ngay, không quét signature. Endpoint đang enforce schema dùng profile paranoia thấp hơn (cấu hình theo endpoint) để giảm chặn nhầm. Kiểm body JSON theo JSON Schema của endpoint (endpoint đã được L7 khớp, gửi kèm <code>api.endpoint_id</code>); GraphQL: parse, độ sâu, độ phức tạp, introspection, batch (<a href="#f-08-cross-cutting-17-api-security">8.17</a>)</td>
 </tr>
 <tr>
 <td><strong>Verdict builder</strong></td>
@@ -3175,6 +3208,11 @@ response là giai đoạn Nâng cao (<a href="#f-08-cross-cutting-17-api-securit
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>HTTPS passthrough theo SNI (Enterprise chọn theo hostname)</td>
+<td>L7, không giải mã (Mở rộng)</td>
+<td>DDoS L3/L4, access list theo IP; không WAF</td>
+</tr>
 <tr>
 <td>TCP/UDP không phải HTTP (game, MQTT, SMTP, database, SSH, RDP, cổng tuỳ ý)</td>
 <td>Proxy L4 (Mở rộng, <a href="#f-07-deployment-05-capacity-and-sharding--7-cổng">7.5 §7</a>)</td>
@@ -6869,7 +6907,7 @@ và nằm trong bundle chung.</p>
     U-&gt;&gt;S: báo bị chặn, gửi request ID trên trang chặn
     S-&gt;&gt;M: tra request ID
     M-&gt;&gt;An: Query (request ID)
-    An--&gt;&gt;M: bước 8, CRS 942100, khớp tham số &quot;q&quot;
+    An--&gt;&gt;M: bước 12, CRS 942100, khớp tham số &quot;q&quot;
     S-&gt;&gt;M: đánh dấu chặn nhầm
     M-&gt;&gt;An: ghi nhãn FP (nuôi tỉ lệ FP theo rule)
     S-&gt;&gt;M: tạo exception: bỏ 942100 cho path /search, tham số q
@@ -10214,6 +10252,9 @@ dành cho cấu hình của node, không bao giờ do khách kích hoạt.</p>
 <ul>
 <li>Rule khẩn của NCC nằm trong một <strong>lớp rule khẩn</strong> riêng, nhỏ, đánh giá <strong>trước</strong> CRS ở tầng WAF (và ở
 L7 nếu chỉ dùng trường rẻ). Thêm rule khẩn chỉ dựng lại lớp này, không build lại instance CRS.</li>
+<li>Khách không tắt được rule khẩn. Khi một rule khẩn chặn nhầm một zone, support của NCC đặt
+<code>EmergencyRuleOverride</code> (log-only cho đúng zone và rule đó, có hạn, có audit; FR-12-07); override là
+cấu hình lớp A của zone nên cũng đi fast lane.</li>
 <li>Khi rule khẩn được đưa vào system ruleset ở release kế tiếp (lớp B, rollout thường), nó được gỡ khỏi
 lớp khẩn.</li>
 <li>Compiler từ chối đưa vào fast lane bất kỳ thay đổi nào sinh ra việc lớp B (ví dụ đổi paranoia sang tổ
@@ -10522,7 +10563,40 @@ Mô hình học máy chỉ thay thế khi đo được tốt hơn trên tập đ
 </tr>
 </tbody>
 </table>
-<p>Các hành động: allow, log, challenge JS (không tương tác), challenge tương tác, rate limit chặt hơn, block.</p>
+<p>Các hành động: allow, log, managed challenge (edge tự chọn JS hay tương tác theo điểm), challenge JS
+(không tương tác), challenge tương tác, rate limit chặt hơn, block.</p>
+<p><strong>Mặc định</strong> (<a href="v1-waap-requirements.html#f-02-requirements--4-quy-tắc-nghiệp-vụ" target="_blank" rel="noopener">BR-34</a>), khách sửa được mọi mốc:</p>
+<table>
+<thead>
+<tr>
+<th>Nhóm path</th>
+<th><code>score</code> &lt; 10</th>
+<th>10 ≤ <code>score</code> &lt; 50</th>
+<th><code>score</code> ≥ 50</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Thường</td>
+<td>Managed challenge</td>
+<td>Log</td>
+<td>Allow</td>
+</tr>
+<tr>
+<td>Nhạy cảm (login, checkout)</td>
+<td>Block</td>
+<td>Challenge tương tác</td>
+<td>Allow</td>
+</tr>
+<tr>
+<td>API</td>
+<td>Không challenge; rate limit theo consumer</td>
+<td>Như cột trái</td>
+<td>Allow</td>
+</tr>
+</tbody>
+</table>
+<p>Bot đã xác minh (BS1) không đi qua bảng này: theo mục &quot;bỏ qua những gì&quot; ở trên.</p>
 <h2 id="f-08-cross-cutting-16-bot-management--5-challenge">5. Challenge</h2>
 <table>
 <thead>
@@ -10749,7 +10823,7 @@ consumer), và <strong>biết thế nào là bất thường với từng consum
 <td>A5</td>
 <td><strong>Danh tính consumer</strong> làm khoá cho rate limit, quota, analytics</td>
 <td>L7</td>
-<td>Mở rộng</td>
+<td>MVP cho khoá rate limit (API key, JWT claim, header; F3.4.2, quyết 2026-11-07); quota, analytics ở Mở rộng</td>
 </tr>
 <tr>
 <td>A6</td>
@@ -10864,6 +10938,9 @@ trên giao diện.</p>
 <ul>
 <li>Compiler biên dịch OpenAPI thành <strong>route table</strong> (phần L7) và <strong>validator theo endpoint</strong> (phần WAF),
 cùng manifest nên hai tầng khớp version (<a href="#f-08-cross-cutting-15-config-propagation-and-apply--6-hai-tầng-swap-lệch-nhau">8.15 §6</a>).</li>
+<li>Trong tầng WAF, kiểm schema body chạy <strong>trước</strong> managed ruleset; sai schema thì dừng, không quét signature.
+Endpoint đang enforce schema được giảm paranoia CRS (positive security model thay cho regex) để giảm chặn
+nhầm với payload JSON (<a href="v1-waap-requirements.html#f-02-requirements--4-quy-tắc-nghiệp-vụ" target="_blank" rel="noopener">BR-35</a>).</li>
 <li>Chế độ theo endpoint hoặc nhóm: tắt, log-only, enforce. Mặc định log-only khi mới tải schema.</li>
 <li>Vi phạm trả 400 (dữ liệu sai) hoặc 404/403 (endpoint không khai báo) với <code>status_source = edge_policy</code>
 và mã vi phạm cụ thể.</li>
@@ -12630,7 +12707,7 @@ viết rule. Đối thủ (Cloudflare) đã định hình kỳ vọng này.</p>
 <li>Bật/tắt đi <strong>fast lane</strong>, không qua duyệt, có audit; mục tiêu ≤ 5 s toàn fleet.</li>
 <li>Khi bật, request không có clearance token hợp lệ nhận challenge; token có MAC (HMAC), kiểm cục bộ
 ở mọi node (<a href="#f-08-cross-cutting-00-index--88-challenge-và-clearance">08 §8.8</a>).</li>
-<li>Đứng ở bước 6 của pipeline: sau access list (allowlist vẫn qua) và bot scoring (bot đã xác minh bỏ qua theo cấu hình), trước rate limit.</li>
+<li>Đứng ở bước 7 của pipeline: sau access list (trust vẫn qua), DDoS L7 và bot scoring (bot đã xác minh bỏ qua theo cấu hình), trước rate limit theo rule. (Cập nhật 2026-11-07: DDoS L7 tách lên ngay sau access list theo BR-32.)</li>
 <li>Detection <strong>chỉ cảnh báo và gợi ý bật</strong> ở MVP; tự bật có hẹn giờ tắt là tuỳ chọn chưa chốt.</li>
 </ul>
 <h2 id="f-09-adr-0008-under-attack-mode--hệ-quả">Hệ quả</h2>

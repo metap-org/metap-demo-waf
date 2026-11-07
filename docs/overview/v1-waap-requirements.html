@@ -881,6 +881,13 @@ từ bản nháp onboarding chưa duyệt; onboarding đang được phân tích
 <td>ZoneSettings, TrustedProxyRange (đọc)</td>
 </tr>
 <tr>
+<td>F3.1.5</td>
+<td>SSL passthrough theo SNI cho hostname đã chọn (Enterprise): không giải mã, chỉ định tuyến và chống DDoS L3/L4</td>
+<td>E</td>
+<td>MR</td>
+<td>ZoneSettings (đọc)</td>
+</tr>
+<tr>
 <td><strong>F3.2</strong></td>
 <td><strong>Lọc sớm</strong></td>
 <td></td>
@@ -973,7 +980,14 @@ từ bản nháp onboarding chưa duyệt; onboarding đang được phân tích
 </tr>
 <tr>
 <td>F3.4.2</td>
-<td>Rate limit theo header, cookie, consumer API, method gRPC</td>
+<td>Rate limit theo header, cookie, API key, JWT claim (consumer API)</td>
+<td>E</td>
+<td>MVP</td>
+<td>RateLimitRule (đọc)</td>
+</tr>
+<tr>
+<td>F3.4.3</td>
+<td>Rate limit theo method gRPC</td>
 <td>E</td>
 <td>MR</td>
 <td>RateLimitRule (đọc)</td>
@@ -1092,7 +1106,7 @@ từ bản nháp onboarding chưa duyệt; onboarding đang được phân tích
 </tr>
 <tr>
 <td>F3.8.1</td>
-<td>Block, challenge (JS, tương tác), log, allow, skip</td>
+<td>Block, challenge (JS, tương tác, managed: edge tự chọn theo điểm), log, allow, trust, skip</td>
 <td>E</td>
 <td>MVP</td>
 <td>—</td>
@@ -2392,6 +2406,13 @@ từ bản nháp onboarding chưa duyệt; onboarding đang được phân tích
 <td>MVP</td>
 <td><strong>ZoneSettings</strong>, <strong>TemporaryMitigation</strong>, AuditEntry</td>
 </tr>
+<tr>
+<td>F12.4.4</td>
+<td>Đặt log-only có hạn cho một rule khẩn của NCC trên một zone bị chặn nhầm, qua support, có audit</td>
+<td>M</td>
+<td>MVP</td>
+<td><strong>EmergencyRuleOverride</strong>, AuditEntry</td>
+</tr>
 </tbody>
 </table>
 <h2 id="f-01-functional-decomposition--phân-rã-theo-plane">Phân rã theo plane</h2>
@@ -3534,7 +3555,7 @@ onboarding chưa duyệt; sẽ viết lại sau khi phân tích ở <a href="#f-
 </tr>
 <tr>
 <td>FR-3-06</td>
-<td>Edge phải áp rate limit với bộ đếm toàn fleet theo khoá khách chọn</td>
+<td>Edge phải áp rate limit với bộ đếm toàn fleet theo khoá khách chọn: IP, path, header, cookie, API key, JWT claim (CGNAT của mạng di động làm khoá IP chặn nhầm nhiều)</td>
 <td>F3.4.1, F3.4.2</td>
 <td>MVP</td>
 <td>Sai lệch ngưỡng toàn fleet ≤ 10% (<a href="#f-02-requirements--9-câu-hỏi-mở-cho-review">OQ-8</a>)</td>
@@ -3562,7 +3583,7 @@ onboarding chưa duyệt; sẽ viết lại sau khi phân tích ở <a href="#f-
 </tr>
 <tr>
 <td>FR-3-10</td>
-<td>Edge phải thực hiện block, challenge, log, allow, skip và phát security event cho mọi quyết định khác allow</td>
+<td>Edge phải thực hiện block, challenge (JS, tương tác, managed), log, allow, trust, skip và phát security event cho mọi quyết định khác allow; rule xung đột giải theo <a href="#f-02-requirements--4-quy-tắc-nghiệp-vụ">BR-33</a></td>
 <td>F3.8.1, F3.8.3</td>
 <td>MVP</td>
 <td>QS-10, QS-12</td>
@@ -3615,6 +3636,20 @@ onboarding chưa duyệt; sẽ viết lại sau khi phân tích ở <a href="#f-
 <td>F3.8.5</td>
 <td>MR</td>
 <td>Vượt trần, request tarpit mới chuyển thành block, không tăng số kết nối giữ</td>
+</tr>
+<tr>
+<td>FR-3-18</td>
+<td>Edge nên có SSL passthrough theo SNI cho hostname Enterprise chọn: không giải mã, chỉ định tuyến và chống DDoS L3/L4; UI ghi rõ hostname đó không được kiểm</td>
+<td>F3.1.5</td>
+<td>MR</td>
+<td>Hostname passthrough không có event WAF, bot, cache nào</td>
+</tr>
+<tr>
+<td>FR-3-19</td>
+<td>Edge phải chạy pipeline theo thứ tự <a href="#f-02-requirements--4-quy-tắc-nghiệp-vụ">BR-32</a></td>
+<td>F3</td>
+<td>MVP</td>
+<td>Request bị chặn ở một bước không tốn CPU của các bước sau</td>
 </tr>
 <tr>
 <td>FR-4-01</td>
@@ -3695,7 +3730,7 @@ onboarding chưa duyệt; sẽ viết lại sau khi phân tích ở <a href="#f-
 </tr>
 <tr>
 <td>FR-5-05</td>
-<td>Mọi rule và cả zone phải đặt được log-only</td>
+<td>Mọi rule (custom, managed, rate limit, bot, schema API) và cả zone phải đặt được log-only; chuyển sang chặn theo <a href="#f-02-requirements--4-quy-tắc-nghiệp-vụ">BR-36</a></td>
 <td>F5.1.6</td>
 <td>MVP</td>
 <td>Rule log-only sinh event với hành động <code>log</code>, không ảnh hưởng request</td>
@@ -4288,6 +4323,13 @@ onboarding chưa duyệt; sẽ viết lại sau khi phân tích ở <a href="#f-
 <td>MVP</td>
 <td></td>
 </tr>
+<tr>
+<td>FR-12-07</td>
+<td>Support NCC phải đặt được log-only có hạn cho một rule khẩn của NCC trên đúng một zone bị chặn nhầm, có audit; khách không tự tắt được rule khẩn (<a href="#f-02-requirements--4-quy-tắc-nghiệp-vụ">BR-33</a>)</td>
+<td>F12.4.4</td>
+<td>MVP</td>
+<td>Hết hạn thì rule khẩn tự chặn lại trên zone đó</td>
+</tr>
 </tbody>
 </table>
 <h2 id="f-02-requirements--4-quy-tắc-nghiệp-vụ">4. Quy tắc nghiệp vụ</h2>
@@ -4455,6 +4497,31 @@ onboarding chưa duyệt; sẽ viết lại sau khi phân tích ở <a href="#f-
 <td>Header IP client thật chỉ được tin khi kết nối đến từ dải IP CDN khách đã khai; nếu không, edge dùng IP TCP</td>
 <td>F3.1.4</td>
 </tr>
+<tr>
+<td>BR-32</td>
+<td>Thứ tự pipeline, rẻ trước đắt sau: L3/L4 → TLS → chuẩn hoá giao thức → access list (IP, CIDR, ASN, quốc gia, reputation) → <strong>DDoS L7</strong> → tính điểm bot → Under Attack, challenge → kiểm API rẻ (endpoint, xác thực, tham số) → rate limit theo rule → policy bot, custom rule phần rẻ → <strong>WAF: schema body trước, rồi managed ruleset và custom rule cần body</strong> → cache → origin. Trust và Skip không bỏ qua được DDoS L7 (<a href="#f-02-requirements--4-quy-tắc-nghiệp-vụ">BR-28</a>)</td>
+<td>F3</td>
+</tr>
+<tr>
+<td>BR-33</td>
+<td>Xung đột rule: (1) trong một chặng, rule chạy theo priority từ trên xuống, gặp hành động kết thúc (block, challenge, allow, trust) đầu tiên thì dừng chặng đó; <code>log</code> không dừng; (2) trong access list, mục cụ thể hơn thắng: IP &gt; CIDR &gt; ASN &gt; quốc gia; (3) giữa NCC và khách: block của NCC (lớp rule khẩn) &gt; allow của khách &gt; block của khách &gt; allow của NCC. Khách không tự tắt được rule khẩn; support đặt log-only có hạn cho đúng một zone (FR-12-07)</td>
+<td>F3.5, F3.8, F12.4.4</td>
+</tr>
+<tr>
+<td>BR-34</td>
+<td>Hành động mặc định theo bot score (1–99, thấp là bot) và nhóm path: path thường: dưới 10 challenge, 10 đến dưới 50 log, từ 50 allow; path nhạy cảm (login, checkout): dưới 10 block, 10 đến dưới 50 challenge tương tác, từ 50 allow; path API: không challenge, dùng rate limit theo consumer. Mặc định dùng managed challenge (edge tự chọn JS hay tương tác theo điểm). Khách sửa được mọi mốc</td>
+<td>F3.6.2</td>
+</tr>
+<tr>
+<td>BR-35</td>
+<td>Endpoint API có schema: kiểm schema chạy trước managed ruleset trong tầng WAF, request sai schema bị loại không quét signature; endpoint đang enforce schema được giảm paranoia CRS để giảm chặn nhầm</td>
+<td>F3.7.1</td>
+</tr>
+<tr>
+<td>BR-36</td>
+<td>Log-only không bao giờ tự chuyển sang chặn: sau thời gian quan sát (mặc định 7 ngày, BR-24) hệ thống gửi báo cáo số request sẽ bị chặn và rule nghi chặn nhầm; người dùng bấm chuyển, bước chuyển đi qua change request</td>
+<td>F5.1.6</td>
+</tr>
 </tbody>
 </table>
 <h2 id="f-02-requirements--5-yêu-cầu-dữ-liệu">5. Yêu cầu dữ liệu</h2>
@@ -4566,7 +4633,7 @@ hoặc đọc qua API.</p>
 <tr>
 <td>DT-11</td>
 <td>Phân phối, fleet</td>
-<td>ZoneBundle, Manifest, CompileResult, Rollout, RolloutStatus, Node, NodeCert, NodeDenyList, ZonePlacement, RulesetRelease, EmergencyRule, ReputationFeed, PopState, FleetFreeze</td>
+<td>ZoneBundle, Manifest, CompileResult, Rollout, RolloutStatus, Node, NodeCert, NodeDenyList, ZonePlacement, RulesetRelease, EmergencyRule, EmergencyRuleOverride, ReputationFeed, PopState, FleetFreeze</td>
 <td>C</td>
 <td>8 GB bundle mỗi PoP, ≈ 700 node</td>
 <td>Bundle: N version gần nhất mỗi zone</td>
@@ -6015,7 +6082,7 @@ xếp khách vào hồ sơ, rồi chỉ hiện các bước của hồ sơ đó,
 </tr>
 <tr>
 <td>OQ-24</td>
-<td>(a) Cảnh báo, hướng dẫn tách hostname; (b) proxy L4</td>
+<td>(a) Cảnh báo, hướng dẫn tách hostname; (b) proxy L4. <em>Liên quan: SSL passthrough theo SNI đã quyết ở mức Mở rộng cho Enterprise (FR-3-18), chỉ cho HTTPS, không phải proxy L4 tổng quát</em></td>
 <td>(b) là sản phẩm khác, ngoài WAF</td>
 <td>(a) ở MVP. Phát hiện bằng DNS: bản ghi MX, SRV, hoặc hostname khác trỏ cùng IP với apex. Không quét cổng origin của khách</td>
 </tr>
@@ -10284,7 +10351,7 @@ request hoàn toàn sạch vẫn có thể là bot (đăng nhập bằng mật k
 <td>OQ-102</td>
 <td>Dữ liệu giả, tarpit</td>
 <td>Dữ liệu giả có rủi ro pháp lý, gây nhầm cho đối tác</td>
-<td>Tarpit (làm chậm) có ở Mở rộng; dữ liệu giả không làm. <strong>Tarpit đã quyết 2026-11-07</strong> ở <a href="#f-03-business-analysis-13-configuration-surface--4-đã-quyết">3.13</a>: có trần theo node, không dùng làm cách chính chống credential stuffing</td>
+<td>Tarpit (làm chậm) có ở Mở rộng; dữ liệu giả không làm. <strong>Bảng hành động mặc định theo điểm và managed challenge đã quyết 2026-11-07 (BR-34). Tarpit đã quyết 2026-11-07</strong> ở <a href="#f-03-business-analysis-13-configuration-surface--4-đã-quyết">3.13</a>: có trần theo node, không dùng làm cách chính chống credential stuffing</td>
 </tr>
 <tr>
 <td>OQ-103</td>
@@ -11623,7 +11690,7 @@ khỏi portal của khách; các trục dưới đây là những gì portal và
 </section>
 <section class="doc" id="f-03-business-analysis-12-api-security"><div class="path">03-business-analysis/12-api-security.md</div><h1 id="f-03-business-analysis-12-api-security--312-api-security">3.12 API security</h1>
 <blockquote>
-<p><strong>Trạng thái: đang mở, chưa có quyết định nào (2026-11-07).</strong> Tách ra từ trang bot cũ để 3.9 chỉ còn bot và
+<p><strong>Trạng thái: đang mở (2026-11-07). Đã quyết ở <a href="#f-03-business-analysis-13-configuration-surface--4-đã-quyết">3.13</a>: kiểm schema chạy trước managed ruleset, endpoint enforce schema được giảm paranoia (BR-35); rate limit theo API key, JWT ở MVP (FR-3-06).</strong> Tách ra từ trang bot cũ để 3.9 chỉ còn bot và
 challenge. Trang này chỉ liệt kê kịch bản và câu hỏi. Thiết kế kỹ thuật ở kiến trúc 8.17.</p>
 </blockquote>
 <h2 id="f-03-business-analysis-12-api-security--1-phạm-vi">1. Phạm vi</h2>
@@ -12471,6 +12538,54 @@ khách; có mở một phần cho Enterprise hay không là OQ-159.</p>
 <td>Lọc khi export</td>
 <td>Theo hành động, loại event, zone, trường, lấy mẫu log allow; bản lọc nâng cao dùng cùng ngôn ngữ biểu thức của rule thay vì regex</td>
 <td>FR-7-11</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Nghiệp vụ lõi của pipeline (quyết 2026-11-07, đợt hai).</strong> Chủ dự án nêu 6 điểm (thứ tự pipeline, xung đột
+policy, bot, API, origin, kiểm thử rule); Claude đối chiếu với tài liệu, đề xuất A–G, chủ dự án đồng ý:</p>
+<table>
+<thead>
+<tr>
+<th>Mục</th>
+<th>Quyết định</th>
+<th>Yêu cầu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A. Allowlist</td>
+<td>Giữ BR-28: Trust không bỏ qua rate limit và WAF; cần bỏ qua nhiều chặng thì dùng Skip từng chặng, hiện rõ trên UI</td>
+<td>BR-28</td>
+</tr>
+<tr>
+<td>B. Thứ tự pipeline</td>
+<td>Rẻ trước đắt sau; DDoS L7 tách lên ngay sau access list, trước challenge; rate limit theo rule trước WAF</td>
+<td>BR-32, FR-3-19</td>
+</tr>
+<tr>
+<td>C. Xung đột rule</td>
+<td>Priority từ trên xuống, dừng ở hành động kết thúc đầu tiên; access list: cụ thể hơn thắng; block của NCC &gt; allow của khách &gt; block của khách &gt; allow của NCC; support đặt log-only có hạn cho rule khẩn chặn nhầm một zone</td>
+<td>BR-33, FR-12-07 (đóng KB13-B3)</td>
+</tr>
+<tr>
+<td>D. Bot score</td>
+<td>Bảng hành động mặc định theo điểm và nhóm path; managed challenge mặc định</td>
+<td>BR-34 (đóng một phần OQ-155)</td>
+</tr>
+<tr>
+<td>E. API</td>
+<td>Schema chạy trước managed ruleset trong tầng WAF; endpoint enforce schema được giảm paranoia; rate limit theo API key, JWT lên MVP</td>
+<td>BR-35, FR-3-06</td>
+</tr>
+<tr>
+<td>F. SSL passthrough</td>
+<td>Mở rộng, Enterprise, theo hostname, UI ghi rõ &quot;không được kiểm&quot;</td>
+<td>FR-3-18</td>
+</tr>
+<tr>
+<td>G. Log-only sang chặn</td>
+<td>Không tự chuyển: báo cáo sau thời gian quan sát, người dùng bấm, qua change request</td>
+<td>BR-36</td>
 </tr>
 </tbody>
 </table>

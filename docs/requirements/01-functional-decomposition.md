@@ -200,6 +200,7 @@ Chạy trên từng request ở edge. Không có UI riêng: cấu hình qua F5, 
 | F3.1.2 | Xác định zone và hostname của request | E | MVP | Routing index (đọc) |
 | F3.1.3 | Gán request ID, chuẩn hoá URI, header, giới hạn kích thước | E | MVP | — |
 | F3.1.4 | Nhận diện IP client thật khi đứng sau CDN của khách: khách khai header chứa IP thật và dải IP của CDN; chỉ tin header khi kết nối đến từ dải đó; preset cho CDN phổ biến | E | MVP | ZoneSettings, TrustedProxyRange (đọc) |
+| F3.1.5 | SSL passthrough theo SNI cho hostname đã chọn (Enterprise): không giải mã, chỉ định tuyến và chống DDoS L3/L4 | E | MR | ZoneSettings (đọc) |
 | **F3.2** | **Lọc sớm** | | | |
 | F3.2.1 | Access list IP, CIDR, quốc gia, ASN (allow, block, challenge) | E | MVP | AccessList (đọc) |
 | F3.2.2 | Chặn theo IP reputation | E | MR | Reputation feed (đọc) |
@@ -213,7 +214,8 @@ Chạy trên từng request ở edge. Không có UI riêng: cấu hình qua F5, 
 | F3.3.5 | DDoS L3/L4 qua hạ tầng hoặc đối tác | E | MR | — |
 | **F3.4** | **Rate limit** | | | |
 | F3.4.1 | Rate limit theo IP, đường dẫn, phương thức, toàn fleet | E | MVP | RateLimitRule (đọc) |
-| F3.4.2 | Rate limit theo header, cookie, consumer API, method gRPC | E | MR | RateLimitRule (đọc) |
+| F3.4.2 | Rate limit theo header, cookie, API key, JWT claim (consumer API) | E | MVP | RateLimitRule (đọc) |
+| F3.4.3 | Rate limit theo method gRPC | E | MR | RateLimitRule (đọc) |
 | **F3.5** | **Managed ruleset và custom rule** | | | |
 | F3.5.1 | Kiểm theo CRS và system ruleset, paranoia level, ngưỡng anomaly | E | MVP | RulesetRelease, ManagedRulesetConfig (đọc) |
 | F3.5.2 | Kiểm body JSON, XML, multipart, form trong giới hạn kích thước của gói | E | MVP | Entitlements (đọc) |
@@ -230,7 +232,7 @@ Chạy trên từng request ở edge. Không có UI riêng: cấu hình qua F5, 
 | F3.7.3 | Ghi nhận endpoint để discovery | E | MR | Telemetry |
 | F3.7.4 | Phát hiện BOLA, dữ liệu nhạy cảm trong response | E | NC | — |
 | **F3.8** | **Thực thi hành động** | | | |
-| F3.8.1 | Block, challenge (JS, tương tác), log, allow, skip | E | MVP | — |
+| F3.8.1 | Block, challenge (JS, tương tác, managed: edge tự chọn theo điểm), log, allow, trust, skip | E | MVP | — |
 | F3.8.2 | Trang lỗi tuỳ biến theo tenant hoặc zone, map với từng loại lỗi (403 WAF, 429, 502, 504, 503 bảo trì, trang challenge), JSON cho path API | E | MR | **CustomErrorPage** (đọc) |
 | F3.8.3 | Phát security event cho mọi quyết định không phải allow | E | MVP | **SecurityEvent** |
 | F3.8.4 | Thực thi trần cứng của gói (chuyển tiếp tối giản, hạ cấp) | E | MVP | Entitlements (đọc) |
@@ -455,6 +457,7 @@ Persona chính: NOC/SRE, support, product. Chi tiết vận hành ở [8.12](../
 | F12.4.1 | Quản trị org: xem, tạm khoá, mở khoá tenant vi phạm | M | MVP | **Org**.status |
 | F12.4.2 | Quản lý danh mục gói, đối tác hạ tầng, PoP | M | MVP | Plan, **Partner**, **Pop** |
 | F12.4.3 | Bật mitigation trên zone của khách từ portal vận hành của NCC ([3.3](03-business-analysis/03-attack-response.md#3-đã-quyết)) | M | MVP | **ZoneSettings**, **TemporaryMitigation**, AuditEntry |
+| F12.4.4 | Đặt log-only có hạn cho một rule khẩn của NCC trên một zone bị chặn nhầm, qua support, có audit | M | MVP | **EmergencyRuleOverride**, AuditEntry |
 
 ## Phân rã theo plane
 
