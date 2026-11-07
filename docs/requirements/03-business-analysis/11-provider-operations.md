@@ -1,6 +1,6 @@
 # 3.11 Vận hành của NCC
 
-> **Trạng thái: đang mở, chưa có quyết định nào (2026-11-07).** Mở rộng theo yêu cầu "vận hành thì suy nghĩ
+> **Trạng thái: đang mở, đã quyết phân quyền của admin NCC (2026-11-07).** Mở rộng theo yêu cầu "vận hành thì suy nghĩ
 > thêm": thêm các trục F–N. Trang này chỉ liệt kê kịch bản và câu hỏi. Vận hành kỹ thuật (runbook, giám sát) ở
 > kiến trúc 8.12, 8.13.
 
@@ -137,7 +137,13 @@ khỏi portal của khách; các trục dưới đây là những gì portal và
 | KB11-N1 | Đo tỉ lệ hoàn tất onboarding, tính năng nào được dùng | Dữ liệu sử dụng portal của khách |
 | KB11-N2 | Thu thập hành vi trên portal | Thông báo, quyền riêng tư |
 
-## 3. Câu hỏi cần chủ dự án quyết
+## 3. Đã quyết
+
+| Ngày | Chủ đề | Quyết định | Hệ quả cần phân tích tiếp |
+|---|---|---|---|
+| 2026-11-07 | Phân quyền của admin NCC | Admin của NCC có phân chia quyền và trách nhiệm rõ ràng, khác khách self-service | Dựng bằng cùng cơ chế workflow của `metap-go` ([Phase 104 của `metap-docs`](https://github.com/metap-org/metap-docs/blob/master/docs/roadmap/104-workflow-per-caller-flows-and-separation-of-duties.md)) trong tenant của NCC: thao tác mạnh tạo yêu cầu, người khác duyệt, `$workflow.actors` chặn tự duyệt. Danh sách thao tác cần hai người vẫn là OQ-118 |
+
+## 4. Câu hỏi cần chủ dự án quyết
 
 | ID | Câu hỏi | Kịch bản | Ghi chú ban đầu |
 |---|---|---|---|
@@ -153,6 +159,6 @@ khỏi portal của khách; các trục dưới đây là những gì portal và
 | OQ-122 | Đội vận hành ban đầu có trực 24/7 không? Nếu không, gói nào có cam kết ngoài giờ? | KB11-M3 | Ảnh hưởng SLA ở 3.3, 3.4 |
 | OQ-123 | Có chương trình nhận báo cáo lỗ hổng (bug bounty) không? | KB11-J2 | |
 
-## 4. Phụ thuộc
+## 5. Phụ thuộc
 
 FR-11-01…FR-11-03, FR-12-01…FR-12-05 ở [§2](../02-requirements.md); runbook ở kiến trúc 8.13.
