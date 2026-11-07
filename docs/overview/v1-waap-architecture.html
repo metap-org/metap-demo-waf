@@ -15541,6 +15541,26 @@ theo chính sách tài liệu (<a href="#f-02-constraints-00-index--24-conventio
 <td>Bộ cấu hình ban đầu theo loại ứng dụng do NCC soạn, áp vào bản nháp policy khi onboard (<a href="v1-waap-requirements.html#f-03-business-analysis-01-onboarding--ob6-preset-bảo-vệ-ban-đầu" target="_blank" rel="noopener">requirements §3.1, OB6</a>)</td>
 </tr>
 <tr>
+<td><strong>SOC tự hành</strong></td>
+<td>Hệ thống tự làm phần lớn vòng phát hiện, phân loại, điều tra, hành động, kiểm chứng; con người duyệt thay đổi lâu dài (<a href="v1-waap-requirements.html#f-04-product-direction-03-autonomous-soc" target="_blank" rel="noopener">requirements §4.3</a>)</td>
+</tr>
+<tr>
+<td><strong>Tác tử AI (AI agent)</strong></td>
+<td>Phần mềm AI duyệt web, thao tác thay người dùng; khác crawler AI ở chỗ có người dùng thật đứng sau (<a href="v1-waap-requirements.html#f-03-business-analysis-09-bot-management" target="_blank" rel="noopener">requirements §3.9</a>)</td>
+</tr>
+<tr>
+<td><strong>Khử nhận dạng</strong></td>
+<td>Biến đổi dữ liệu để không còn nhận ra người hay tenant cụ thể: cắt hoặc băm IP, bỏ ID trong path, bỏ body, gộp theo ngưỡng k (<a href="v1-waap-requirements.html#f-04-product-direction-04-data-strategy" target="_blank" rel="noopener">requirements §4.4</a>)</td>
+</tr>
+<tr>
+<td><strong>Ngưỡng k (k-anonymity)</strong></td>
+<td>Một ô số liệu chỉ được dùng khi gộp từ ít nhất k tenant khác nhau</td>
+</tr>
+<tr>
+<td><strong>Vùng nghiên cứu</strong></td>
+<td>Kho dữ liệu tách khỏi sản xuất, chỉ chứa dữ liệu đã khử nhận dạng (TD3, TD4), nơi data analyst làm việc</td>
+</tr>
+<tr>
 <td><strong>Tiêu chí chấp nhận</strong></td>
 <td>Điều kiện kiểm được để coi một requirement đã đáp ứng (<a href="v1-waap-requirements.html#f-02-requirements" target="_blank" rel="noopener">requirements §2</a>)</td>
 </tr>
@@ -16720,6 +16740,21 @@ theo chính sách tài liệu (<a href="#f-02-constraints-00-index--24-conventio
 </thead>
 <tbody>
 <tr>
+<td><strong>M1…M10 / V1…V6 / AI1…AI8</strong></td>
+<td>Năng lực của WAAP hiện đại / vị trí đặt AI/ML / nguyên tắc AI</td>
+<td><a href="v1-waap-requirements.html#f-04-product-direction-00-index" target="_blank" rel="noopener">requirements §4.1, §4.2</a></td>
+</tr>
+<tr>
+<td><strong>TH0…TH4 / HR1…HR8</strong></td>
+<td>Mức tự hành của SOC / hàng rào an toàn cho hành động tự động</td>
+<td><a href="v1-waap-requirements.html#f-04-product-direction-03-autonomous-soc" target="_blank" rel="noopener">requirements §4.3</a></td>
+</tr>
+<tr>
+<td><strong>U1…U7 / TD0…TD5 / LC1…LC7</strong></td>
+<td>Mục đích dùng dữ liệu / tầng dữ liệu / lớp lọc dữ liệu nhạy cảm</td>
+<td><a href="v1-waap-requirements.html#f-04-product-direction-04-data-strategy" target="_blank" rel="noopener">requirements §4.4</a></td>
+</tr>
+<tr>
 <td><strong>KB1-A1…KB12-F3</strong></td>
 <td>Kịch bản của từng nghiệp vụ: <code>KB&lt;số trang&gt;-&lt;trục&gt;&lt;số&gt;</code>, ví dụ KB1-C4 là trục C (cách trỏ) của onboarding (§3.1)</td>
 <td><a href="v1-waap-requirements.html#f-03-business-analysis-00-index" target="_blank" rel="noopener">requirements §3</a></td>
@@ -16751,7 +16786,7 @@ theo chính sách tài liệu (<a href="#f-02-constraints-00-index--24-conventio
 </tr>
 <tr>
 <td><strong>FR-x-nn / BR-n / DT-n / NFR-n / IR-n / OQ-n</strong></td>
-<td>Yêu cầu chức năng / quy tắc nghiệp vụ / yêu cầu dữ liệu / phi chức năng / giao tiếp ngoài / câu hỏi mở của requirements (OQ-1…OQ-15 ở §2, OQ-16…OQ-20 ở Phụ lục A của §3.1, OQ-21…OQ-123 ở các trang của §3)</td>
+<td>Yêu cầu chức năng / quy tắc nghiệp vụ / yêu cầu dữ liệu / phi chức năng / giao tiếp ngoài / câu hỏi mở của requirements (OQ-1…OQ-15 ở §2, OQ-16…OQ-20 ở Phụ lục A của §3.1, OQ-21…OQ-126 ở các trang của §3, OQ-127…OQ-142 ở §4)</td>
 <td><a href="v1-waap-requirements.html#f-02-requirements" target="_blank" rel="noopener">requirements §2</a></td>
 </tr>
 <tr>

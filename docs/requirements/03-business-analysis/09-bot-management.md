@@ -1,8 +1,9 @@
 # 3.9 Bot management và challenge
 
 > **Trạng thái: đang mở, chưa có quyết định nào (2026-11-07).** Theo chủ dự án, bot và challenge là một vùng
-> nghiệp vụ lớn, cần phân tích riêng; API security tách sang [3.12](12-api-security.md). Trang này chỉ liệt kê
-> kịch bản và câu hỏi. Thiết kế kỹ thuật ở kiến trúc 8.16.
+> nghiệp vụ lớn, cần phân tích riêng; API security tách sang [3.12](12-api-security.md). Thiết kế kỹ thuật ở kiến
+> trúc 8.16. Lần phân tích tiếp (2026-11-07) thêm trục J–L, mô hình quyết định đề xuất ở [§4](#4-mô-hình-quyết-định-đề-xuất-chờ-duyệt)
+> và phân tích các câu còn mở ở [§5](#5-phân-tích-các-câu-còn-mở-đề-xuất-của-claude-chờ-duyệt); tất cả là đề xuất, chưa phải quyết định.
 
 ## 1. Phạm vi
 
@@ -112,6 +113,35 @@ request hoàn toàn sạch vẫn có thể là bot (đăng nhập bằng mật k
 | KB9-I3 | Request bị challenge có tính vào usage không | BR-7 nói traffic bị chặn hoặc challenge không tính; request vượt challenge thì tính |
 | KB9-I4 | Mức bot theo gói (8.18): Free chặn bot rõ ràng, Pro theo lớp, Business có điểm, Enterprise có mô hình | Khách Pro gặp bot tinh vi |
 
+### J. Kẻ tấn công thích nghi
+
+| Mã | Kịch bản | Concern |
+|---|---|---|
+| KB9-J1 | Bot đổi dấu vân tay sau khi bị chặn vài giờ | Chặn theo dấu vân tay chỉ có tác dụng ngắn; cần vòng cập nhật nhanh |
+| KB9-J2 | Dịch vụ giải challenge thuê (người thật giải hộ, hoặc AI giải captcha) | Captcha hình ảnh không còn là rào cản; chi phí của kẻ tấn công mới là thước đo |
+| KB9-J3 | Botnet trên thiết bị thật, IP dân cư, trình duyệt thật | Mọi tín hiệu kỹ thuật trông như người; chỉ còn hành vi và tín hiệu theo tài khoản |
+| KB9-J4 | Kẻ tấn công dò ngưỡng (gửi vừa dưới ngưỡng rate limit) | Ngưỡng cố định bị học; cần ngưỡng động, ngẫu nhiên hoá |
+| KB9-J5 | Kẻ tấn công đọc trang challenge để biết mình bị phát hiện bằng gì | Không lộ lý do trong phản hồi |
+
+### K. Playbook theo ngành ở thị trường trong nước
+
+| Mã | Ngành | Bài toán bot điển hình | Concern |
+|---|---|---|---|
+| KB9-K1 | Thương mại điện tử | Flash sale, gom hàng, lấy giá, mã giảm giá bị dò | Chặn nhầm lúc mở bán là mất doanh thu lớn nhất trong năm |
+| KB9-K2 | Ngân hàng, ví, fintech | Credential stuffing, OTP SMS hàng loạt, mở tài khoản ảo | App mobile là kênh chính; SDK, attestation |
+| KB9-K3 | Vé, đặt chỗ (sự kiện, hàng không, tàu xe) | Giữ chỗ ảo, mua vé bằng bot | Hàng đợi ảo (waiting room) là sản phẩm liên quan |
+| KB9-K4 | Báo chí, nội dung | Lấy nội dung, crawler AI | Muốn cho bot tìm kiếm, chặn bot sao chép |
+| KB9-K5 | Game, cá cược hợp pháp, khuyến mãi | Tài khoản ảo săn thưởng | Tín hiệu theo tài khoản quan trọng hơn theo request |
+| KB9-K6 | Cơ quan nhà nước, dịch vụ công | Dò dữ liệu, tra cứu hàng loạt | Trợ năng bắt buộc cao, không dùng captcha bên thứ ba ở nước ngoài |
+
+### L. Tác tử AI (AI agent) truy cập thay người dùng
+
+| Mã | Kịch bản | Concern |
+|---|---|---|
+| KB9-L1 | Trợ lý AI duyệt web, đặt hàng thay người dùng | Là bot nhưng có người thật đứng sau; chặn thì người dùng thật mất kênh |
+| KB9-L2 | Tác tử tự xưng là của một hãng AI lớn | Kiểm chứng danh tính (chữ ký request của bot, dải IP công bố) |
+| KB9-L3 | Khách muốn cho tác tử đọc nhưng không cho mua, hoặc tính phí truy cập | Chính sách theo hành động, không chỉ cho/chặn |
+
 ## 3. Câu hỏi cần chủ dự án quyết
 
 | ID | Câu hỏi | Kịch bản | Ghi chú ban đầu |
@@ -127,7 +157,58 @@ request hoàn toàn sạch vẫn có thể là bot (đăng nhập bằng mật k
 | OQ-104 | Có thu thập tín hiệu hành vi (chuột, bàn phím) không? Thông báo cho người dùng cuối thế nào? | KB9-C4, KB9-I1 | |
 | OQ-105 | Tín hiệu bot chéo tenant có dùng không? | KB9-C6 | Gộp với OQ-51 |
 | OQ-106 | Khách gói thấp bị bot tinh vi: có bán lẻ tính năng bot không, hay phải nâng gói? | KB9-I4 | Gắn với KB5-B4 |
+| OQ-124 | Có playbook bot theo ngành (preset sẵn cho thương mại điện tử, ngân hàng, vé, báo chí) không? | KB9-K1…KB9-K6 | |
+| OQ-125 | Tác tử AI: xếp vào lớp riêng, kiểm chữ ký bot, chính sách theo hành động (đọc, mua) có trong lộ trình không? | KB9-L1…KB9-L3 | |
+| OQ-126 | Có làm hàng đợi ảo (waiting room) cho flash sale, mở bán vé không? | KB9-K1, KB9-K3 | Sản phẩm liên quan nhưng không phải WAF |
 
-## 4. Phụ thuộc
+## 4. Mô hình quyết định (đề xuất, chờ duyệt)
+
+Mô tả nghiệp vụ, không phải thiết kế kỹ thuật (kiến trúc 8.16 đã có lớp tín hiệu BS1–BS7). Điểm chính: tách
+**nhận diện** (request này do ai gửi, chắc tới đâu) khỏi **chính sách** (khách muốn làm gì với loại đó ở path
+đó), để khách chỉnh chính sách mà không phải hiểu tín hiệu.
+
+```mermaid
+flowchart LR
+    r["Request"]
+    v{"Bot đã xác minh<br/>hoặc client đã khai báo?"}
+    s["Nhận diện<br/>lớp + điểm + lý do"]
+    p["Chính sách của khách<br/>theo lớp × nhóm path"]
+    a["Hành động<br/>cho qua · log · challenge ẩn ·<br/>challenge tương tác · giới hạn · chặn"]
+    f["Phản hồi<br/>kết quả challenge, nhãn của khách,<br/>chặn nhầm"]
+    r --> v
+    v -->|có| p
+    v -->|không| s --> p --> a
+    a --> f --> s
+```
+
+| Thành phần | Đề xuất |
+|---|---|
+| Lớp | `verified` (bot đã xác minh), `declared` (client khách đã khai báo: app, đối tác), `agent` (tác tử AI, nếu OQ-125 có), `likely_human`, `likely_automated`, `automated` |
+| Nhóm path | Khách gắn nhãn path theo mục đích: `login`, `otp`, `checkout`, `search`, `api`, `content`, `static`. Preset theo ngành (OQ-124) gắn sẵn |
+| Ma trận chính sách | Ô = (lớp, nhóm path) → hành động. Mặc định chỉ chặt ở `login`, `otp`, `checkout`; `static` và `content` gần như không challenge |
+| Bảo vệ người thật | Không bao giờ challenge tương tác trên request không phải trang HTML (AJAX, API, tài nguyên): trả mã lỗi có cấu trúc để ứng dụng tự xử lý (OQ-101) |
+| Bảo vệ khỏi thích nghi | Không trả lý do trong phản hồi; ngưỡng có độ ngẫu nhiên nhỏ; dữ liệu bot cập nhật hằng ngày qua pipeline phát hành (KB9-J1, KB9-J4) |
+| Đo | Mỗi ô của ma trận có số request, tỉ lệ challenge, tỉ lệ qua challenge, nhãn chặn nhầm; khách thấy ngay ô nào đang làm phiền người thật |
+
+## 5. Phân tích các câu còn mở (đề xuất của Claude, chờ duyệt)
+
+| Câu | Phương án | Đánh đổi | Đề xuất |
+|---|---|---|---|
+| OQ-81 | (a) Tự làm challenge; (b) captcha bên thứ ba; (c) chỉ challenge ẩn | (b) dữ liệu ra nước ngoài, không chạy on-prem; (c) không đủ với path nhạy cảm | (a) làm mặc định, như kiến trúc 8.16 đã chọn: challenge ẩn kiểu proof of work và kiểm môi trường, challenge tương tác đơn giản do edge phát, có phương án trợ năng. (b) là tuỳ chọn khách tự bật. Không coi captcha hình ảnh là rào cản chính (KB9-J2) |
+| OQ-82 | (a) Mặc định cho; (b) mặc định chặn; (c) bắt chọn khi bật | (a) khách báo chí phản đối; (b) mất hiển thị trên trợ lý AI | (c): khi bật bot management, hỏi một câu "cho crawler AI không"; preset báo chí mặc định chặn crawler huấn luyện, cho crawler trả lời câu hỏi có trích nguồn |
+| OQ-83 | SDK, attestation cho app mobile | Phải duy trì SDK trên iOS, Android | Lộ trình Nâng cao; trước đó app dùng danh tính consumer (API key, JWT) và rate limit như kiến trúc 8.17 |
+| OQ-85 | Bot trong nước trong danh sách xác minh | Mỗi bot thêm là một nguồn phải kiểm định kỳ | Có: Cốc Cốc và bot xem trước link của Zalo, Facebook, Telegram, Slack vào danh sách từ MVP; threat research duy trì |
+| OQ-100 | Bài toán ưu tiên ở MVP | | Credential stuffing và SMS pumping (mất tiền trực tiếp, hay gặp ở khách trong nước), rồi flash sale; scraping để Mở rộng vì khó phân biệt với đối tác |
+| OQ-101 | Challenge request AJAX/JSON | Trang HTML trả cho JSON làm ứng dụng hỏng | Không challenge tương tác trên request không phải điều hướng trang; trả `403` hoặc `429` có mã lỗi JSON và header gợi ý; ứng dụng tự mở challenge khi cần |
+| OQ-102 | Dữ liệu giả, tarpit | Dữ liệu giả có rủi ro pháp lý, gây nhầm cho đối tác | Tarpit (làm chậm) có ở Mở rộng; dữ liệu giả không làm |
+| OQ-103 | Clearance | | Thời hạn mặc định 30 phút, khách chỉnh 5 phút tới 24 giờ; không gắn cứng với IP (người dùng di động), gắn với dấu vân tay TLS và zone; dùng chung giữa các subdomain của zone |
+| OQ-104 | Tín hiệu hành vi | Dữ liệu cá nhân | Mặc định tắt như kiến trúc 8.16; khách bật thì có văn bản mẫu để đưa vào chính sách quyền riêng tư của họ |
+| OQ-105 | Tín hiệu chéo tenant | | Có, chỉ ở dạng reputation gộp (IP, ASN, dấu vân tay), không chia sẻ request; là lợi thế lớn nhất của một nền tảng nhiều khách (xem [§4.4](../04-product-direction/04-data-strategy.md)) |
+| OQ-106 | Bán lẻ tính năng bot | Làm rối bảng giá | Có add-on "bảo vệ đăng nhập và OTP" cho Pro, vì đây là bài toán mất tiền trực tiếp; phần còn lại theo gói |
+| OQ-124 | Playbook theo ngành | Phải duy trì nhiều preset | Có, 4 preset ở MVP: thương mại điện tử, ngân hàng/ví, vé/đặt chỗ, báo chí |
+| OQ-125 | Tác tử AI | Chuẩn kiểm chứng còn đang hình thành | Xếp lớp `agent` riêng từ Mở rộng; kiểm dải IP công bố và chữ ký request khi hãng AI có; chính sách theo hành động (đọc, mua) ở Nâng cao |
+| OQ-126 | Hàng đợi ảo | Là sản phẩm riêng | Không ở MVP; ghi vào lộ trình Mở rộng vì khách thương mại điện tử, vé sẽ hỏi ngay |
+
+## 6. Phụ thuộc
 
 FR-3-08, FR-5-03, BR-7, BR-25 ở [§2](../02-requirements.md); kiến trúc 8.16, ADR-0038; QS-20, QS-21.
