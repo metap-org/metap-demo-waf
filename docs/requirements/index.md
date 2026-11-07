@@ -21,6 +21,8 @@ Trạng thái: **bản nháp, đang phân tích** (2026-11-06). Chưa mục nào
    dữ liệu, phi chức năng, giao tiếp ngoài, câu hỏi mở.
 3. [Phân tích nghiệp vụ](03-business-analysis/00-index.md): từng nghiệp vụ theo vòng đời của khách, bắt đầu từ
    [onboarding](03-business-analysis/01-onboarding.md).
+4. [Định hướng sản phẩm](04-product-direction/00-index.md): sản phẩm so với WAAP hiện đại, AI/ML đặt ở đâu,
+   SOC tự hành, chiến lược dữ liệu (đánh giá và đề xuất, chờ chủ dự án duyệt).
 
 Quy ước đánh số giống kiến trúc: số đầu tên file là số mục, `00-index.md` là trang của thư mục. Mã (F, FR, BR,
 DT, NFR, IR, OQ, LK…) giải thích ở [glossary](../architecture/12-glossary/00-index.md#1213-quy-ước-mã-trong-tài-liệu),

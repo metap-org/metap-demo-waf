@@ -35,6 +35,11 @@ theo chính sách tài liệu ([2.4](../02-constraints/00-index.md#24-convention
 | **Uỷ quyền `_acme-challenge`** | Bản ghi CNAME khách tạo để vừa chứng minh sở hữu domain, vừa cho NCC xin và gia hạn cert bằng DNS-01 trước khi đổi DNS ([requirements §3.1, OB3](../../requirements/03-business-analysis/01-onboarding.md#ob3-xác-minh-sở-hữu)) |
 | **Khoá origin** | Origin chỉ nhận traffic từ edge (firewall theo dải IP của edge, header bí mật hoặc mTLS) để không ai đi vòng qua WAF ([requirements §3.1, OB11](../../requirements/03-business-analysis/01-onboarding.md#ob11-khoá-origin)) |
 | **Preset bảo vệ** | Bộ cấu hình ban đầu theo loại ứng dụng do NCC soạn, áp vào bản nháp policy khi onboard ([requirements §3.1, OB6](../../requirements/03-business-analysis/01-onboarding.md#ob6-preset-bảo-vệ-ban-đầu)) |
+| **SOC tự hành** | Hệ thống tự làm phần lớn vòng phát hiện, phân loại, điều tra, hành động, kiểm chứng; con người duyệt thay đổi lâu dài ([requirements §4.3](../../requirements/04-product-direction/03-autonomous-soc.md)) |
+| **Tác tử AI (AI agent)** | Phần mềm AI duyệt web, thao tác thay người dùng; khác crawler AI ở chỗ có người dùng thật đứng sau ([requirements §3.9](../../requirements/03-business-analysis/09-bot-management.md)) |
+| **Khử nhận dạng** | Biến đổi dữ liệu để không còn nhận ra người hay tenant cụ thể: cắt hoặc băm IP, bỏ ID trong path, bỏ body, gộp theo ngưỡng k ([requirements §4.4](../../requirements/04-product-direction/04-data-strategy.md)) |
+| **Ngưỡng k (k-anonymity)** | Một ô số liệu chỉ được dùng khi gộp từ ít nhất k tenant khác nhau |
+| **Vùng nghiên cứu** | Kho dữ liệu tách khỏi sản xuất, chỉ chứa dữ liệu đã khử nhận dạng (TD3, TD4), nơi data analyst làm việc |
 | **Tiêu chí chấp nhận** | Điều kiện kiểm được để coi một requirement đã đáp ứng ([requirements §2](../../requirements/02-requirements.md)) |
 | **Origin** | Máy chủ thật của khách đứng sau edge |
 | **MVP / Mở rộng / Nâng cao** | Ba mức của mỗi nghiệp vụ: tối thiểu để ký hợp đồng doanh nghiệp đầu tiên / ngang đối thủ / tạo khác biệt ([1.2](../01-introduction/00-index.md#12-tổng-quan-yêu-cầu)) |
@@ -360,13 +365,16 @@ Mỗi tiền tố chỉ có một nghĩa trong toàn bộ tài liệu.
 
 | Mã | Nghĩa | Ở đâu |
 |---|---|---|
+| **M1…M10 / V1…V6 / AI1…AI8** | Năng lực của WAAP hiện đại / vị trí đặt AI/ML / nguyên tắc AI | [requirements §4.1, §4.2](../../requirements/04-product-direction/00-index.md) |
+| **TH0…TH4 / HR1…HR8** | Mức tự hành của SOC / hàng rào an toàn cho hành động tự động | [requirements §4.3](../../requirements/04-product-direction/03-autonomous-soc.md) |
+| **U1…U7 / TD0…TD5 / LC1…LC7** | Mục đích dùng dữ liệu / tầng dữ liệu / lớp lọc dữ liệu nhạy cảm | [requirements §4.4](../../requirements/04-product-direction/04-data-strategy.md) |
 | **KB1-A1…KB12-F3** | Kịch bản của từng nghiệp vụ: `KB<số trang>-<trục><số>`, ví dụ KB1-C4 là trục C (cách trỏ) của onboarding (§3.1) | [requirements §3](../../requirements/03-business-analysis/00-index.md) |
 | **OB1…OB12 / OG1…OG4 / CB1…CB7** | Bước / cổng / việc chuẩn bị trong bản nháp onboarding chưa duyệt (Phụ lục A) | [requirements §3.1](../../requirements/03-business-analysis/01-onboarding.md) |
 | **Q1–Q6** | Mục tiêu chất lượng | [1.3](../01-introduction/00-index.md#13-mục-tiêu-chất-lượng) |
 | **F1…F12, Fx.y, Fx.y.z** | Nhóm chức năng, chức năng, chức năng lá | [requirements §1](../../requirements/01-functional-decomposition.md) |
 | **PM1…PM7 / PC1…PC8 / PE1…PE4 / PA1…PA8** | Thành phần chức năng của Management / Control / Edge / Analytics trong phân rã theo plane | [requirements §1](../../requirements/01-functional-decomposition.md#phân-rã-theo-plane) |
 | **LK-1…LK-28** | Liên kết giữa các plane (chức năng phát → chức năng nhận, hợp đồng, kiểu, hành vi khi hỏng) | [requirements §1](../../requirements/01-functional-decomposition.md#liên-kết-giữa-các-plane) |
-| **FR-x-nn / BR-n / DT-n / NFR-n / IR-n / OQ-n** | Yêu cầu chức năng / quy tắc nghiệp vụ / yêu cầu dữ liệu / phi chức năng / giao tiếp ngoài / câu hỏi mở của requirements (OQ-1…OQ-15 ở §2, OQ-16…OQ-20 ở Phụ lục A của §3.1, OQ-21…OQ-123 ở các trang của §3) | [requirements §2](../../requirements/02-requirements.md) |
+| **FR-x-nn / BR-n / DT-n / NFR-n / IR-n / OQ-n** | Yêu cầu chức năng / quy tắc nghiệp vụ / yêu cầu dữ liệu / phi chức năng / giao tiếp ngoài / câu hỏi mở của requirements (OQ-1…OQ-15 ở §2, OQ-16…OQ-20 ở Phụ lục A của §3.1, OQ-21…OQ-126 ở các trang của §3, OQ-127…OQ-142 ở §4) | [requirements §2](../../requirements/02-requirements.md) |
 | **QS-1…QS-41** | Kịch bản chất lượng đo được | [10.3](../10-quality/00-index.md#103-kịch-bản) |
 | **R1…R29** | Rủi ro | [11.1](../11-risks/00-index.md) |
 | **A1…A17 / B1…B10** | Tình huống vận hành tự xảy ra / thao tác của người vận hành, mỗi cái có runbook | [8.13](../08-cross-cutting/13-operational-behaviors.md) |

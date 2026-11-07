@@ -107,6 +107,11 @@ blockquote { margin: 0 0 14px; padding: 8px 16px; border-left: 3px solid var(--l
 <a class="sub" href="#f-03-business-analysis-10-cache-performance">3.10 Cache, hiệu năng, nội dung</a>
 <a class="sub" href="#f-03-business-analysis-11-provider-operations">3.11 Vận hành của NCC</a>
 <a class="sub" href="#f-03-business-analysis-12-api-security">3.12 API security</a>
+<a class="top" href="#f-04-product-direction-00-index">4. Định hướng sản phẩm</a>
+<a class="sub" href="#f-04-product-direction-01-modern-waap-fit">4.1 Sản phẩm đang định hướng gì, đã phù hợp WAAP hiện đại chưa</a>
+<a class="sub" href="#f-04-product-direction-02-ai-ml">4.2 AI/ML tích hợp vào đâu</a>
+<a class="sub" href="#f-04-product-direction-03-autonomous-soc">4.3 SOC tự hành</a>
+<a class="sub" href="#f-04-product-direction-04-data-strategy">4.4 Chiến lược dữ liệu: luồng dữ liệu và dùng cho phân tích chuyên sâu</a>
   </nav>
   <main>
     <details class="mtoc">
@@ -127,6 +132,11 @@ blockquote { margin: 0 0 14px; padding: 8px 16px; border-left: 3px solid var(--l
 <a class="sub" href="#f-03-business-analysis-10-cache-performance">3.10 Cache, hiệu năng, nội dung</a>
 <a class="sub" href="#f-03-business-analysis-11-provider-operations">3.11 Vận hành của NCC</a>
 <a class="sub" href="#f-03-business-analysis-12-api-security">3.12 API security</a>
+<a class="top" href="#f-04-product-direction-00-index">4. Định hướng sản phẩm</a>
+<a class="sub" href="#f-04-product-direction-01-modern-waap-fit">4.1 Sản phẩm đang định hướng gì, đã phù hợp WAAP hiện đại chưa</a>
+<a class="sub" href="#f-04-product-direction-02-ai-ml">4.2 AI/ML tích hợp vào đâu</a>
+<a class="sub" href="#f-04-product-direction-03-autonomous-soc">4.3 SOC tự hành</a>
+<a class="sub" href="#f-04-product-direction-04-data-strategy">4.4 Chiến lược dữ liệu: luồng dữ liệu và dùng cho phân tích chuyên sâu</a>
     </details>
     <section class="doc" id="f-index"><div class="path">index.md</div><h1 id="f-index--requirements-waap">Requirements WAAP</h1>
 <p>Tài liệu này nói <strong>hệ thống phải làm gì</strong>: chức năng, quy tắc nghiệp vụ, dữ liệu, tiêu chí chấp nhận, và
@@ -148,6 +158,8 @@ liên kết giữa các plane (LK).</li>
 dữ liệu, phi chức năng, giao tiếp ngoài, câu hỏi mở.</li>
 <li><a href="#f-03-business-analysis-00-index">Phân tích nghiệp vụ</a>: từng nghiệp vụ theo vòng đời của khách, bắt đầu từ
 <a href="#f-03-business-analysis-01-onboarding">onboarding</a>.</li>
+<li><a href="#f-04-product-direction-00-index">Định hướng sản phẩm</a>: sản phẩm so với WAAP hiện đại, AI/ML đặt ở đâu,
+SOC tự hành, chiến lược dữ liệu (đánh giá và đề xuất, chờ chủ dự án duyệt).</li>
 </ol>
 <p>Quy ước đánh số giống kiến trúc: số đầu tên file là số mục, <code>00-index.md</code> là trang của thư mục. Mã (F, FR, BR,
 DT, NFR, IR, OQ, LK…) giải thích ở <a href="v1-waap-architecture.html#f-12-glossary-00-index--1213-quy-ước-mã-trong-tài-liệu" target="_blank" rel="noopener">glossary</a>,
@@ -4721,9 +4733,9 @@ chính. Dưới đây chỉ là những điểm 10.3 chưa có, chủ yếu cho 
 <td>5.5, outbox của Management</td>
 </tr>
 <tr>
-<td>OQ-16…OQ-123</td>
-<td>Câu hỏi của phân tích nghiệp vụ: OQ-16…OQ-20 thuộc bản nháp onboarding cũ; OQ-21…OQ-123 theo từng nghiệp vụ, một số đã quyết hoặc có đề xuất chờ duyệt</td>
-<td>Ở <a href="#f-03-business-analysis-00-index">requirements §3</a></td>
+<td>OQ-16…OQ-142</td>
+<td>OQ-16…OQ-20 thuộc bản nháp onboarding cũ; OQ-21…OQ-126 theo từng nghiệp vụ (<a href="#f-03-business-analysis-00-index">§3</a>); OQ-127…OQ-142 về định hướng sản phẩm (<a href="#f-04-product-direction-00-index">§4</a>)</td>
+<td>Một số đã quyết hoặc có đề xuất chờ duyệt</td>
 <td>Theo trang</td>
 </tr>
 </tbody>
@@ -4815,8 +4827,8 @@ xuất chờ duyệt.</li>
 <tr>
 <td><a href="#f-03-business-analysis-09-bot-management">3.9</a></td>
 <td>Bot management và challenge</td>
-<td>OQ-81…OQ-83, OQ-85, OQ-100…OQ-106</td>
-<td>Bước 1, mở rộng thành vùng nghiệp vụ riêng</td>
+<td>OQ-81…OQ-83, OQ-85, OQ-100…OQ-106, OQ-124…OQ-126</td>
+<td>Bước 1 mở rộng (trục J–L), có mô hình quyết định và phân tích mọi câu, đề xuất chờ duyệt</td>
 </tr>
 <tr>
 <td><a href="#f-03-business-analysis-10-cache-performance">3.10</a></td>
@@ -9003,8 +9015,9 @@ thống của khách, làm báo cáo cho lãnh đạo và kiểm toán. Liên qu
 <section class="doc" id="f-03-business-analysis-09-bot-management"><div class="path">03-business-analysis/09-bot-management.md</div><h1 id="f-03-business-analysis-09-bot-management--39-bot-management-và-challenge">3.9 Bot management và challenge</h1>
 <blockquote>
 <p><strong>Trạng thái: đang mở, chưa có quyết định nào (2026-11-07).</strong> Theo chủ dự án, bot và challenge là một vùng
-nghiệp vụ lớn, cần phân tích riêng; API security tách sang <a href="#f-03-business-analysis-12-api-security">3.12</a>. Trang này chỉ liệt kê
-kịch bản và câu hỏi. Thiết kế kỹ thuật ở kiến trúc 8.16.</p>
+nghiệp vụ lớn, cần phân tích riêng; API security tách sang <a href="#f-03-business-analysis-12-api-security">3.12</a>. Thiết kế kỹ thuật ở kiến
+trúc 8.16. Lần phân tích tiếp (2026-11-07) thêm trục J–L, mô hình quyết định đề xuất ở <a href="#f-03-business-analysis-09-bot-management--4-mô-hình-quyết-định-đề-xuất-chờ-duyệt">§4</a>
+và phân tích các câu còn mở ở <a href="#f-03-business-analysis-09-bot-management--5-phân-tích-các-câu-còn-mở-đề-xuất-của-claude-chờ-duyệt">§5</a>; tất cả là đề xuất, chưa phải quyết định.</p>
 </blockquote>
 <h2 id="f-03-business-analysis-09-bot-management--1-phạm-vi">1. Phạm vi</h2>
 <p>Phân biệt người thật với máy trên traffic của khách, cho máy tốt đi qua, chặn hoặc làm chậm máy xấu, và hỏi
@@ -9381,6 +9394,119 @@ request hoàn toàn sạch vẫn có thể là bot (đăng nhập bằng mật k
 </tr>
 </tbody>
 </table>
+<h3 id="f-03-business-analysis-09-bot-management--j-kẻ-tấn-công-thích-nghi">J. Kẻ tấn công thích nghi</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB9-J1</td>
+<td>Bot đổi dấu vân tay sau khi bị chặn vài giờ</td>
+<td>Chặn theo dấu vân tay chỉ có tác dụng ngắn; cần vòng cập nhật nhanh</td>
+</tr>
+<tr>
+<td>KB9-J2</td>
+<td>Dịch vụ giải challenge thuê (người thật giải hộ, hoặc AI giải captcha)</td>
+<td>Captcha hình ảnh không còn là rào cản; chi phí của kẻ tấn công mới là thước đo</td>
+</tr>
+<tr>
+<td>KB9-J3</td>
+<td>Botnet trên thiết bị thật, IP dân cư, trình duyệt thật</td>
+<td>Mọi tín hiệu kỹ thuật trông như người; chỉ còn hành vi và tín hiệu theo tài khoản</td>
+</tr>
+<tr>
+<td>KB9-J4</td>
+<td>Kẻ tấn công dò ngưỡng (gửi vừa dưới ngưỡng rate limit)</td>
+<td>Ngưỡng cố định bị học; cần ngưỡng động, ngẫu nhiên hoá</td>
+</tr>
+<tr>
+<td>KB9-J5</td>
+<td>Kẻ tấn công đọc trang challenge để biết mình bị phát hiện bằng gì</td>
+<td>Không lộ lý do trong phản hồi</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-09-bot-management--k-playbook-theo-ngành-ở-thị-trường-trong-nước">K. Playbook theo ngành ở thị trường trong nước</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Ngành</th>
+<th>Bài toán bot điển hình</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB9-K1</td>
+<td>Thương mại điện tử</td>
+<td>Flash sale, gom hàng, lấy giá, mã giảm giá bị dò</td>
+<td>Chặn nhầm lúc mở bán là mất doanh thu lớn nhất trong năm</td>
+</tr>
+<tr>
+<td>KB9-K2</td>
+<td>Ngân hàng, ví, fintech</td>
+<td>Credential stuffing, OTP SMS hàng loạt, mở tài khoản ảo</td>
+<td>App mobile là kênh chính; SDK, attestation</td>
+</tr>
+<tr>
+<td>KB9-K3</td>
+<td>Vé, đặt chỗ (sự kiện, hàng không, tàu xe)</td>
+<td>Giữ chỗ ảo, mua vé bằng bot</td>
+<td>Hàng đợi ảo (waiting room) là sản phẩm liên quan</td>
+</tr>
+<tr>
+<td>KB9-K4</td>
+<td>Báo chí, nội dung</td>
+<td>Lấy nội dung, crawler AI</td>
+<td>Muốn cho bot tìm kiếm, chặn bot sao chép</td>
+</tr>
+<tr>
+<td>KB9-K5</td>
+<td>Game, cá cược hợp pháp, khuyến mãi</td>
+<td>Tài khoản ảo săn thưởng</td>
+<td>Tín hiệu theo tài khoản quan trọng hơn theo request</td>
+</tr>
+<tr>
+<td>KB9-K6</td>
+<td>Cơ quan nhà nước, dịch vụ công</td>
+<td>Dò dữ liệu, tra cứu hàng loạt</td>
+<td>Trợ năng bắt buộc cao, không dùng captcha bên thứ ba ở nước ngoài</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-09-bot-management--l-tác-tử-ai-ai-agent-truy-cập-thay-người-dùng">L. Tác tử AI (AI agent) truy cập thay người dùng</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB9-L1</td>
+<td>Trợ lý AI duyệt web, đặt hàng thay người dùng</td>
+<td>Là bot nhưng có người thật đứng sau; chặn thì người dùng thật mất kênh</td>
+</tr>
+<tr>
+<td>KB9-L2</td>
+<td>Tác tử tự xưng là của một hãng AI lớn</td>
+<td>Kiểm chứng danh tính (chữ ký request của bot, dải IP công bố)</td>
+</tr>
+<tr>
+<td>KB9-L3</td>
+<td>Khách muốn cho tác tử đọc nhưng không cho mua, hoặc tính phí truy cập</td>
+<td>Chính sách theo hành động, không chỉ cho/chặn</td>
+</tr>
+</tbody>
+</table>
 <h2 id="f-03-business-analysis-09-bot-management--3-câu-hỏi-cần-chủ-dự-án-quyết">3. Câu hỏi cần chủ dự án quyết</h2>
 <table>
 <thead>
@@ -9458,9 +9584,174 @@ request hoàn toàn sạch vẫn có thể là bot (đăng nhập bằng mật k
 <td>KB9-I4</td>
 <td>Gắn với KB5-B4</td>
 </tr>
+<tr>
+<td>OQ-124</td>
+<td>Có playbook bot theo ngành (preset sẵn cho thương mại điện tử, ngân hàng, vé, báo chí) không?</td>
+<td>KB9-K1…KB9-K6</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-125</td>
+<td>Tác tử AI: xếp vào lớp riêng, kiểm chữ ký bot, chính sách theo hành động (đọc, mua) có trong lộ trình không?</td>
+<td>KB9-L1…KB9-L3</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-126</td>
+<td>Có làm hàng đợi ảo (waiting room) cho flash sale, mở bán vé không?</td>
+<td>KB9-K1, KB9-K3</td>
+<td>Sản phẩm liên quan nhưng không phải WAF</td>
+</tr>
 </tbody>
 </table>
-<h2 id="f-03-business-analysis-09-bot-management--4-phụ-thuộc">4. Phụ thuộc</h2>
+<h2 id="f-03-business-analysis-09-bot-management--4-mô-hình-quyết-định-đề-xuất-chờ-duyệt">4. Mô hình quyết định (đề xuất, chờ duyệt)</h2>
+<p>Mô tả nghiệp vụ, không phải thiết kế kỹ thuật (kiến trúc 8.16 đã có lớp tín hiệu BS1–BS7). Điểm chính: tách
+<strong>nhận diện</strong> (request này do ai gửi, chắc tới đâu) khỏi <strong>chính sách</strong> (khách muốn làm gì với loại đó ở path
+đó), để khách chỉnh chính sách mà không phải hiểu tín hiệu.</p>
+<div class="diagram"><pre class="mermaid">flowchart LR
+    r[&quot;Request&quot;]
+    v{&quot;Bot đã xác minh&lt;br/&gt;hoặc client đã khai báo?&quot;}
+    s[&quot;Nhận diện&lt;br/&gt;lớp + điểm + lý do&quot;]
+    p[&quot;Chính sách của khách&lt;br/&gt;theo lớp × nhóm path&quot;]
+    a[&quot;Hành động&lt;br/&gt;cho qua · log · challenge ẩn ·&lt;br/&gt;challenge tương tác · giới hạn · chặn&quot;]
+    f[&quot;Phản hồi&lt;br/&gt;kết quả challenge, nhãn của khách,&lt;br/&gt;chặn nhầm&quot;]
+    r --&gt; v
+    v --&gt;|có| p
+    v --&gt;|không| s --&gt; p --&gt; a
+    a --&gt; f --&gt; s
+</pre></div>
+<table>
+<thead>
+<tr>
+<th>Thành phần</th>
+<th>Đề xuất</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Lớp</td>
+<td><code>verified</code> (bot đã xác minh), <code>declared</code> (client khách đã khai báo: app, đối tác), <code>agent</code> (tác tử AI, nếu OQ-125 có), <code>likely_human</code>, <code>likely_automated</code>, <code>automated</code></td>
+</tr>
+<tr>
+<td>Nhóm path</td>
+<td>Khách gắn nhãn path theo mục đích: <code>login</code>, <code>otp</code>, <code>checkout</code>, <code>search</code>, <code>api</code>, <code>content</code>, <code>static</code>. Preset theo ngành (OQ-124) gắn sẵn</td>
+</tr>
+<tr>
+<td>Ma trận chính sách</td>
+<td>Ô = (lớp, nhóm path) → hành động. Mặc định chỉ chặt ở <code>login</code>, <code>otp</code>, <code>checkout</code>; <code>static</code> và <code>content</code> gần như không challenge</td>
+</tr>
+<tr>
+<td>Bảo vệ người thật</td>
+<td>Không bao giờ challenge tương tác trên request không phải trang HTML (AJAX, API, tài nguyên): trả mã lỗi có cấu trúc để ứng dụng tự xử lý (OQ-101)</td>
+</tr>
+<tr>
+<td>Bảo vệ khỏi thích nghi</td>
+<td>Không trả lý do trong phản hồi; ngưỡng có độ ngẫu nhiên nhỏ; dữ liệu bot cập nhật hằng ngày qua pipeline phát hành (KB9-J1, KB9-J4)</td>
+</tr>
+<tr>
+<td>Đo</td>
+<td>Mỗi ô của ma trận có số request, tỉ lệ challenge, tỉ lệ qua challenge, nhãn chặn nhầm; khách thấy ngay ô nào đang làm phiền người thật</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-03-business-analysis-09-bot-management--5-phân-tích-các-câu-còn-mở-đề-xuất-của-claude-chờ-duyệt">5. Phân tích các câu còn mở (đề xuất của Claude, chờ duyệt)</h2>
+<table>
+<thead>
+<tr>
+<th>Câu</th>
+<th>Phương án</th>
+<th>Đánh đổi</th>
+<th>Đề xuất</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OQ-81</td>
+<td>(a) Tự làm challenge; (b) captcha bên thứ ba; (c) chỉ challenge ẩn</td>
+<td>(b) dữ liệu ra nước ngoài, không chạy on-prem; (c) không đủ với path nhạy cảm</td>
+<td>(a) làm mặc định, như kiến trúc 8.16 đã chọn: challenge ẩn kiểu proof of work và kiểm môi trường, challenge tương tác đơn giản do edge phát, có phương án trợ năng. (b) là tuỳ chọn khách tự bật. Không coi captcha hình ảnh là rào cản chính (KB9-J2)</td>
+</tr>
+<tr>
+<td>OQ-82</td>
+<td>(a) Mặc định cho; (b) mặc định chặn; (c) bắt chọn khi bật</td>
+<td>(a) khách báo chí phản đối; (b) mất hiển thị trên trợ lý AI</td>
+<td>(c): khi bật bot management, hỏi một câu &quot;cho crawler AI không&quot;; preset báo chí mặc định chặn crawler huấn luyện, cho crawler trả lời câu hỏi có trích nguồn</td>
+</tr>
+<tr>
+<td>OQ-83</td>
+<td>SDK, attestation cho app mobile</td>
+<td>Phải duy trì SDK trên iOS, Android</td>
+<td>Lộ trình Nâng cao; trước đó app dùng danh tính consumer (API key, JWT) và rate limit như kiến trúc 8.17</td>
+</tr>
+<tr>
+<td>OQ-85</td>
+<td>Bot trong nước trong danh sách xác minh</td>
+<td>Mỗi bot thêm là một nguồn phải kiểm định kỳ</td>
+<td>Có: Cốc Cốc và bot xem trước link của Zalo, Facebook, Telegram, Slack vào danh sách từ MVP; threat research duy trì</td>
+</tr>
+<tr>
+<td>OQ-100</td>
+<td>Bài toán ưu tiên ở MVP</td>
+<td></td>
+<td>Credential stuffing và SMS pumping (mất tiền trực tiếp, hay gặp ở khách trong nước), rồi flash sale; scraping để Mở rộng vì khó phân biệt với đối tác</td>
+</tr>
+<tr>
+<td>OQ-101</td>
+<td>Challenge request AJAX/JSON</td>
+<td>Trang HTML trả cho JSON làm ứng dụng hỏng</td>
+<td>Không challenge tương tác trên request không phải điều hướng trang; trả <code>403</code> hoặc <code>429</code> có mã lỗi JSON và header gợi ý; ứng dụng tự mở challenge khi cần</td>
+</tr>
+<tr>
+<td>OQ-102</td>
+<td>Dữ liệu giả, tarpit</td>
+<td>Dữ liệu giả có rủi ro pháp lý, gây nhầm cho đối tác</td>
+<td>Tarpit (làm chậm) có ở Mở rộng; dữ liệu giả không làm</td>
+</tr>
+<tr>
+<td>OQ-103</td>
+<td>Clearance</td>
+<td></td>
+<td>Thời hạn mặc định 30 phút, khách chỉnh 5 phút tới 24 giờ; không gắn cứng với IP (người dùng di động), gắn với dấu vân tay TLS và zone; dùng chung giữa các subdomain của zone</td>
+</tr>
+<tr>
+<td>OQ-104</td>
+<td>Tín hiệu hành vi</td>
+<td>Dữ liệu cá nhân</td>
+<td>Mặc định tắt như kiến trúc 8.16; khách bật thì có văn bản mẫu để đưa vào chính sách quyền riêng tư của họ</td>
+</tr>
+<tr>
+<td>OQ-105</td>
+<td>Tín hiệu chéo tenant</td>
+<td></td>
+<td>Có, chỉ ở dạng reputation gộp (IP, ASN, dấu vân tay), không chia sẻ request; là lợi thế lớn nhất của một nền tảng nhiều khách (xem <a href="#f-04-product-direction-04-data-strategy">§4.4</a>)</td>
+</tr>
+<tr>
+<td>OQ-106</td>
+<td>Bán lẻ tính năng bot</td>
+<td>Làm rối bảng giá</td>
+<td>Có add-on &quot;bảo vệ đăng nhập và OTP&quot; cho Pro, vì đây là bài toán mất tiền trực tiếp; phần còn lại theo gói</td>
+</tr>
+<tr>
+<td>OQ-124</td>
+<td>Playbook theo ngành</td>
+<td>Phải duy trì nhiều preset</td>
+<td>Có, 4 preset ở MVP: thương mại điện tử, ngân hàng/ví, vé/đặt chỗ, báo chí</td>
+</tr>
+<tr>
+<td>OQ-125</td>
+<td>Tác tử AI</td>
+<td>Chuẩn kiểm chứng còn đang hình thành</td>
+<td>Xếp lớp <code>agent</code> riêng từ Mở rộng; kiểm dải IP công bố và chữ ký request khi hãng AI có; chính sách theo hành động (đọc, mua) ở Nâng cao</td>
+</tr>
+<tr>
+<td>OQ-126</td>
+<td>Hàng đợi ảo</td>
+<td>Là sản phẩm riêng</td>
+<td>Không ở MVP; ghi vào lộ trình Mở rộng vì khách thương mại điện tử, vé sẽ hỏi ngay</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-03-business-analysis-09-bot-management--6-phụ-thuộc">6. Phụ thuộc</h2>
 <p>FR-3-08, FR-5-03, BR-7, BR-25 ở <a href="#f-02-requirements">§2</a>; kiến trúc 8.16, ADR-0038; QS-20, QS-21.</p>
 </section>
 <section class="doc" id="f-03-business-analysis-10-cache-performance"><div class="path">03-business-analysis/10-cache-performance.md</div><h1 id="f-03-business-analysis-10-cache-performance--310-cache-hiệu-năng-nội-dung">3.10 Cache, hiệu năng, nội dung</h1>
@@ -10654,6 +10945,1273 @@ mà WAF thông thường không thấy. Liên quan: F3.7, F5.1.8 ở <a href="#f
 </table>
 <h2 id="f-03-business-analysis-12-api-security--4-phụ-thuộc">4. Phụ thuộc</h2>
 <p>FR-3-09, FR-5-19 ở <a href="#f-02-requirements">§2</a>; kiến trúc 8.17, ADR-0039; QS-22, QS-23.</p>
+</section>
+<section class="doc" id="f-04-product-direction-00-index"><div class="path">04-product-direction/00-index.md</div><h1 id="f-04-product-direction-00-index--4-định-hướng-sản-phẩm">4. Định hướng sản phẩm</h1>
+<blockquote>
+<p><strong>Trạng thái: đánh giá và đề xuất của Claude, chờ chủ dự án duyệt (2026-11-07).</strong> Viết theo yêu cầu &quot;tự đặt
+câu hỏi và tự trả lời&quot;. Không có gì ở đây là quyết định cho tới khi chủ dự án duyệt. Nhận định về thị trường
+và đối thủ dựa trên hiểu biết chung tới giữa 2026, cần kiểm lại trước khi dùng cho tài liệu bán hàng.</p>
+</blockquote>
+<p>Mục này nhìn sản phẩm từ trên xuống, không theo từng nghiệp vụ như <a href="#f-03-business-analysis-00-index">§3</a>.
+Câu hỏi chung của cả mục: <strong>sản phẩm đang đi đúng hướng của một WAAP hiện đại chưa, và nên đi tiếp thế nào.</strong></p>
+<table>
+<thead>
+<tr>
+<th>Mục</th>
+<th>Câu hỏi chính</th>
+<th>Kết luận ngắn</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="#f-04-product-direction-01-modern-waap-fit">4.1</a></td>
+<td>Sản phẩm đang định hướng gì, đã đủ hiện đại chưa?</td>
+<td>Lõi WAF, DDoS, edge, vòng đời policy, kiến trúc 4 plane đã ngang các sản phẩm hiện đại. Thiếu: chưa có câu trả lời cho kỷ nguyên AI (bảo vệ ứng dụng LLM, tác tử AI), bot và API đến muộn, chưa có lớp tự động hoá vận hành bảo mật</td>
+</tr>
+<tr>
+<td><a href="#f-04-product-direction-02-ai-ml">4.2</a></td>
+<td>AI/ML gắn vào đâu?</td>
+<td>Ở 6 vị trí, mỗi vị trí có ngân sách độ trễ khác nhau. Nguyên tắc: ML đề xuất và chấm điểm, luật xác định quyết định; mô hình đi qua cùng pipeline phát hành như ruleset; LLM không bao giờ nằm trên đường request</td>
+</tr>
+<tr>
+<td><a href="#f-04-product-direction-03-autonomous-soc">4.3</a></td>
+<td>SOC tự hành thế nào để ít phụ thuộc con người?</td>
+<td>Chia 5 mức tự hành. Tự động hoàn toàn chỉ với hành động <strong>tạm thời, có hạn, tự gỡ khi có dấu hiệu sai</strong>; thay đổi lâu dài luôn thành change request cho người duyệt (khớp quyết định ở 3.2, 3.4)</td>
+</tr>
+<tr>
+<td><a href="#f-04-product-direction-04-data-strategy">4.4</a></td>
+<td>Dữ liệu request dùng được vào việc gì ngoài log và cảnh báo, làm sao không lộ dữ liệu nhạy cảm?</td>
+<td>Dữ liệu chia 5 tầng; dữ liệu đi lên tầng trên chỉ qua bước khử nhận dạng. Dùng cho bảo vệ chung, huấn luyện mô hình, báo cáo ngành, nghiên cứu. <strong>Không bán dữ liệu kinh doanh của một khách</strong>, vì niềm tin là tài sản lớn hơn dữ liệu</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-04-product-direction-00-index--câu-hỏi-cần-chủ-dự-án-quyết">Câu hỏi cần chủ dự án quyết</h2>
+<p>Các câu cụ thể nằm ở cuối từng trang (OQ-127…OQ-142). Câu lớn nhất:</p>
+<ol>
+<li>Có đưa <strong>bảo vệ ứng dụng AI</strong> (LLM, tác tử) vào lộ trình không, ở mức nào? (OQ-127)</li>
+<li>Mức tự hành tối đa của SOC: có cho hệ thống tự đổi policy lâu dài với khách bật &quot;tự động hoàn toàn&quot; không? (OQ-135)</li>
+<li>Dữ liệu chéo tenant dùng tới đâu: chỉ bảo vệ và huấn luyện, hay cả báo cáo ngành công khai, nghiên cứu xuất bản? (OQ-138)</li>
+</ol>
+</section>
+<section class="doc" id="f-04-product-direction-01-modern-waap-fit"><div class="path">04-product-direction/01-modern-waap-fit.md</div><h1 id="f-04-product-direction-01-modern-waap-fit--41-sản-phẩm-đang-định-hướng-gì-đã-phù-hợp-waap-hiện-đại-chưa">4.1 Sản phẩm đang định hướng gì, đã phù hợp WAAP hiện đại chưa</h1>
+<blockquote>
+<p><strong>Trạng thái: đánh giá của Claude, chờ duyệt (2026-11-07).</strong></p>
+</blockquote>
+<h2 id="f-04-product-direction-01-modern-waap-fit--câu-1-sản-phẩm-này-đang-định-hướng-gì">Câu 1. Sản phẩm này đang định hướng gì?</h2>
+<p>Theo tài liệu hiện có (<a href="v1-waap-architecture.html#f-01-introduction-00-index" target="_blank" rel="noopener">kiến trúc §1</a>, 8.18, các ADR):</p>
+<table>
+<thead>
+<tr>
+<th>Trục</th>
+<th>Định hướng hiện tại</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Khách</td>
+<td>Doanh nghiệp trong nước là đích chính; 80% zone là người dùng nhỏ kiểu Cloudflare, 10–20% là doanh nghiệp tạo phần lớn doanh thu</td>
+</tr>
+<tr>
+<td>Hình thức</td>
+<td>SaaS trước, giữ đường cho hybrid và on-prem (ADR-0006); chạy trên hạ tầng tự có và hạ tầng đối tác (ADR-0005)</td>
+</tr>
+<tr>
+<td>Phạm vi</td>
+<td>WAAP đủ bốn mảng (WAF, DDoS L7, bot, API) cộng CDN và DNS điều hướng (ADR-0035): khách đến vì hiệu năng, ở lại vì bảo vệ</td>
+</tr>
+<tr>
+<td>Kiến trúc</td>
+<td>4 plane tách hẳn (ADR-0001): edge chạy độc lập khi mọi thứ khác sập; edge hai tầng L7 và WAF (ADR-0033); thiết kế cho 1 triệu zone (ADR-0040, ADR-0041)</td>
+</tr>
+<tr>
+<td>Thương mại</td>
+<td>Phí nền + hạn mức + phí vượt (ADR-0043), giá VND, gói theo phân khúc (8.18)</td>
+</tr>
+<tr>
+<td>Khác biệt dự kiến</td>
+<td>Dữ liệu ở trong nước, tiếng Việt, giá VND và hoá đơn điện tử, chạy được on-prem cho khách bị ràng buộc pháp lý, hỗ trợ gần</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Nhận xét.</strong> Định hướng này hợp lý cho một nhà cung cấp trong nước: không cạnh tranh trực diện với các hãng toàn
+cầu về độ phủ mạng, mà cạnh tranh ở chỗ họ yếu: dữ liệu trong nước, on-prem, hỗ trợ tại chỗ, giá và hoá đơn theo
+quy định trong nước. Điểm yếu tự nhiên là <strong>lượng dữ liệu nhỏ hơn</strong> để học (bot, reputation), nên chiến lược dữ
+liệu ở <a href="#f-04-product-direction-04-data-strategy">4.4</a> quan trọng hơn với sản phẩm này so với một hãng toàn cầu.</p>
+<h2 id="f-04-product-direction-01-modern-waap-fit--câu-2-một-waap-hiện-đại-2026-phải-có-gì">Câu 2. Một WAAP hiện đại (2026) phải có gì?</h2>
+<p>Bốn mảng lõi theo định nghĩa phổ biến của thị trường là WAF, chống DDoS tầng ứng dụng, quản lý bot, bảo vệ API.
+Tới 2026, khách doanh nghiệp còn kỳ vọng thêm:</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Năng lực</th>
+<th>Vì sao khách kỳ vọng</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>M1</td>
+<td>Bảo vệ API theo kho API (discovery, schema, posture), không chỉ rule</td>
+<td>Phần lớn traffic là API</td>
+</tr>
+<tr>
+<td>M2</td>
+<td>Bot management dựa trên mô hình, ít captcha</td>
+<td>Captcha hình ảnh đã bị AI giải; người dùng ghét captcha</td>
+</tr>
+<tr>
+<td>M3</td>
+<td>Chống chiếm tài khoản (ATO), kiểm mật khẩu đã lộ</td>
+<td>Tấn công phổ biến và gây thiệt hại trực tiếp</td>
+</tr>
+<tr>
+<td>M4</td>
+<td>Phân biệt và quản lý crawler AI, tác tử AI</td>
+<td>Lượng traffic từ AI tăng nhanh; khách muốn kiểm soát và có thể thu tiền</td>
+</tr>
+<tr>
+<td>M5</td>
+<td>Bảo vệ ứng dụng dùng LLM (prompt injection, rò dữ liệu qua câu trả lời, lạm dụng chi phí token)</td>
+<td>Khách đang đưa chatbot, tác tử vào sản phẩm</td>
+</tr>
+<tr>
+<td>M6</td>
+<td>Bảo vệ phía trình duyệt (script bên thứ ba, PCI DSS 4.0 mục 6.4.3 và 11.6.1)</td>
+<td>Yêu cầu tuân thủ cho trang thanh toán</td>
+</tr>
+<tr>
+<td>M7</td>
+<td>Virtual patching nhanh khi có CVE</td>
+<td>Khách không vá kịp</td>
+</tr>
+<tr>
+<td>M8</td>
+<td>Tự động hoá vận hành: tự giảm thiểu, tự đề xuất tinh chỉnh, trợ lý bằng ngôn ngữ tự nhiên</td>
+<td>Thiếu nhân lực SOC</td>
+</tr>
+<tr>
+<td>M9</td>
+<td>Policy as code, tích hợp CI/CD</td>
+<td>DevOps quản lý bằng code</td>
+</tr>
+<tr>
+<td>M10</td>
+<td>Kiểm soát dữ liệu: residency, che dữ liệu nhạy cảm, xuất log</td>
+<td>Pháp lý</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-04-product-direction-01-modern-waap-fit--câu-3-sản-phẩm-hiện-tại-đứng-ở-đâu-so-với-danh-sách-đó">Câu 3. Sản phẩm hiện tại đứng ở đâu so với danh sách đó?</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Năng lực</th>
+<th>Trong tài liệu hiện tại</th>
+<th>Đánh giá</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>M1</td>
+<td>API theo kho API</td>
+<td>MR (8.17)</td>
+<td>Đủ thiết kế, nhưng đến muộn so với kỳ vọng</td>
+</tr>
+<tr>
+<td>M2</td>
+<td>Bot dựa trên mô hình</td>
+<td>Luật trọng số ở MR, mô hình ở NC (8.16)</td>
+<td><strong>Muộn</strong>; nên kéo mô hình bot lên sớm hơn, chấp nhận mô hình đơn giản</td>
+</tr>
+<tr>
+<td>M3</td>
+<td>ATO</td>
+<td>NC (8.16 §9)</td>
+<td>Muộn; bài toán mất tiền trực tiếp ở khách trong nước (đề xuất OQ-100, OQ-106)</td>
+</tr>
+<tr>
+<td>M4</td>
+<td>Crawler AI, tác tử AI</td>
+<td>Crawler AI có trong 8.16; tác tử chưa có</td>
+<td>Thiếu một nửa (OQ-125)</td>
+</tr>
+<tr>
+<td>M5</td>
+<td>Bảo vệ ứng dụng LLM</td>
+<td><strong>Chưa có</strong></td>
+<td>Khoảng trống lớn nhất (OQ-127)</td>
+</tr>
+<tr>
+<td>M6</td>
+<td>Bảo vệ phía trình duyệt</td>
+<td>NC</td>
+<td>Hợp lý; nên ở MR cho khách thương mại điện tử cần PCI</td>
+</tr>
+<tr>
+<td>M7</td>
+<td>Virtual patching</td>
+<td>MR (F11.4)</td>
+<td>Ổn</td>
+</tr>
+<tr>
+<td>M8</td>
+<td>Tự động hoá vận hành</td>
+<td>Có detection, đề xuất case (F8.1.3); chưa có khung tự hành</td>
+<td><strong>Thiếu khung</strong> (<a href="#f-04-product-direction-03-autonomous-soc">4.3</a>)</td>
+</tr>
+<tr>
+<td>M9</td>
+<td>Policy as code</td>
+<td>MR (F5.6)</td>
+<td>Ổn; UI là nguồn sự thật (OQ-35)</td>
+</tr>
+<tr>
+<td>M10</td>
+<td>Kiểm soát dữ liệu</td>
+<td>Che tại edge, residency ở NC (8.6)</td>
+<td>Ổn cho MVP</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Kết luận.</strong> Phần nền (edge, phân phối cấu hình, vòng đời policy, cô lập tenant, đo lường) tốt và hiện đại; đó
+là phần khó và tốn kém nhất, đã được thiết kế kỹ. Phần còn yếu nằm ở tầng &quot;trí tuệ&quot; phía trên: mô hình, tự động
+hoá, và các mối đe doạ của kỷ nguyên AI. Tin tốt là kiến trúc hiện tại đã có chỗ cắm sẵn cho phần này (mô hình
+trong bundle chung, pipeline phát hành mô hình, Analytics có detection), nên bổ sung không phải đập đi làm lại.</p>
+<h2 id="f-04-product-direction-01-modern-waap-fit--câu-4-nên-kéo-cái-gì-lên-sớm-hơn">Câu 4. Nên kéo cái gì lên sớm hơn?</h2>
+<table>
+<thead>
+<tr>
+<th>Ưu tiên</th>
+<th>Đề xuất</th>
+<th>Lý do</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Bảo vệ đăng nhập và OTP (ATO cơ bản, SMS pumping) lên MR, bán add-on cho Pro</td>
+<td>Mất tiền trực tiếp, dễ chứng minh giá trị</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Mô hình bot đơn giản ngay từ MR, huấn luyện trên dữ liệu chéo tenant</td>
+<td>Captcha không còn hiệu quả; dữ liệu chéo tenant là lợi thế của nền tảng</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Khung tự hành SOC mức TH3 cho hành động tạm thời ở MVP (<a href="#f-04-product-direction-03-autonomous-soc">4.3</a>): tự giảm thiểu tạm thời có hạn, gom cảnh báo thành sự cố</td>
+<td>Đội nhỏ, không trực 24/7 được (OQ-122)</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Trợ lý ngôn ngữ tự nhiên trên portal ở MR: hỏi bằng tiếng Việt, ra truy vấn có cấu trúc</td>
+<td>Khách nhỏ không rành bảo mật; khác biệt rõ khi demo</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Bảo vệ ứng dụng LLM ở MR, bắt đầu bằng giới hạn và quan sát (không phải chặn nội dung)</td>
+<td>Thị trường mới, ít đối thủ trong nước</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Bảo vệ phía trình duyệt lên MR cho gói Business</td>
+<td>PCI DSS 4.0</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-04-product-direction-01-modern-waap-fit--câu-5-rủi-ro-của-định-hướng-này-là-gì">Câu 5. Rủi ro của định hướng này là gì?</h2>
+<table>
+<thead>
+<tr>
+<th>Rủi ro</th>
+<th>Hệ quả</th>
+<th>Giảm thiểu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ít dữ liệu hơn hãng toàn cầu</td>
+<td>Mô hình bot, reputation kém hơn</td>
+<td>Học chéo tenant ngay từ đầu, mua feed threat intel, hợp tác CERT</td>
+</tr>
+<tr>
+<td>Làm quá nhiều mảng cùng lúc</td>
+<td>Không mảng nào đủ tốt</td>
+<td>Giữ thứ tự: lõi chắc trước, AI sau; mỗi mảng có mức MVP rõ</td>
+</tr>
+<tr>
+<td>Tự động hoá sai làm sập website khách</td>
+<td>Mất niềm tin nhanh hơn bị tấn công</td>
+<td>Chỉ tự động với hành động tạm thời, có hạn, tự gỡ (<a href="#f-04-product-direction-03-autonomous-soc">4.3</a>)</td>
+</tr>
+<tr>
+<td>Dùng dữ liệu khách sai mục đích</td>
+<td>Mất khách, vi phạm Nghị định 13</td>
+<td>Điều khoản rõ, khử nhận dạng, không bán dữ liệu kinh doanh (<a href="#f-04-product-direction-04-data-strategy">4.4</a>)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-04-product-direction-01-modern-waap-fit--câu-hỏi-cần-chủ-dự-án-quyết">Câu hỏi cần chủ dự án quyết</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Câu hỏi</th>
+<th>Đề xuất</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OQ-127</td>
+<td>Có đưa bảo vệ ứng dụng LLM và tác tử AI vào lộ trình không, ở mức nào?</td>
+<td>MR, bắt đầu bằng quan sát và giới hạn chi phí</td>
+</tr>
+<tr>
+<td>OQ-128</td>
+<td>Có kéo mô hình bot và bảo vệ đăng nhập/OTP lên MR không?</td>
+<td>Có</td>
+</tr>
+<tr>
+<td>OQ-129</td>
+<td>Bảo vệ phía trình duyệt (PCI DSS 4.0) có lên MR cho Business không?</td>
+<td>Có</td>
+</tr>
+<tr>
+<td>OQ-130</td>
+<td>Thứ tự ưu tiên ở Câu 4 có đúng với kế hoạch bán hàng không?</td>
+<td>Cần chủ dự án và sales xác nhận</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section class="doc" id="f-04-product-direction-02-ai-ml"><div class="path">04-product-direction/02-ai-ml.md</div><h1 id="f-04-product-direction-02-ai-ml--42-aiml-tích-hợp-vào-đâu">4.2 AI/ML tích hợp vào đâu</h1>
+<blockquote>
+<p><strong>Trạng thái: đề xuất của Claude, chờ duyệt (2026-11-07).</strong></p>
+</blockquote>
+<h2 id="f-04-product-direction-02-ai-ml--câu-1-có-những-vị-trí-nào-để-đặt-aiml">Câu 1. Có những vị trí nào để đặt AI/ML?</h2>
+<p>Sáu vị trí, xếp theo độ trễ cho phép. Vị trí càng gần request thì mô hình càng phải nhỏ, càng phải xác định.</p>
+<div class="diagram"><pre class="mermaid">flowchart LR
+    subgraph E[&quot;Edge, trên đường request&quot;]
+        z1[&quot;V1 Inline&lt;br/&gt;≤ 50 µs&lt;br/&gt;cây quyết định nhỏ&quot;]
+        z2[&quot;V2 Gần inline&lt;br/&gt;giây&lt;br/&gt;ngưỡng động, baseline&quot;]
+    end
+    subgraph A[&quot;Analytics&quot;]
+        z3[&quot;V3 Streaming&lt;br/&gt;giây tới phút&lt;br/&gt;bất thường, gom chiến dịch&quot;]
+        z4[&quot;V4 Batch&lt;br/&gt;giờ tới ngày&lt;br/&gt;huấn luyện, suy schema&quot;]
+    end
+    subgraph M[&quot;Management, portal&quot;]
+        z5[&quot;V5 Tương tác&lt;br/&gt;vài giây&lt;br/&gt;trợ lý LLM&quot;]
+    end
+    subgraph N[&quot;NCC&quot;]
+        z6[&quot;V6 Vận hành NCC&lt;br/&gt;phút tới giờ&lt;br/&gt;threat research, support&quot;]
+    end
+    z4 --&gt;|mô hình qua pipeline phát hành| z1
+    z3 --&gt;|đề xuất mitigation| M
+    z3 --&gt;|tín hiệu canary| C[&quot;Control&quot;]
+    z5 --&gt;|truy vấn có cấu trúc| A
+</pre></div>
+<table>
+<thead>
+<tr>
+<th>Vị trí</th>
+<th>Ở đâu</th>
+<th>Ngân sách</th>
+<th>Dùng cho</th>
+<th>Loại mô hình</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>V1 Inline</strong></td>
+<td>L7, WAF</td>
+<td>≤ 50 µs mỗi request (QS-20)</td>
+<td>Điểm bot, điểm bất thường của request, phân loại request cần gửi WAF hay không</td>
+<td>Cây quyết định, gradient boosted trees đã biên dịch; không mạng nơ-ron lớn</td>
+</tr>
+<tr>
+<td><strong>V2 Gần inline</strong></td>
+<td>Edge agent, bộ đếm L7</td>
+<td>Giây</td>
+<td>Ngưỡng DDoS động theo baseline của zone, ngưỡng rate limit thích nghi</td>
+<td>Thống kê trượt (EWMA, phân vị), không phải mô hình huấn luyện</td>
+</tr>
+<tr>
+<td><strong>V3 Streaming</strong></td>
+<td>Detection ở Analytics</td>
+<td>Giây tới phút</td>
+<td>Phát hiện bất thường theo zone, gom cảnh báo thành chiến dịch, dự đoán chặn nhầm, đề xuất mitigation</td>
+<td>Mô hình bất thường, phân cụm, mô hình phân loại chặn nhầm</td>
+</tr>
+<tr>
+<td><strong>V4 Batch</strong></td>
+<td>Analytics</td>
+<td>Giờ tới ngày</td>
+<td>Huấn luyện mô hình bot, reputation, suy schema API, phân loại endpoint, đánh giá rule</td>
+<td>Huấn luyện và đánh giá; xuất mô hình cho V1</td>
+</tr>
+<tr>
+<td><strong>V5 Tương tác</strong></td>
+<td>Portal</td>
+<td>Vài giây</td>
+<td>Trợ lý: hỏi bằng tiếng Việt ra truy vấn, giải thích một event, soạn nháp rule từ mô tả, tóm tắt sự cố, soạn báo cáo</td>
+<td>LLM, gọi qua công cụ có cấu trúc</td>
+</tr>
+<tr>
+<td><strong>V6 Vận hành NCC</strong></td>
+<td>Nội bộ</td>
+<td>Phút tới giờ</td>
+<td>Soạn nháp rule khẩn từ CVE, phân loại báo cáo abuse, hỗ trợ support</td>
+<td>LLM, người duyệt</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-04-product-direction-02-ai-ml--câu-2-nguyên-tắc-nào-để-ai-không-làm-hỏng-sản-phẩm">Câu 2. Nguyên tắc nào để AI không làm hỏng sản phẩm?</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Nguyên tắc</th>
+<th>Vì sao</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AI1</td>
+<td><strong>ML đề xuất và chấm điểm, luật xác định quyết định.</strong> Điểm của mô hình là một đầu vào của policy (ví dụ <code>bot.score &lt; 30</code> ở path <code>login</code> thì challenge), không tự là hành động</td>
+<td>Khách hiểu và chỉnh được; giải thích được với kiểm toán (Q4)</td>
+</tr>
+<tr>
+<td>AI2</td>
+<td><strong>Mô hình là một artifact có version, đi cùng pipeline phát hành như ruleset</strong>: đánh giá trên tập giữ lại, log-only song song, canary, rollback (kiến trúc 8.16 §6)</td>
+<td>Mô hình lỗi không gây outage toàn fleet (Q2)</td>
+</tr>
+<tr>
+<td>AI3</td>
+<td><strong>LLM không bao giờ nằm trên đường request</strong></td>
+<td>Độ trễ, chi phí, và không xác định</td>
+</tr>
+<tr>
+<td>AI4</td>
+<td><strong>Mỗi quyết định dựa trên ML có lý do</strong>: tín hiệu nào đóng góp, ghi trong event</td>
+<td>Xử lý chặn nhầm (3.4) cần biết vì sao</td>
+</tr>
+<tr>
+<td>AI5</td>
+<td><strong>LLM chỉ thấy dữ liệu đã che</strong> và chỉ thấy dữ liệu của tenant đang hỏi</td>
+<td>Dữ liệu nhạy cảm, cô lập tenant (Q3)</td>
+</tr>
+<tr>
+<td>AI6</td>
+<td><strong>LLM hành động qua công cụ có cấu trúc</strong> (Query API, tạo change request nháp), không viết SQL tự do, không tự phát hành</td>
+<td>Cùng quyền với người dùng đang hỏi; không vượt quyền</td>
+</tr>
+<tr>
+<td>AI7</td>
+<td><strong>Có công tắc tắt</strong> cho mọi tính năng ML theo zone và toàn fleet</td>
+<td>Sự cố mô hình phải tắt được trong vài giây</td>
+</tr>
+<tr>
+<td>AI8</td>
+<td><strong>Đo được giá trị</strong>: mỗi mô hình có chỉ số so với luật thay thế; không tốt hơn thì không dùng (8.16 §3)</td>
+<td>Tránh ML vì ML</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-04-product-direction-02-ai-ml--câu-3-cụ-thể-từng-bài-toán-dùng-gì">Câu 3. Cụ thể từng bài toán dùng gì?</h2>
+<table>
+<thead>
+<tr>
+<th>Bài toán</th>
+<th>Vị trí</th>
+<th>Cách làm đề xuất</th>
+<th>Mức</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Điểm bot</td>
+<td>V4 huấn luyện → V1 chấm</td>
+<td>Cây quyết định trên đặc trưng BS3–BS6; nhãn từ kết quả challenge, bot đã xác minh, phản hồi của khách</td>
+<td>MR (kéo lên từ NC, OQ-128)</td>
+</tr>
+<tr>
+<td>Ngưỡng DDoS theo zone</td>
+<td>V2</td>
+<td>Baseline theo giờ trong ngày, ngày trong tuần; ngưỡng = baseline × hệ số độ nhạy khách chọn</td>
+<td>MVP</td>
+</tr>
+<tr>
+<td>Phát hiện bất thường</td>
+<td>V3</td>
+<td>Theo zone và path: lượng request, tỉ lệ lỗi, phân bố quốc gia, ASN, dấu vân tay mới</td>
+<td>MR</td>
+</tr>
+<tr>
+<td>Gom chiến dịch</td>
+<td>V3</td>
+<td>Phân cụm event theo dấu vân tay, payload, nguồn, thời gian; một chiến dịch = một sự cố, không phải nghìn cảnh báo</td>
+<td>MR</td>
+</tr>
+<tr>
+<td>Dự đoán chặn nhầm</td>
+<td>V3, V4</td>
+<td>Phân loại từng lần khớp rule là &quot;có thể nhầm&quot; dựa trên: người dùng đã đăng nhập, path quen, nhịp đều, nhãn cũ</td>
+<td>MR</td>
+</tr>
+<tr>
+<td>Đề xuất tinh chỉnh</td>
+<td>V3 → Management</td>
+<td>Từ dự đoán chặn nhầm sinh nháp tuning rule hoặc whitelist (BR-25), thành change request</td>
+<td>MR</td>
+</tr>
+<tr>
+<td>Suy schema API</td>
+<td>V4</td>
+<td>Gom request theo mẫu path, suy kiểu trường; khách xác nhận (OQ-107)</td>
+<td>MR</td>
+</tr>
+<tr>
+<td>Đánh giá canary</td>
+<td>V3 → Control</td>
+<td>So chỉ số zone trước và sau thay đổi, phát hiện lệch có ý nghĩa thống kê</td>
+<td>MVP (thống kê), MR (mô hình)</td>
+</tr>
+<tr>
+<td>Trợ lý trên portal</td>
+<td>V5</td>
+<td>LLM với công cụ: truy vấn event, giải thích rule, soạn nháp rule, tóm tắt</td>
+<td>MR</td>
+</tr>
+<tr>
+<td>Rule khẩn từ CVE</td>
+<td>V6</td>
+<td>LLM đọc công bố CVE, soạn nháp rule và bộ request kiểm thử; threat research duyệt</td>
+<td>MR</td>
+</tr>
+<tr>
+<td>Bảo vệ ứng dụng LLM của khách</td>
+<td>V1 (luật), V3 (phân loại)</td>
+<td>Giới hạn kích thước và tần suất prompt, phát hiện mẫu prompt injection đã biết, quan sát token; phân loại nội dung sâu ở Analytics, không inline</td>
+<td>MR (OQ-127)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-04-product-direction-02-ai-ml--câu-4-cần-dữ-liệu-và-hạ-tầng-gì">Câu 4. Cần dữ liệu và hạ tầng gì?</h2>
+<table>
+<thead>
+<tr>
+<th>Cần</th>
+<th>Có chưa</th>
+<th>Ghi chú</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Dữ liệu có nhãn</td>
+<td>Một phần: kết quả challenge, bot xác minh, nhãn chặn nhầm (F7.5)</td>
+<td>Nhãn chặn nhầm là dữ liệu quý nhất, cần khuyến khích khách gắn nhãn</td>
+</tr>
+<tr>
+<td>Kho đặc trưng chéo tenant</td>
+<td>Chưa</td>
+<td>Tầng TD3 ở <a href="#f-04-product-direction-04-data-strategy">4.4</a></td>
+</tr>
+<tr>
+<td>Môi trường huấn luyện tách khỏi sản xuất</td>
+<td>Chưa</td>
+<td>Đọc từ tầng đã khử nhận dạng</td>
+</tr>
+<tr>
+<td>Pipeline phát hành mô hình</td>
+<td>Có (8.16 §6, dùng chung với ruleset)</td>
+<td></td>
+</tr>
+<tr>
+<td>LLM</td>
+<td>Chưa chọn</td>
+<td>Tự chạy mô hình mở (giữ dữ liệu trong nước, chạy được on-prem) hay gọi API bên ngoài (OQ-131)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-04-product-direction-02-ai-ml--câu-5-rủi-ro-riêng-của-ai">Câu 5. Rủi ro riêng của AI</h2>
+<table>
+<thead>
+<tr>
+<th>Rủi ro</th>
+<th>Giảm thiểu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Kẻ tấn công đầu độc dữ liệu huấn luyện (gửi traffic giả để mô hình học sai)</td>
+<td>Huấn luyện có lọc nguồn, so với tập giữ lại cố định, không học trực tiếp từ traffic chưa có nhãn</td>
+</tr>
+<tr>
+<td>Prompt injection vào trợ lý LLM qua dữ liệu event (payload tấn công chứa lệnh cho LLM)</td>
+<td>Dữ liệu event đưa vào LLM luôn là dữ liệu, không phải chỉ dẫn; công cụ của LLM chỉ đọc và tạo nháp, không phát hành</td>
+</tr>
+<tr>
+<td>Mô hình lệch theo thời gian</td>
+<td>Theo dõi chỉ số theo tuần, huấn luyện lại định kỳ</td>
+</tr>
+<tr>
+<td>Chi phí LLM</td>
+<td>Giới hạn theo gói; trợ lý là tính năng của gói cao</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-04-product-direction-02-ai-ml--câu-hỏi-cần-chủ-dự-án-quyết">Câu hỏi cần chủ dự án quyết</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Câu hỏi</th>
+<th>Đề xuất</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OQ-131</td>
+<td>LLM tự chạy (mô hình mở, trong nước, chạy được on-prem) hay gọi API bên ngoài?</td>
+<td>Tự chạy cho mọi thứ chạm dữ liệu khách; API bên ngoài chỉ cho V6 với dữ liệu công khai (CVE)</td>
+</tr>
+<tr>
+<td>OQ-132</td>
+<td>Trợ lý trên portal có ở gói nào?</td>
+<td>Business trở lên; Pro có bản giới hạn</td>
+</tr>
+<tr>
+<td>OQ-133</td>
+<td>Có chấp nhận nguyên tắc AI1 (ML không tự quyết hành động) làm nguyên tắc sản phẩm không?</td>
+<td>Có</td>
+</tr>
+<tr>
+<td>OQ-134</td>
+<td>Có cần đội ML riêng từ MVP không, hay bắt đầu bằng thống kê và luật?</td>
+<td>Bắt đầu bằng thống kê và luật (V2, đánh giá canary); một kỹ sư ML khi bắt đầu MR</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section class="doc" id="f-04-product-direction-03-autonomous-soc"><div class="path">04-product-direction/03-autonomous-soc.md</div><h1 id="f-04-product-direction-03-autonomous-soc--43-soc-tự-hành">4.3 SOC tự hành</h1>
+<blockquote>
+<p><strong>Trạng thái: đề xuất của Claude, chờ duyệt (2026-11-07).</strong></p>
+</blockquote>
+<h2 id="f-04-product-direction-03-autonomous-soc--câu-1-soc-tự-hành-nghĩa-là-gì-trong-sản-phẩm-này">Câu 1. &quot;SOC tự hành&quot; nghĩa là gì trong sản phẩm này?</h2>
+<p>Có hai SOC dùng sản phẩm:</p>
+<ul>
+<li><strong>SOC của khách</strong>: người của khách xem event, xử lý chặn nhầm, phản ứng khi bị tấn công. Phần lớn khách nhỏ
+<strong>không có</strong> SOC; khách lớn có nhưng thiếu người.</li>
+<li><strong>SOC của NCC</strong>: theo dõi toàn fleet, bật mitigation thay khách (đã quyết ở 3.3), phát hành rule khẩn.</li>
+</ul>
+<p>Tự hành nghĩa là hệ thống tự làm phần lớn vòng <strong>phát hiện → phân loại → điều tra → quyết định → hành động →
+kiểm chứng → học</strong>, để con người chỉ duyệt những việc có hậu quả lâu dài và xử lý ngoại lệ.</p>
+<h2 id="f-04-product-direction-03-autonomous-soc--câu-2-tự-hành-tới-mức-nào">Câu 2. Tự hành tới mức nào?</h2>
+<p>Đề xuất 5 mức, giống cách phân mức xe tự lái. Mỗi loại việc có mức riêng, không phải cả hệ thống một mức.</p>
+<table>
+<thead>
+<tr>
+<th>Mức</th>
+<th>Tên</th>
+<th>Hệ thống làm</th>
+<th>Con người làm</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TH0</td>
+<td>Thủ công</td>
+<td>Ghi log</td>
+<td>Mọi việc</td>
+</tr>
+<tr>
+<td>TH1</td>
+<td>Hỗ trợ</td>
+<td>Cảnh báo, gom cảnh báo thành sự cố, gom bằng chứng</td>
+<td>Điều tra, quyết định, hành động</td>
+</tr>
+<tr>
+<td>TH2</td>
+<td>Đề xuất</td>
+<td>Như TH1, cộng đề xuất hành động kèm lý do và mức tin cậy</td>
+<td>Bấm chấp nhận hoặc từ chối</td>
+</tr>
+<tr>
+<td>TH3</td>
+<td>Tự hành có giám sát</td>
+<td>Tự làm hành động <strong>tạm thời, có hạn</strong>, báo ngay, tự gỡ khi có dấu hiệu sai</td>
+<td>Xem lại, giữ hoặc huỷ; duyệt thay đổi lâu dài</td>
+</tr>
+<tr>
+<td>TH4</td>
+<td>Tự hành hoàn toàn</td>
+<td>Tự làm cả thay đổi lâu dài</td>
+<td>Kiểm tra định kỳ</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Loại việc</th>
+<th>Mức đề xuất</th>
+<th>Lý do</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Giảm thiểu DDoS L7</td>
+<td>TH3 (đã có trong thiết kế)</td>
+<td>Phải nhanh hơn con người</td>
+</tr>
+<tr>
+<td>Bật Under Attack mode, rule tạm khi tấn công rõ ràng</td>
+<td>TH3, hết hạn tối đa theo BR-6</td>
+<td>NCC đã được phép bật (3.3)</td>
+</tr>
+<tr>
+<td>Cách ly zone sang cell riêng</td>
+<td>TH3</td>
+<td>Bảo vệ khách khác</td>
+</tr>
+<tr>
+<td>Gom cảnh báo thành sự cố, mở case</td>
+<td>TH3</td>
+<td>Không có rủi ro cho traffic</td>
+</tr>
+<tr>
+<td>Tinh chỉnh rule, whitelist vì chặn nhầm</td>
+<td><strong>TH2</strong></td>
+<td>Đã quyết: đi qua change request (3.4)</td>
+</tr>
+<tr>
+<td>Nhận bản ruleset mới</td>
+<td>TH3 theo đề xuất OQ-36 (log-only 7 ngày rồi tự chặn)</td>
+<td></td>
+</tr>
+<tr>
+<td>Thay đổi policy lâu dài khác</td>
+<td>TH2</td>
+<td>UI là nguồn sự thật, cần người duyệt (3.2)</td>
+</tr>
+<tr>
+<td>TH4</td>
+<td>Không làm ở MVP và MR</td>
+<td>Xem OQ-135</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-04-product-direction-03-autonomous-soc--câu-3-hàng-rào-an-toàn-cho-mức-th3-là-gì">Câu 3. Hàng rào an toàn cho mức TH3 là gì?</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Hàng rào</th>
+<th>Ví dụ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HR1</td>
+<td><strong>Có hạn</strong>: mọi hành động tự động có ngày hết hạn</td>
+<td>Rule tạm tự gỡ sau 2 giờ trừ khi người giữ lại</td>
+</tr>
+<tr>
+<td>HR2</td>
+<td><strong>Tự gỡ khi có dấu hiệu sai</strong>: theo dõi chỉ số ngay sau hành động, xấu đi thì tự gỡ</td>
+<td>Tỉ lệ người thật bị challenge tăng, đơn hàng ở origin giảm, lỗi 4xx của người đã đăng nhập tăng</td>
+</tr>
+<tr>
+<td>HR3</td>
+<td><strong>Giới hạn phạm vi</strong>: một hành động chỉ chạm một zone; hành động nhiều zone cần người</td>
+<td>Không tự bật Under Attack cho cả org</td>
+</tr>
+<tr>
+<td>HR4</td>
+<td><strong>Ngân sách</strong>: số hành động tự động mỗi zone mỗi ngày có trần</td>
+<td>Hệ thống không tự bật tắt liên tục</td>
+</tr>
+<tr>
+<td>HR5</td>
+<td><strong>Giải thích</strong>: mọi hành động có lý do, bằng chứng, mức tin cậy, hiện trên portal</td>
+<td></td>
+</tr>
+<tr>
+<td>HR6</td>
+<td><strong>Công tắc</strong>: khách tắt tự hành theo zone; NCC tắt theo fleet</td>
+<td></td>
+</tr>
+<tr>
+<td>HR7</td>
+<td><strong>Audit</strong>: hành động tự động ghi audit như một người dùng hệ thống riêng</td>
+<td>Phân biệt được người làm và máy làm</td>
+</tr>
+<tr>
+<td>HR8</td>
+<td><strong>Không vượt quyền</strong>: tự hành chỉ dùng hành động mà gói và cấu hình của khách cho phép</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-04-product-direction-03-autonomous-soc--câu-4-một-sự-cố-đi-qua-soc-tự-hành-thế-nào">Câu 4. Một sự cố đi qua SOC tự hành thế nào?</h2>
+<div class="diagram"><pre class="mermaid">flowchart LR
+    d[&quot;Phát hiện&lt;br/&gt;V2, V3&quot;]
+    t[&quot;Phân loại&lt;br/&gt;gom thành sự cố,&lt;br/&gt;mức nghiêm trọng&quot;]
+    i[&quot;Điều tra tự động&lt;br/&gt;dòng thời gian,&lt;br/&gt;nguồn, path, rule&quot;]
+    q{&quot;Hành động&lt;br/&gt;tạm thời, đủ tin cậy?&quot;}
+    a[&quot;Tự làm (TH3)&lt;br/&gt;có hạn, báo ngay&quot;]
+    p[&quot;Đề xuất (TH2)&lt;br/&gt;change request nháp&quot;]
+    v[&quot;Kiểm chứng&lt;br/&gt;chỉ số sau hành động&quot;]
+    r[&quot;Tự gỡ&quot;]
+    h[&quot;Người duyệt,&lt;br/&gt;giữ, hoặc huỷ&quot;]
+    l[&quot;Học&lt;br/&gt;nhãn, kết quả&quot;]
+    d --&gt; t --&gt; i --&gt; q
+    q --&gt;|có| a --&gt; v
+    q --&gt;|không| p --&gt; h
+    v --&gt;|xấu đi| r
+    v --&gt;|ổn| h
+    h --&gt; l
+    r --&gt; l
+</pre></div>
+<p>Con người nhận được <strong>một sự cố</strong> đã có dòng thời gian, bằng chứng, hành động đã làm và đề xuất tiếp theo, thay
+vì hàng trăm cảnh báo rời rạc.</p>
+<h2 id="f-04-product-direction-03-autonomous-soc--câu-5-đo-soc-tự-hành-bằng-gì">Câu 5. Đo SOC tự hành bằng gì?</h2>
+<table>
+<thead>
+<tr>
+<th>Chỉ số</th>
+<th>Ý nghĩa</th>
+<th>Mục tiêu đề xuất</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Thời gian phát hiện (MTTD)</td>
+<td>Từ lúc tấn công bắt đầu tới lúc có sự cố</td>
+<td>≤ 1 phút với DDoS, ≤ 10 phút với tấn công ứng dụng</td>
+</tr>
+<tr>
+<td>Thời gian giảm thiểu (MTTM)</td>
+<td>Tới lúc có hành động đầu tiên</td>
+<td>≤ 2 phút ở TH3</td>
+</tr>
+<tr>
+<td>Tỉ lệ sự cố xử lý không cần người</td>
+<td></td>
+<td>Theo dõi, tăng dần</td>
+</tr>
+<tr>
+<td>Tỉ lệ hành động tự động bị gỡ vì sai</td>
+<td></td>
+<td>≤ 5%; vượt thì hạ mức tự hành của loại việc đó</td>
+</tr>
+<tr>
+<td>Số cảnh báo trên một sự cố</td>
+<td>Đo khả năng gom</td>
+<td>Càng cao càng tốt</td>
+</tr>
+<tr>
+<td>Thời gian con người bỏ ra cho mỗi sự cố</td>
+<td></td>
+<td>Giảm dần</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-04-product-direction-03-autonomous-soc--câu-6-con-người-còn-làm-gì">Câu 6. Con người còn làm gì?</h2>
+<table>
+<thead>
+<tr>
+<th>Ai</th>
+<th>Làm gì</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Khách</td>
+<td>Duyệt thay đổi lâu dài; gắn nhãn chặn nhầm; đặt mức tự hành cho zone của mình</td>
+</tr>
+<tr>
+<td>SOC của NCC</td>
+<td>Giám sát hành động tự động trên toàn fleet; xử lý sự cố mà hệ thống không đủ tin cậy; xử lý khách không có SOC</td>
+</tr>
+<tr>
+<td>Threat research</td>
+<td>Duyệt rule khẩn, mô hình mới; xem các chiến dịch mới hệ thống gom ra</td>
+</tr>
+</tbody>
+</table>
+<p>Với đội nhỏ chưa trực 24/7 (OQ-122), TH3 là cách để vẫn có phản ứng ngoài giờ mà không cần người thức.</p>
+<h2 id="f-04-product-direction-03-autonomous-soc--câu-hỏi-cần-chủ-dự-án-quyết">Câu hỏi cần chủ dự án quyết</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Câu hỏi</th>
+<th>Đề xuất</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OQ-135</td>
+<td>Có cho khách bật TH4 (hệ thống tự đổi policy lâu dài) không?</td>
+<td>Không ở MVP và MR; xem lại khi tỉ lệ hành động bị gỡ ổn định dưới 1%</td>
+</tr>
+<tr>
+<td>OQ-136</td>
+<td>Mức tự hành mặc định cho khách không cấu hình gì</td>
+<td>TH3 cho DDoS và tấn công rõ ràng, TH2 cho phần còn lại</td>
+</tr>
+<tr>
+<td>OQ-137</td>
+<td>SOC tự hành có là tính năng bán riêng (dịch vụ SOC được quản lý) không?</td>
+<td>Có, dịch vụ cho khách không có SOC, đi kèm SOC của NCC</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section class="doc" id="f-04-product-direction-04-data-strategy"><div class="path">04-product-direction/04-data-strategy.md</div><h1 id="f-04-product-direction-04-data-strategy--44-chiến-lược-dữ-liệu-luồng-dữ-liệu-và-dùng-cho-phân-tích-chuyên-sâu">4.4 Chiến lược dữ liệu: luồng dữ liệu và dùng cho phân tích chuyên sâu</h1>
+<blockquote>
+<p><strong>Trạng thái: đề xuất của Claude, chờ duyệt (2026-11-07).</strong> Có nhiều điểm pháp lý; cần tư vấn luật về Nghị
+định 13/2023 về bảo vệ dữ liệu cá nhân trước khi chốt.</p>
+</blockquote>
+<h2 id="f-04-product-direction-04-data-strategy--câu-1-dữ-liệu-request-của-khách-có-giá-trị-gì-ngoài-log-và-cảnh-báo">Câu 1. Dữ liệu request của khách có giá trị gì ngoài log và cảnh báo?</h2>
+<p>Rất lớn, và là lợi thế mà chỉ một nền tảng nhiều khách mới có. Cùng một IP tấn công 50 khách thì nền tảng thấy
+cả 50; từng khách chỉ thấy một.</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Mục đích</th>
+<th>Ai được lợi</th>
+<th>Mức nhạy</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>U1</td>
+<td>Bảo vệ chính khách đó (log, cảnh báo, điều tra)</td>
+<td>Khách</td>
+<td>Dữ liệu của khách, đúng mục đích</td>
+</tr>
+<tr>
+<td>U2</td>
+<td><strong>Bảo vệ chung</strong>: reputation IP, ASN, dấu vân tay, chữ ký tấn công mới từ toàn fleet</td>
+<td>Mọi khách</td>
+<td>Thấp nếu chỉ gộp đặc trưng tấn công</td>
+</tr>
+<tr>
+<td>U3</td>
+<td><strong>Huấn luyện mô hình</strong>: bot, bất thường, chặn nhầm (<a href="#f-04-product-direction-02-ai-ml">4.2</a>)</td>
+<td>Mọi khách</td>
+<td>Trung bình</td>
+</tr>
+<tr>
+<td>U4</td>
+<td><strong>Threat research</strong>: chiến dịch mới, CVE đang bị khai thác, xu hướng tấn công theo ngành</td>
+<td>NCC, mọi khách</td>
+<td>Trung bình</td>
+</tr>
+<tr>
+<td>U5</td>
+<td><strong>Báo cáo ngành</strong>: so sánh khách với trung bình ngành (benchmark), báo cáo xu hướng công khai</td>
+<td>Khách, marketing của NCC</td>
+<td>Thấp nếu gộp đủ lớn</td>
+</tr>
+<tr>
+<td>U6</td>
+<td><strong>Phân tích sản phẩm</strong>: tính năng nào được dùng, rule nào hiệu quả, chi phí phục vụ theo gói</td>
+<td>NCC</td>
+<td>Thấp</td>
+</tr>
+<tr>
+<td>U7</td>
+<td><strong>Dữ liệu kinh doanh của khách</strong>: lượng truy cập, sản phẩm được xem nhiều, hành vi người dùng của một website cụ thể</td>
+<td>Bên thứ ba</td>
+<td><strong>Rất cao</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Đề xuất:</strong> làm U1–U6. <strong>Không làm U7</strong>: không bán, không chia sẻ, không tự khai thác thông tin kinh doanh của một
+khách cụ thể. Một nhà cung cấp bảo mật bị phát hiện dùng traffic của khách để làm việc khác là mất cả thị trường;
+niềm tin có giá trị hơn mọi khoản thu từ dữ liệu.</p>
+<h2 id="f-04-product-direction-04-data-strategy--câu-2-dữ-liệu-đi-qua-những-tầng-nào">Câu 2. Dữ liệu đi qua những tầng nào?</h2>
+<p>Mỗi tầng có chủ, retention, người được truy cập riêng. Dữ liệu chỉ đi <strong>lên</strong> tầng trên qua một bước khử nhận
+dạng, không bao giờ đi lên nguyên vẹn.</p>
+<div class="diagram"><pre class="mermaid">flowchart TB
+    t0[&quot;TD0 Request thô&lt;br/&gt;chỉ trong bộ nhớ edge&quot;]
+    t1[&quot;TD1 Telemetry của tenant&lt;br/&gt;event, access log lấy mẫu&lt;br/&gt;đã che tại edge&quot;]
+    t2[&quot;TD2 Tổng hợp của tenant&lt;br/&gt;dashboard, báo cáo&quot;]
+    t3[&quot;TD3 Đặc trưng chéo tenant&lt;br/&gt;đã khử nhận dạng&quot;]
+    t4[&quot;TD4 Vùng nghiên cứu&lt;br/&gt;tập dữ liệu gộp, có kiểm k&quot;]
+    t5[&quot;TD5 Xuất bản&lt;br/&gt;báo cáo ngành, threat report&quot;]
+    t0 --&gt;|&quot;che tại edge (8.6)&quot;| t1
+    t1 --&gt; t2
+    t1 --&gt;|&quot;khử nhận dạng&quot;| t3
+    t3 --&gt;|&quot;gộp, kiểm k, nhiễu&quot;| t4
+    t4 --&gt;|&quot;duyệt trước khi công bố&quot;| t5
+    t3 --&gt;|&quot;reputation, mô hình&lt;br/&gt;qua pipeline phát hành&quot;| e[&quot;Edge&quot;]
+</pre></div>
+<table>
+<thead>
+<tr>
+<th>Tầng</th>
+<th>Chứa</th>
+<th>Chủ, mục đích</th>
+<th>Ai truy cập</th>
+<th>Retention</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>TD0</strong></td>
+<td>Request đầy đủ</td>
+<td>Edge, chỉ để xử lý</td>
+<td>Không ai</td>
+<td>Không lưu</td>
+</tr>
+<tr>
+<td><strong>TD1</strong></td>
+<td>Security event, access log lấy mẫu, mẫu request (gói cao)</td>
+<td>Của khách (U1)</td>
+<td>Khách; support khi được cấp quyền (BR-20)</td>
+<td>Theo gói</td>
+</tr>
+<tr>
+<td><strong>TD2</strong></td>
+<td>Bảng tổng hợp theo zone</td>
+<td>Của khách (U1)</td>
+<td>Khách</td>
+<td>Theo gói</td>
+</tr>
+<tr>
+<td><strong>TD3</strong></td>
+<td>Đặc trưng tấn công và hành vi đã khử nhận dạng: IP đã cắt hoặc băm khoá xoay, ASN, dấu vân tay đã băm, mẫu path đã bỏ ID, rule ID, kết quả, nhãn</td>
+<td>NCC, cho U2, U3, U4</td>
+<td>Pipeline tự động; threat research, ML</td>
+<td>13 tháng</td>
+</tr>
+<tr>
+<td><strong>TD4</strong></td>
+<td>Tập dữ liệu gộp cho phân tích: số đếm theo ngành, quốc gia, loại tấn công, thời gian; nhóm nhỏ hơn ngưỡng k bị bỏ</td>
+<td>NCC, cho U4, U5, U6</td>
+<td>Data analyst sau khi được duyệt</td>
+<td>Theo dự án</td>
+</tr>
+<tr>
+<td><strong>TD5</strong></td>
+<td>Báo cáo đã duyệt</td>
+<td>Công khai hoặc cho khách</td>
+<td>Mọi người</td>
+<td>Vĩnh viễn</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-04-product-direction-04-data-strategy--câu-3-lọc-dữ-liệu-nhạy-cảm-thế-nào-cho-chắc">Câu 3. Lọc dữ liệu nhạy cảm thế nào cho chắc?</h2>
+<p>Nhiều lớp, lớp sau không tin lớp trước:</p>
+<table>
+<thead>
+<tr>
+<th>Lớp</th>
+<th>Ở đâu</th>
+<th>Làm gì</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>LC1 Che tại edge</td>
+<td>Edge, trước khi log rời node (8.6)</td>
+<td>Bỏ <code>Authorization</code>, cookie, trường mật khẩu, trường khách khai báo. Đã có trong thiết kế</td>
+</tr>
+<tr>
+<td>LC2 Nhận diện theo mẫu</td>
+<td>Edge hoặc enricher</td>
+<td>Phát hiện và che: email, số điện thoại Việt Nam, số CCCD 12 số, số thẻ (kiểm Luhn), số tài khoản ngân hàng, JWT, khoá API theo tiền tố phổ biến</td>
+</tr>
+<tr>
+<td>LC3 Phân loại trường</td>
+<td>Schema telemetry</td>
+<td>Mỗi trường có nhãn: <code>public</code>, <code>tenant_confidential</code>, <code>personal</code>, <code>secret</code>. Pipeline lên TD3 chỉ nhận trường được phép theo nhãn</td>
+</tr>
+<tr>
+<td>LC4 Khử nhận dạng khi lên TD3</td>
+<td>Pipeline TD1 → TD3</td>
+<td>IP cắt về /24 (IPv4), /48 (IPv6), hoặc băm với khoá xoay hằng tháng; bỏ query string, chỉ giữ tên tham số; path về mẫu (<code>/users/{id}</code>); bỏ body, chỉ giữ đoạn khớp rule tấn công sau khi qua LC2; bỏ tenant ID, chỉ giữ ngành và quy mô</td>
+</tr>
+<tr>
+<td>LC5 Gộp và kiểm k khi lên TD4</td>
+<td>Pipeline TD3 → TD4</td>
+<td>Mỗi ô số liệu phải có ít nhất k tenant khác nhau (đề xuất k = 10) và ít nhất n IP khác nhau; ô nhỏ hơn bị bỏ hoặc gộp; số công bố có thể thêm nhiễu (differential privacy)</td>
+</tr>
+<tr>
+<td>LC6 Duyệt trước khi công bố</td>
+<td>TD4 → TD5</td>
+<td>Người duyệt kiểm không có tenant nào nhận ra được qua báo cáo</td>
+</tr>
+<tr>
+<td>LC7 Kiểm tra định kỳ</td>
+<td>Toàn bộ</td>
+<td>Quét TD3, TD4 tìm mẫu dữ liệu cá nhân lọt qua; có lọt thì dừng pipeline</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Lưu ý:</strong> IP của người dùng cuối là dữ liệu cá nhân theo cách hiểu phổ biến. Dùng IP tấn công cho reputation
+(U2) có lý do rõ (bảo vệ an ninh mạng), nhưng vẫn phải ghi trong điều khoản và trong hồ sơ đánh giá tác động
+xử lý dữ liệu cá nhân theo Nghị định 13.</p>
+<h2 id="f-04-product-direction-04-data-strategy--câu-4-cơ-sở-pháp-lý-và-hợp-đồng-là-gì">Câu 4. Cơ sở pháp lý và hợp đồng là gì?</h2>
+<table>
+<thead>
+<tr>
+<th>Việc</th>
+<th>Đề xuất</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Vai trò</td>
+<td>Với dữ liệu ở TD1, TD2: khách là bên kiểm soát dữ liệu, NCC là bên xử lý. Với TD3 trở lên: NCC dùng cho mục đích riêng, phải ghi rõ trong điều khoản</td>
+</tr>
+<tr>
+<td>Điều khoản dịch vụ</td>
+<td>Liệt kê U2–U6, cam kết không làm U7, mô tả khử nhận dạng</td>
+</tr>
+<tr>
+<td>Tuỳ chọn của khách</td>
+<td>Enterprise được chọn không đóng góp dữ liệu vào TD3 (vẫn nhận reputation chung)</td>
+</tr>
+<tr>
+<td>Hồ sơ đánh giá tác động</td>
+<td>Lập theo Nghị định 13 trước khi chạy pipeline TD3</td>
+</tr>
+<tr>
+<td>Chuyển dữ liệu ra nước ngoài</td>
+<td>TD3, TD4 giữ trong nước; nếu có nhu cầu ra nước ngoài thì làm hồ sơ riêng</td>
+</tr>
+<tr>
+<td>Sổ mục đích</td>
+<td>Mỗi tập dữ liệu ở TD4 có mục đích, người chịu trách nhiệm, thời hạn; hết mục đích thì xoá</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-04-product-direction-04-data-strategy--câu-5-data-analyst-làm-việc-thế-nào">Câu 5. Data analyst làm việc thế nào?</h2>
+<table>
+<thead>
+<tr>
+<th>Việc</th>
+<th>Đề xuất</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Nơi làm việc</td>
+<td>Một vùng nghiên cứu tách khỏi hệ thống sản xuất: kho dữ liệu riêng (ClickHouse hoặc Parquet trên object storage) chỉ chứa TD3, TD4; không có đường vào TD1</td>
+</tr>
+<tr>
+<td>Xin dữ liệu</td>
+<td>Analyst mô tả câu hỏi; tập dữ liệu TD4 được sinh theo yêu cầu, qua LC5, có người duyệt</td>
+</tr>
+<tr>
+<td>Công cụ</td>
+<td>Notebook, SQL trên vùng nghiên cứu; không tải dữ liệu về máy cá nhân</td>
+</tr>
+<tr>
+<td>Kết quả</td>
+<td>Mọi số liệu ra ngoài vùng nghiên cứu qua LC6</td>
+</tr>
+<tr>
+<td>Audit</td>
+<td>Ghi ai truy vấn gì, khi nào</td>
+</tr>
+<tr>
+<td>Ví dụ câu hỏi hợp lệ</td>
+<td>Ngành nào bị credential stuffing nhiều nhất quý này; CVE nào bị khai thác ở Việt Nam sớm nhất sau khi công bố; tỉ lệ bot trên website thương mại điện tử theo giờ; rule nào chặn nhầm nhiều nhất ở WordPress</td>
+</tr>
+<tr>
+<td>Ví dụ câu hỏi không hợp lệ</td>
+<td>Website X có bao nhiêu người dùng; khách hàng của website X đến từ đâu; so sánh doanh thu ước tính giữa hai khách</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-04-product-direction-04-data-strategy--câu-6-sản-phẩm-dữ-liệu-nào-nên-làm-trước">Câu 6. Sản phẩm dữ liệu nào nên làm trước?</h2>
+<table>
+<thead>
+<tr>
+<th>Thứ tự</th>
+<th>Sản phẩm</th>
+<th>Dùng tầng</th>
+<th>Lý do</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Reputation chéo tenant cho edge (U2)</td>
+<td>TD3</td>
+<td>Cải thiện bảo vệ ngay, ít rủi ro</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Tập huấn luyện mô hình bot, chặn nhầm (U3)</td>
+<td>TD3</td>
+<td>Điều kiện cho <a href="#f-04-product-direction-02-ai-ml">4.2</a></td>
+</tr>
+<tr>
+<td>3</td>
+<td>Benchmark cho khách trên portal: &quot;zone của bạn bị tấn công nhiều hơn 80% website cùng ngành&quot; (U5)</td>
+<td>TD4</td>
+<td>Khách thấy giá trị, giúp bán gói cao</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Báo cáo xu hướng tấn công hằng quý công khai (U4, U5)</td>
+<td>TD5</td>
+<td>Marketing, uy tín</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Chia sẻ chỉ dấu tấn công với CERT (U4)</td>
+<td>TD3</td>
+<td>OQ-121</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-04-product-direction-04-data-strategy--câu-hỏi-cần-chủ-dự-án-quyết">Câu hỏi cần chủ dự án quyết</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Câu hỏi</th>
+<th>Đề xuất</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OQ-138</td>
+<td>Dữ liệu chéo tenant dùng tới đâu: U2–U6? Có cam kết công khai không làm U7 không?</td>
+<td>U2–U6; cam kết công khai không làm U7</td>
+</tr>
+<tr>
+<td>OQ-139</td>
+<td>Enterprise có được từ chối đóng góp vào TD3 không?</td>
+<td>Có</td>
+</tr>
+<tr>
+<td>OQ-140</td>
+<td>Ngưỡng k và cách khử nhận dạng IP (cắt hay băm khoá xoay)</td>
+<td>k = 10; cắt /24, /48 cho TD4; băm khoá xoay cho TD3</td>
+</tr>
+<tr>
+<td>OQ-141</td>
+<td>Có làm vùng nghiên cứu và vị trí data analyst từ MVP không?</td>
+<td>Từ MR; MVP chỉ làm U2 (reputation)</td>
+</tr>
+<tr>
+<td>OQ-142</td>
+<td>Có xuất bản báo cáo xu hướng tấn công công khai không?</td>
+<td>Có, hằng quý, từ khi đủ dữ liệu</td>
+</tr>
+</tbody>
+</table>
 </section>
   </main>
 </div>
