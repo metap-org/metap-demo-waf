@@ -142,7 +142,7 @@ Phần lớn là hành vi của edge; requirement đo được đã có ở 10.3
 | FR-5-07 | Hệ thống phải kiểm cú pháp, kiểu, giới hạn gói khi soạn, và biên dịch thử bằng cùng checker với Control trước khi gửi duyệt | F5.2.1, F5.2.2 | MVP | Bản nháp qua kiểm tra không bao giờ bị Control từ chối vì cú pháp |
 | FR-5-08 | Người dùng nên mô phỏng thay đổi trên traffic 7 ngày gần nhất và thấy số request đổi kết quả | F5.2.3 | MR | Kết quả ≤ 5 phút cho zone 10 triệu request/ngày |
 | FR-5-09 | Gửi duyệt phải tạo change request chứa diff, kết quả kiểm tra, mô phỏng nếu có | F5.3.1 | MVP | |
-| FR-5-10 | Account bật 4-eyes thì change request phải có người duyệt khác người tạo ([BR-5](#4-quy-tắc-nghiệp-vụ)) | F5.3.2 | MR | |
+| FR-5-10 | Account bật 4-eyes thì change request phải có người duyệt khác người tạo ([BR-5](#4-quy-tắc-nghiệp-vụ)); account self-service phát hành thẳng, không qua duyệt ([BR-26](#4-quy-tắc-nghiệp-vụ)) | F5.3.2 | MR | Cùng một workflow: mỗi người chỉ thấy nút mình bấm được (phát hành, gửi duyệt, duyệt); người gửi có vai trò duyệt vẫn không tự duyệt được |
 | FR-5-11 | Account nên đặt được khung giờ cho phép phát hành; ngoài khung chỉ kênh khẩn chạy | F5.3.3 | MR | |
 | FR-5-12 | Phát hành phải tạo PolicyVersion bất biến và gửi sang Control trong cùng giao dịch với lần ghi ([BR-4](#4-quy-tắc-nghiệp-vụ)) | F5.3.4 | MVP | Không có version nào "đã phát hành" mà Control chưa nhận |
 | FR-5-13 | Portal phải hiện trạng thái phát hành: đã biên dịch, % node đã áp, lỗi | F5.3.5 | MVP | QS-4 |
@@ -264,6 +264,7 @@ Phần lớn là hành vi của edge; requirement đo được đã có ở 10.3
 | BR-23 | Không cấp cert cho hostname chưa xác minh sở hữu | F2.3.1 |
 | BR-24 | DDoS L7 và lọc sớm chặn từ request đầu tiên, không theo log-only của onboarding. Bật chặn phần còn lại lần đầu cần ≥ 7 ngày và ≥ 10.000 request log-only ([OQ-17](03-business-analysis/01-onboarding.md#a9-câu-hỏi-mở)), trừ khi khách chọn "đang bị tấn công" (có audit) | F2.6.1, F2.7.4 |
 | BR-25 | Chặn nhầm được xử lý bằng tuning rule (tắt rule, đổi ngưỡng hoặc paranoia, log-only, sửa custom rule) hoặc whitelist chọn theo tình huống (IP, path, tham số / header / cookie, client đã xác định); cả hai đi qua change request như mọi thay đổi policy ([3.4](03-business-analysis/04-false-positive.md#3-đã-quyết)) | F5.1, F7.5 |
+| BR-26 | Khách self-service tự làm chủ: thay đổi phát hành không cần ai duyệt. Khách doanh nghiệp (account bật chế độ cần duyệt) và admin của NCC có phân chia quyền theo từng bước, người duyệt khác người gửi ([3.2](03-business-analysis/02-policy-change.md#3-đã-quyết), [3.11](03-business-analysis/11-provider-operations.md#3-đã-quyết)) | F5.3, F12.4 |
 
 ## 5. Yêu cầu dữ liệu
 

@@ -3623,10 +3623,10 @@ onboarding chưa duyệt; sẽ viết lại sau khi phân tích ở <a href="#f-
 </tr>
 <tr>
 <td>FR-5-10</td>
-<td>Account bật 4-eyes thì change request phải có người duyệt khác người tạo (<a href="#f-02-requirements--4-quy-tắc-nghiệp-vụ">BR-5</a>)</td>
+<td>Account bật 4-eyes thì change request phải có người duyệt khác người tạo (<a href="#f-02-requirements--4-quy-tắc-nghiệp-vụ">BR-5</a>); account self-service phát hành thẳng, không qua duyệt (<a href="#f-02-requirements--4-quy-tắc-nghiệp-vụ">BR-26</a>)</td>
 <td>F5.3.2</td>
 <td>MR</td>
-<td></td>
+<td>Cùng một workflow: mỗi người chỉ thấy nút mình bấm được (phát hành, gửi duyệt, duyệt); người gửi có vai trò duyệt vẫn không tự duyệt được</td>
 </tr>
 <tr>
 <td>FR-5-11</td>
@@ -4275,6 +4275,11 @@ onboarding chưa duyệt; sẽ viết lại sau khi phân tích ở <a href="#f-
 <td>BR-25</td>
 <td>Chặn nhầm được xử lý bằng tuning rule (tắt rule, đổi ngưỡng hoặc paranoia, log-only, sửa custom rule) hoặc whitelist chọn theo tình huống (IP, path, tham số / header / cookie, client đã xác định); cả hai đi qua change request như mọi thay đổi policy (<a href="#f-03-business-analysis-04-false-positive--3-đã-quyết">3.4</a>)</td>
 <td>F5.1, F7.5</td>
+</tr>
+<tr>
+<td>BR-26</td>
+<td>Khách self-service tự làm chủ: thay đổi phát hành không cần ai duyệt. Khách doanh nghiệp (account bật chế độ cần duyệt) và admin của NCC có phân chia quyền theo từng bước, người duyệt khác người gửi (<a href="#f-03-business-analysis-02-policy-change--3-đã-quyết">3.2</a>, <a href="#f-03-business-analysis-11-provider-operations--3-đã-quyết">3.11</a>)</td>
+<td>F5.3, F12.4</td>
 </tr>
 </tbody>
 </table>
@@ -6359,7 +6364,7 @@ token ở đó và cấp, gia hạn cert <strong>trước khi</strong> traffic t
 </section>
 <section class="doc" id="f-03-business-analysis-02-policy-change"><div class="path">03-business-analysis/02-policy-change.md</div><h1 id="f-03-business-analysis-02-policy-change--32-viết-duyệt-phát-hành-một-thay-đổi-policy">3.2 Viết, duyệt, phát hành một thay đổi policy</h1>
 <blockquote>
-<p><strong>Trạng thái: đang mở, đã quyết 1/8 câu; 7 câu còn lại có đề xuất chờ duyệt (2026-11-07).</strong> Trang này liệt kê kịch bản và câu hỏi; quyết định của
+<p><strong>Trạng thái: đang mở, đã quyết OQ-35 và cách phân quyền duyệt; các câu còn lại có đề xuất chờ duyệt (2026-11-07).</strong> Trang này liệt kê kịch bản và câu hỏi; quyết định của
 chủ dự án ghi ở <a href="#f-03-business-analysis-02-policy-change--3-đã-quyết">§3</a>. Cột &quot;ghi chú ban đầu&quot; là ý kiến lúc ghi, không phải quyết định.</p>
 </blockquote>
 <h2 id="f-03-business-analysis-02-policy-change--1-phạm-vi">1. Phạm vi</h2>
@@ -6694,6 +6699,12 @@ trục I).</p>
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>2026-11-07</td>
+<td>Ai phải duyệt</td>
+<td><strong>Cùng một luồng, mỗi người theo quyền thấy luồng khác nhau.</strong> Khách <strong>self-service</strong> tự làm chủ, thao tác được mà <strong>không cần ai duyệt</strong>. Khách <strong>doanh nghiệp</strong> và <strong>admin của NCC</strong> có phân chia quyền và trách nhiệm rõ ràng (người gửi khác người duyệt)</td>
+<td>Đã có cơ chế ở <code>metap-go</code> (<a href="https://github.com/metap-org/metap-docs/blob/main/docs/roadmap/104-workflow-per-caller-flows-and-separation-of-duties.md" target="_blank" rel="noopener">Phase 104 của <code>metap-docs</code></a>): chế độ duyệt theo account đọc qua <code>$ctx.approvalRequired</code>, quyền theo từng bước qua policy <code>transition:&lt;action&gt;</code>, người duyệt khác người gửi qua <code>$workflow.actors.submit</code>; capabilities tự hiện đúng nút cho từng người, không cần entity thứ hai. Còn phải quyết: ai bật chế độ doanh nghiệp cho một account (mặc định theo gói, hay khách tự bật), và OQ-34 (org một người) coi như self-service</td>
+</tr>
 <tr>
 <td>2026-11-06</td>
 <td>OQ-35</td>
@@ -10502,7 +10513,7 @@ chưa có requirement nào.</p>
 </section>
 <section class="doc" id="f-03-business-analysis-11-provider-operations"><div class="path">03-business-analysis/11-provider-operations.md</div><h1 id="f-03-business-analysis-11-provider-operations--311-vận-hành-của-ncc">3.11 Vận hành của NCC</h1>
 <blockquote>
-<p><strong>Trạng thái: đang mở, chưa có quyết định nào (2026-11-07).</strong> Mở rộng theo yêu cầu &quot;vận hành thì suy nghĩ
+<p><strong>Trạng thái: đang mở, đã quyết phân quyền của admin NCC (2026-11-07).</strong> Mở rộng theo yêu cầu &quot;vận hành thì suy nghĩ
 thêm&quot;: thêm các trục F–N. Trang này chỉ liệt kê kịch bản và câu hỏi. Vận hành kỹ thuật (runbook, giám sát) ở
 kiến trúc 8.12, 8.13.</p>
 </blockquote>
@@ -10941,7 +10952,26 @@ khỏi portal của khách; các trục dưới đây là những gì portal và
 </tr>
 </tbody>
 </table>
-<h2 id="f-03-business-analysis-11-provider-operations--3-câu-hỏi-cần-chủ-dự-án-quyết">3. Câu hỏi cần chủ dự án quyết</h2>
+<h2 id="f-03-business-analysis-11-provider-operations--3-đã-quyết">3. Đã quyết</h2>
+<table>
+<thead>
+<tr>
+<th>Ngày</th>
+<th>Chủ đề</th>
+<th>Quyết định</th>
+<th>Hệ quả cần phân tích tiếp</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2026-11-07</td>
+<td>Phân quyền của admin NCC</td>
+<td>Admin của NCC có phân chia quyền và trách nhiệm rõ ràng, khác khách self-service</td>
+<td>Dựng bằng cùng cơ chế workflow của <code>metap-go</code> (<a href="https://github.com/metap-org/metap-docs/blob/main/docs/roadmap/104-workflow-per-caller-flows-and-separation-of-duties.md" target="_blank" rel="noopener">Phase 104 của <code>metap-docs</code></a>) trong tenant của NCC: thao tác mạnh tạo yêu cầu, người khác duyệt, <code>$workflow.actors</code> chặn tự duyệt. Danh sách thao tác cần hai người vẫn là OQ-118</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-03-business-analysis-11-provider-operations--4-câu-hỏi-cần-chủ-dự-án-quyết">4. Câu hỏi cần chủ dự án quyết</h2>
 <table>
 <thead>
 <tr>
@@ -11020,7 +11050,7 @@ khỏi portal của khách; các trục dưới đây là những gì portal và
 </tr>
 </tbody>
 </table>
-<h2 id="f-03-business-analysis-11-provider-operations--4-phụ-thuộc">4. Phụ thuộc</h2>
+<h2 id="f-03-business-analysis-11-provider-operations--5-phụ-thuộc">5. Phụ thuộc</h2>
 <p>FR-11-01…FR-11-03, FR-12-01…FR-12-05 ở <a href="#f-02-requirements">§2</a>; runbook ở kiến trúc 8.13.</p>
 </section>
 <section class="doc" id="f-03-business-analysis-12-api-security"><div class="path">03-business-analysis/12-api-security.md</div><h1 id="f-03-business-analysis-12-api-security--312-api-security">3.12 API security</h1>
