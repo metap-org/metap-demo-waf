@@ -107,6 +107,7 @@ blockquote { margin: 0 0 14px; padding: 8px 16px; border-left: 3px solid var(--l
 <a class="sub" href="#f-03-business-analysis-10-cache-performance">3.10 Cache, hiệu năng, nội dung</a>
 <a class="sub" href="#f-03-business-analysis-11-provider-operations">3.11 Vận hành của NCC</a>
 <a class="sub" href="#f-03-business-analysis-12-api-security">3.12 API security</a>
+<a class="sub" href="#f-03-business-analysis-13-configuration-surface">3.13 Bề mặt cấu hình: rule và setting trên portal</a>
 <a class="top" href="#f-04-product-direction-00-index">4. Định hướng sản phẩm</a>
 <a class="sub" href="#f-04-product-direction-01-modern-waap-fit">4.1 Sản phẩm đang định hướng gì, đã phù hợp WAAP hiện đại chưa</a>
 <a class="sub" href="#f-04-product-direction-02-ai-ml">4.2 AI/ML tích hợp vào đâu</a>
@@ -132,6 +133,7 @@ blockquote { margin: 0 0 14px; padding: 8px 16px; border-left: 3px solid var(--l
 <a class="sub" href="#f-03-business-analysis-10-cache-performance">3.10 Cache, hiệu năng, nội dung</a>
 <a class="sub" href="#f-03-business-analysis-11-provider-operations">3.11 Vận hành của NCC</a>
 <a class="sub" href="#f-03-business-analysis-12-api-security">3.12 API security</a>
+<a class="sub" href="#f-03-business-analysis-13-configuration-surface">3.13 Bề mặt cấu hình: rule và setting trên portal</a>
 <a class="top" href="#f-04-product-direction-00-index">4. Định hướng sản phẩm</a>
 <a class="sub" href="#f-04-product-direction-01-modern-waap-fit">4.1 Sản phẩm đang định hướng gì, đã phù hợp WAAP hiện đại chưa</a>
 <a class="sub" href="#f-04-product-direction-02-ai-ml">4.2 AI/ML tích hợp vào đâu</a>
@@ -4738,8 +4740,8 @@ chính. Dưới đây chỉ là những điểm 10.3 chưa có, chủ yếu cho 
 <td>5.5, outbox của Management</td>
 </tr>
 <tr>
-<td>OQ-16…OQ-150</td>
-<td>OQ-16…OQ-20 thuộc bản nháp onboarding cũ; OQ-21…OQ-126 và OQ-143…OQ-150 theo từng nghiệp vụ (<a href="#f-03-business-analysis-00-index">§3</a>); OQ-127…OQ-142 về định hướng sản phẩm (<a href="#f-04-product-direction-00-index">§4</a>)</td>
+<td>OQ-16…OQ-162</td>
+<td>OQ-16…OQ-20 thuộc bản nháp onboarding cũ; OQ-21…OQ-126 và OQ-143…OQ-162 theo từng nghiệp vụ (<a href="#f-03-business-analysis-00-index">§3</a>); OQ-127…OQ-142 về định hướng sản phẩm (<a href="#f-04-product-direction-00-index">§4</a>)</td>
 <td>Một số đã quyết hoặc có đề xuất chờ duyệt</td>
 <td>Theo trang</td>
 </tr>
@@ -4748,7 +4750,7 @@ chính. Dưới đây chỉ là những điểm 10.3 chưa có, chủ yếu cho 
 </section>
 <section class="doc" id="f-03-business-analysis-00-index"><div class="path">03-business-analysis/00-index.md</div><h1 id="f-03-business-analysis-00-index--3-phân-tích-nghiệp-vụ">3. Phân tích nghiệp vụ</h1>
 <blockquote>
-<p><strong>Trạng thái (2026-11-07): 12 nghiệp vụ ở bước 1.</strong> Đã có một số quyết định của chủ dự án (3.2–3.6); các câu
+<p><strong>Trạng thái (2026-11-07): 13 nghiệp vụ ở bước 1.</strong> Đã có một số quyết định của chủ dự án (3.2–3.6); các câu
 còn lại của 3.2–3.6 có đề xuất của Claude chờ duyệt. Chưa nghiệp vụ nào có luồng được duyệt.</p>
 </blockquote>
 <p>Bản đồ phân rã nói hệ thống <strong>có</strong> những chức năng gì. Mục này đi qua từng nghiệp vụ theo trình tự khách
@@ -4852,6 +4854,12 @@ xuất chờ duyệt.</li>
 <td>API security</td>
 <td>OQ-84, OQ-107…OQ-111</td>
 <td>Bước 1, tách từ trang bot cũ</td>
+</tr>
+<tr>
+<td><a href="#f-03-business-analysis-13-configuration-surface">3.13</a></td>
+<td>Bề mặt cấu hình: rule và setting trên portal, cấu hình nâng cao cho admin</td>
+<td>OQ-151…OQ-162</td>
+<td>Bước 1, có danh mục cấu hình theo lớp (bản nháp chờ duyệt)</td>
 </tr>
 </tbody>
 </table>
@@ -11713,6 +11721,597 @@ mà WAF thông thường không thấy. Liên quan: F3.7, F5.1.8 ở <a href="#f
 </table>
 <h2 id="f-03-business-analysis-12-api-security--4-phụ-thuộc">4. Phụ thuộc</h2>
 <p>FR-3-09, FR-5-19 ở <a href="#f-02-requirements">§2</a>; kiến trúc 8.17, ADR-0039; QS-22, QS-23.</p>
+</section>
+<section class="doc" id="f-03-business-analysis-13-configuration-surface"><div class="path">03-business-analysis/13-configuration-surface.md</div><h1 id="f-03-business-analysis-13-configuration-surface--313-bề-mặt-cấu-hình-rule-và-setting-trên-portal">3.13 Bề mặt cấu hình: rule và setting trên portal</h1>
+<blockquote>
+<p><strong>Trạng thái: bước 1, chưa có quyết định nào (2026-11-07).</strong> Trang này mở theo nhận xét của chủ dự án:
+một sản phẩm WAAP kiểu Cloudflare cho cấu hình hầu hết mọi thứ bằng rule trên portal: whitelist, blacklist,
+rate limit, JA4, cookie challenge, trang chặn, cảnh báo tấn công (ngưỡng, format, kênh). Ngoài ra admin cần
+cấu hình nâng cao cho từng lớp L7 và WAF. Tài liệu hiện có liệt kê các chức năng này rời rạc ở F3–F8, nhưng
+chưa có mô hình cấu hình chung và chưa có cấu hình nâng cao cho admin. Danh mục ở §2 là <strong>bản nháp của
+Claude để thảo luận, chờ duyệt</strong>; trang này chưa phân tích phương án.</p>
+</blockquote>
+<h2 id="f-03-business-analysis-13-configuration-surface--1-hiện-trạng-đã-có-gì-thiếu-gì">1. Hiện trạng: đã có gì, thiếu gì</h2>
+<table>
+<thead>
+<tr>
+<th>Mục</th>
+<th>Đã có ở</th>
+<th>Còn thiếu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Custom rule</td>
+<td>F5.1.1; <strong>CustomRule</strong> lưu text biểu thức kèm AST (<a href="v1-waap-architecture.html#f-05-building-blocks-06-data-model" target="_blank" rel="noopener">kiến trúc 5.6</a>)</td>
+<td>Chưa định nghĩa biểu thức gồm những trường, hàm, toán tử nào; chưa rõ JA4, bot score, cookie, kết quả WAF có là trường dùng được trong rule không</td>
+</tr>
+<tr>
+<td>Whitelist, blacklist</td>
+<td>F3.2.1 (IP, CIDR, quốc gia, ASN)</td>
+<td>Chưa có list dùng lại giữa nhiều rule và nhiều zone; chưa có list JA4, list hostname</td>
+</tr>
+<tr>
+<td>Rate limit</td>
+<td>F3.4.1, F3.4.2</td>
+<td>Khoá đếm theo JA4 hoặc theo biểu thức; đếm theo response (ví dụ chỉ đếm <code>401</code>); thời gian phạt; hành động khi vượt ngưỡng</td>
+</tr>
+<tr>
+<td>Challenge</td>
+<td>F3.8.1 (JS, tương tác); <a href="v1-waap-architecture.html#f-08-cross-cutting-16-bot-management" target="_blank" rel="noopener">kiến trúc 8.16</a></td>
+<td>Cookie challenge (kiểm cookie, không cần JS) và managed challenge chưa thành lựa chọn của khách; TTL clearance do ai đặt</td>
+</tr>
+<tr>
+<td>Trang chặn</td>
+<td>F3.8.2 (Mở rộng)</td>
+<td>Khách sửa được gì (HTML, JSON cho API, mã trạng thái, ngôn ngữ); an toàn của template</td>
+</tr>
+<tr>
+<td>Cảnh báo</td>
+<td>F8.2</td>
+<td>Ngưỡng theo từng loại tấn công; format nội dung; payload webhook; định tuyến theo mức</td>
+</tr>
+<tr>
+<td>Transform, redirect, header</td>
+<td>Không có trong §1</td>
+<td>Toàn bộ nhóm</td>
+</tr>
+<tr>
+<td>Cấu hình nâng cao từng lớp cho admin</td>
+<td>Không có</td>
+<td>Toàn bộ nhóm</td>
+</tr>
+<tr>
+<td>Bot</td>
+<td>F3.6, <a href="#f-03-business-analysis-09-bot-management">3.9</a></td>
+<td>Phần cấu hình chưa nằm chung mô hình rule với WAF và rate limit</td>
+</tr>
+<tr>
+<td>Thứ tự áp dụng</td>
+<td>Pipeline ở <a href="v1-waap-architecture.html#f-05-building-blocks-08-components-01-l7" target="_blank" rel="noopener">kiến trúc 5.8.1</a></td>
+<td>Portal chưa cho khách thấy thứ tự này</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-03-business-analysis-13-configuration-surface--2-danh-mục-cấu-hình-theo-lớp-bản-nháp-chờ-duyệt">2. Danh mục cấu hình theo lớp (bản nháp, chờ duyệt)</h2>
+<p>Đi theo thứ tự request đi qua edge. Cột &quot;Admin NCC&quot; là phần chỉ NCC chỉnh được, hoặc NCC chỉnh trần cho
+khách; có mở một phần cho Enterprise hay không là OQ-159.</p>
+<table>
+<thead>
+<tr>
+<th>Lớp</th>
+<th>Khách cấu hình</th>
+<th>Admin NCC cấu hình thêm</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Kết nối, TLS</strong></td>
+<td>Phiên bản TLS tối thiểu, HTTP/3, HSTS, tự chuyển HTTPS</td>
+<td>Bộ cipher, giới hạn kết nối theo node, timeout bắt tay và giữ kết nối</td>
+</tr>
+<tr>
+<td><strong>Chuẩn hoá request</strong></td>
+<td>Giới hạn kích thước header, body (trong trần của gói)</td>
+<td>Quy tắc chuẩn hoá URI (decode kép, path traversal), số header tối đa, xử lý request sai giao thức</td>
+</tr>
+<tr>
+<td><strong>Lọc sớm</strong></td>
+<td>Allow, block, challenge theo IP, CIDR, quốc gia, ASN; list dùng lại</td>
+<td>Reputation feed, list toàn fleet</td>
+</tr>
+<tr>
+<td><strong>DDoS L7</strong></td>
+<td>Độ nhạy, hành động, Under Attack</td>
+<td>Baseline tối thiểu, ngưỡng tuyệt đối theo cell, cách ly zone (F3.3.4)</td>
+</tr>
+<tr>
+<td><strong>Rate limit</strong></td>
+<td>Khoá đếm (IP, JA4, header, cookie, API key, biểu thức), cửa sổ, ngưỡng, hành động, thời gian phạt, đếm theo response</td>
+<td>Trần số rule, độ chính xác của bộ đếm phân tán</td>
+</tr>
+<tr>
+<td><strong>Bot, challenge</strong></td>
+<td>Chế độ bot, ngưỡng điểm theo path, bot đã xác minh được phép, loại challenge (cookie, JS, tương tác), TTL clearance, allow/block theo JA4</td>
+<td>Trọng số tín hiệu, mô hình điểm, list JA4 xấu toàn fleet</td>
+</tr>
+<tr>
+<td><strong>WAF managed</strong></td>
+<td>Bật ruleset, paranoia, ngưỡng anomaly, đổi hành động theo rule hoặc tag, exception</td>
+<td>Phát hành ruleset, rule khẩn toàn fleet, giới hạn kiểm body, timeout regex, trọng số anomaly mặc định</td>
+</tr>
+<tr>
+<td><strong>Custom rule</strong></td>
+<td>Biểu thức trên các trường, hành động, thứ tự, log-only, ngày hết hạn</td>
+<td>Trường và hàm nào được mở, trần độ phức tạp</td>
+</tr>
+<tr>
+<td><strong>API security</strong></td>
+<td>Schema, JWT (<a href="#f-03-business-analysis-12-api-security">3.12</a>)</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>Response</strong></td>
+<td>Trang chặn, trang challenge, trang lỗi origin <code>5xx</code>, response JSON cho API, mã trạng thái</td>
+<td>Template mặc định, giới hạn của template</td>
+</tr>
+<tr>
+<td><strong>Transform</strong></td>
+<td>Thêm, xoá header request và response, rewrite URL, redirect, gửi thông tin cho origin (IP thật, bot score)</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>Cache, origin</strong></td>
+<td>Xem <a href="#f-03-business-analysis-10-cache-performance">3.10</a></td>
+<td></td>
+</tr>
+<tr>
+<td><strong>Cảnh báo</strong></td>
+<td>Loại sự kiện, ngưỡng, cửa sổ, mức, kênh, định tuyến theo mức, template nội dung, giờ im lặng, gộp</td>
+<td>Cảnh báo toàn fleet, kênh của NCC</td>
+</tr>
+<tr>
+<td><strong>Log</strong></td>
+<td>Đẩy log, chọn trường, lấy mẫu, che dữ liệu cá nhân</td>
+<td>Thời gian lưu theo gói</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-03-business-analysis-13-configuration-surface--3-kịch-bản-theo-từng-trục">3. Kịch bản theo từng trục</h2>
+<h3 id="f-03-business-analysis-13-configuration-surface--a-mô-hình-rule-chung">A. Mô hình rule chung</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB13-A1</td>
+<td>Một ngôn ngữ biểu thức cho mọi loại rule (custom, rate limit, bot, transform, cache)</td>
+<td>Học một lần, dùng mọi nơi; nhưng phải thiết kế, viết tài liệu, giữ tương thích lâu dài</td>
+</tr>
+<tr>
+<td>KB13-A2</td>
+<td>Mỗi tính năng có form riêng</td>
+<td>Dễ cho khách nhỏ; nhưng mỗi tính năng một kiểu, khó kết hợp điều kiện</td>
+</tr>
+<tr>
+<td>KB13-A3</td>
+<td>Khách nhỏ không viết biểu thức</td>
+<td>Form builder sinh ra biểu thức; biểu thức sửa tay có quay lại form được không</td>
+</tr>
+<tr>
+<td>KB13-A4</td>
+<td>Một trường như JA4 phải dùng được ở custom rule, rate limit và bot</td>
+<td>Chỉ có được nếu các tính năng chung mô hình</td>
+</tr>
+<tr>
+<td>KB13-A5</td>
+<td>Thêm trường mới sau này (ví dụ kết quả kiểm schema API)</td>
+<td>Rule cũ không vỡ; edge cũ chưa biết trường mới</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-13-configuration-surface--b-thứ-tự-và-tương-tác-giữa-các-phase">B. Thứ tự và tương tác giữa các phase</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB13-B1</td>
+<td>IP trong whitelist có bỏ qua WAF, rate limit, bot không</td>
+<td>Whitelist bỏ qua những phase nào phải nói rõ; bỏ qua hết thì IP bị chiếm là thành lỗ hổng</td>
+</tr>
+<tr>
+<td>KB13-B2</td>
+<td>Hành động &quot;skip&quot; một phase cho một path</td>
+<td>Khách tắt nhầm cả WAF</td>
+</tr>
+<tr>
+<td>KB13-B3</td>
+<td>Hai rule mâu thuẫn (một allow, một block)</td>
+<td>Thứ tự ưu tiên, first match hay theo phase</td>
+</tr>
+<tr>
+<td>KB13-B4</td>
+<td>Khách hỏi &quot;vì sao request này bị chặn&quot;</td>
+<td>Cần trace: request đi qua phase nào, rule nào khớp</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-13-configuration-surface--c-phạm-vi-áp-dụng">C. Phạm vi áp dụng</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB13-C1</td>
+<td>Rule cấp account áp cho mọi zone (chặn một quốc gia cho cả công ty)</td>
+<td>Kế thừa F5.1.7; zone ghi đè được không</td>
+</tr>
+<tr>
+<td>KB13-C2</td>
+<td>Rule chỉ cho một hostname hoặc một path</td>
+<td></td>
+</tr>
+<tr>
+<td>KB13-C3</td>
+<td>Agency quản lý nhiều org muốn dùng chung một bộ rule</td>
+<td>Template chia sẻ giữa các org</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-13-configuration-surface--d-giới-hạn-và-an-toàn-của-rule">D. Giới hạn và an toàn của rule</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB13-D1</td>
+<td>Số rule theo gói</td>
+<td>Trần, thông báo khi chạm trần</td>
+</tr>
+<tr>
+<td>KB13-D2</td>
+<td>Regex gây backtracking, làm chậm edge</td>
+<td>Từ chối khi biên dịch, hoặc giới hạn thời gian chạy</td>
+</tr>
+<tr>
+<td>KB13-D3</td>
+<td>Rule đắt (kiểm body lớn trên mọi request)</td>
+<td>Đo chi phí theo rule, cảnh báo khách</td>
+</tr>
+<tr>
+<td>KB13-D4</td>
+<td>Rule của một khách làm chậm khách khác cùng node</td>
+<td>Cô lập chi phí theo tenant</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-13-configuration-surface--e-kiểm-thử-trước-khi-áp">E. Kiểm thử trước khi áp</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB13-E1</td>
+<td>Log-only trước khi chặn</td>
+<td>Đã có ở F5.1.6; áp cho mọi loại rule hay chỉ WAF</td>
+</tr>
+<tr>
+<td>KB13-E2</td>
+<td>Thử rule với một request mẫu</td>
+<td>Công cụ dán request, xem kết quả</td>
+</tr>
+<tr>
+<td>KB13-E3</td>
+<td>Mô phỏng trên traffic lịch sử</td>
+<td>F5.2.3, Mở rộng</td>
+</tr>
+<tr>
+<td>KB13-E4</td>
+<td>Xem trước trang chặn trước khi phát hành</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-13-configuration-surface--f-trang-chặn-và-response-tuỳ-biến">F. Trang chặn và response tuỳ biến</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB13-F1</td>
+<td>Khách sửa HTML tự do</td>
+<td>Chèn script chạy trên domain của khách; trang chặn bị dùng để lừa đảo</td>
+</tr>
+<tr>
+<td>KB13-F2</td>
+<td>Trang tải ảnh, CSS từ nguồn ngoài</td>
+<td>Nguồn ngoài sập hoặc theo dõi người dùng</td>
+</tr>
+<tr>
+<td>KB13-F3</td>
+<td>API cần JSON chứ không cần HTML</td>
+<td>Chọn theo path hoặc theo <code>Accept</code></td>
+</tr>
+<tr>
+<td>KB13-F4</td>
+<td>Đa ngôn ngữ (Việt, Anh)</td>
+<td>Theo <code>Accept-Language</code></td>
+</tr>
+<tr>
+<td>KB13-F5</td>
+<td>Người dùng bị chặn cần báo cho khách</td>
+<td>Request ID và thông tin liên hệ trên trang</td>
+</tr>
+<tr>
+<td>KB13-F6</td>
+<td>Mã trạng thái: <code>403</code>, <code>429</code>, <code>503</code></td>
+<td>Khách muốn đổi mã; SEO và crawler hiểu sai</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-13-configuration-surface--g-cảnh-báo-tấn-công">G. Cảnh báo tấn công</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB13-G1</td>
+<td>Khách đặt ngưỡng riêng cho từng loại (DDoS, WAF, bot, rate limit)</td>
+<td>Hay chỉ chọn mức nhạy cho đơn giản</td>
+</tr>
+<tr>
+<td>KB13-G2</td>
+<td>Ngưỡng tĩnh hay theo baseline</td>
+<td>Baseline là F8.1.2, ở mức Nghiên cứu</td>
+</tr>
+<tr>
+<td>KB13-G3</td>
+<td>Khách sửa nội dung cảnh báo bằng template có biến (zone, loại, số request, link)</td>
+<td>Kênh có giới hạn độ dài khác nhau</td>
+</tr>
+<tr>
+<td>KB13-G4</td>
+<td>Payload webhook phải ổn định</td>
+<td>Có version, có chữ ký để khách xác minh</td>
+</tr>
+<tr>
+<td>KB13-G5</td>
+<td>Kênh trong nước: Zalo, Telegram</td>
+<td>F8.2.2 chưa có</td>
+</tr>
+<tr>
+<td>KB13-G6</td>
+<td>Định tuyến: mức cao gọi điện, mức thấp gửi email; theo zone; theo giờ</td>
+<td></td>
+</tr>
+<tr>
+<td>KB13-G7</td>
+<td>Bão cảnh báo khi bị tấn công kéo dài</td>
+<td>Gộp, giới hạn tần suất</td>
+</tr>
+<tr>
+<td>KB13-G8</td>
+<td>Kênh hỏng, cảnh báo không tới</td>
+<td>Báo lại qua kênh khác</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-13-configuration-surface--h-cấu-hình-nâng-cao-cho-admin">H. Cấu hình nâng cao cho admin</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB13-H1</td>
+<td>Admin NCC chỉnh tham số engine từng lớp (giới hạn kiểm body, timeout regex, chuẩn hoá URI)</td>
+<td>Phạm vi áp: fleet, cell, tenant hay zone</td>
+</tr>
+<tr>
+<td>KB13-H2</td>
+<td>Admin nâng trần cho một tenant (body lớn hơn gói)</td>
+<td>Ghi lại như ngoại lệ hợp đồng, có hạn</td>
+</tr>
+<tr>
+<td>KB13-H3</td>
+<td>Khách Enterprise muốn tự chỉnh một phần (giới hạn body, chuẩn hoá)</td>
+<td>Mở cho khách đến đâu</td>
+</tr>
+<tr>
+<td>KB13-H4</td>
+<td>Sửa sai tham số làm hỏng traffic cả fleet</td>
+<td>Duyệt hai người (OQ-118), rollout từng bước, rollback</td>
+</tr>
+<tr>
+<td>KB13-H5</td>
+<td>Công tắc khẩn: tắt một rule managed trên toàn fleet</td>
+<td>Đã có ý ở 3.11, cần nằm trong cùng mô hình</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-13-configuration-surface--i-preset-và-template">I. Preset và template</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB13-I1</td>
+<td>Preset theo ngành</td>
+<td>Gắn với OQ-124 (bot), OQ-144 (cache)</td>
+</tr>
+<tr>
+<td>KB13-I2</td>
+<td>Thư viện rule mẫu (chặn <code>wp-login.php</code>, chặn quốc gia, giới hạn đăng nhập)</td>
+<td>Ai duy trì; rule mẫu cũ đi</td>
+</tr>
+<tr>
+<td>KB13-I3</td>
+<td>Khách nhỏ không biết bắt đầu từ đâu</td>
+<td>Cấu hình mặc định an toàn ngay khi onboard</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-13-configuration-surface--j-cách-áp-và-kênh-cấu-hình">J. Cách áp và kênh cấu hình</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB13-J1</td>
+<td>Setting nào đi qua change request (BR-25), setting nào áp ngay (kênh cảnh báo, trang chặn)</td>
+<td>Lớp áp dụng của <a href="v1-waap-architecture.html#f-09-adr-0037-config-apply-classes" target="_blank" rel="noopener">ADR-0037</a></td>
+</tr>
+<tr>
+<td>KB13-J2</td>
+<td>Mọi mục ở §2 có API, Terraform không</td>
+<td>UI là nguồn sự thật (OQ-35 đã quyết)</td>
+</tr>
+<tr>
+<td>KB13-J3</td>
+<td>Thay đổi một list dùng chung ảnh hưởng nhiều zone</td>
+<td>Diff phải cho thấy zone nào bị ảnh hưởng</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-03-business-analysis-13-configuration-surface--4-câu-hỏi-cần-chủ-dự-án-quyết">4. Câu hỏi cần chủ dự án quyết</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Câu hỏi</th>
+<th>Kịch bản</th>
+<th>Ghi chú ban đầu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OQ-151</td>
+<td>Một ngôn ngữ biểu thức chung cho mọi loại rule, hay form riêng cho từng tính năng?</td>
+<td>KB13-A1…KB13-A5</td>
+<td>Cloudflare dùng một ngôn ngữ chung, form builder sinh ra biểu thức</td>
+</tr>
+<tr>
+<td>OQ-152</td>
+<td>Biểu thức ở MVP gồm những trường nào (IP, quốc gia, ASN, JA4, User-Agent, URI, header, cookie, body, bot score, kết quả WAF)?</td>
+<td>KB13-A4</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-153</td>
+<td>Có list dùng lại cấp account (IP, ASN, JA4, hostname) không?</td>
+<td>KB13-C1, KB13-J3</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-154</td>
+<td>Rate limit ở MVP có khoá đếm theo biểu thức, đếm theo response và thời gian phạt không?</td>
+<td>§2</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-155</td>
+<td>Khách được chọn những loại challenge nào (cookie, JS, tương tác, managed)? TTL clearance do khách đặt hay cố định?</td>
+<td>§2</td>
+<td>Gắn với 3.9</td>
+</tr>
+<tr>
+<td>OQ-156</td>
+<td>Trang chặn: khách sửa HTML tự do, hay chỉ điền template (logo, màu, nội dung, liên hệ)? Gói nào?</td>
+<td>KB13-F1…KB13-F6</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-157</td>
+<td>Có nhóm transform rule (header, rewrite, redirect) ở v1 không?</td>
+<td>§2</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-158</td>
+<td>Cảnh báo: ngưỡng riêng từng loại hay chỉ mức nhạy? Có template nội dung không? Có kênh Zalo, Telegram không?</td>
+<td>KB13-G1…KB13-G8</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-159</td>
+<td>Cấu hình nâng cao từng lớp: những tham số nào, phạm vi áp ở đâu, chỉ admin NCC hay mở một phần cho Enterprise?</td>
+<td>KB13-H1…KB13-H5</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-160</td>
+<td>Setting nào đi qua change request, setting nào áp ngay?</td>
+<td>KB13-J1</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-161</td>
+<td>Có công cụ giải thích &quot;vì sao request này bị chặn&quot; cho khách không?</td>
+<td>KB13-B4</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-162</td>
+<td>Trần số rule và độ phức tạp theo gói?</td>
+<td>KB13-D1…KB13-D4</td>
+<td>Gắn với 3.5</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-03-business-analysis-13-configuration-surface--5-phụ-thuộc">5. Phụ thuộc</h2>
+<p>F3, F5, F8 ở <a href="#f-01-functional-decomposition">§1</a>; <a href="#f-03-business-analysis-02-policy-change">3.2</a>, <a href="#f-03-business-analysis-04-false-positive">3.4</a>,
+<a href="#f-03-business-analysis-09-bot-management">3.9</a>, <a href="#f-03-business-analysis-10-cache-performance">3.10</a>, <a href="#f-03-business-analysis-12-api-security">3.12</a>; pipeline ở
+<a href="v1-waap-architecture.html#f-05-building-blocks-08-components-01-l7" target="_blank" rel="noopener">kiến trúc 5.8.1</a>.</p>
 </section>
 <section class="doc" id="f-04-product-direction-00-index"><div class="path">04-product-direction/00-index.md</div><h1 id="f-04-product-direction-00-index--4-định-hướng-sản-phẩm">4. Định hướng sản phẩm</h1>
 <blockquote>

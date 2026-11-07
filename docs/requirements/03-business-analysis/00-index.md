@@ -1,6 +1,6 @@
 # 3. Phân tích nghiệp vụ
 
-> **Trạng thái (2026-11-07): 12 nghiệp vụ ở bước 1.** Đã có một số quyết định của chủ dự án (3.2–3.6); các câu
+> **Trạng thái (2026-11-07): 13 nghiệp vụ ở bước 1.** Đã có một số quyết định của chủ dự án (3.2–3.6); các câu
 > còn lại của 3.2–3.6 có đề xuất của Claude chờ duyệt. Chưa nghiệp vụ nào có luồng được duyệt.
 
 Bản đồ phân rã nói hệ thống **có** những chức năng gì. Mục này đi qua từng nghiệp vụ theo trình tự khách
@@ -38,6 +38,7 @@ Mỗi nghiệp vụ đi qua hai bước, và **không viết bước 2 khi chủ
 | [3.10](10-cache-performance.md) | Cache, hiệu năng, nội dung (gồm chính sách abuse) | OQ-86…OQ-88, OQ-112…OQ-117, OQ-143…OQ-146 | Bước 1 mở rộng (trục J–N), có mô hình quyết định và phân tích mọi câu, đề xuất chờ duyệt |
 | [3.11](11-provider-operations.md) | Vận hành của NCC | OQ-89…OQ-93, OQ-118…OQ-123 | Bước 1, đã thêm trục F–N |
 | [3.12](12-api-security.md) | API security | OQ-84, OQ-107…OQ-111 | Bước 1, tách từ trang bot cũ |
+| [3.13](13-configuration-surface.md) | Bề mặt cấu hình: rule và setting trên portal, cấu hình nâng cao cho admin | OQ-151…OQ-162 | Bước 1, có danh mục cấu hình theo lớp (bản nháp chờ duyệt) |
 
 ## Câu hỏi nối giữa các nghiệp vụ
 
