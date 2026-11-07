@@ -141,7 +141,7 @@ khỏi portal của khách; các trục dưới đây là những gì portal và
 
 | Ngày | Chủ đề | Quyết định | Hệ quả cần phân tích tiếp |
 |---|---|---|---|
-| 2026-11-07 | Phân quyền của admin NCC | Admin của NCC có phân chia quyền và trách nhiệm rõ ràng, khác khách self-service | Dựng bằng cùng cơ chế workflow của `metap-go` ([Phase 104 của `metap-docs`](https://github.com/metap-org/metap-docs/blob/main/docs/roadmap/104-workflow-per-caller-flows-and-separation-of-duties.md)) trong tenant của NCC: thao tác mạnh tạo yêu cầu, người khác duyệt, `$workflow.actors` chặn tự duyệt. Danh sách thao tác cần hai người vẫn là OQ-118 |
+| 2026-11-07 | Phân quyền của admin NCC | Admin của NCC có phân chia quyền và trách nhiệm rõ ràng, khác khách self-service | Dựng bằng cùng cơ chế workflow của `metap-go` ([Phase 104 của `metap-docs`](https://github.com/metap-org/metap-docs/blob/master/docs/roadmap/104-workflow-per-caller-flows-and-separation-of-duties.md)) trong tenant của NCC: thao tác mạnh tạo yêu cầu, người khác duyệt, `$workflow.actors` chặn tự duyệt. Danh sách thao tác cần hai người vẫn là OQ-118 |
 
 ## 4. Câu hỏi cần chủ dự án quyết
 

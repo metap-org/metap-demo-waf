@@ -6703,7 +6703,7 @@ trục I).</p>
 <td>2026-11-07</td>
 <td>Ai phải duyệt</td>
 <td><strong>Cùng một luồng, mỗi người theo quyền thấy luồng khác nhau.</strong> Khách <strong>self-service</strong> tự làm chủ, thao tác được mà <strong>không cần ai duyệt</strong>. Khách <strong>doanh nghiệp</strong> và <strong>admin của NCC</strong> có phân chia quyền và trách nhiệm rõ ràng (người gửi khác người duyệt)</td>
-<td>Đã có cơ chế ở <code>metap-go</code> (<a href="https://github.com/metap-org/metap-docs/blob/main/docs/roadmap/104-workflow-per-caller-flows-and-separation-of-duties.md" target="_blank" rel="noopener">Phase 104 của <code>metap-docs</code></a>): chế độ duyệt theo account đọc qua <code>$ctx.approvalRequired</code>, quyền theo từng bước qua policy <code>transition:&lt;action&gt;</code>, người duyệt khác người gửi qua <code>$workflow.actors.submit</code>; capabilities tự hiện đúng nút cho từng người, không cần entity thứ hai. Còn phải quyết: ai bật chế độ doanh nghiệp cho một account (mặc định theo gói, hay khách tự bật), và OQ-34 (org một người) coi như self-service</td>
+<td>Đã có cơ chế ở <code>metap-go</code> (<a href="https://github.com/metap-org/metap-docs/blob/master/docs/roadmap/104-workflow-per-caller-flows-and-separation-of-duties.md" target="_blank" rel="noopener">Phase 104 của <code>metap-docs</code></a>): chế độ duyệt theo account đọc qua <code>$ctx.approvalRequired</code>, quyền theo từng bước qua policy <code>transition:&lt;action&gt;</code>, người duyệt khác người gửi qua <code>$workflow.actors.submit</code>; capabilities tự hiện đúng nút cho từng người, không cần entity thứ hai. Còn phải quyết: ai bật chế độ doanh nghiệp cho một account (mặc định theo gói, hay khách tự bật), và OQ-34 (org một người) coi như self-service</td>
 </tr>
 <tr>
 <td>2026-11-06</td>
@@ -10967,7 +10967,7 @@ khỏi portal của khách; các trục dưới đây là những gì portal và
 <td>2026-11-07</td>
 <td>Phân quyền của admin NCC</td>
 <td>Admin của NCC có phân chia quyền và trách nhiệm rõ ràng, khác khách self-service</td>
-<td>Dựng bằng cùng cơ chế workflow của <code>metap-go</code> (<a href="https://github.com/metap-org/metap-docs/blob/main/docs/roadmap/104-workflow-per-caller-flows-and-separation-of-duties.md" target="_blank" rel="noopener">Phase 104 của <code>metap-docs</code></a>) trong tenant của NCC: thao tác mạnh tạo yêu cầu, người khác duyệt, <code>$workflow.actors</code> chặn tự duyệt. Danh sách thao tác cần hai người vẫn là OQ-118</td>
+<td>Dựng bằng cùng cơ chế workflow của <code>metap-go</code> (<a href="https://github.com/metap-org/metap-docs/blob/master/docs/roadmap/104-workflow-per-caller-flows-and-separation-of-duties.md" target="_blank" rel="noopener">Phase 104 của <code>metap-docs</code></a>) trong tenant của NCC: thao tác mạnh tạo yêu cầu, người khác duyệt, <code>$workflow.actors</code> chặn tự duyệt. Danh sách thao tác cần hai người vẫn là OQ-118</td>
 </tr>
 </tbody>
 </table>
