@@ -4733,8 +4733,8 @@ chính. Dưới đây chỉ là những điểm 10.3 chưa có, chủ yếu cho 
 <td>5.5, outbox của Management</td>
 </tr>
 <tr>
-<td>OQ-16…OQ-142</td>
-<td>OQ-16…OQ-20 thuộc bản nháp onboarding cũ; OQ-21…OQ-126 theo từng nghiệp vụ (<a href="#f-03-business-analysis-00-index">§3</a>); OQ-127…OQ-142 về định hướng sản phẩm (<a href="#f-04-product-direction-00-index">§4</a>)</td>
+<td>OQ-16…OQ-146</td>
+<td>OQ-16…OQ-20 thuộc bản nháp onboarding cũ; OQ-21…OQ-126 và OQ-143…OQ-146 theo từng nghiệp vụ (<a href="#f-03-business-analysis-00-index">§3</a>); OQ-127…OQ-142 về định hướng sản phẩm (<a href="#f-04-product-direction-00-index">§4</a>)</td>
 <td>Một số đã quyết hoặc có đề xuất chờ duyệt</td>
 <td>Theo trang</td>
 </tr>
@@ -4833,8 +4833,8 @@ xuất chờ duyệt.</li>
 <tr>
 <td><a href="#f-03-business-analysis-10-cache-performance">3.10</a></td>
 <td>Cache, hiệu năng, nội dung (gồm chính sách abuse)</td>
-<td>OQ-86…OQ-88, OQ-112…OQ-117</td>
-<td>Bước 1, mở rộng thành vùng nghiệp vụ riêng</td>
+<td>OQ-86…OQ-88, OQ-112…OQ-117, OQ-143…OQ-146</td>
+<td>Bước 1 mở rộng (trục J–N), có mô hình quyết định và phân tích mọi câu, đề xuất chờ duyệt</td>
 </tr>
 <tr>
 <td><a href="#f-03-business-analysis-11-provider-operations">3.11</a></td>
@@ -9757,7 +9757,9 @@ request hoàn toàn sạch vẫn có thể là bot (đăng nhập bằng mật k
 <section class="doc" id="f-03-business-analysis-10-cache-performance"><div class="path">03-business-analysis/10-cache-performance.md</div><h1 id="f-03-business-analysis-10-cache-performance--310-cache-hiệu-năng-nội-dung">3.10 Cache, hiệu năng, nội dung</h1>
 <blockquote>
 <p><strong>Trạng thái: đang mở, chưa có quyết định nào (2026-11-07).</strong> Theo chủ dự án, cache là một vùng nghiệp vụ lớn,
-cần phân tích riêng. Trang này chỉ liệt kê kịch bản và câu hỏi. Chiến lược CDN ở kiến trúc ADR-0035.</p>
+cần phân tích riêng. Chiến lược CDN ở kiến trúc ADR-0035. Lần phân tích tiếp thêm trục J–N, mô hình quyết định ở
+<a href="#f-03-business-analysis-10-cache-performance--4-mô-hình-quyết-định-cache-đề-xuất-chờ-duyệt">§4</a> và phân tích các câu còn mở ở
+<a href="#f-03-business-analysis-10-cache-performance--5-phân-tích-các-câu-còn-mở-đề-xuất-của-claude-chờ-duyệt">§5</a>; tất cả là đề xuất, chưa phải quyết định.</p>
 </blockquote>
 <h2 id="f-03-business-analysis-10-cache-performance--1-phạm-vi">1. Phạm vi</h2>
 <p>Khách dùng edge để phục vụ nội dung nhanh hơn và giảm tải origin: quyết định cái gì được lưu, lưu bao lâu, xoá
@@ -10079,6 +10081,180 @@ quyết định cache sai có thể đưa trang của người này cho người
 </tr>
 </tbody>
 </table>
+<h3 id="f-03-business-analysis-10-cache-performance--j-cache-và-các-lớp-bảo-vệ-khác">J. Cache và các lớp bảo vệ khác</h3>
+<p>Theo kiến trúc 5.8.1, thứ tự ở L7 là: lọc sớm, bot, rate limit, custom rule, WAF, rồi mới tới cache. WAF đứng
+trước cache theo mặc định; zone có thể miễn WAF cho tài nguyên tĩnh.</p>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB10-J1</td>
+<td>Request có payload tấn công trong query tới một URL đã cache</td>
+<td>WAF trước cache nên vẫn bị phát hiện; tốn CPU WAF cho cả cache hit</td>
+</tr>
+<tr>
+<td>KB10-J2</td>
+<td>Khách bật &quot;miễn WAF cho tài nguyên tĩnh&quot;</td>
+<td>Payload tấn công tới <code>/logo.png?id=1' OR 1=1</code> không bị ghi nhận; chấp nhận được với file tĩnh</td>
+</tr>
+<tr>
+<td>KB10-J3</td>
+<td>Bị flood vào một URL đã cache</td>
+<td>Cache hấp thụ; rate limit vẫn áp trước cache để không tốn băng thông vô ích</td>
+</tr>
+<tr>
+<td>KB10-J4</td>
+<td>Under Attack mode bật, trang đã cache</td>
+<td>Người dùng vẫn phải qua challenge trước khi nhận bản cache</td>
+</tr>
+<tr>
+<td>KB10-J5</td>
+<td>Trang chặn, trang challenge, trang lỗi do edge sinh</td>
+<td>Không bao giờ được cache</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-10-cache-performance--k-theo-ngành">K. Theo ngành</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Ngành</th>
+<th>Bài toán cache</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB10-K1</td>
+<td>Báo chí</td>
+<td>Tin nóng cập nhật liên tục, trang chủ đổi mỗi phút</td>
+<td>TTL ngắn, xoá theo tag bài viết; lượng truy cập đột biến khi có tin lớn</td>
+</tr>
+<tr>
+<td>KB10-K2</td>
+<td>Thương mại điện tử</td>
+<td>Trang sản phẩm công khai nhưng giá, tồn kho đổi</td>
+<td>Cache phần khung, không cache giá và tồn kho; giỏ hàng không bao giờ cache</td>
+</tr>
+<tr>
+<td>KB10-K3</td>
+<td>Game</td>
+<td>Bản cập nhật vài GB tải cùng lúc</td>
+<td>Băng thông lớn, tải theo đoạn, dung lượng cache</td>
+</tr>
+<tr>
+<td>KB10-K4</td>
+<td>Giáo dục, video bài giảng</td>
+<td>Video theo đoạn</td>
+<td>Mức Nâng cao (KB10-A6)</td>
+</tr>
+<tr>
+<td>KB10-K5</td>
+<td>Ngân hàng, dịch vụ công</td>
+<td>Hầu như không cache HTML</td>
+<td>Chỉ tài nguyên tĩnh; rủi ro lộ dữ liệu lớn nhất</td>
+</tr>
+<tr>
+<td>KB10-K6</td>
+<td>API công khai (tỉ giá, thời tiết, giá vàng)</td>
+<td>Cache vài giây giảm tải lớn</td>
+<td>Cache API GET theo query</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-10-cache-performance--l-cô-lập-giữa-các-khách">L. Cô lập giữa các khách</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB10-L1</td>
+<td>Hai zone có cùng path (<code>/index.html</code>)</td>
+<td>Cache key luôn có zone và hostname</td>
+</tr>
+<tr>
+<td>KB10-L2</td>
+<td>Kẻ tấn công trỏ hostname của mình vào cùng origin của nạn nhân để đọc cache</td>
+<td>Cache key theo zone đã chặn; không chia sẻ object giữa zone dù cùng origin</td>
+</tr>
+<tr>
+<td>KB10-L3</td>
+<td>Một zone lấp đầy cache của PoP</td>
+<td>Hạn mức dung lượng theo gói (8.18)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-10-cache-performance--m-đứng-sau-cdn-của-khách-hoặc-trước-một-cdn-khác">M. Đứng sau CDN của khách, hoặc trước một CDN khác</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB10-M1</td>
+<td>Khách đã có CDN, đặt edge làm origin của CDN đó</td>
+<td>Hai lớp cache; header cache của origin đi qua edge nguyên vẹn hay bị edge sửa</td>
+</tr>
+<tr>
+<td>KB10-M2</td>
+<td>Khách muốn tắt hẳn cache của edge, chỉ dùng WAF</td>
+<td>Cần một công tắc rõ ràng</td>
+</tr>
+<tr>
+<td>KB10-M3</td>
+<td>Purge ở edge nhưng CDN của khách vẫn giữ bản cũ</td>
+<td>Ngoài kiểm soát của NCC; hướng dẫn</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-03-business-analysis-10-cache-performance--n-vận-hành-cache-của-ncc">N. Vận hành cache của NCC</h3>
+<table>
+<thead>
+<tr>
+<th>Mã</th>
+<th>Kịch bản</th>
+<th>Concern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>KB10-N1</td>
+<td>Đĩa NVMe của PoP đầy</td>
+<td>Đẩy ra theo gói (gói thấp trước), theo tần suất truy cập</td>
+</tr>
+<tr>
+<td>KB10-N2</td>
+<td>PoP mới, cache trống</td>
+<td>Làm ấm cache từ PoP khác hay để tự đầy</td>
+</tr>
+<tr>
+<td>KB10-N3</td>
+<td>Lỗi phần mềm làm cache trả sai object</td>
+<td>Sự cố nghiêm trọng nhất của CDN; cần cách xoá toàn bộ cache của fleet và kiểm tra tính toàn vẹn</td>
+</tr>
+<tr>
+<td>KB10-N4</td>
+<td>Khách hỏi &quot;vì sao cache hit thấp&quot;</td>
+<td>Công cụ chẩn đoán (KB10-H4)</td>
+</tr>
+</tbody>
+</table>
 <h2 id="f-03-business-analysis-10-cache-performance--3-câu-hỏi-cần-chủ-dự-án-quyết">3. Câu hỏi cần chủ dự án quyết</h2>
 <table>
 <thead>
@@ -10144,9 +10320,183 @@ quyết định cache sai có thể đưa trang của người này cho người
 <td>KB10-G1, KB10-G2</td>
 <td></td>
 </tr>
+<tr>
+<td>OQ-143</td>
+<td>Giữ &quot;WAF trước cache&quot; làm mặc định, hay mặc định miễn WAF cho tài nguyên tĩnh?</td>
+<td>KB10-J1, KB10-J2</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-144</td>
+<td>Có preset cache theo ngành (báo chí, thương mại điện tử, game, API công khai) không?</td>
+<td>KB10-K1…KB10-K6</td>
+<td>Gắn với OQ-124 (preset bot theo ngành)</td>
+</tr>
+<tr>
+<td>OQ-145</td>
+<td>Có công tắc &quot;chỉ WAF, không cache&quot; cho khách đã có CDN không?</td>
+<td>KB10-M1, KB10-M2</td>
+<td></td>
+</tr>
+<tr>
+<td>OQ-146</td>
+<td>Có làm ấm cache cho PoP mới hoặc theo yêu cầu khách (trước một sự kiện lớn) không?</td>
+<td>KB10-N2, KB10-K1</td>
+<td></td>
+</tr>
 </tbody>
 </table>
-<h2 id="f-03-business-analysis-10-cache-performance--4-phụ-thuộc">4. Phụ thuộc</h2>
+<h2 id="f-03-business-analysis-10-cache-performance--4-mô-hình-quyết-định-cache-đề-xuất-chờ-duyệt">4. Mô hình quyết định cache (đề xuất, chờ duyệt)</h2>
+<p>Mô tả nghiệp vụ, không phải thiết kế kỹ thuật. Điểm chính: <strong>luật an toàn đứng trên mọi cấu hình</strong>, kể cả cấu
+hình của khách. Khách có thể nới lỏng an toàn nhưng phải làm rõ ràng, có cảnh báo, có audit.</p>
+<div class="diagram"><pre class="mermaid">flowchart TB
+    rq[&quot;Response từ origin&quot;]
+    s1{&quot;Luật an toàn&lt;br/&gt;Set-Cookie, Authorization,&lt;br/&gt;no-store, private, trang do edge sinh?&quot;}
+    s2{&quot;Cache rule của khách&lt;br/&gt;khớp?&quot;}
+    s3{&quot;Cache-Control của origin?&quot;}
+    s4[&quot;Mặc định của zone&lt;br/&gt;(preset theo ngành)&quot;]
+    no[&quot;Không lưu&quot;]
+    yes[&quot;Lưu với cache key&lt;br/&gt;zone + host + path + query đã chuẩn hoá + Vary&quot;]
+    rq --&gt; s1
+    s1 --&gt;|có, và khách chưa ghi đè rõ ràng| no
+    s1 --&gt;|không| s2
+    s2 --&gt;|có| yes
+    s2 --&gt;|không| s3
+    s3 --&gt;|cho phép| yes
+    s3 --&gt;|cấm| no
+    s3 --&gt;|không nói| s4
+    s4 --&gt; yes
+    s4 --&gt; no
+</pre></div>
+<table>
+<thead>
+<tr>
+<th>Bậc</th>
+<th>Luật</th>
+<th>Ai đặt</th>
+<th>Ghi đè được không</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><strong>An toàn</strong>: không lưu response có <code>Set-Cookie</code>; không lưu khi request có <code>Authorization</code> hoặc cookie phiên đã khai báo; tôn trọng <code>no-store</code>, <code>private</code>; không lưu trang do edge sinh; kiểm <code>Content-Type</code> khớp đuôi file (chống cache deception)</td>
+<td>NCC</td>
+<td>Khách ghi đè được từng luật cho từng path, phải xác nhận cảnh báo, có audit</td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>Cache rule của khách</strong>: theo path, đuôi file, header; TTL, bỏ qua cache, cache key</td>
+<td>Khách</td>
+<td></td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>Cache-Control của origin</strong></td>
+<td>Origin</td>
+<td>Bị bậc 2 ghi đè</td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>Mặc định của zone</strong>: theo preset ngành; không có preset thì chỉ tài nguyên tĩnh theo đuôi file</td>
+<td>NCC, khách chọn preset</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>Cache key mặc định: <code>(zone, host, path, query đã sắp xếp và bỏ tham số marketing, header theo Vary đã chuẩn hoá)</code>. Không đưa cookie, thiết bị, quốc gia vào key trừ khi khách cấu hình.</p>
+<h2 id="f-03-business-analysis-10-cache-performance--5-phân-tích-các-câu-còn-mở-đề-xuất-của-claude-chờ-duyệt">5. Phân tích các câu còn mở (đề xuất của Claude, chờ duyệt)</h2>
+<table>
+<thead>
+<tr>
+<th>Câu</th>
+<th>Phương án</th>
+<th>Đánh đổi</th>
+<th>Đề xuất</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OQ-86</td>
+<td>Mặc định khi origin không nói gì</td>
+<td>Cache HTML mặc định làm lộ trang riêng tư; không cache gì thì mất giá trị CDN</td>
+<td>Chỉ tài nguyên tĩnh theo đuôi file (ảnh, CSS, JS, font, file tải xuống), TTL 4 giờ. HTML chỉ cache khi khách chọn preset hoặc viết cache rule</td>
+</tr>
+<tr>
+<td>OQ-87</td>
+<td>Plugin cho CMS</td>
+<td>Phải duy trì plugin</td>
+<td>Có plugin WordPress ở Mở rộng (xoá cache khi sửa bài, gợi ý cache rule); trước đó có hướng dẫn gọi API</td>
+</tr>
+<tr>
+<td>OQ-88</td>
+<td>Chính sách abuse</td>
+<td></td>
+<td>Đầu mối abuse riêng, email và form công khai; xác minh trong 24 giờ; phishing và mã độc đã xác minh thì khoá zone ngay, báo khách; không tiết lộ origin trừ khi có văn bản của cơ quan có thẩm quyền; cần tư vấn pháp lý</td>
+</tr>
+<tr>
+<td>OQ-112</td>
+<td>Luật an toàn có ghi đè được không</td>
+<td>Không cho ghi đè thì một số site hợp lệ không cache được</td>
+<td>Mặc định luôn áp; khách ghi đè được từng luật theo path, phải xác nhận cảnh báo và có audit (§4 bậc 1)</td>
+</tr>
+<tr>
+<td>OQ-113</td>
+<td>Chống cache deception</td>
+<td>Một số site trả <code>Content-Type</code> sai</td>
+<td>Có, mặc định bật; khách tắt được theo path</td>
+</tr>
+<tr>
+<td>OQ-114</td>
+<td>Bỏ tham số marketing khỏi cache key</td>
+<td>Hiếm site dùng <code>utm_*</code> để đổi nội dung</td>
+<td>Có, mặc định bỏ <code>utm_*</code>, <code>fbclid</code>, <code>gclid</code>, <code>zalo_*</code>; khách sửa danh sách</td>
+</tr>
+<tr>
+<td>OQ-115</td>
+<td>Xoá toàn zone</td>
+<td></td>
+<td>Cho phép, nhưng cần xác nhận lại và hiện ước lượng tải dồn về origin; gói thấp có giới hạn tần suất (8.18)</td>
+</tr>
+<tr>
+<td>OQ-116</td>
+<td>Băng thông từ cache có tính phí không</td>
+<td>Không tính thì khuyến khích cache nhưng mất doanh thu băng thông</td>
+<td>Tính như băng thông sạch (như 8.18); lợi ích cho khách là origin nhẹ đi và rẻ hơn băng thông của hosting</td>
+</tr>
+<tr>
+<td>OQ-117</td>
+<td>Nén, HTTP/3 ở MVP</td>
+<td></td>
+<td>Nén gzip và brotli ở MVP (rẻ, lợi ích rõ); HTTP/3 ở MVP nếu nền L7 chọn ở ADR-0031 có sẵn, nếu không thì Mở rộng</td>
+</tr>
+<tr>
+<td>OQ-143</td>
+<td>WAF trước hay sau cache</td>
+<td>Trước: an toàn hơn, tốn CPU; sau: rẻ hơn</td>
+<td>Giữ WAF trước cache làm mặc định như kiến trúc 5.8.1; preset báo chí, game, file tải xuống bật sẵn &quot;miễn WAF cho tài nguyên tĩnh&quot;</td>
+</tr>
+<tr>
+<td>OQ-144</td>
+<td>Preset cache theo ngành</td>
+<td></td>
+<td>Có, đi chung với preset bot (OQ-124): thương mại điện tử, báo chí, API công khai ở MVP; game ở Mở rộng</td>
+</tr>
+<tr>
+<td>OQ-145</td>
+<td>Công tắc &quot;chỉ WAF&quot;</td>
+<td></td>
+<td>Có, ở mọi gói</td>
+</tr>
+<tr>
+<td>OQ-146</td>
+<td>Làm ấm cache</td>
+<td>Tốn băng thông origin</td>
+<td>Không làm ấm tự động cho PoP mới ở MVP; Enterprise yêu cầu làm ấm trước sự kiện lớn qua support</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f-03-business-analysis-10-cache-performance--6-phụ-thuộc">6. Phụ thuộc</h2>
 <p>FR-4-01…FR-4-04 ở <a href="#f-02-requirements">§2</a>; kiến trúc ADR-0035, 8.18. Chính sách abuse và an toàn cache
 chưa có requirement nào.</p>
 </section>

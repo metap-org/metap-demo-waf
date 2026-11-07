@@ -35,7 +35,7 @@ Mỗi nghiệp vụ đi qua hai bước, và **không viết bước 2 khi chủ
 | [3.7](07-offboarding.md) | Rời dịch vụ | OQ-69…OQ-74, OQ-94…OQ-99 | Bước 1, đã thêm kịch bản F–M |
 | [3.8](08-monitoring-investigation.md) | Giám sát, điều tra, cảnh báo, báo cáo | OQ-75…OQ-80 | **Tạm hoãn** theo chủ dự án |
 | [3.9](09-bot-management.md) | Bot management và challenge | OQ-81…OQ-83, OQ-85, OQ-100…OQ-106, OQ-124…OQ-126 | Bước 1 mở rộng (trục J–L), có mô hình quyết định và phân tích mọi câu, đề xuất chờ duyệt |
-| [3.10](10-cache-performance.md) | Cache, hiệu năng, nội dung (gồm chính sách abuse) | OQ-86…OQ-88, OQ-112…OQ-117 | Bước 1, mở rộng thành vùng nghiệp vụ riêng |
+| [3.10](10-cache-performance.md) | Cache, hiệu năng, nội dung (gồm chính sách abuse) | OQ-86…OQ-88, OQ-112…OQ-117, OQ-143…OQ-146 | Bước 1 mở rộng (trục J–N), có mô hình quyết định và phân tích mọi câu, đề xuất chờ duyệt |
 | [3.11](11-provider-operations.md) | Vận hành của NCC | OQ-89…OQ-93, OQ-118…OQ-123 | Bước 1, đã thêm trục F–N |
 | [3.12](12-api-security.md) | API security | OQ-84, OQ-107…OQ-111 | Bước 1, tách từ trang bot cũ |
 
