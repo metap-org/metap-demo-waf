@@ -28,6 +28,14 @@ theo chính sách tài liệu ([2.4](../02-constraints/00-index.md#24-convention
 | **Tenant** | Ranh giới cô lập dữ liệu và tài nguyên của một khách; mọi entity, log, quota đều mang tenant. Trong database Management, tenant của metap là **org** ([ADR-0046](../09-adr/0046-management-database-tenancy-and-storage.md)) |
 | **Zone** | Một site/domain khách bảo vệ, đơn vị cấu hình chính |
 | **Hostname** | Tên miền cụ thể trong một zone (ví dụ `shop.example.com`); một zone có nhiều hostname |
+| **Bản đồ phân rã chức năng** | Functional Decomposition Diagram (FDD): cây chức năng ba cấp nhóm → chức năng → chức năng lá, nói hệ thống làm gì trước khi nói làm bằng gì ([requirements §1](../../requirements/01-functional-decomposition.md)) |
+| **Chức năng lá** | Cấp thấp nhất của bản đồ phân rã, đủ nhỏ để viết requirement và kiểm thử; mỗi lá có đúng một plane chủ |
+| **Plane chủ** | Plane giữ quyết định và dữ liệu gốc của một chức năng; plane khác chỉ gọi tới hoặc nhận kết quả |
+| **Cutover** | Thời điểm khách đổi DNS để traffic thật đi qua edge ([requirements §3.1, OB8](../../requirements/03-business-analysis/01-onboarding.md#ob8-đổi-dns-và-theo-dõi)) |
+| **Uỷ quyền `_acme-challenge`** | Bản ghi CNAME khách tạo để vừa chứng minh sở hữu domain, vừa cho NCC xin và gia hạn cert bằng DNS-01 trước khi đổi DNS ([requirements §3.1, OB3](../../requirements/03-business-analysis/01-onboarding.md#ob3-xác-minh-sở-hữu)) |
+| **Khoá origin** | Origin chỉ nhận traffic từ edge (firewall theo dải IP của edge, header bí mật hoặc mTLS) để không ai đi vòng qua WAF ([requirements §3.1, OB11](../../requirements/03-business-analysis/01-onboarding.md#ob11-khoá-origin)) |
+| **Preset bảo vệ** | Bộ cấu hình ban đầu theo loại ứng dụng do NCC soạn, áp vào bản nháp policy khi onboard ([requirements §3.1, OB6](../../requirements/03-business-analysis/01-onboarding.md#ob6-preset-bảo-vệ-ban-đầu)) |
+| **Tiêu chí chấp nhận** | Điều kiện kiểm được để coi một requirement đã đáp ứng ([requirements §2](../../requirements/02-requirements.md)) |
 | **Origin** | Máy chủ thật của khách đứng sau edge |
 | **MVP / Mở rộng / Nâng cao** | Ba mức của mỗi nghiệp vụ: tối thiểu để ký hợp đồng doanh nghiệp đầu tiên / ngang đối thủ / tạo khác biệt ([1.2](../01-introduction/00-index.md#12-tổng-quan-yêu-cầu)) |
 | **arc42** | Khung tài liệu kiến trúc 12 mục mà tài liệu này theo |
@@ -352,7 +360,13 @@ Mỗi tiền tố chỉ có một nghĩa trong toàn bộ tài liệu.
 
 | Mã | Nghĩa | Ở đâu |
 |---|---|---|
+| **KB1-A1…KB12-F3** | Kịch bản của từng nghiệp vụ: `KB<số trang>-<trục><số>`, ví dụ KB1-C4 là trục C (cách trỏ) của onboarding (§3.1) | [requirements §3](../../requirements/03-business-analysis/00-index.md) |
+| **OB1…OB12 / OG1…OG4 / CB1…CB7** | Bước / cổng / việc chuẩn bị trong bản nháp onboarding chưa duyệt (Phụ lục A) | [requirements §3.1](../../requirements/03-business-analysis/01-onboarding.md) |
 | **Q1–Q6** | Mục tiêu chất lượng | [1.3](../01-introduction/00-index.md#13-mục-tiêu-chất-lượng) |
+| **F1…F12, Fx.y, Fx.y.z** | Nhóm chức năng, chức năng, chức năng lá | [requirements §1](../../requirements/01-functional-decomposition.md) |
+| **PM1…PM7 / PC1…PC8 / PE1…PE4 / PA1…PA8** | Thành phần chức năng của Management / Control / Edge / Analytics trong phân rã theo plane | [requirements §1](../../requirements/01-functional-decomposition.md#phân-rã-theo-plane) |
+| **LK-1…LK-28** | Liên kết giữa các plane (chức năng phát → chức năng nhận, hợp đồng, kiểu, hành vi khi hỏng) | [requirements §1](../../requirements/01-functional-decomposition.md#liên-kết-giữa-các-plane) |
+| **FR-x-nn / BR-n / DT-n / NFR-n / IR-n / OQ-n** | Yêu cầu chức năng / quy tắc nghiệp vụ / yêu cầu dữ liệu / phi chức năng / giao tiếp ngoài / câu hỏi mở của requirements (OQ-1…OQ-15 ở §2, OQ-16…OQ-20 ở Phụ lục A của §3.1, OQ-21…OQ-123 ở các trang của §3) | [requirements §2](../../requirements/02-requirements.md) |
 | **QS-1…QS-41** | Kịch bản chất lượng đo được | [10.3](../10-quality/00-index.md#103-kịch-bản) |
 | **R1…R29** | Rủi ro | [11.1](../11-risks/00-index.md) |
 | **A1…A17 / B1…B10** | Tình huống vận hành tự xảy ra / thao tác của người vận hành, mỗi cái có runbook | [8.13](../08-cross-cutting/13-operational-behaviors.md) |

@@ -48,6 +48,9 @@ Diagram viết bằng Mermaid để GitHub render trực tiếp và diff đượ
 
 ## Quan hệ với tài liệu khác trong repo
 
+- `docs/requirements/` ([index](../requirements/index.md)): bản đồ phân rã chức năng, requirements, phân tích
+  nghiệp vụ. Tách khỏi kiến trúc: requirements nói hệ thống phải làm gì, thư mục này nói làm bằng gì. Kiến
+  trúc trỏ sang requirements khi cần lý do, không chép lại.
 - `docs/overview/`: bản HTML để đọc và trình bày (xem `README.md` trong đó), prefix `v1-`; bản hiện hành sinh từ thư mục này.
 - `data-plane/docs/`: spec nghiệp vụ và màn hình của portal demo. Phần nghiệp vụ (persona, domain,
   gói cước) vẫn dùng được làm đầu vào; phần ranh giới kiến trúc ở đó được thay bằng tài liệu này.

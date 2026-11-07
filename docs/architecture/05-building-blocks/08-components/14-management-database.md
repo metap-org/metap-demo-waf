@@ -1,6 +1,9 @@
 # 5.8.14 Database của Management plane
 
-> **Trạng thái: thiết kế v1, đã chốt (2026-11-06).** Quyết định nền:
+> **Trạng thái: thiết kế v1 (2026-11-06), cần đối chiếu lại** với [bản đồ phân rã chức năng](../../../requirements/01-functional-decomposition.md)
+> và [requirements](../../../requirements/02-requirements.md) sau khi hai mục đó được review: đã thấy thiếu một số đối tượng dữ liệu
+> (bản đồ phân rã, mục "Đối chiếu với thiết kế hiện có"). Các quyết định nền tảng (DB1–DB4, MG1–MG5) không đổi.
+> Quyết định nền:
 > [ADR-0046](../../09-adr/0046-management-database-tenancy-and-storage.md). Mô hình logic ở
 > [5.6](../06-data-model.md); module và workflow ở [5.8.12](12-management.md).
 
@@ -94,21 +97,21 @@ primary PostgreSQL với replica đọc là đủ, không cần shard**; tải c
 ```mermaid
 erDiagram
     ORG_PROFILES ||--o{ ACCOUNTS : "tenant có"
-    ACCOUNTS ||--o{ MEMBERS : có
-    MEMBERS ||--o{ ROLE_BINDINGS : được_gán
-    ACCOUNTS ||--|| SUBSCRIPTIONS : có
-    SUBSCRIPTIONS }o--|| PLANS : theo
-    ACCOUNTS ||--o{ ZONES : sở_hữu
-    ZONES ||--o{ HOSTNAMES : phục_vụ
-    ZONES ||--o{ ORIGINS : tới
-    ZONES ||--o{ CERTIFICATES : dùng
-    ZONES ||--|| ZONE_POLICY_STATE : trỏ_tới
+    ACCOUNTS ||--o{ MEMBERS : "có"
+    MEMBERS ||--o{ ROLE_BINDINGS : "được gán"
+    ACCOUNTS ||--|| SUBSCRIPTIONS : "có"
+    SUBSCRIPTIONS }o--|| PLANS : "theo"
+    ACCOUNTS ||--o{ ZONES : "sở hữu"
+    ZONES ||--o{ HOSTNAMES : "phục vụ"
+    ZONES ||--o{ ORIGINS : "tới"
+    ZONES ||--o{ CERTIFICATES : "dùng"
+    ZONES ||--|| ZONE_POLICY_STATE : "trỏ tới"
     ZONES ||--o{ CUSTOM_RULES : "nháp"
     ZONES ||--o{ ACCESS_LISTS : "nháp"
     ZONES ||--o{ POLICY_VERSIONS : "bất biến"
-    ZONES ||--o{ CHANGE_REQUESTS : đề_xuất
-    CHANGE_REQUESTS ||--o{ APPROVALS : cần
-    CHANGE_REQUESTS ||--o| POLICY_VERSIONS : tạo_ra
+    ZONES ||--o{ CHANGE_REQUESTS : "đề xuất"
+    CHANGE_REQUESTS ||--o{ APPROVALS : "cần"
+    CHANGE_REQUESTS ||--o| POLICY_VERSIONS : "tạo ra"
     ZONES {
         uuid id PK
         uuid tenant_id

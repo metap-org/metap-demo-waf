@@ -27,6 +27,11 @@ không tốn độ trễ, và băng thông tiết kiệm ở origin bù chi phí
 
 Vulnerability scanning (DAST) không phải lõi WAAP; nếu làm, là sản phẩm riêng dùng chung tenant.
 
+Bảng trên phân rã chi tiết thành chức năng lá ở [bản đồ phân rã chức năng](../../requirements/01-functional-decomposition.md),
+và thành requirement có tiêu chí chấp nhận ở [requirements](../../requirements/02-requirements.md) (cả hai đang chờ review).
+Từng nghiệp vụ được phân tích theo trình tự khách làm ở [phân tích nghiệp vụ](../../requirements/03-business-analysis/00-index.md),
+bắt đầu từ [onboarding một website](../../requirements/03-business-analysis/01-onboarding.md).
+
 ## 1.3 Mục tiêu chất lượng
 
 Sáu mục tiêu xếp theo thứ tự ưu tiên. Khi hai mục xung đột, mục đứng trên thắng. Kịch bản đo được

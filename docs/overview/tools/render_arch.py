@@ -1,12 +1,14 @@
-"""Render docs/architecture/**/*.md into one self-contained HTML page for viewing.
+"""Render a docs set (docs/<set>/**/*.md) into one self-contained HTML page for viewing.
 
 Usage (Python >= 3.9, `pip install -r docs/overview/tools/requirements.txt`):
 
-    python3 docs/overview/tools/render_arch.py            # defaults below
-    python3 render_arch.py <docs/architecture dir> <out.html>
+    python3 docs/overview/tools/render_arch.py            # every set in DOC_SETS, defaults below
+    python3 render_arch.py <docs/<set> dir> <out.html>    # one set
 
-Defaults: source = docs/architecture, output = docs/overview/v1-waap-architecture.html,
-both resolved relative to this script, so it works from any working directory.
+Defaults: every docs set in DOC_SETS (architecture, requirements), each into its
+docs/overview/v1-waap-<set>.html, resolved relative to this script, so it works from
+any working directory. A link from one set into another (for example
+../../requirements/02-requirements.md#...) becomes a link to the other set's HTML page.
 """
 import html
 import os
@@ -17,13 +19,15 @@ import urllib.parse
 from markdown_it import MarkdownIt
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
-if len(sys.argv) == 3:
-    SRC, OUT = sys.argv[1], sys.argv[2]
-elif len(sys.argv) == 1:
-    SRC = os.path.join(_HERE, "..", "..", "architecture")
-    OUT = os.path.join(_HERE, "..", "v1-waap-architecture.html")
-else:
-    sys.exit(__doc__)
+_DOCS = os.path.normpath(os.path.join(_HERE, "..", ".."))
+
+# docs set name -> (output file name, page title, sidebar subtitle)
+DOC_SETS = {
+    "architecture": ("v1-waap-architecture.html", "WAAP Architecture", "arc42 · bản xem từ docs/architecture"),
+    "requirements": ("v1-waap-requirements.html", "WAAP Requirements", "bản xem từ docs/requirements"),
+}
+
+SRC = OUT = None
 
 
 def collect():
@@ -82,6 +86,18 @@ def resolve_link(href, cur):
             target = os.path.join(target, "00-index.md")
     if not target.endswith(".md"):
         return href, True
+    if target.startswith(".." + os.sep):
+        # Link into another docs set: point at that set's rendered page.
+        other = os.path.normpath(os.path.join(os.path.abspath(SRC), target))
+        rel = os.path.relpath(other, _DOCS)
+        name, _, inner = rel.partition(os.sep)
+        if name in DOC_SETS and inner:
+            if os.path.isdir(os.path.join(_DOCS, name, inner)):
+                inner = os.path.join(inner, "00-index.md")
+            fid = file_id(inner)
+            page = DOC_SETS[name][0]
+            return (f"{page}#{fid}--{frag}" if frag else f"{page}#{fid}"), True
+        return href, True
     fid = file_id(target)
     return (f"#{fid}--{frag}" if frag else f"#{fid}"), False
 
@@ -110,23 +126,43 @@ def render_file(path):
     return fid, title, body
 
 
-files = collect()
-sections, nav = [], []
-current_group = None
-for p in files:
-    fid, title, body = render_file(p)
-    group = p.split(os.sep)[0] if os.sep in p else ""
-    depth = p.count(os.sep)
-    sections.append(
-        f'<section class="doc" id="{fid}"><div class="path">{html.escape(p)}</div>{body}</section>'
-    )
-    is_folder_index = p.endswith("00-index.md")
-    cls = "top" if (depth <= 1 and is_folder_index) or p == "index.md" else "sub"
-    if "08-components" in p and not p.endswith("08-components/00-index.md"):
-        cls = "sub2"
-    nav.append(f'<a class="{cls}" href="#{fid}">{html.escape(title)}</a>')
+def render_set(src, out, title_text, brand, brand_sub):
+    global SRC, OUT
+    SRC, OUT = src, out
+    files = collect()
+    sections, nav = [], []
+    for p in files:
+        fid, title, body = render_file(p)
+        group = p.split(os.sep)[0] if os.sep in p else ""
+        depth = p.count(os.sep)
+        sections.append(
+            f'<section class="doc" id="{fid}"><div class="path">{html.escape(p)}</div>{body}</section>'
+        )
+        is_folder_index = p.endswith("00-index.md")
+        cls = "top" if (depth <= 1 and is_folder_index) or p == "index.md" else "sub"
+        if "08-components" in p and not p.endswith("08-components/00-index.md"):
+            cls = "sub2"
+        nav.append(f'<a class="{cls}" href="#{fid}">{html.escape(title)}</a>')
 
-template = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "arch_template.html"), encoding="utf-8").read()
-out = template.replace("{{NAV}}", "\n".join(nav)).replace("{{CONTENT}}", "\n".join(sections))
-open(OUT, "w", encoding="utf-8").write(out)
-print(f"{len(files)} files -> {OUT} ({len(out)//1024} KB)")
+    template = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "arch_template.html"), encoding="utf-8").read()
+    out = (
+        template.replace("{{NAV}}", "\n".join(nav))
+        .replace("{{CONTENT}}", "\n".join(sections))
+        .replace("{{TITLE}}", html.escape(title_text))
+        .replace("{{BRAND}}", html.escape(brand))
+        .replace("{{BRAND_SUB}}", html.escape(brand_sub))
+    )
+    open(OUT, "w", encoding="utf-8").write(out)
+    print(f"{len(files)} files -> {OUT} ({len(out)//1024} KB)")
+
+
+if len(sys.argv) == 3:
+    src, out = sys.argv[1], sys.argv[2]
+    name = os.path.basename(os.path.normpath(src))
+    _, t, sub = DOC_SETS.get(name, (None, "WAAP Docs", f"bản xem từ {src}"))
+    render_set(src, out, t, t, sub)
+elif len(sys.argv) == 1:
+    for name, (page, t, sub) in DOC_SETS.items():
+        render_set(os.path.join(_DOCS, name), os.path.join(_HERE, "..", page), t, t, sub)
+else:
+    sys.exit(__doc__)

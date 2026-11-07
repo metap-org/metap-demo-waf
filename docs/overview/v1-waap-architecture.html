@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>WAAP Architecture Docs</title>
+<title>WAAP Architecture</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;600&display=swap">
 <style>
 /* layout: sidebar mục lục cố định bên trái + một cột đọc; trên điện thoại mục lục gập lại ở đầu trang */
@@ -323,6 +323,9 @@ là mục 5.8.5.</li>
 </ol>
 <h2 id="f-index--quan-hệ-với-tài-liệu-khác-trong-repo">Quan hệ với tài liệu khác trong repo</h2>
 <ul>
+<li><code>docs/requirements/</code> (<a href="v1-waap-requirements.html#f-index" target="_blank" rel="noopener">index</a>): bản đồ phân rã chức năng, requirements, phân tích
+nghiệp vụ. Tách khỏi kiến trúc: requirements nói hệ thống phải làm gì, thư mục này nói làm bằng gì. Kiến
+trúc trỏ sang requirements khi cần lý do, không chép lại.</li>
 <li><code>docs/overview/</code>: bản HTML để đọc và trình bày (xem <code>README.md</code> trong đó), prefix <code>v1-</code>; bản hiện hành sinh từ thư mục này.</li>
 <li><code>data-plane/docs/</code>: spec nghiệp vụ và màn hình của portal demo. Phần nghiệp vụ (persona, domain,
 gói cước) vẫn dùng được làm đầu vào; phần ranh giới kiến trúc ở đó được thay bằng tài liệu này.</li>
@@ -396,6 +399,10 @@ mức demo. <strong>Mở rộng</strong> để ngang đối thủ trong vòng đ
 <p>CDN không phải phần phụ: khi traffic đã đi qua edge vì hiệu năng, WAF trở thành phần cộng thêm gần như
 không tốn độ trễ, và băng thông tiết kiệm ở origin bù chi phí dịch vụ (<a href="#f-09-adr-0035-cdn-and-dns-strategy">ADR-0035</a>).</p>
 <p>Vulnerability scanning (DAST) không phải lõi WAAP; nếu làm, là sản phẩm riêng dùng chung tenant.</p>
+<p>Bảng trên phân rã chi tiết thành chức năng lá ở <a href="v1-waap-requirements.html#f-01-functional-decomposition" target="_blank" rel="noopener">bản đồ phân rã chức năng</a>,
+và thành requirement có tiêu chí chấp nhận ở <a href="v1-waap-requirements.html#f-02-requirements" target="_blank" rel="noopener">requirements</a> (cả hai đang chờ review).
+Từng nghiệp vụ được phân tích theo trình tự khách làm ở <a href="v1-waap-requirements.html#f-03-business-analysis-00-index" target="_blank" rel="noopener">phân tích nghiệp vụ</a>,
+bắt đầu từ <a href="v1-waap-requirements.html#f-03-business-analysis-01-onboarding" target="_blank" rel="noopener">onboarding một website</a>.</p>
 <h2 id="f-01-introduction-00-index--13-mục-tiêu-chất-lượng">1.3 Mục tiêu chất lượng</h2>
 <p>Sáu mục tiêu xếp theo thứ tự ưu tiên. Khi hai mục xung đột, mục đứng trên thắng. Kịch bản đo được
 ở <a href="#f-10-quality-00-index">10. Quality Requirements</a>.</p>
@@ -1624,6 +1631,133 @@ và giữ trạng thái cũ, không đọc dở.</p>
 <td>Analytics → Management</td>
 <td>Số đo sử dụng theo tenant và kỳ</td>
 <td>Định kỳ, có thể chạy lại</td>
+</tr>
+</tbody>
+</table>
+<h3 id="f-05-building-blocks-05-contracts--hợp-đồng-bổ-sung-tạm-2026-11-06">Hợp đồng bổ sung (tạm, 2026-11-06)</h3>
+<blockquote>
+<p><strong>Trạng thái: tạm, chờ phân tích nghiệp vụ.</strong> Các hợp đồng dưới đây lấp các liên kết giữa plane mà
+<a href="v1-waap-requirements.html#f-01-functional-decomposition--liên-kết-giữa-các-plane" target="_blank" rel="noopener">bản đồ phân rã chức năng</a> tìm
+ra nhưng bảng trên chưa có. Tên và trường có thể đổi khi phân tích từng nghiệp vụ
+(<a href="v1-waap-requirements.html#f-03-business-analysis-00-index" target="_blank" rel="noopener">requirements §3</a>); quy tắc version N-1 ở đầu mục áp như mọi
+hợp đồng khác. Cột <strong>LK</strong> trỏ về liên kết trong bản đồ phân rã chức năng. Hai hợp đồng ghi <strong>chờ onboarding</strong> đến
+từ bản nháp onboarding chưa duyệt (<a href="v1-waap-requirements.html#f-03-business-analysis-01-onboarding" target="_blank" rel="noopener">requirements §3.1</a>).</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>Hợp đồng</th>
+<th>Từ → Tới</th>
+<th>LK</th>
+<th>Nội dung</th>
+<th>Giao nhận</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>PurgeRequested</strong></td>
+<td>Management → Control</td>
+<td>LK-3</td>
+<td>Purge ID, zone, loại (toàn zone / URL / prefix / tag), danh sách giá trị trong giới hạn gói, người yêu cầu</td>
+<td>Outbox, lớp A fast lane (<a href="#f-08-cross-cutting-15-config-propagation-and-apply">8.15</a>); là lệnh, không vào bundle; bỏ trùng theo purge ID; tiến độ trả qua <code>RolloutProgress</code></td>
+</tr>
+<tr>
+<td><strong>CompileResult</strong></td>
+<td>Control → Management</td>
+<td>LK-7</td>
+<td>PolicyVersion ID hoặc change request ID, kết quả (đạt / từ chối), lỗi theo rule (vị trí, mã, thông điệp), số đo ngân sách (kích thước, độ phức tạp), digest bundle</td>
+<td>Outbox của Control, at-least-once; Management bỏ trùng theo version ID. Biên dịch thử khi soạn (LK-6) vẫn gọi đồng bộ</td>
+</tr>
+<tr>
+<td><strong>RolloutProgress</strong></td>
+<td>Control → Management, Analytics (realtime)</td>
+<td>LK-7</td>
+<td>Version hoặc purge ID, giai đoạn (canary / wave n / toàn fleet), % node đã áp, số node lỗi, lý do dừng hoặc rollback</td>
+<td>Khi đổi giai đoạn và tối đa mỗi 10 s khi đang chạy; mất không sao, Management đọc lại qua Control internal API</td>
+</tr>
+<tr>
+<td><strong>CertStatusChanged</strong></td>
+<td>Control → Management</td>
+<td>LK-24</td>
+<td>Hostname, cert ID, trạng thái (<code>pending_validation</code>, <code>issued</code>, <code>renewing</code>, <code>failed</code>, <code>expired</code>), ngày hết hạn, CA, nguyên nhân lỗi (CAA, DNS-01, rate limit của CA)</td>
+<td>Outbox; bỏ trùng theo (cert ID, trạng thái, thời điểm)</td>
+</tr>
+<tr>
+<td><strong>ZoneCheckResult</strong> (chờ onboarding)</td>
+<td>Control → Management</td>
+<td>LK-28</td>
+<td>Zone, hostname, loại kiểm (<code>ownership</code>, <code>dns_routing</code>, <code>origin</code>, <code>origin_exposure</code>, <code>caa</code>, <code>dns_discovery</code>), kết quả, chi tiết (bản ghi thấy được, resolver, mã lỗi, thời gian phản hồi), lần kiểm kế tiếp</td>
+<td>Outbox; Management giữ kết quả mới nhất theo (zone, hostname, loại); kiểm theo yêu cầu thì trả cả qua Control internal API (sync)</td>
+</tr>
+<tr>
+<td><strong>OriginProbe</strong> (chờ onboarding)</td>
+<td>Control ↔ Edge</td>
+<td>LK-27</td>
+<td>Yêu cầu: zone, origin, cổng, giao thức, SNI, Host, đường dẫn; kết quả: kết nối, TLS (chuỗi, hostname khớp, hạn), mã HTTP, thời gian theo chặng, node và PoP đã thử</td>
+<td>Đồng bộ qua kênh mTLS của edge agent, có deadline; Control chọn node ở ≥ 2 PoP</td>
+</tr>
+<tr>
+<td><strong>PopState</strong></td>
+<td>Control → Edge (DNS)</td>
+<td>LK-13</td>
+<td>PoP ID, trạng thái (<code>active</code>, <code>draining</code>, <code>down</code>), trọng số, VIP theo cell</td>
+<td>Nằm trong bundle chung; rút PoP đi kèm cờ khẩn. DNS dùng trạng thái cuối nếu không nhận</td>
+</tr>
+<tr>
+<td><strong>PermissionsChanged</strong></td>
+<td>Management → Analytics (realtime gateway)</td>
+<td>LK-19</td>
+<td>Tenant, chủ thể (user / API key / service account), loại (đổi vai trò, khoá, gỡ, thu hồi key), thời điểm</td>
+<td>Outbox; gateway đóng channel liên quan; bỏ trùng theo event ID</td>
+</tr>
+<tr>
+<td><strong>AlertPolicyChanged</strong></td>
+<td>Management → Analytics</td>
+<td>LK-20</td>
+<td>Alert policy ID, version, template, điều kiện, phạm vi zone, tham chiếu kênh (không có secret), giờ im lặng, chu kỳ lặp; xoá là tombstone</td>
+<td>Outbox; Analytics giữ version lớn nhất</td>
+</tr>
+<tr>
+<td><strong>ExportDestinationChanged</strong></td>
+<td>Management → Analytics</td>
+<td>LK-20</td>
+<td>Đích ID, version, loại, endpoint, tham chiếu secret, bộ lọc, trạng thái bật/tắt; xoá là tombstone</td>
+<td>Như trên</td>
+</tr>
+<tr>
+<td><strong>FalsePositiveLabeled</strong></td>
+<td>Management → Analytics</td>
+<td>LK-20</td>
+<td>Request ID, zone, rule ID, policy version, nhãn (chặn nhầm / không phải), người gắn, lý do</td>
+<td>Outbox; bỏ trùng theo (request ID, rule ID); nhãn sau thay nhãn trước</td>
+</tr>
+<tr>
+<td><strong>ReplayRequested / ReplayCompleted</strong></td>
+<td>Management → Analytics / Analytics → Management</td>
+<td>LK-22</td>
+<td>Yêu cầu: job ID, zone, digest bundle nháp (Control biên dịch thử), khoảng thời gian, tỉ lệ mẫu. Kết quả: số request đổi hành động theo rule, mẫu request đã che, lỗi</td>
+<td>Outbox hai chiều; job idempotent theo job ID; kết quả chi tiết giữ ở Analytics, Management nhận tóm tắt</td>
+</tr>
+<tr>
+<td><strong>DataErasureRequested / DataErasureCompleted</strong></td>
+<td>Management → Analytics, Control / Analytics, Control → Management</td>
+<td>LK-23</td>
+<td>Yêu cầu: erasure ID, tenant, phạm vi (org / user / zone), định danh cần xoá hoặc ẩn danh, hạn hoàn tất. Kết quả: plane, số bản ghi xử lý, thời điểm</td>
+<td>Outbox; mỗi plane trả <code>Completed</code> riêng; Management đóng yêu cầu khi đủ mọi plane</td>
+</tr>
+<tr>
+<td><strong>IsolationRequested</strong></td>
+<td>Analytics → Control</td>
+<td>LK-25</td>
+<td>Zone, detector, chỉ số kích hoạt, mức đề xuất (cell cách ly / nhóm PoP riêng), thời hạn</td>
+<td>RabbitMQ at-least-once; Control quyết theo chính sách, có thể từ chối; NOC thấy mọi yêu cầu</td>
+</tr>
+<tr>
+<td><strong>ReputationBatch</strong></td>
+<td>Analytics → Control</td>
+<td>LK-26</td>
+<td>Version, loại (IP / ASN / fingerprint), danh sách điểm, khoảng thời gian tính, phương pháp</td>
+<td>Theo lô: file trên object storage + thông báo; Control đưa qua pipeline phát hành (đánh giá, log-only) như ruleset (<a href="#f-05-building-blocks-08-components-07-cert-ruleset-release">5.8.7</a>)</td>
 </tr>
 </tbody>
 </table>
@@ -3774,11 +3908,11 @@ tải bundle, do relay gánh; Control chỉ phục vụ relay, không phục v�
 <tbody>
 <tr>
 <td><strong>Domain verifier</strong></td>
-<td>Kiểm bản ghi TXT xác minh và CNAME trỏ về edge; kết quả là điều kiện để xin cert</td>
+<td>Kiểm xác minh sở hữu (mặc định CNAME uỷ quyền <code>_acme-challenge</code>, hoặc TXT), trạng thái trỏ DNS, CAA, tra DNS khi thêm domain; điều phối kiểm origin từ edge (<code>OriginProbe</code>); kết quả là điều kiện để xin cert và gửi về Management qua <code>ZoneCheckResult</code> (<a href="v1-waap-requirements.html#f-03-business-analysis-01-onboarding" target="_blank" rel="noopener">requirements §3.1</a>)</td>
 </tr>
 <tr>
 <td><strong>ACME client</strong></td>
-<td><code>lego</code>; HTTP-01 (token phát xuống edge qua fast lane, edge trả lời <code>/.well-known/acme-challenge/</code>), DNS-01 khi khách uỷ quyền DNS; nhiều CA để dự phòng</td>
+<td><code>lego</code>; (chờ onboarding, <a href="v1-waap-requirements.html#f-03-business-analysis-01-onboarding" target="_blank" rel="noopener">requirements §3.1</a>) DNS-01 qua uỷ quyền <code>_acme-challenge</code> là mặc định, để cert đầu có trước khi khách đổi DNS; HTTP-01 (token phát xuống edge qua fast lane, edge trả lời <code>/.well-known/acme-challenge/</code>) khi khách chỉ xác minh bằng TXT; nhiều CA để dự phòng</td>
 </tr>
 <tr>
 <td><strong>Upload handler</strong></td>
@@ -5697,7 +5831,10 @@ lúc ClickHouse đang chịu tải ghi cao nhất vì tấn công. Vì vậy lu�
 </section>
 <section class="doc" id="f-05-building-blocks-08-components-14-management-database"><div class="path">05-building-blocks/08-components/14-management-database.md</div><h1 id="f-05-building-blocks-08-components-14-management-database--5814-database-của-management-plane">5.8.14 Database của Management plane</h1>
 <blockquote>
-<p><strong>Trạng thái: thiết kế v1, đã chốt (2026-11-06).</strong> Quyết định nền:
+<p><strong>Trạng thái: thiết kế v1 (2026-11-06), cần đối chiếu lại</strong> với <a href="v1-waap-requirements.html#f-01-functional-decomposition" target="_blank" rel="noopener">bản đồ phân rã chức năng</a>
+và <a href="v1-waap-requirements.html#f-02-requirements" target="_blank" rel="noopener">requirements</a> sau khi hai mục đó được review: đã thấy thiếu một số đối tượng dữ liệu
+(bản đồ phân rã, mục &quot;Đối chiếu với thiết kế hiện có&quot;). Các quyết định nền tảng (DB1–DB4, MG1–MG5) không đổi.
+Quyết định nền:
 <a href="#f-09-adr-0046-management-database-tenancy-and-storage">ADR-0046</a>. Mô hình logic ở
 <a href="#f-05-building-blocks-06-data-model">5.6</a>; module và workflow ở <a href="#f-05-building-blocks-08-components-12-management">5.8.12</a>.</p>
 </blockquote>
@@ -5982,21 +6119,21 @@ primary PostgreSQL với replica đọc là đủ, không cần shard</strong>; 
 <h2 id="f-05-building-blocks-08-components-14-management-database--4-entity-theo-module-schema-waap">4. Entity theo module (schema <code>waap</code>)</h2>
 <div class="diagram"><pre class="mermaid">erDiagram
     ORG_PROFILES ||--o{ ACCOUNTS : &quot;tenant có&quot;
-    ACCOUNTS ||--o{ MEMBERS : có
-    MEMBERS ||--o{ ROLE_BINDINGS : được_gán
-    ACCOUNTS ||--|| SUBSCRIPTIONS : có
-    SUBSCRIPTIONS }o--|| PLANS : theo
-    ACCOUNTS ||--o{ ZONES : sở_hữu
-    ZONES ||--o{ HOSTNAMES : phục_vụ
-    ZONES ||--o{ ORIGINS : tới
-    ZONES ||--o{ CERTIFICATES : dùng
-    ZONES ||--|| ZONE_POLICY_STATE : trỏ_tới
+    ACCOUNTS ||--o{ MEMBERS : &quot;có&quot;
+    MEMBERS ||--o{ ROLE_BINDINGS : &quot;được gán&quot;
+    ACCOUNTS ||--|| SUBSCRIPTIONS : &quot;có&quot;
+    SUBSCRIPTIONS }o--|| PLANS : &quot;theo&quot;
+    ACCOUNTS ||--o{ ZONES : &quot;sở hữu&quot;
+    ZONES ||--o{ HOSTNAMES : &quot;phục vụ&quot;
+    ZONES ||--o{ ORIGINS : &quot;tới&quot;
+    ZONES ||--o{ CERTIFICATES : &quot;dùng&quot;
+    ZONES ||--|| ZONE_POLICY_STATE : &quot;trỏ tới&quot;
     ZONES ||--o{ CUSTOM_RULES : &quot;nháp&quot;
     ZONES ||--o{ ACCESS_LISTS : &quot;nháp&quot;
     ZONES ||--o{ POLICY_VERSIONS : &quot;bất biến&quot;
-    ZONES ||--o{ CHANGE_REQUESTS : đề_xuất
-    CHANGE_REQUESTS ||--o{ APPROVALS : cần
-    CHANGE_REQUESTS ||--o| POLICY_VERSIONS : tạo_ra
+    ZONES ||--o{ CHANGE_REQUESTS : &quot;đề xuất&quot;
+    CHANGE_REQUESTS ||--o{ APPROVALS : &quot;cần&quot;
+    CHANGE_REQUESTS ||--o| POLICY_VERSIONS : &quot;tạo ra&quot;
     ZONES {
         uuid id PK
         uuid tenant_id
@@ -6619,22 +6756,43 @@ thái về Management.</p>
 <p>Rule khẩn của NCC (zero-day) đi cùng đường, bắt đầu từ console NCC thay vì Management của khách,
 và nằm trong bundle chung.</p>
 <h2 id="f-06-runtime-00-index--64-onboarding-một-zone">6.4 Onboarding một zone</h2>
+<blockquote>
+<p><strong>Chờ onboarding.</strong> Sequence này theo bản nháp chưa duyệt ở
+<a href="v1-waap-requirements.html#f-03-business-analysis-01-onboarding" target="_blank" rel="noopener">requirements §3.1</a>, chỉ cho một kịch bản (DNS đầy
+đủ, origin có IP public, cổng chuẩn). Onboarding đang được phân tích lại theo nhiều kịch bản.</p>
+</blockquote>
+<p>Đường chính của bản nháp: xác minh và cert xong
+<strong>trước</strong> khi khách đổi DNS, bật chặn chỉ sau giai đoạn log-only có số liệu.</p>
 <div class="diagram"><pre class="mermaid">sequenceDiagram
-    actor A as Khách
+    actor K as Khách
     participant M as Management
     participant C as Control
+    participant E as Edge
     participant D as DNS / CA
-    A-&gt;&gt;M: thêm domain, origin
+    participant A as Analytics
+    K-&gt;&gt;M: thêm domain (OB2)
     M-&gt;&gt;C: ZoneChanged (chờ xác minh)
-    C-&gt;&gt;D: kiểm bản ghi xác minh
-    D--&gt;&gt;C: hợp lệ
-    C-&gt;&gt;D: ACME: xin cert
+    C-&gt;&gt;D: tra DNS hiện tại, CAA
+    C--&gt;&gt;M: ZoneCheckResult (dns_discovery, caa)
+    K-&gt;&gt;D: tạo CNAME _acme-challenge (OB3)
+    C-&gt;&gt;D: kiểm từ nhiều resolver
+    C--&gt;&gt;M: ZoneCheckResult (ownership)
+    C-&gt;&gt;D: ACME DNS-01
     D--&gt;&gt;C: cert
-    C-&gt;&gt;C: kiểm tra origin từ edge
-    C--&gt;&gt;M: zone sẵn sàng
-    Note over M: managed ruleset bật log-only 7 ngày
-    A-&gt;&gt;M: trỏ CNAME về edge
-    M--&gt;&gt;A: sau 7 ngày: báo cáo rule nào sẽ chặn, đề xuất bật enforce
+    C--&gt;&gt;M: CertStatusChanged (issued)
+    C-&gt;&gt;E: OriginProbe ở 2 PoP (OB4)
+    E--&gt;&gt;C: kết quả
+    C--&gt;&gt;M: ZoneCheckResult (origin)
+    K-&gt;&gt;M: chọn preset (OB6), kích hoạt (OG1)
+    M-&gt;&gt;C: PolicyVersionPublished, ZoneChanged (active)
+    C-&gt;&gt;E: Snapshot
+    K-&gt;&gt;E: kiểm thử qua curl --resolve (OB7)
+    K-&gt;&gt;D: đổi CNAME về edge (OB8)
+    C--&gt;&gt;M: ZoneCheckResult (dns_routing)
+    E-&gt;&gt;A: TelemetryRecord (log-only)
+    M-&gt;&gt;A: Query: traffic đầu tiên, báo cáo log-only (OB9)
+    K-&gt;&gt;M: change request bật chặn (OB10)
+    M-&gt;&gt;C: PolicyVersionPublished
 </pre></div>
 <h2 id="f-06-runtime-00-index--65-xử-lý-một-request-bị-chặn-nhầm">6.5 Xử lý một request bị chặn nhầm</h2>
 <div class="diagram"><pre class="mermaid">sequenceDiagram
@@ -15355,6 +15513,38 @@ theo chính sách tài liệu (<a href="#f-02-constraints-00-index--24-conventio
 <td>Tên miền cụ thể trong một zone (ví dụ <code>shop.example.com</code>); một zone có nhiều hostname</td>
 </tr>
 <tr>
+<td><strong>Bản đồ phân rã chức năng</strong></td>
+<td>Functional Decomposition Diagram (FDD): cây chức năng ba cấp nhóm → chức năng → chức năng lá, nói hệ thống làm gì trước khi nói làm bằng gì (<a href="v1-waap-requirements.html#f-01-functional-decomposition" target="_blank" rel="noopener">requirements §1</a>)</td>
+</tr>
+<tr>
+<td><strong>Chức năng lá</strong></td>
+<td>Cấp thấp nhất của bản đồ phân rã, đủ nhỏ để viết requirement và kiểm thử; mỗi lá có đúng một plane chủ</td>
+</tr>
+<tr>
+<td><strong>Plane chủ</strong></td>
+<td>Plane giữ quyết định và dữ liệu gốc của một chức năng; plane khác chỉ gọi tới hoặc nhận kết quả</td>
+</tr>
+<tr>
+<td><strong>Cutover</strong></td>
+<td>Thời điểm khách đổi DNS để traffic thật đi qua edge (<a href="v1-waap-requirements.html#f-03-business-analysis-01-onboarding--ob8-đổi-dns-và-theo-dõi" target="_blank" rel="noopener">requirements §3.1, OB8</a>)</td>
+</tr>
+<tr>
+<td><strong>Uỷ quyền <code>_acme-challenge</code></strong></td>
+<td>Bản ghi CNAME khách tạo để vừa chứng minh sở hữu domain, vừa cho NCC xin và gia hạn cert bằng DNS-01 trước khi đổi DNS (<a href="v1-waap-requirements.html#f-03-business-analysis-01-onboarding--ob3-xác-minh-sở-hữu" target="_blank" rel="noopener">requirements §3.1, OB3</a>)</td>
+</tr>
+<tr>
+<td><strong>Khoá origin</strong></td>
+<td>Origin chỉ nhận traffic từ edge (firewall theo dải IP của edge, header bí mật hoặc mTLS) để không ai đi vòng qua WAF (<a href="v1-waap-requirements.html#f-03-business-analysis-01-onboarding--ob11-khoá-origin" target="_blank" rel="noopener">requirements §3.1, OB11</a>)</td>
+</tr>
+<tr>
+<td><strong>Preset bảo vệ</strong></td>
+<td>Bộ cấu hình ban đầu theo loại ứng dụng do NCC soạn, áp vào bản nháp policy khi onboard (<a href="v1-waap-requirements.html#f-03-business-analysis-01-onboarding--ob6-preset-bảo-vệ-ban-đầu" target="_blank" rel="noopener">requirements §3.1, OB6</a>)</td>
+</tr>
+<tr>
+<td><strong>Tiêu chí chấp nhận</strong></td>
+<td>Điều kiện kiểm được để coi một requirement đã đáp ứng (<a href="v1-waap-requirements.html#f-02-requirements" target="_blank" rel="noopener">requirements §2</a>)</td>
+</tr>
+<tr>
 <td><strong>Origin</strong></td>
 <td>Máy chủ thật của khách đứng sau edge</td>
 </tr>
@@ -16530,9 +16720,39 @@ theo chính sách tài liệu (<a href="#f-02-constraints-00-index--24-conventio
 </thead>
 <tbody>
 <tr>
+<td><strong>KB1-A1…KB12-F3</strong></td>
+<td>Kịch bản của từng nghiệp vụ: <code>KB&lt;số trang&gt;-&lt;trục&gt;&lt;số&gt;</code>, ví dụ KB1-C4 là trục C (cách trỏ) của onboarding (§3.1)</td>
+<td><a href="v1-waap-requirements.html#f-03-business-analysis-00-index" target="_blank" rel="noopener">requirements §3</a></td>
+</tr>
+<tr>
+<td><strong>OB1…OB12 / OG1…OG4 / CB1…CB7</strong></td>
+<td>Bước / cổng / việc chuẩn bị trong bản nháp onboarding chưa duyệt (Phụ lục A)</td>
+<td><a href="v1-waap-requirements.html#f-03-business-analysis-01-onboarding" target="_blank" rel="noopener">requirements §3.1</a></td>
+</tr>
+<tr>
 <td><strong>Q1–Q6</strong></td>
 <td>Mục tiêu chất lượng</td>
 <td><a href="#f-01-introduction-00-index--13-mục-tiêu-chất-lượng">1.3</a></td>
+</tr>
+<tr>
+<td><strong>F1…F12, Fx.y, Fx.y.z</strong></td>
+<td>Nhóm chức năng, chức năng, chức năng lá</td>
+<td><a href="v1-waap-requirements.html#f-01-functional-decomposition" target="_blank" rel="noopener">requirements §1</a></td>
+</tr>
+<tr>
+<td><strong>PM1…PM7 / PC1…PC8 / PE1…PE4 / PA1…PA8</strong></td>
+<td>Thành phần chức năng của Management / Control / Edge / Analytics trong phân rã theo plane</td>
+<td><a href="v1-waap-requirements.html#f-01-functional-decomposition--phân-rã-theo-plane" target="_blank" rel="noopener">requirements §1</a></td>
+</tr>
+<tr>
+<td><strong>LK-1…LK-28</strong></td>
+<td>Liên kết giữa các plane (chức năng phát → chức năng nhận, hợp đồng, kiểu, hành vi khi hỏng)</td>
+<td><a href="v1-waap-requirements.html#f-01-functional-decomposition--liên-kết-giữa-các-plane" target="_blank" rel="noopener">requirements §1</a></td>
+</tr>
+<tr>
+<td><strong>FR-x-nn / BR-n / DT-n / NFR-n / IR-n / OQ-n</strong></td>
+<td>Yêu cầu chức năng / quy tắc nghiệp vụ / yêu cầu dữ liệu / phi chức năng / giao tiếp ngoài / câu hỏi mở của requirements (OQ-1…OQ-15 ở §2, OQ-16…OQ-20 ở Phụ lục A của §3.1, OQ-21…OQ-123 ở các trang của §3)</td>
+<td><a href="v1-waap-requirements.html#f-02-requirements" target="_blank" rel="noopener">requirements §2</a></td>
 </tr>
 <tr>
 <td><strong>QS-1…QS-41</strong></td>

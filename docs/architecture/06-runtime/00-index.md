@@ -109,23 +109,44 @@ và nằm trong bundle chung.
 
 ## 6.4 Onboarding một zone
 
+> **Chờ onboarding.** Sequence này theo bản nháp chưa duyệt ở
+> [requirements §3.1](../../requirements/03-business-analysis/01-onboarding.md), chỉ cho một kịch bản (DNS đầy
+> đủ, origin có IP public, cổng chuẩn). Onboarding đang được phân tích lại theo nhiều kịch bản.
+
+Đường chính của bản nháp: xác minh và cert xong
+**trước** khi khách đổi DNS, bật chặn chỉ sau giai đoạn log-only có số liệu.
+
 ```mermaid
 sequenceDiagram
-    actor A as Khách
+    actor K as Khách
     participant M as Management
     participant C as Control
+    participant E as Edge
     participant D as DNS / CA
-    A->>M: thêm domain, origin
+    participant A as Analytics
+    K->>M: thêm domain (OB2)
     M->>C: ZoneChanged (chờ xác minh)
-    C->>D: kiểm bản ghi xác minh
-    D-->>C: hợp lệ
-    C->>D: ACME: xin cert
+    C->>D: tra DNS hiện tại, CAA
+    C-->>M: ZoneCheckResult (dns_discovery, caa)
+    K->>D: tạo CNAME _acme-challenge (OB3)
+    C->>D: kiểm từ nhiều resolver
+    C-->>M: ZoneCheckResult (ownership)
+    C->>D: ACME DNS-01
     D-->>C: cert
-    C->>C: kiểm tra origin từ edge
-    C-->>M: zone sẵn sàng
-    Note over M: managed ruleset bật log-only 7 ngày
-    A->>M: trỏ CNAME về edge
-    M-->>A: sau 7 ngày: báo cáo rule nào sẽ chặn, đề xuất bật enforce
+    C-->>M: CertStatusChanged (issued)
+    C->>E: OriginProbe ở 2 PoP (OB4)
+    E-->>C: kết quả
+    C-->>M: ZoneCheckResult (origin)
+    K->>M: chọn preset (OB6), kích hoạt (OG1)
+    M->>C: PolicyVersionPublished, ZoneChanged (active)
+    C->>E: Snapshot
+    K->>E: kiểm thử qua curl --resolve (OB7)
+    K->>D: đổi CNAME về edge (OB8)
+    C-->>M: ZoneCheckResult (dns_routing)
+    E->>A: TelemetryRecord (log-only)
+    M->>A: Query: traffic đầu tiên, báo cáo log-only (OB9)
+    K->>M: change request bật chặn (OB10)
+    M->>C: PolicyVersionPublished
 ```
 
 ## 6.5 Xử lý một request bị chặn nhầm
